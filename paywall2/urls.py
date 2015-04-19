@@ -11,7 +11,7 @@ from rest_framework import routers
 router = routers.DefaultRouter()
 
 urlpatterns = patterns('',
-    url(r'^', include('proxy.urls')),
     url(r'^admin/', include(admin.site.urls)),
     url(r'^', include(router.urls)),
+    url(r'^meters/', include('metering.urls')),
 )

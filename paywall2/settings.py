@@ -44,6 +44,8 @@ INSTALLED_APPS = (
     'django.contrib.staticfiles',
     #REST APIs
     'rest_framework',
+    #Custom Apps
+    'metering',
 )
 
 REST_FRAMEWORK = {
