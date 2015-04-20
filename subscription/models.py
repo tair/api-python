@@ -53,7 +53,7 @@ class Subscription(models.Model):
         subscriptionList = []
 
         # get a list of subscription filtered by IP
-        subscriptionListByIp = self.getByIp(ipAddress)
+        subscriptionListByIp = Subscription.getByIp(ipAddress)
         for obj in subscriptionListByIp:
             if obj.endDate > now:
                 subscriptionList.append(obj)
@@ -91,7 +91,7 @@ class SubscriptionTerm(models.Model):
     autoRenew = models.BooleanField(default=False)
 
     @staticmethod
-    def getByPartyId(self, partyId):
+    def getByPartyId(partyId):
         query = "SELECT * FROM Term " \
                 "INNER JOIN Subscription " \
                 "USING (subscriptionTermId) " \
