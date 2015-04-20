@@ -47,6 +47,7 @@ INSTALLED_APPS = (
     #Custom Apps
     'metering',
     'subscription',
+    'accessControl',
 )
 
 REST_FRAMEWORK = {

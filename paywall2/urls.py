@@ -15,4 +15,5 @@ urlpatterns = patterns('',
     url(r'^', include(router.urls)),
     url(r'^meters/', include('metering.urls')),
     url(r'^subscriptions/', include('subscription.urls')),
+    url(r'^accessControls/', include('accessControl.urls')),
 )
