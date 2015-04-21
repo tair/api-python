@@ -93,11 +93,11 @@ class SubscriptionTerm(models.Model):
 
     @staticmethod
     def getByPartyId(partyId):
-        query = "SELECT * FROM Term " \
+        query = "SELECT * FROM SubscriptionTerm " \
                 "INNER JOIN Subscription " \
                 "USING (subscriptionTermId) " \
                 "WHERE Subscription.partyId = %s "
-        return Subscription.objects.raw(query, [partyId])
+        return SubscriptionTerm.objects.raw(query, [partyId])
 
     class Meta:
         db_table = "SubscriptionTerm"
