@@ -30,14 +30,30 @@ class SubscriptionService():
 
     @staticmethod
     def checkByIp(ipAddress):
+        if ipAddress == None:
+            # fails IP check if no IP is provided
+            return Status.blockBySubscription
+
         requestUrl = '%s/active/?ip=%s' % (SubscriptionService.serviceUrl, ipAddress)
         response = requests.get(requestUrl)
+        contentJson = json.loads(response.content)
+        if len(contentJson) > 0:
+            return Status.ok
+        else:
+            return Status.blockBySubscription
+
+    @staticmethod
+    def checkById(partyId):
+        if partyId == None:
+            #fails ID check if no partyId is provided
+            return Status.blockBySubscription
+
+        requestUrl = '%s/active/?partyid=%s' % (SubscriptionService.serviceUrl, partyId)
+        response = requests.get(requestUrl)
+        print response.content
         contentJson = json.loads(response.content)
         print contentJson
         if len(contentJson) > 0:
             return Status.ok
         else:
-            return Status.block
-
-
-    
+            return Status.blockBySubscription

@@ -3,6 +3,7 @@
 from django.db import models
 from netaddr import IPAddress
 from django.utils import timezone
+import datetime
 
 # Create your models here.
 class NumericField(models.Field):
