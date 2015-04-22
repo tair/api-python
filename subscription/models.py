@@ -1,6 +1,7 @@
 #Copyright 2015 Phoenix Bioinformatics Corporation. All rights reserved.
 
 from django.db import models
+from django.db import connection
 from netaddr import IPAddress
 from django.utils import timezone
 import datetime
@@ -41,24 +42,27 @@ class Subscription(models.Model):
     @staticmethod
     def getActiveById(partyId):
         now = datetime.datetime.now()
-        query = "SELECT * FROM Subscription " \
+        query = "SELECT COUNT(*) FROM Subscription " \
                 "INNER JOIN Payment " \
                 "USING (partyId) " \
                 "WHERE Subscription.partyId = %s " \
                 "AND Subscription.endDate > %s "
-        return Subscription.objects.raw(query, [partyId, now])
+        cursor = connection.cursor()
+        cursor.execute(query, (partyId, now))
+        row = cursor.fetchone()
+        return row[0] > 0
 
     @staticmethod
     def getActiveByIp(ipAddress):
         now = timezone.now()
-        subscriptionList = []
 
         # get a list of subscription filtered by IP
         subscriptionListByIp = Subscription.getByIp(ipAddress)
         for obj in subscriptionListByIp:
             if obj.endDate > now:
-                subscriptionList.append(obj)
-        return subscriptionList
+                return True
+        return False
+
     class Meta:
         db_table = "Subscription"
 

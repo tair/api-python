@@ -1,8 +1,5 @@
 #Copyright 2015 Phoenix Bioinformatics Corporation. All rights reserved.
 
-
-
-
 from django.conf.urls import url
 from subscription import views
 from rest_framework.urlpatterns import format_suffix_patterns
@@ -21,6 +18,7 @@ urlpatterns = [
     url(r'^terms/(?P<pk>[0-9.]+)/$', views.TermsDetail.as_view()),
 
     # Specific queries about subscription
+    url(r'^terms/queries/', views.TermsQueries.as_view()),
     url(r'^active/$', views.SubscriptionsActive.as_view()),
     url(r'^(?P<pk>[0-9.]+)/payments/', views.SubscriptionsPayments.as_view()),
     url(r'^(?P<pk>[0-9.]+)/prices/', views.SubscriptionsPrices.as_view()),

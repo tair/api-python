@@ -1,14 +1,16 @@
 #Copyright 2015 Phoenix Bioinformatics Corporation. All rights reserved.
 
+from django.http import HttpResponse
+
 from subscription.models import Party, Payment, Subscription, SubscriptionIpRange, SubscriptionTerm
 from subscription.serializers import PartySerializer, PaymentSerializer, SubscriptionSerializer, SubscriptionIpRangeSerializer, SubscriptionTermSerializer
 
 from rest_framework import status
 from rest_framework.response import Response
-
 from rest_framework.views import APIView
 from rest_framework import generics
 
+import json
 
 # top level: /subscriptions/
 
@@ -70,26 +72,18 @@ class SubscriptionsDetail(generics.RetrieveUpdateDestroyAPIView):
 
 # /subscriptions/active/
 class SubscriptionsActive(APIView):
-    availableQuerySet = {
-        'partyid',
-        'ip',
-    }
-
     def get(self, request, format=None):
-        querySet = self.availableQuerySet.intersection(set(request.query_params))
-        obj = None
-        for key in querySet:
-            value = request.GET.get(key)
-            if key == 'partyid':
-                obj = Subscription.getActiveById(value)
-            elif key == 'ip':
-                obj = Subscription.getActiveByIp(value)
-            else:
-                return Response(status=status.HTTP_400_BAD_REQUEST)
-        if obj == None:
+        partyId = request.GET.get('partyId')
+        ip = request.GET.get('ip')
+        isActive = False
+        if not partyId == None:
+            isActive = Subscription.getActiveById(partyId)
+        elif not ip == None:
+            isActive = Subscription.getActiveByIp(ip)
+        else:
             return Response(status=status.HTTP_400_BAD_REQUEST)
-        serializer = SubscriptionSerializer(obj, many=True)
-        return Response(serializer.data)
+
+        return HttpResponse(json.dumps({'active':isActive}), content_type="application/json")
 
 # /subscriptions/<primary key>/payments
 class SubscriptionsPayments(APIView):
@@ -105,26 +99,22 @@ class SubscriptionsPrices(APIView):
         serializer = SubscriptionTermSerializer(obj, many=True)
         return Response(serializer.data)
 
-# /terms/query/
-class TermsQuery(APIView):
-    availableQuerySet = {
-        'price',
-        'period',
-        'auto_renew',
-        'group_discount_percentage',
-    }
+# /terms
+class TermsQueries(APIView):
     def get(self, request, format=None):
-        querySet = self.availableQuerySet.intersection(set(request.query_params))
-        dataObj = []
-        for key in querySet:
-            value = request.GET.get(key)
-            if key == 'price':
-                dataObj = dataObj.filter(price=value)
-            elif key == 'period':
-                dataObj = dataObj.filter(period=value)
-            elif key == 'auto_renew':
-                dataObj = dataObj.filter(autoRenew=value)
-            elif key == 'group_discount_percentage':
-                dataObj = dataObj.filter(groupDiscountPercentage=value)
-        serializer = SubscriptionTermSerializer(dataObj, many=True)
+        price = request.GET.get('price')
+        period = request.GET.get('period')
+        autoRenew = request.GET.get('autoRenew')
+        groupDiscountPercentage = request.GET.get('groupDiscountPercentage')
+
+        obj = SubscriptionTerm.objects.all()
+        if not price == None:
+            obj = obj.filter(price=price)
+        if not period == None:
+            obj = obj.filter(period=period)
+        if not autoRenew == None:
+            obj = obj.filter(autoRenew=autoRenew)
+        if not groupDiscountPercentage == None:
+            obj = obj.filter(groupDiscountPercentage=groupDiscountPercentage)
+        serializer = SubscriptionTermSerializer(obj, many=True)
         return Response(serializer.data, status=status.HTTP_200_OK)

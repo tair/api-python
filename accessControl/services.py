@@ -37,7 +37,8 @@ class SubscriptionService():
         requestUrl = '%s/active/?ip=%s' % (SubscriptionService.serviceUrl, ipAddress)
         response = requests.get(requestUrl)
         contentJson = json.loads(response.content)
-        if len(contentJson) > 0:
+
+        if contentJson['active']:
             return Status.ok
         else:
             return Status.blockBySubscription
@@ -48,10 +49,11 @@ class SubscriptionService():
             #fails ID check if no partyId is provided
             return Status.blockBySubscription
 
-        requestUrl = '%s/active/?partyid=%s' % (SubscriptionService.serviceUrl, partyId)
+        requestUrl = '%s/active/?partyId=%s' % (SubscriptionService.serviceUrl, partyId)
         response = requests.get(requestUrl)
         contentJson = json.loads(response.content)
-        if len(contentJson) > 0:
+
+        if contentJson['active']:
             return Status.ok
         else:
             return Status.blockBySubscription

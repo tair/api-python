@@ -9,35 +9,29 @@ from controls import AccessControl
 from models import AccessType, AccessRule, Pattern
 from serializers import AccessTypeSerializer, AccessRuleSerializer, PatternSerializer
 
+import json
+
 # top level: /accessControls/
 
 
 # Main API call to access control service. Caller gives in partyId, and the
 # service outputs access control status such as "OK", "Warn", "BlockBySubscription".
 
-# /queries/
-class Queries(APIView):
-    availableQueries = {
-        "ip",
-        "partyId",
-        "url",
-    }
+# /subscriptions/
+class SubscriptionsAccess(APIView):
     def get(self, request, format=None):
-        ip = None
-        url = None
-        partyId = None
-        queries = self.availableQueries.intersection(set(request.query_params))
-        for key in queries:
-            value = request.GET.get(key)
-            if key == 'ip':
-                ip = value
-            elif key == 'partyId':
-                partyId = value
-            elif key == 'url':
-                url = value
+        ip = request.GET.get('ip')
+        url = request.GET.get('url')
+        partyId = request.GET.get('partyId')
 
         status = AccessControl.execute(ip, partyId, url)
-        return HttpResponse('<html>%s %s</html>' % (status, ip))
+        response = {
+            "status":status,
+            "url":url,
+            "partyId":partyId,
+            "ip":ip,
+        }
+        return HttpResponse(json.dumps(response), content_type="application/json")
 
 
 # Basic CRUD operation for AccessType, AccessRule, and Pattern
