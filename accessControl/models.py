@@ -5,8 +5,8 @@ import re
 
 class Status():
     ok = "OK"
-    warn = "Warning"
-    blockBySubscription = "BlockBySubscription"
+    meterWarn = "Warning"
+    needSubscription = "NeedSubscription"
 
 class Pattern(models.Model):
     patternId = models.AutoField(primary_key=True)

@@ -17,19 +17,27 @@ import json
 # Main API call to access control service. Caller gives in partyId, and the
 # service outputs access control status such as "OK", "Warn", "BlockBySubscription".
 
+# /access/
+class Access(APIView):
+    def get(self, request, format=None):
+        ip = request.GET.get('ip')
+        url = request.GET.get('url')
+        partyId = request.GET.get('partyId')
+        status = AccessControl.getAccessStatus(ip, partyId, url)
+        response = {
+            "status":status,
+        }
+        return HttpResponse(json.dumps(response), content_type="application/json")
+
 # /subscriptions/
 class SubscriptionsAccess(APIView):
     def get(self, request, format=None):
         ip = request.GET.get('ip')
         url = request.GET.get('url')
         partyId = request.GET.get('partyId')
-
-        status = AccessControl.execute(ip, partyId, url)
+        access = AccessControl.subscription(ip, partyId, url)
         response = {
-            "status":status,
-            "url":url,
-            "partyId":partyId,
-            "ip":ip,
+            "access":access,
         }
         return HttpResponse(json.dumps(response), content_type="application/json")
 

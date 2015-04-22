@@ -5,31 +5,35 @@ from models import Status, AccessType
 
 class AccessControl:
     @staticmethod
-    def execute(ip, partyId, url):
-        accessType = AccessType.getByUrl(url)
-        if accessType == "Free":
-            return Status.ok
-        elif accessType == "Paid":
-            status = AccessControl.checkSubscription(ip, partyId)
-            if not status == Status.ok:
-                return status
-
-        #passes all checks, allow access
-        return Status.ok
-
-    
-    @staticmethod
-    def checkSubscription(ip, partyId):
-        #check metering status. Allow access if status is ok or warn
+    def getAccessStatus(ip, partyId, url):
+        status = Status.ok
         meterStatus = MeteringService.checkByIp(ip)
-        if meterStatus == Status.ok or meterStatus == Status.warn:
-            return meterStatus
+        if meterStatus == Status.ok:
+            status = Status.ok
+        else:
+            # metered, check subscription.
+            if AccessControl.subscription(ip, partyId, url):
+                # metered but has subscription, return OK.
+                status = Status.ok
+            else:
+                # metered and does not have subscription.
+                # return warn or block depend on status
+                if meterStatus == Status.meterWarn:
+                    status = Status.meterWarn
+                else:
+                    status = Status.needSubscription
+        return status
 
-        #blocked, check subscription. Allow access if either IP 
-        #or partyId has an active subscription.
-        if SubscriptionService.checkByIp(ip) == Status.ok or \
-           SubscriptionService.checkById(partyId) == Status.ok:
-            return Status.ok
-        
-        #blocks user if it fails both metering and subscription check
-        return Status.blockBySubscription
+    @staticmethod
+    def subscription(ip, partyId, url):
+        accessType = AccessType.getByUrl(url)
+        if not accessType == "Paid":
+            # free content, allow access.
+            return True
+
+        if SubscriptionService.checkByIp(ip) or \
+           SubscriptionService.checkById(partyId):
+            # if either party is subscribed either by IP or partyId,
+            # then allow access. Else, deny.
+            return True
+        return False

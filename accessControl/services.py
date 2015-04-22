@@ -22,7 +22,7 @@ class MeteringService():
             status = contentJson['status']
         else:
             # first time visit, normal status.
-            pass
+            status = Status.ok
         return status
 
 class SubscriptionService():
@@ -31,29 +31,19 @@ class SubscriptionService():
     @staticmethod
     def checkByIp(ipAddress):
         if ipAddress == None:
-            # fails IP check if no IP is provided
-            return Status.blockBySubscription
-
+            return False
         requestUrl = '%s/active/?ip=%s' % (SubscriptionService.serviceUrl, ipAddress)
         response = requests.get(requestUrl)
         contentJson = json.loads(response.content)
 
-        if contentJson['active']:
-            return Status.ok
-        else:
-            return Status.blockBySubscription
+        return contentJson['active']
 
     @staticmethod
     def checkById(partyId):
         if partyId == None:
-            #fails ID check if no partyId is provided
-            return Status.blockBySubscription
-
+            return False
         requestUrl = '%s/active/?partyId=%s' % (SubscriptionService.serviceUrl, partyId)
         response = requests.get(requestUrl)
         contentJson = json.loads(response.content)
 
-        if contentJson['active']:
-            return Status.ok
-        else:
-            return Status.blockBySubscription
+        return contentJson['active']

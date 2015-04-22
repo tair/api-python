@@ -17,6 +17,7 @@ urlpatterns = [
     url(r'^patterns/(?P<pk>[0-9]+)/$', views.PatternsDetail.as_view()),
 
     # Specific queries
+    url(r'^access/$', views.Access.as_view()),
     url(r'^subscriptions/$', views.SubscriptionsAccess.as_view()),
 ]
 urlpatterns = format_suffix_patterns(urlpatterns)
