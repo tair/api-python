@@ -11,6 +11,10 @@ from serializers import AccessTypeSerializer, AccessRuleSerializer, PatternSeria
 
 # top level: /accessControls/
 
+
+# Main API call to access control service. Caller gives in partyId, and the
+# service outputs access control status such as "OK", "Warn", "BlockBySubscription".
+
 # /queries/
 class Queries(APIView):
     availableQueries = {
@@ -37,26 +41,33 @@ class Queries(APIView):
 
 
 # Basic CRUD operation for AccessType, AccessRule, and Pattern
-class AccessTypeList(generics.ListCreateAPIView):
+
+# /accessTypes/
+class AccessTypesList(generics.ListCreateAPIView):
     queryset = AccessType.objects.all()
     serializer_class = AccessTypeSerializer
 
-class AccessTypeDetail(generics.RetrieveUpdateDestroyAPIView):
+# /accessTypes/<primary-key>
+class AccessTypesDetail(generics.RetrieveUpdateDestroyAPIView):
     queryset = AccessType.objects.all()
     serializer_class = AccessTypeSerializer
 
-class AccessRuleList(generics.ListCreateAPIView):
+# /accessRules/
+class AccessRulesList(generics.ListCreateAPIView):
     queryset = AccessRule.objects.all()
     serializer_class = AccessRuleSerializer
 
-class AccessRuleDetail(generics.RetrieveUpdateDestroyAPIView):
+# /accessRules/<primary-key>
+class AccessRulesDetail(generics.RetrieveUpdateDestroyAPIView):
     queryset = AccessRule.objects.all()
     serializer_class = AccessRuleSerializer
 
-class PatternList(generics.ListCreateAPIView):
+# /patterns/
+class PatternsList(generics.ListCreateAPIView):
     queryset = Pattern.objects.all()
     serializer_class = PatternSerializer
 
-class PatternDetail(generics.RetrieveUpdateDestroyAPIView):
+# /patterns/<primary-key>
+class PatternsDetail(generics.RetrieveUpdateDestroyAPIView):
     queryset = Pattern.objects.all()
     serializer_class = PatternSerializer

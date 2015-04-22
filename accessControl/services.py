@@ -50,9 +50,7 @@ class SubscriptionService():
 
         requestUrl = '%s/active/?partyid=%s' % (SubscriptionService.serviceUrl, partyId)
         response = requests.get(requestUrl)
-        print response.content
         contentJson = json.loads(response.content)
-        print contentJson
         if len(contentJson) > 0:
             return Status.ok
         else:
