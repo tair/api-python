@@ -14,6 +14,7 @@ urlpatterns = patterns('',
     url(r'^admin/', include(admin.site.urls)),
     url(r'^', include(router.urls)),
     url(r'^meters/', include('metering.urls')),
+    url(r'^payments/', include('payments.urls')),
     url(r'^subscriptions/', include('subscription.urls')),
     url(r'^accessControls/', include('accessControl.urls')),
 )

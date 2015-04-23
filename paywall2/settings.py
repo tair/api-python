@@ -46,6 +46,7 @@ INSTALLED_APPS = (
     'rest_framework',
     #Custom Apps
     'metering',
+    'payments',
     'subscription',
     'accessControl',
 )
