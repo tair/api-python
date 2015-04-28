@@ -16,5 +16,5 @@ urlpatterns = patterns('',
     url(r'^meters/', include('metering.urls')),
     url(r'^payments/', include('payments.urls')),
     url(r'^subscriptions/', include('subscription.urls')),
-    url(r'^accessControls/', include('accessControl.urls')),
+    url(r'^authorizations/', include('authorization.urls')),
 )

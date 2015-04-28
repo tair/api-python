@@ -3,7 +3,7 @@
 from services import MeteringService, SubscriptionService
 from models import Status, AccessType
 
-class AccessControl:
+class Authorization:
     @staticmethod
     def getAccessStatus(ip, partyId, url):
         status = Status.ok
@@ -12,7 +12,7 @@ class AccessControl:
             status = Status.ok
         else:
             # metered, check subscription.
-            if AccessControl.subscription(ip, partyId, url):
+            if Authorization.subscription(ip, partyId, url):
                 # metered but has subscription, return OK.
                 status = Status.ok
             else:

@@ -4,11 +4,9 @@ import django
 import unittest
 import sys, getopt
 from unittest import TestCase
-from accessControl.models import Pattern, AccessRule, AccessType
+from authorization.models import Pattern, AccessRule, AccessType
 import requests
 import json
-
-from pyTestsCRUD import PatternsCRUD, AccessRulesCRUD, AccessTypesCRUD
 
 # Create your tests here.                                                                                                                                                                                 
 django.setup()
@@ -65,7 +63,7 @@ def genericTestGet(obj):
     obj.forceDelete(pk)
 
 class PatternsCRUD(TestCase):
-    url = serverUrl+'accessControls/patterns/'
+    url = serverUrl+'authorizations/patterns/'
     data = {
         'pattern':'/news/'
     }
@@ -111,7 +109,7 @@ class PatternsCRUD(TestCase):
             self.forceDelete(d)
 
 class AccessRulesCRUD(TestCase):
-    url = serverUrl+'accessControls/accessRules/'
+    url = serverUrl+'authorizations/accessRules/'
     data = {
         'patternId':1,
         'accessTypeId':1
@@ -163,7 +161,7 @@ class AccessRulesCRUD(TestCase):
             self.forceDelete(d)
 
 class AccessTypesCRUD(TestCase):
-    url = serverUrl+'accessControls/accessTypes/'
+    url = serverUrl+'authorizations/accessTypes/'
     data = {
         'name':'test1',
     }

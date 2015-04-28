@@ -48,7 +48,7 @@ INSTALLED_APPS = (
     'metering',
     'payments',
     'subscription',
-    'accessControl',
+    'authorization',
 )
 
 REST_FRAMEWORK = {

@@ -42,11 +42,11 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='accessrule',
             name='accessTypeId',
-            field=models.ForeignKey(to='accessControl.AccessType'),
+            field=models.ForeignKey(to='authorization.AccessType'),
         ),
         migrations.AddField(
             model_name='accessrule',
             name='patternId',
-            field=models.ForeignKey(to='accessControl.Pattern'),
+            field=models.ForeignKey(to='authorization.Pattern'),
         ),
     ]

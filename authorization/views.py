@@ -4,14 +4,14 @@ from django.http import HttpResponse
 from rest_framework.views import APIView
 from rest_framework import generics
 from services import MeteringService, SubscriptionService
-from controls import AccessControl
+from controls import Authorization
 
 from models import AccessType, AccessRule, Pattern
 from serializers import AccessTypeSerializer, AccessRuleSerializer, PatternSerializer
 
 import json
 
-# top level: /accessControls/
+# top level: /authorizations/
 
 
 # Main API call to access control service. Caller gives in partyId, and the
@@ -23,7 +23,7 @@ class Access(APIView):
         ip = request.GET.get('ip')
         url = request.GET.get('url')
         partyId = request.GET.get('partyId')
-        status = AccessControl.getAccessStatus(ip, partyId, url)
+        status = Authorization.getAccessStatus(ip, partyId, url)
         response = {
             "status":status,
         }
@@ -35,7 +35,7 @@ class SubscriptionsAccess(APIView):
         ip = request.GET.get('ip')
         url = request.GET.get('url')
         partyId = request.GET.get('partyId')
-        access = AccessControl.subscription(ip, partyId, url)
+        access = Authorization.subscription(ip, partyId, url)
         response = {
             "access":access,
         }
