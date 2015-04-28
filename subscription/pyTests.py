@@ -72,7 +72,7 @@ class SubscriptionTermTest(TestCase):
         }
         req = requests.put(serverUrl+'subscriptions/terms/'+str(termId)+'/', data=data)
         toDelete.append(termId)
-        self.assertEqual(req.status_code, 201)
+        self.assertEqual(req.status_code, 200)
         forceDeleteSubscriptionTerm(termId)
  
     def test_for_deleteTerm(self):
@@ -146,7 +146,7 @@ class SubscriptionTest(TestCase):
         req = requests.put(serverUrl+'subscriptions/'+str(partyId)+'/', data=data)
         toDeleteParty.append(partyId)
         toDeleteSubscription.append(termId)
-        self.assertEqual(req.status_code, 201)
+        self.assertEqual(req.status_code, 200)
         
 
     def test_for_deleteSubscription(self):
@@ -190,7 +190,8 @@ class PaymentTest(TestCase):
         termId = forcePostSubscriptionTerm(testTerm)
         u = forcePostSubscription(testSubscription, partyId, termId)
         forcePostPayment(u)
-        req = requests.get(serverUrl+'payments/'+str(partyID))
+        print serverUrl+'payments/'+str(partyId)
+        req = requests.get(serverUrl+'payments/'+str(partyId))
         toDeleteParty.append(partyId)
         toDeleteSubscription.append(termId)
         self.assertEqual(req.status_code, 200)
