@@ -3,6 +3,8 @@
 <head>
   <meta content="text/html; charset=utf-8"/>
   <title>Payment page</title>
+  <!-- Bootstrap --!>
+  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.4/css/bootstrap.min.css">
   <!-- Include Stripe.js --!>
   <script type="text/javascript" src="https://js.stripe.com/v2/"></script>
   <!-- Include jQuery --!>
@@ -35,21 +37,15 @@
   </script> 
 </head>
 <body>
-  {% if price %}
-    <p color="Blue"><b>The price is {{ price }}</b></p>
-  {% endif %}
   {% comment %}
-  {% if partyId %}
-    <p>Party ID is {{ partyId }}</p>
+  {% if message %}
+  <h6 class="warning">{{ message }}</h6>
   {% endif %}
   {% endcomment %}
-  {% if message %}
-    <p color="red">{{ message }}</p>
-  {% endif %}
-  <h1>Enter payment information below</h1>
+  <h1 class="text-center">Enter payment information below</h1>
   <form action="" method="POST" id="payment-form">
     {% csrf_token %}
-    <span class="payment-errors"></span>
+    <p class="payment-errors"></p>
 
     <div class="form-now">
       <label>
