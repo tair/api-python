@@ -69,6 +69,7 @@ def tryCharge(secret_key, stripe_token, priceToCharge, chargeDescription, partyI
   message = {}
   message['price'] = priceToCharge
   message['partyId'] = partyId
+  message['termId'] = termId
   stripe.api_key = secret_key
   try:
     charge = stripe.Charge.create(
