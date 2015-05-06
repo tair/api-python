@@ -49,6 +49,7 @@ INSTALLED_APPS = (
     'payments',
     'subscription',
     'authorization',
+    'partner',
 )
 
 REST_FRAMEWORK = {
@@ -77,7 +78,7 @@ WSGI_APPLICATION = 'paywall2.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.mysql',
-        'NAME': 'steveTest',
+        'NAME': 'steveTest3',
         'USER': 'phoenix',
         'PASSWORD': 'phoenix123',
         'HOST': 'paywalltestmysqldb.c871k9lscygy.us-east-1.rds.amazonaws.com',
@@ -85,7 +86,7 @@ DATABASES = {
     },
     'mySQLTest': {
         'ENGINE': 'django.db.backends.mysql',
-        'NAME': 'steveTest',
+        'NAME': 'steveTest3',
         'USER': 'phoenix',
         'PASSWORD': 'phoenix123',
         'HOST': 'paywalltestmysqldb.c871k9lscygy.us-east-1.rds.amazonaws.com',

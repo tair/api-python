@@ -5,14 +5,14 @@ from models import Status, AccessType
 
 class Authorization:
     @staticmethod
-    def getAccessStatus(ip, partyId, url):
+    def getAccessStatus(ip, partyId, url, partnerId):
         status = Status.ok
         meterStatus = MeteringService.checkByIp(ip)
         if meterStatus == Status.ok:
             status = Status.ok
         else:
             # metered, check subscription.
-            if Authorization.subscription(ip, partyId, url):
+            if Authorization.subscription(ip, partyId, url, partnerId):
                 # metered but has subscription, return OK.
                 status = Status.ok
             else:
@@ -25,14 +25,14 @@ class Authorization:
         return status
 
     @staticmethod
-    def subscription(ip, partyId, url):
-        accessType = AccessType.getByUrl(url)
+    def subscription(ip, partyId, url, partnerId):
+        accessType = AccessType.getByUrl(url, partyId)
         if not accessType == "Paid":
             # free content, allow access.
             return True
 
-        if SubscriptionService.checkByIp(ip) or \
-           SubscriptionService.checkById(partyId):
+        if SubscriptionService.checkByIp(ip, partnerId) or \
+           SubscriptionService.checkById(partyId, partnerId):
             # if either party is subscribed either by IP or partyId,
             # then allow access. Else, deny.
             return True

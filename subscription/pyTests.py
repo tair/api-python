@@ -1,22 +1,23 @@
-#Copyright 2015 Phoenix Bioinformatics Corporation. All rights reserved.
+#Copyright 2015 Phoenix Bioinformatics Corporation. All rights reserved.                                                                                                                                  
 
-from unittest import TestCase
-import unittest
-from subscription.models import SubscriptionTerm as Term 
-from subscription.models import Subscription, Party, Payment
-from django.db import models
 import django
+import unittest
+import sys, getopt
+from unittest import TestCase
+from subscription.models import SubscriptionState, Party, SubscriptionTerm, SubscriptionIpRange
+from partner.models import Partner
 import requests
 import json
-import sys, getopt
 
-# Create your tests here.
+import copy
+
+# Create your tests here.                                                                                                                                                                                 
 django.setup()
 
 try:
     opts, args = getopt.getopt(sys.argv[1:], "h:" , ["host="])
 except getopt.GetoptError:
-    print "Usage: python -m metering.pyTests --host <hostname>\n\rExample hostname: 'http://52.4.81.100:8080/'"
+    print "Usage: python -m metering.pyTests --host <hostname>\n\rExample hostname: 'http://pb.steveatgetexp.com:8080/'"
     sys.exit(1)
 
 serverUrl = ""
@@ -28,233 +29,234 @@ if serverUrl=="":
     print "hostname is required"
     sys.exit(1)
 
-
-testTerm = {
-    'period': "2015T5",
-    'price': 50.0,
-    'groupDiscountPercentage': 3.5,
-    'autoRenew': False
-}
-
-testSubscription = {
-    'startDate': "2000-01-01T00:00:00Z",
-    'endDate': "2012-12-21T00:00:00Z"
-}
-
 toDelete = []
-toDeleteParty = []
-toDeleteSubscription = []
 
-print "Running unit tests on subscription web services API........."
+print "using server url %s" % serverUrl
 
-class SubscriptionTermTest(TestCase):
-    def test_for_createTerm(self):
-        req = requests.post(serverUrl+'subscriptions/terms/', data=testTerm)
-        toDelete.append(req.json()['subscriptionTermId'])
-        self.assertEqual(req.status_code, 201)
-        self.assertIsNotNone(forceGetSubscriptionTerm(req.json()['subscriptionTermId']))
-        forceDeleteSubscriptionTerm(req.json()['subscriptionTermId'])
-    
-    def test_for_getAllTerms(self):
-        termId = forcePostSubscriptionTerm(testTerm)
-        req = requests.get(serverUrl+'subscriptions/terms/')
-        toDelete.append(termId)
-        self.assertEqual(req.status_code, 200)
-        forceDeleteSubscriptionTerm(termId)
- 
-    def test_for_updateTerm(self):
-        termId = forcePostSubscriptionTerm(testTerm)
-        data = {
-            'period': "2016T5",
-            'price': "6.5",
-            'groupDiscountPercentage': "2.6",
-            'autoRenew': "True"
-        }
-        req = requests.put(serverUrl+'subscriptions/terms/'+str(termId)+'/', data=data)
-        toDelete.append(termId)
-        self.assertEqual(req.status_code, 200)
-        forceDeleteSubscriptionTerm(termId)
- 
-    def test_for_deleteTerm(self):
-        termId = forcePostSubscriptionTerm(testTerm)
-        req = requests.delete(serverUrl+'subscriptions/terms/'+str(termId))
-        toDelete.append(termId)
-        self.assertIsNone(forceGetSubscriptionTerm(termId))
- 
-    def test_for_getTerm(self):
-        termId = forcePostSubscriptionTerm(testTerm)
-        req = requests.get(serverUrl+'subscriptions/terms/'+str(termId))
-        toDelete.append(termId)
-        self.assertEqual(req.status_code, 200)
-        forceDeleteSubscriptionTerm(termId)
-
-    #TO-DO
-    def test_for_queryTerm(self):
-        pass
-
-    def tearDown(self):
-        for d in toDelete:
-            forceDeleteSubscriptionTerm(d)
-       
-
-class SubscriptionTest(TestCase):
-    def setUp(self):
-        toDeleteParty = []
-        toDeleteSubscription = []
-
-    def test_for_getAllSubscriptions(self):
-        partyId = forcePostParty()
-        termId = forcePostSubscriptionTerm(testTerm)
-        forcePostSubscription(testSubscription, partyId, termId)
-        req = requests.get(serverUrl+'subscriptions/')
-        toDeleteParty.append(partyId)
-        toDeleteSubscription.append(termId)
-        self.assertEqual(req.status_code, 200)
-        #forceDeleteParty(partyId)
-        #forceDeleteSubscriptionTerm(termId)
-
-    def test_for_getSubscription(self):
-        partyId = forcePostParty()
-        termId = forcePostSubscriptionTerm(testTerm)
-        forcePostSubscription(testSubscription, partyId, termId)
-        req = requests.get(serverUrl+'subscriptions/'+str(partyId)+'/')
-        toDeleteParty.append(partyId)
-        toDeleteSubscription.append(termId)
-        self.assertEqual(req.status_code, 200)
-        #forceDeleteParty(partyId)
-        #forceDeleteSubscriptionTerm(termId)
-
-    def test_for_createSubscription(self):
-	partyId = forcePostParty()
-        termId = forcePostSubscriptionTerm(testTerm)
-        data = {
-            'partyId': partyId,
-            'subscriptionTermId': termId,
-            'startDate': "2000-01-01T00:00:00Z",
-            'endDate': "2000-01-01T00:00:00Z"
-        }
-        req = requests.post(serverUrl+'subscriptions/', data=data)
-        toDeleteParty.append(partyId)
-        toDeleteSubscription.append(termId)    
-        self.assertEqual(req.status_code, 201)
-
-    def test_for_updateSubscription(self):
-        partyId = forcePostParty()
-        termId = forcePostSubscriptionTerm(testTerm)
-        forcePostSubscription(testSubscription, partyId, termId)
-        data = {'endDate': "2049-01-01T00:00:00Z"}
-        req = requests.put(serverUrl+'subscriptions/'+str(partyId)+'/', data=data)
-        toDeleteParty.append(partyId)
-        toDeleteSubscription.append(termId)
-        self.assertEqual(req.status_code, 200)
-        
-
-    def test_for_deleteSubscription(self):
-        partyId = forcePostParty()
-        termId = forcePostSubscriptionTerm(testTerm)
-        forcePostSubscription(testSubscription, partyId, termId)
-        req = requests.delete(serverUrl+'subscriptions/'+str(partyId))
-        toDeleteParty.append(partyId)
-        toDeleteSubscription.append(termId)
-        self.assertEqual(req.status_code, 204)
-
-    def test_for_querySubscription(self):
-        pass
-
-    def tearDown(self):
-        for i in toDeleteParty:
-            forceDeleteParty(i)
-        for i in toDeleteSubscription:
-            forceDeleteSubscriptionTerm(i)
-
-class PaymentTest(TestCase):
-    def setUp(self):
-        toDeleteParty = []
-        toDeleteSubscription = []
-
-    def test_for_getAllPayment(self):
-        partyId = forcePostParty()
-        termId = forcePostSubscriptionTerm(testTerm)
-        u = forcePostSubscription(testSubscription, partyId, termId)
-        forcePostPayment(u)
-        req = requests.get(serverUrl+'payments/')
-        toDeleteParty.append(partyId)
-        toDeleteSubscription.append(termId)
-        self.assertEqual(req.status_code, 200)
-
-    def test_for_postPayment(self):
-        pass
-
-    def test_for_getPayment(self):
-        partyId = forcePostParty()
-        termId = forcePostSubscriptionTerm(testTerm)
-        u = forcePostSubscription(testSubscription, partyId, termId)
-        forcePostPayment(u)
-        print serverUrl+'payments/'+str(partyId)
-        req = requests.get(serverUrl+'payments/'+str(partyId))
-        toDeleteParty.append(partyId)
-        toDeleteSubscription.append(termId)
-        self.assertEqual(req.status_code, 200)
-
-    def test_for_updatePayment(self):
-        pass
-  
-    def test_for_deletePayment(self):
-        pass
-
-    def tearDown(self):
-        for i in toDeleteParty:
-            forceDeleteParty(i)
-
- 
-#Auxillary functions
-def forceGetSubscriptionTerm(termId):
+def forceGet(obj, pk):
     try:
-        return Term.objects.get(subscriptionTermId=termId)
+        filters = {obj.pkName:pk}
+        return obj.model.objects.get(**filters)
     except:
         return None
 
-def forcePostSubscriptionTerm(term):
-    u = Term(period=term['period'],
-             price=term['price'],
-             groupDiscountPercentage=term['groupDiscountPercentage'],
-             autoRenew=term['autoRenew'])
-    u.save()
-    return u.subscriptionTermId
-
-
-def forceDeleteSubscriptionTerm(termId):
+def forceDelete(obj,pk):
     try:
-        Term.objects.get(subscriptionTermId=termId).delete()
+        filters = {obj.pkName:pk}
+        self.model.objects.get(**filters).delete()
     except:
         pass
 
-def forcePostParty():
-    u = Party()
-    u.save()
-    return u.partyId
+def genericTestCreate(obj):
+    req = requests.post(obj.url, data=obj.data)
+    toDelete.append(req.json()[obj.pkName])
+    obj.assertEqual(req.status_code, 201)
+    obj.assertIsNotNone(forceGet(obj, req.json()[obj.pkName]))
+    forceDelete(obj, req.json()[obj.pkName])
 
-def forcePostSubscription(subscription, partyId, termId):
-    try:
-        return Subscription.objects.get(partyId=partyId, termId=termId)
-    except:
-        u = Subscription(partyId=Party.objects.get(partyId=partyId), 
-                     subscriptionTermId=Term.objects.get(subscriptionTermId=termId), 
-                     startDate=subscription['startDate'],
-                     endDate=subscription['endDate'])
+def genericTestGetAll(obj):
+    pk = obj.forcePost(obj.data)
+    url = obj.url
+    if hasattr(obj, 'partnerId'):
+        url += '?partnerId=%s' % obj.partnerId
+    req = requests.get(url)
+    toDelete.append(pk)
+    obj.assertEqual(req.status_code, 200)
+    forceDelete(obj, pk)
+
+def genericTestUpdate(obj):
+    pk = obj.forcePost(obj.data)
+    url = obj.url + str(pk) + '/'
+    if hasattr(obj, 'partnerId'):
+        url += '?partnerId=%s' % obj.partnerId
+    req = requests.put(url, data=obj.updateData)
+    toDelete.append(pk)
+    obj.assertEqual(req.status_code, 200)
+    forceDelete(obj,pk)
+
+def genericTestDelete(obj):
+    pk = obj.forcePost(obj.data)
+    url = obj.url + str(pk) + '/'
+    if hasattr(obj, 'partnerId'):
+        url += '?partnerId=%s' % obj.partnerId
+    req = requests.delete(url)
+    toDelete.append(pk)
+    obj.assertIsNone(forceGet(obj, pk))
+
+def genericTestGet(obj):
+    pk = obj.forcePost(obj.data)
+    url = obj.url + str(pk) + '/'
+    if hasattr(obj, 'partnerId'):
+        url += '?partnerId=%s' % obj.partnerId
+    req = requests.get(url)
+    toDelete.append(pk)
+    obj.assertEqual(req.status_code, 200)
+    forceDelete(obj,pk)
+
+class SubscriptionStateCRUD(TestCase):
+    partnerId = 'tair'
+    url = serverUrl+'subscriptions/'
+    data = {
+        'startDate':'2012-04-12T00:00:00Z',
+        'endDate':'2018-04-12T00:00:00Z',
+        'partnerId':'tair',
+        'partyId':1,
+    }
+    updateData = {
+        'startDate':'2012-04-12T00:00:00Z',
+        'endDate':'2018-04-12T00:00:00Z',
+        'partnerId':'cdiff',
+        'partyId':1,
+    }
+    pkName = 'subscriptionStateId'
+    model = SubscriptionState
+    def test_for_create(self):
+        genericTestCreate(self)    
+
+    def test_for_getAll(self):
+        genericTestGetAll(self)
+ 
+    def test_for_update(self):
+        genericTestUpdate(self)
+ 
+    def test_for_delete(self):
+        genericTestDelete(self)
+ 
+    def test_for_get(self):
+        genericTestGet(self)
+
+    def forcePost(self,data):
+        postData = copy.deepcopy(data)
+        postData['partyId'] = Party.objects.get(partyId=self.data['partyId'])
+        postData['partnerId'] = Partner.objects.get(partnerId=self.data['partnerId'])
+        u = self.model(**postData)
         u.save()
-        return u
+        return u.subscriptionStateId
+       
+    def tearDown(self):
+        for d in toDelete:
+            forceDelete(self, d)
 
-def forceDeleteParty(partyId):
-    try:
-        Party.objects.get(partyId=partyId).delete()
-    except:
-        pass
+class PartyCRUD(TestCase):
+    url = serverUrl+'subscriptions/parties/'
+    data = {
+        'partyType':'user',
+    }
+    updateData = {
+        'partyType':'organization',
+    }
+    pkName = 'partyId'
+    model = Party
+    def test_for_create(self):
+        genericTestCreate(self)
 
-def forcePostPayment(partyId):
-    u = Payment(partyId=partyId)
-    u.save()
-    return u.paymentId
+    def test_for_getAll(self):
+        genericTestGetAll(self)
+
+    def test_for_update(self):
+        genericTestUpdate(self)
+
+    def test_for_delete(self):
+        genericTestDelete(self)
+
+    def test_for_get(self):
+        genericTestGet(self)
+
+    def forcePost(self,data):
+        u = self.model(**data)
+        u.save()
+        return u.partyId
+
+    def tearDown(self):
+        for d in toDelete:
+            forceDelete(self, d)
+
+class SubscriptionTermCRUD(TestCase):
+    partnerId='tair'
+    url = serverUrl+'subscriptions/terms/'
+    data = {
+        'partnerId':'tair',
+        'period':'1-year',
+        'price':360.00,
+        'groupDiscountPercentage':0.7,
+        'autoRenew':False,
+    }
+    updateData = {
+        'partnerId':'tair',
+        'period':'2-year',
+        'price':180.00,
+        'groupDiscountPercentage':0.8,
+        'autoRenew':True,
+    }
+    pkName = 'subscriptionTermId'
+    model = SubscriptionTerm
+    def test_for_create(self):
+        genericTestCreate(self)
+
+    def test_for_getAll(self):
+        genericTestGetAll(self)
+
+    def test_for_update(self):
+        genericTestUpdate(self)
+
+    def test_for_delete(self):
+        genericTestDelete(self)
+
+    def test_for_get(self):
+        genericTestGet(self)
+
+    def forcePost(self,data):
+        postData = copy.deepcopy(data)
+        postData['partnerId'] = Partner.objects.get(partnerId=data['partnerId'])
+        u = self.model(**postData)
+        u.save()
+        return u.subscriptionTermId
+
+    def tearDown(self):
+        for d in toDelete:
+            forceDelete(self, d)
+
+class SubscriptionIpRangeCRUD(TestCase):
+    url = serverUrl+'subscriptions/ipranges/'
+    data = {
+        'start':'120.0.0.0',
+        'end':'120.255.255.255',
+        'partyId':1
+    }
+    updateData = {
+        'start':'120.0.0.0',
+        'end':'120.255.211.200',
+        'partyId':1
+    }
+    pkName = 'subscriptionIpRangeId'
+    model = SubscriptionIpRange
+    def test_for_create(self):
+        genericTestCreate(self)
+
+    def test_for_getAll(self):
+        genericTestGetAll(self)
+
+    def test_for_update(self):
+        genericTestUpdate(self)
+
+    def test_for_delete(self):
+        genericTestDelete(self)
+
+    def test_for_get(self):
+        genericTestGet(self)
+
+    def forcePost(self,data):
+        postData = copy.deepcopy(data)
+        postData['partyId'] = Party.objects.get(partyId=data['partyId'])
+        u = self.model(**postData)
+        u.save()
+        return u.subscriptionIpRangeId
+
+    def tearDown(self):
+        for d in toDelete:
+            forceDelete(self, d)
+
+print "Running unit tests on subscription web services API........."
 
 if __name__ == '__main__':
     sys.argv[1:] = []

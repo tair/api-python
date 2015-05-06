@@ -29,20 +29,20 @@ class SubscriptionService():
     serviceUrl = 'http://52.1.196.45:8000/subscriptions'
 
     @staticmethod
-    def checkByIp(ipAddress):
+    def checkByIp(ipAddress,partnerId):
         if ipAddress == None:
             return False
-        requestUrl = '%s/active/?ip=%s' % (SubscriptionService.serviceUrl, ipAddress)
+        requestUrl = '%s/active/?ip=%s&partnerId=%s' % (SubscriptionService.serviceUrl, ipAddress, partnerId)
         response = requests.get(requestUrl)
         contentJson = json.loads(response.content)
 
         return contentJson['active']
 
     @staticmethod
-    def checkById(partyId):
+    def checkById(partyId, partnerId):
         if partyId == None:
             return False
-        requestUrl = '%s/active/?partyId=%s' % (SubscriptionService.serviceUrl, partyId)
+        requestUrl = '%s/active/?partyId=%s&partnerId=%s' % (SubscriptionService.serviceUrl, partyId, partnerId)
         response = requests.get(requestUrl)
         contentJson = json.loads(response.content)
 

@@ -5,7 +5,7 @@ from django.http import HttpResponse
 from django.utils import timezone
 import stripe
 from subscription.models import SubscriptionTerm as Term
-from subscription.models import Subscription, Payment
+from subscription.models import SubscriptionState
 #import paypalrestsdk
 import datetime
 
@@ -47,7 +47,7 @@ def getTermPrice(termId):
 
 def getSubscription(partyId):
   try:
-    return Subscription.objects.get(partyId=partyId)
+    return SubscriptionState.objects.get(partyId=partyId)
   except:
     return None
 
@@ -89,7 +89,7 @@ def tryCharge(secret_key, stripe_token, priceToCharge, chargeDescription, partyI
     else:
       subscription.endDate = now + datetime.timedelta(days=180)
     subscription.save()
-    Payment(partyId=subscription).save()
+#    Payment(partyId=subscription).save()
     status = True
     message['message'] = "Thanks! Your card has been charged authorized" 
   except stripe.error.InvalidRequestError, e:

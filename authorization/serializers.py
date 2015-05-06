@@ -11,7 +11,7 @@ class AccessTypeSerializer(serializers.ModelSerializer):
 class AccessRuleSerializer(serializers.ModelSerializer):
     class Meta:
         model = AccessRule
-        fields = ('accessRuleId', 'patternId', 'accessTypeId')
+        fields = ('accessRuleId', 'patternId', 'accessTypeId', 'partnerId')
 
 class PatternSerializer(serializers.ModelSerializer):
     class Meta:

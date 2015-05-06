@@ -7,6 +7,7 @@ from django.db import models, migrations
 class Migration(migrations.Migration):
 
     dependencies = [
+        ('partner', '__first__'),
     ]
 
     operations = [
@@ -34,6 +35,7 @@ class Migration(migrations.Migration):
             fields=[
                 ('patternId', models.AutoField(serialize=False, primary_key=True)),
                 ('pattern', models.CharField(default=b'', max_length=200)),
+                ('partnerId', models.ForeignKey(to='partner.Partner')),
             ],
             options={
                 'db_table': 'Pattern',

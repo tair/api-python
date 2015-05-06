@@ -1,5 +1,6 @@
 from django.db import models
 import re
+from partner.models import Partner
 
 # Create your models here.
 
@@ -11,7 +12,6 @@ class Status():
 class Pattern(models.Model):
     patternId = models.AutoField(primary_key=True)
     pattern = models.CharField(max_length=200, default='')
-
     class Meta:
         db_table = "Pattern"
 
@@ -19,6 +19,7 @@ class AccessRule(models.Model):
     accessRuleId = models.AutoField(primary_key=True)
     patternId = models.ForeignKey('Pattern')
     accessTypeId = models.ForeignKey('AccessType')
+    partnerId = models.ForeignKey('partner.Partner')
     class Meta:
         db_table = "AccessRule"
 
@@ -27,8 +28,8 @@ class AccessType(models.Model):
     name = models.CharField(max_length=200)
     
     @staticmethod
-    def getByUrl(url):
-        accessRules = AccessRule.objects.all()
+    def getByUrl(url, partnerId):
+        accessRules = AccessRule.objects.all().filter(partnerId=partnerId)
         for rule in accessRules:
             pattern = re.compile(rule.patternId.pattern)
             if pattern.match(url):

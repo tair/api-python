@@ -8,6 +8,7 @@ from controls import Authorization
 
 from models import AccessType, AccessRule, Pattern
 from serializers import AccessTypeSerializer, AccessRuleSerializer, PatternSerializer
+from partner.models import Partner
 
 import json
 
@@ -23,7 +24,8 @@ class Access(APIView):
         ip = request.GET.get('ip')
         url = request.GET.get('url')
         partyId = request.GET.get('partyId')
-        status = Authorization.getAccessStatus(ip, partyId, url)
+        partnerId = request.GET.get('partnerId')
+        status = Authorization.getAccessStatus(ip, partyId, url, partnerId)
         response = {
             "status":status,
         }
@@ -35,7 +37,8 @@ class SubscriptionsAccess(APIView):
         ip = request.GET.get('ip')
         url = request.GET.get('url')
         partyId = request.GET.get('partyId')
-        access = Authorization.subscription(ip, partyId, url)
+        partnerId = request.GET.get('partnerId')
+        access = Authorization.subscription(ip, partyId, url, partnerId)
         response = {
             "access":access,
         }
@@ -56,12 +59,14 @@ class AccessTypesDetail(generics.RetrieveUpdateDestroyAPIView):
 
 # /accessRules/
 class AccessRulesList(generics.ListCreateAPIView):
-    queryset = AccessRule.objects.all()
+    def get_queryset(self):
+        return Partner.getQuerySet(self, AccessRule, 'partnerId')
     serializer_class = AccessRuleSerializer
 
 # /accessRules/<primary-key>
 class AccessRulesDetail(generics.RetrieveUpdateDestroyAPIView):
-    queryset = AccessRule.objects.all()
+    def get_queryset(self):
+        return Partner.getQuerySet(self, AccessRule, 'partnerId')
     serializer_class = AccessRuleSerializer
 
 # /patterns/

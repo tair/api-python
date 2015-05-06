@@ -17,4 +17,5 @@ urlpatterns = patterns('',
     url(r'^payments/', include('payments.urls')),
     url(r'^subscriptions/', include('subscription.urls')),
     url(r'^authorizations/', include('authorization.urls')),
+    url(r'^partners/', include('partner.urls')),
 )

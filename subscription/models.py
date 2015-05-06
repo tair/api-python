@@ -14,63 +14,64 @@ class NumericField(models.Field):
 class Party(models.Model):
     partyId = models.AutoField(primary_key=True)
     partyType = models.CharField(max_length=200, default='user')
+
+    @staticmethod
+    def getByIp(ipAddress):
+        partyList = []
+        ipRanges = SubscriptionIpRange.getByIp(ipAddress)
+        for ipRange in ipRanges:
+            partyId = ipRange.partyId
+            partyList.append(partyId)
+        return partyList
+
     class Meta:
         db_table = "Party"
 
-class Payment(models.Model):
-    paymentId = models.AutoField(primary_key=True)
-    partyId = models.ForeignKey('Subscription', null=True, db_column="partyId")
-    class Meta:
-        db_table = "Payment"
-
-class Subscription(models.Model):
+class SubscriptionState(models.Model):
+    subscriptionStateId = models.AutoField(primary_key=True)
     partyId = models.ForeignKey("Party", null=True, db_column="partyId")
-    subscriptionTermId = models.ForeignKey('SubscriptionTerm', default=1, db_column="subscriptionTermId")
+    partnerId = models.ForeignKey("partner.Partner", null=True, db_column="partnerId")
     startDate = models.DateTimeField(default='2000-01-01T00:00:00Z')
     endDate = models.DateTimeField(default='2012-12-21T00:00:00Z')
 
     @staticmethod
     def getByIp(ipAddress):
         subscriptionList = []
-        ipRanges = SubscriptionIpRange.getByIp(ipAddress)
-        for ipRange in ipRanges:
-            # since ipRange.partyId is foreign key to Subscription,
-            # ipRange.partyId returns a subscription object
-            subscriptionList.append(ipRange.partyId)
+        parties = Party.getByIp(ipAddress)
+        for party in parties:
+            subscriptions = SubscriptionState.objects.filter(partyId=party)
+            for item in subscriptions:
+                subscriptionList.append(item)
+
         return subscriptionList
 
     @staticmethod
     def getActiveById(partyId):
         now = datetime.datetime.now()
-        query = "SELECT COUNT(*) FROM Subscription " \
-                "INNER JOIN Payment " \
-                "USING (partyId) " \
-                "WHERE Subscription.partyId = %s " \
-                "AND Subscription.endDate > %s "
-        cursor = connection.cursor()
-        cursor.execute(query, (partyId, now))
-        row = cursor.fetchone()
-        return row[0] > 0
+        return SubscriptionState.objects.all() \
+                                   .filter(partyId=partyId) \
+                                   .filter(endDate__gt=now)
 
     @staticmethod
     def getActiveByIp(ipAddress):
         now = timezone.now()
 
         # get a list of subscription filtered by IP
-        subscriptionListByIp = Subscription.getByIp(ipAddress)
+        subscriptionListByIp = SubscriptionState.getByIp(ipAddress)
+        objList = []
         for obj in subscriptionListByIp:
             if obj.endDate > now:
-                return True
-        return False
+                objList.append(obj)
+        return objList
 
     class Meta:
-        db_table = "Subscription"
+        db_table = "SubscriptionState"
 
 class SubscriptionIpRange(models.Model):
     subscriptionIpRangeId = models.AutoField(primary_key=True)
     start = models.GenericIPAddressField()
     end = models.GenericIPAddressField()
-    partyId = models.ForeignKey('Subscription', db_column="partyId")
+    partyId = models.ForeignKey('Party', db_column="partyId")
 
     @staticmethod
     def getByIp(ipAddress):
@@ -90,6 +91,7 @@ class SubscriptionIpRange(models.Model):
 
 class SubscriptionTerm(models.Model):
     subscriptionTermId = models.AutoField(primary_key=True)
+    partnerId = models.ForeignKey('partner.Partner', db_column="partnerId")
     period = models.CharField(max_length=200)
     price = models.DecimalField(decimal_places=2,max_digits=6)
     groupDiscountPercentage = models.DecimalField(decimal_places=2,max_digits=6)
@@ -100,7 +102,7 @@ class SubscriptionTerm(models.Model):
         query = "SELECT * FROM SubscriptionTerm " \
                 "INNER JOIN Subscription " \
                 "USING (subscriptionTermId) " \
-                "WHERE Subscription.partyId = %s "
+                "WHERE SubscriptionState.partyId = %s "
         return SubscriptionTerm.objects.raw(query, [partyId])
 
     class Meta:

@@ -5,6 +5,7 @@ import unittest
 import sys, getopt
 from unittest import TestCase
 from authorization.models import Pattern, AccessRule, AccessType
+from partner.models import Partner
 import requests
 import json
 
@@ -28,39 +29,65 @@ if serverUrl=="":
 
 toDelete = []
 
+def forceGet(obj, pk):
+    try:
+        filters = {obj.pkName:pk}
+        return obj.model.objects.get(**filters)
+    except:
+        return None
+
+def forceDelete(obj,pk):
+    try:
+        filters = {obj.pkName:pk}
+        self.model.objects.get(**filters).delete()
+    except:
+        pass
+
 def genericTestCreate(obj):
     req = requests.post(obj.url, data=obj.data)
     toDelete.append(req.json()[obj.pkName])
     obj.assertEqual(req.status_code, 201)
-    obj.assertIsNotNone(obj.forceGet(req.json()[obj.pkName]))
-    obj.forceDelete(req.json()[obj.pkName])
+    obj.assertIsNotNone(forceGet(obj,req.json()[obj.pkName]))
+    forceDelete(obj,req.json()[obj.pkName])
 
 def genericTestGetAll(obj):
     pk = obj.forcePost(obj.data)
-    req = requests.get(obj.url)
+    url = obj.url
+    if hasattr(obj, 'partnerId'):
+        url += '?partnerId=%s' % obj.partnerId
+    req = requests.get(url)
     toDelete.append(pk)
     obj.assertEqual(req.status_code, 200)
-    obj.forceDelete(pk)
+    forceDelete(obj,pk)
 
 def genericTestUpdate(obj):
     pk = obj.forcePost(obj.data)
-    req = requests.put(obj.url+str(pk)+'/', data=obj.updateData)
+    url = obj.url + str(pk) + '/'
+    if hasattr(obj, 'partnerId'):
+        url += '?partnerId=%s' % obj.partnerId
+    req = requests.put(url, data=obj.updateData)
     toDelete.append(pk)
     obj.assertEqual(req.status_code, 200)
-    obj.forceDelete(pk)
+    forceDelete(obj,pk)
 
 def genericTestDelete(obj):
     pk = obj.forcePost(obj.data)
-    req = requests.delete(obj.url+str(pk))
+    url = obj.url + str(pk) + '/'
+    if hasattr(obj, 'partnerId'):
+        url += '?partnerId=%s' % obj.partnerId
+    req = requests.delete(url)
     toDelete.append(pk)
-    obj.assertIsNone(obj.forceGet(pk))
+    obj.assertIsNone(forceGet(obj,pk))
 
 def genericTestGet(obj):
     pk = obj.forcePost(obj.data)
-    req = requests.get(obj.url+str(pk))
+    url = obj.url + str(pk) + '/'
+    if hasattr(obj, 'partnerId'):
+        url += '?partnerId=%s' % obj.partnerId
+    req = requests.get(url)
     toDelete.append(pk)
     obj.assertEqual(req.status_code, 200)
-    obj.forceDelete(pk)
+    forceDelete(obj,pk)
 
 class PatternsCRUD(TestCase):
     url = serverUrl+'authorizations/patterns/'
@@ -87,37 +114,30 @@ class PatternsCRUD(TestCase):
     def test_for_get(self):
         genericTestGet(self)
 
-    def forceGet(self,pk):
-        try:
-            return self.model.objects.get(patternId=pk)
-        except:
-            return None
-
     def forcePost(self,data):
         u = self.model(pattern=data['pattern'])
         u.save()
         return u.patternId
        
-    def forceDelete(self,pk):
-        try:
-            self.model.objects.get(patternId=pk).delete()
-        except:
-            pass
-
     def tearDown(self):
         for d in toDelete:
-            self.forceDelete(d)
+            forceDelete(self,d)
 
 class AccessRulesCRUD(TestCase):
+    partnerId = 'tair'
     url = serverUrl+'authorizations/accessRules/'
     data = {
-        'patternId':1,
-        'accessTypeId':1
+        'accessRuleId':1,
+        'patternId':103,
+        'accessTypeId':103,
+        'partnerId':'tair',
     }
 
     updateData = {
-        'patternId':2,
-        'accessTypeId':2
+        'accessRuleId':1,
+        'patternId':104,
+        'accessTypeId':104,
+        'partnerId':'cdiff',
     }
     pkName = 'accessRuleId'
     model = AccessRule
@@ -136,29 +156,20 @@ class AccessRulesCRUD(TestCase):
     def test_for_get(self):
         genericTestGet(self)
 
-    def forceGet(self,pk):
-        try:
-            return self.model.objects.get(accessRuleId=pk)
-        except:
-            return None
-
     def forcePost(self,data):
         patternObj = Pattern.objects.get(patternId=data['patternId'])
         accessTypeObj = AccessType.objects.get(accessTypeId=data['accessTypeId'])
+        partnerObj = Partner.objects.get(partnerId=data['partnerId'])
         u = self.model(patternId=patternObj,
-                       accessTypeId=accessTypeObj)
+                       accessTypeId=accessTypeObj,
+                       partnerId=partnerObj,
+        )
         u.save()
         return u.accessRuleId
 
-    def forceDelete(self,pk):
-        try:
-            self.model.objects.get(accessRuleId=pk).delete()
-        except:
-            pass
-
     def tearDown(self):
         for d in toDelete:
-            self.forceDelete(d)
+            forceDelete(self,d)
 
 class AccessTypesCRUD(TestCase):
     url = serverUrl+'authorizations/accessTypes/'
@@ -186,26 +197,14 @@ class AccessTypesCRUD(TestCase):
     def test_for_get(self):
         genericTestGet(self)
 
-    def forceGet(self,pk):
-        try:
-            return self.model.objects.get(accessTypeId=pk)
-        except:
-            return None
-
     def forcePost(self,data):
         u = self.model(name=data['name'])
         u.save()
         return u.accessTypeId
 
-    def forceDelete(self,pk):
-        try:
-            self.model.objects.get(accessTypeId=pk).delete()
-        except:
-            pass
-
     def tearDown(self):
         for d in toDelete:
-            self.forceDelete(d)
+            forceDelete(self,d)
 
 print "Running unit tests on subscription web services API........."
 

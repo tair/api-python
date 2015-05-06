@@ -2,8 +2,10 @@
 
 from django.http import HttpResponse
 
-from subscription.models import Party, Payment, Subscription, SubscriptionIpRange, SubscriptionTerm
-from subscription.serializers import PartySerializer, PaymentSerializer, SubscriptionSerializer, SubscriptionIpRangeSerializer, SubscriptionTermSerializer
+from subscription.models import Party, SubscriptionState, SubscriptionIpRange, SubscriptionTerm
+from subscription.serializers import PartySerializer, SubscriptionStateSerializer, SubscriptionIpRangeSerializer, SubscriptionTermSerializer
+
+from partner.models import Partner
 
 from rest_framework import status
 from rest_framework.response import Response
@@ -25,16 +27,6 @@ class PartiesDetail(generics.RetrieveUpdateDestroyAPIView):
     queryset = Party.objects.all()
     serializer_class = PartySerializer
 
-# /payments/
-class PaymentsList(generics.ListCreateAPIView):
-    queryset = Payment.objects.all()
-    serializer_class = PaymentSerializer
-
-# /payments/<primary_key>/
-class PaymentsDetail(generics.RetrieveUpdateDestroyAPIView):
-    queryset = Payment.objects.all()
-    serializer_class = PaymentSerializer
-
 # /ipranges/
 class IpRangesList(generics.ListCreateAPIView):
     queryset = SubscriptionIpRange.objects.all()
@@ -47,23 +39,27 @@ class IpRangesDetail(generics.RetrieveUpdateDestroyAPIView):
 
 # /terms/
 class TermsList(generics.ListCreateAPIView):
-    queryset = SubscriptionTerm.objects.all()
+    def get_queryset(self):
+        return Partner.getQuerySet(self, SubscriptionTerm, 'partnerId')
     serializer_class = SubscriptionTermSerializer
 
 # /terms/<primary_key>/
 class TermsDetail(generics.RetrieveUpdateDestroyAPIView):
-    queryset = SubscriptionTerm.objects.all()
+    def get_queryset(self):
+        return Partner.getQuerySet(self, SubscriptionTerm, 'partnerId')
     serializer_class = SubscriptionTermSerializer
 
 # /subscriptions/
-class SubscriptionsList(generics.ListCreateAPIView):
-    queryset = Subscription.objects.all()
-    serializer_class = SubscriptionSerializer
+class SubscriptionStatesList(generics.ListCreateAPIView):
+    def get_queryset(self):
+        return Partner.getQuerySet(self, SubscriptionState, 'partnerId')
+    serializer_class = SubscriptionStateSerializer
 
 # /subscriptions/<primary_key>/
-class SubscriptionsDetail(generics.RetrieveUpdateDestroyAPIView):
-    queryset = Subscription.objects.all()
-    serializer_class = SubscriptionSerializer
+class SubscriptionStatesDetail(generics.RetrieveUpdateDestroyAPIView):
+    def get_queryset(self):
+        return Partner.getQuerySet(self, SubscriptionState, 'partnerId')
+    serializer_class = SubscriptionStateSerializer
 
 #------------------- End of Basic CRUD operations --------------
 
@@ -77,25 +73,26 @@ class SubscriptionsActive(APIView):
         ip = request.GET.get('ip')
         isActive = False
         if not partyId == None:
-            isActive = Subscription.getActiveById(partyId)
+            obj = SubscriptionState.getActiveById(partyId)
+            obj = Partner.filters(self, obj, 'partnerId')
+            isActive = len(obj) > 0
         elif not ip == None:
-            isActive = Subscription.getActiveByIp(ip)
+            objList = SubscriptionState.getActiveByIp(ip)
+            partnerId = Partner.getPartnerId(self)
+            for obj in objList:
+                if obj.partnerId.partnerId == partnerId:
+                    isActive = True
+                    break
         else:
             return Response(status=status.HTTP_400_BAD_REQUEST)
 
         return HttpResponse(json.dumps({'active':isActive}), content_type="application/json")
 
-# /subscriptions/<primary key>/payments
-class SubscriptionsPayments(APIView):
-    def get(self, request, pk, format=None):
-        obj = Payment.objects.filter(partyId=pk)
-        serializer = PaymentSerializer(obj, many=True)
-        return Response(serializer.data)
-
 # /subscriptions/<primary key>/prices
 class SubscriptionsPrices(APIView):
     def get(self, request, pk, format=None):
         obj = SubscriptionTerm.getByPartyId(pk)
+        obj = Partner.filter(self, obj, 'partnerId')
         serializer = SubscriptionTermSerializer(obj, many=True)
         return Response(serializer.data)
 
@@ -116,5 +113,6 @@ class TermsQueries(APIView):
             obj = obj.filter(autoRenew=autoRenew)
         if not groupDiscountPercentage == None:
             obj = obj.filter(groupDiscountPercentage=groupDiscountPercentage)
+        obj = Partner.filter(self, obj, 'partnerId')
         serializer = SubscriptionTermSerializer(obj, many=True)
         return Response(serializer.data, status=status.HTTP_200_OK)
