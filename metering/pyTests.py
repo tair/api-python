@@ -146,3 +146,5 @@ def forceSetIP(ip, count):
 if __name__ == '__main__':
     sys.argv[1:] = []
     unittest.main()
+    ret = not runner.run(suite).wasSuccessful()
+    sys.exit(ret)

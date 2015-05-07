@@ -15,7 +15,9 @@ pid=$!
 sleep 5
 
 python -m metering.pyTests $1 $2
+echo $?
 python -m subscription.pyTests $1 $2 
+echo $?
 python -m authorization.pyTests $1 $2
 
 pkill -TERM -P $pid
