@@ -79,19 +79,19 @@ def tryCharge(secret_key, stripe_token, priceToCharge, chargeDescription, partyI
       description=chargeDescription,
     )
     subscription = getSubscription(partyId)
-    period = Term.objects.get(subscriptionTermId=termId).period
+    #period = Term.objects.get(subscriptionTermId=termId).period
+    period = int(float(Term.objects.get(subscriptionTermId=termId).period))
     endDate = subscription.endDate
     now = timezone.now()
 
-    #TODO: Add period correctly
     if (endDate>now):
-      subscription.endDate = endDate + datetime.timedelta(days=180)
+      subscription.endDate = endDate + datetime.timedelta(days=period)
     else:
-      subscription.endDate = now + datetime.timedelta(days=180)
+      subscription.endDate = now + datetime.timedelta(days=period)
     subscription.save()
 #    Payment(partyId=subscription).save()
     status = True
-    message['message'] = "Thanks! Your card has been charged authorized" 
+    message['message'] = "Thanks! Your card has been charged" 
   except stripe.error.InvalidRequestError, e:
     status = False
     message['message'] = e.json_body['error']['message']
