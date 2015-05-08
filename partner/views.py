@@ -4,11 +4,22 @@ from django.http import HttpResponse
 from rest_framework.views import APIView
 from rest_framework import generics
 
+<<<<<<< HEAD
 from models import Partner
 from serializers import PartnerSerializer
 
 import json
 
+=======
+from models import Partner, PartnerPattern, SubscriptionTerm
+from serializers import PartnerSerializer, PartnerPatternSerializer, SubscriptionTermSerializer
+
+import json
+
+from rest_framework import status
+from rest_framework.response import Response
+
+>>>>>>> partners
 # top level: /partners/
 
 
@@ -23,3 +34,54 @@ class PartnerList(generics.ListCreateAPIView):
 class PartnerDetail(generics.RetrieveUpdateDestroyAPIView):
     queryset = Partner.objects.all()
     serializer_class = PartnerSerializer
+<<<<<<< HEAD
+=======
+
+# /patterns
+class PartnerPatternsList(generics.ListCreateAPIView):
+    def get_queryset(self):
+        return Partner.getQuerySet(self, PartnerPattern, 'partnerId')
+    serializer_class = PartnerPatternSerializer
+
+# /patterns/<primary-key>
+class PartnerPatternsDetail(generics.RetrieveUpdateDestroyAPIView):
+    def get_queryset(self):
+        return Partner.getQuerySet(self, PartnerPattern, 'partnerId')
+    serializer_class = PartnerPatternSerializer
+
+# /terms/
+class TermsList(generics.ListCreateAPIView):
+    def get_queryset(self):
+        return Partner.getQuerySet(self, SubscriptionTerm, 'partnerId')
+    serializer_class = SubscriptionTermSerializer
+
+# /terms/<primary_key>/
+class TermsDetail(generics.RetrieveUpdateDestroyAPIView):
+    def get_queryset(self):
+        return Partner.getQuerySet(self, SubscriptionTerm, 'partnerId')
+    serializer_class = SubscriptionTermSerializer
+
+
+#specific queries
+
+# /terms
+class TermsQueries(APIView):
+    def get(self, request, format=None):
+        price = request.GET.get('price')
+        period = request.GET.get('period')
+        autoRenew = request.GET.get('autoRenew')
+        groupDiscountPercentage = request.GET.get('groupDiscountPercentage')
+
+        obj = SubscriptionTerm.objects.all()
+        if not price == None:
+            obj = obj.filter(price=price)
+        if not period == None:
+            obj = obj.filter(period=period)
+        if not autoRenew == None:
+            obj = obj.filter(autoRenew=autoRenew)
+        if not groupDiscountPercentage == None:
+            obj = obj.filter(groupDiscountPercentage=groupDiscountPercentage)
+        obj = Partner.filters(self, obj, 'partnerId')
+        serializer = SubscriptionTermSerializer(obj, many=True)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+>>>>>>> partners

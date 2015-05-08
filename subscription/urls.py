@@ -8,16 +8,14 @@ urlpatterns = [
     # Basic CRUD operations
     url(r'^parties/$', views.PartiesList.as_view()),
     url(r'^parties/(?P<pk>[0-9.]+)/$', views.PartiesDetail.as_view()),
+    url(r'^transactions/$', views.SubscriptionTransactionsList.as_view()),
+    url(r'^transactions/(?P<pk>[0-9.]+)/$', views.SubscriptionTransactionsDetail.as_view()),
     url(r'^ipranges/$', views.IpRangesList.as_view()),
     url(r'^ipranges/(?P<pk>[0-9.]+)/$', views.IpRangesDetail.as_view()),
-    url(r'^$', views.SubscriptionStatesList.as_view()),
-    url(r'^(?P<pk>[0-9.]+)/$', views.SubscriptionStatesDetail.as_view()),
-    url(r'^terms/$', views.TermsList.as_view()),
-    url(r'^terms/(?P<pk>[0-9.]+)/$', views.TermsDetail.as_view()),
+    url(r'^$', views.SubscriptionsList.as_view()),
+    url(r'^(?P<pk>[0-9.]+)/$', views.SubscriptionsDetail.as_view()),
 
     # Specific queries about subscription
-    url(r'^terms/queries/', views.TermsQueries.as_view()),
     url(r'^active/$', views.SubscriptionsActive.as_view()),
-    url(r'^(?P<pk>[0-9.]+)/prices/', views.SubscriptionsPrices.as_view()),
 ]
 urlpatterns = format_suffix_patterns(urlpatterns)

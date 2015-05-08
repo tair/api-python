@@ -27,7 +27,6 @@ class Migration(migrations.Migration):
                 ('subscriptionIpRangeId', models.AutoField(serialize=False, primary_key=True)),
                 ('start', models.GenericIPAddressField()),
                 ('end', models.GenericIPAddressField()),
-                ('partyId', models.ForeignKey(to='subscription.Party', db_column=b'partyId')),
             ],
             options={
                 'db_table': 'SubscriptionIpRange',
@@ -41,6 +40,7 @@ class Migration(migrations.Migration):
                 ('price', models.DecimalField(max_digits=6, decimal_places=2)),
                 ('groupDiscountPercentage', models.DecimalField(max_digits=6, decimal_places=2)),
                 ('autoRenew', models.BooleanField(default=False)),
+                ('partnerId', models.ForeignKey(to='partner.Partner', db_column=b'partnerId')),
             ],
             options={
                 'db_table': 'SubscriptionTerm',

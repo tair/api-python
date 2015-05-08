@@ -18,7 +18,7 @@ class Party(models.Model):
     @staticmethod
     def getByIp(ipAddress):
         partyList = []
-        ipRanges = SubscriptionIpRange.getByIp(ipAddress)
+        ipRanges = IpRange.getByIp(ipAddress)
         for ipRange in ipRanges:
             partyId = ipRange.partyId
             partyList.append(partyId)
@@ -27,8 +27,8 @@ class Party(models.Model):
     class Meta:
         db_table = "Party"
 
-class SubscriptionState(models.Model):
-    subscriptionStateId = models.AutoField(primary_key=True)
+class Subscription(models.Model):
+    subscriptionId = models.AutoField(primary_key=True)
     partyId = models.ForeignKey("Party", null=True, db_column="partyId")
     partnerId = models.ForeignKey("partner.Partner", null=True, db_column="partnerId")
     startDate = models.DateTimeField(default='2000-01-01T00:00:00Z')
@@ -39,7 +39,7 @@ class SubscriptionState(models.Model):
         subscriptionList = []
         parties = Party.getByIp(ipAddress)
         for party in parties:
-            subscriptions = SubscriptionState.objects.filter(partyId=party)
+            subscriptions = Subscription.objects.filter(partyId=party)
             for item in subscriptions:
                 subscriptionList.append(item)
 
@@ -48,27 +48,39 @@ class SubscriptionState(models.Model):
     @staticmethod
     def getActiveById(partyId):
         now = datetime.datetime.now()
-        return SubscriptionState.objects.all() \
+        return Subscription.objects.all() \
                                    .filter(partyId=partyId) \
-                                   .filter(endDate__gt=now)
+                                   .filter(endDate__gt=now) \
+                                   .filter(startDate__lt=now) 
 
     @staticmethod
     def getActiveByIp(ipAddress):
         now = timezone.now()
 
         # get a list of subscription filtered by IP
-        subscriptionListByIp = SubscriptionState.getByIp(ipAddress)
+        subscriptionListByIp = Subscription.getByIp(ipAddress)
         objList = []
         for obj in subscriptionListByIp:
-            if obj.endDate > now:
+            if obj.endDate > now and obj.startDate < now:
                 objList.append(obj)
         return objList
 
     class Meta:
         db_table = "SubscriptionState"
 
-class SubscriptionIpRange(models.Model):
-    subscriptionIpRangeId = models.AutoField(primary_key=True)
+class SubscriptionTransaction(models.Model):
+    subscriptionTransactionId = models.AutoField(primary_key=True)
+    subscriptionId = models.ForeignKey('Subscription', db_column="subscriptionId")
+    transactionDate = models.DateTimeField(default='2000-01-01T00:00:00Z')
+    startDate = models.DateTimeField(default='2001-01-01T00:00:00Z')
+    endDate = models.DateTimeField(default='2020-01-01T00:00:00Z')
+    transactionType = models.CharField(max_length=200)
+
+    class Meta:
+        db_table = "SubscriptionTransaction"
+
+class IpRange(models.Model):
+    ipRangeId = models.AutoField(primary_key=True)
     start = models.GenericIPAddressField()
     end = models.GenericIPAddressField()
     partyId = models.ForeignKey('Party', db_column="partyId")
@@ -76,7 +88,7 @@ class SubscriptionIpRange(models.Model):
     @staticmethod
     def getByIp(ipAddress):
         objList = []
-        objs = SubscriptionIpRange.objects.all()
+        objs = IpRange.objects.all()
         inputIpAddress = IPAddress(ipAddress)
         # for detail on comparison between IPAddress objects, see Python netaddr module.
         for obj in objs:
@@ -87,23 +99,4 @@ class SubscriptionIpRange(models.Model):
         return objList
 
     class Meta:
-        db_table = "SubscriptionIpRange"
-
-class SubscriptionTerm(models.Model):
-    subscriptionTermId = models.AutoField(primary_key=True)
-    partnerId = models.ForeignKey('partner.Partner', db_column="partnerId")
-    period = models.CharField(max_length=200)
-    price = models.DecimalField(decimal_places=2,max_digits=6)
-    groupDiscountPercentage = models.DecimalField(decimal_places=2,max_digits=6)
-    autoRenew = models.BooleanField(default=False)
-
-    @staticmethod
-    def getByPartyId(partyId):
-        query = "SELECT * FROM SubscriptionTerm " \
-                "INNER JOIN Subscription " \
-                "USING (subscriptionTermId) " \
-                "WHERE SubscriptionState.partyId = %s "
-        return SubscriptionTerm.objects.raw(query, [partyId])
-
-    class Meta:
-        db_table = "SubscriptionTerm"
+        db_table = "IpRange"

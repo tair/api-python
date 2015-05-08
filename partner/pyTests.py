@@ -4,8 +4,7 @@ import django
 import unittest
 import sys, getopt
 from unittest import TestCase
-from subscription.models import Subscription, Party, IpRange, SubscriptionTransaction
-from partner.models import Partner
+from partner.models import Partner, PartnerPattern, SubscriptionTerm
 import requests
 import json
 
@@ -38,11 +37,11 @@ def forceGet(obj, pk):
         filters = {obj.pkName:pk}
         return obj.model.objects.get(**filters)
     except:
-        return None
+        pass
 
 def forceDelete(obj,pk):
+    filters = {obj.pkName:pk}
     try:
-        filters = {obj.pkName:pk}
         obj.model.objects.get(**filters).delete()
     except:
         pass
@@ -70,11 +69,10 @@ def genericTestUpdate(obj):
     if hasattr(obj, 'partnerId'):
         url += '?partnerId=%s' % obj.partnerId
     req = requests.put(url, data=obj.updateData)
-
-    if obj.pkName in obj.updateData:
-        pk = obj.updateData[obj.pkName]
     toDelete.append(pk)
     obj.assertEqual(req.status_code, 200)
+    if obj.pkName in obj.updateData:
+        pk = obj.updateData[obj.pkName]
     forceDelete(obj,pk)
 
 def genericTestDelete(obj):
@@ -96,23 +94,18 @@ def genericTestGet(obj):
     obj.assertEqual(req.status_code, 200)
     forceDelete(obj,pk)
 
-class SubscriptionCRUD(TestCase):
-    partnerId = 'tair'
-    url = serverUrl+'subscriptions/'
+class PartnerCRUD(TestCase):
+    url = serverUrl+'partners/'
     data = {
-        'startDate':'2012-04-12T00:00:00Z',
-        'endDate':'2018-04-12T00:00:00Z',
-        'partnerId':'tair',
-        'partyId':1,
+        'partnerId':'test',
+        'name':'testPartner',
     }
     updateData = {
-        'startDate':'2012-04-12T00:00:00Z',
-        'endDate':'2018-04-12T00:00:00Z',
-        'partnerId':'cdiff',
-        'partyId':1,
+        'partnerId':'test1',
+        'name':'testPartner2',
     }
-    pkName = 'subscriptionId'
-    model = Subscription
+    pkName = 'partnerId'
+    model = Partner
     def test_for_create(self):
         genericTestCreate(self)    
 
@@ -129,35 +122,27 @@ class SubscriptionCRUD(TestCase):
         genericTestGet(self)
 
     def forcePost(self,data):
-        postData = copy.deepcopy(data)
-        postData['partyId'] = Party.objects.get(partyId=self.data['partyId'])
-        postData['partnerId'] = Partner.objects.get(partnerId=self.data['partnerId'])
-        u = self.model(**postData)
+        u = self.model(**data)
         u.save()
-        return u.subscriptionId
+        return u.partnerId
        
     def tearDown(self):
         for d in toDelete:
             forceDelete(self, d)
 
-class SubscriptionTransactionCRUD(TestCase):
-    url = serverUrl+'subscriptions/transactions/'
+class PartnerPatternCRUD(TestCase):
+    url = serverUrl+'partners/patterns/'
+    partnerId = 'cdiff'
     data = {
-        'subscriptionId':1,
-        'transactionDate':'2012-04-12T00:00:00Z',
-        'startDate':'2012-04-12T00:00:00Z',
-        'endDate':'2018-04-12T00:00:00Z',
-        'transactionType':'Initial',
+        'partnerId':'cdiff',
+        'pattern':'/test/',
     }
     updateData = {
-        'subscriptionId':1,
-        'transactionDate':'2014-02-12T00:00:00Z',
-        'startDate':'2012-04-12T00:00:00Z',
-        'endDate':'2018-04-12T00:00:00Z',
-        'transactionType':'Renew',
+        'partnerId':'tair',
+        'pattern':'/test2/',
     }
-    pkName = 'subscriptionTransactionId'
-    model = SubscriptionTransaction
+    pkName = 'partnerPatternId'
+    model = PartnerPattern
     def test_for_create(self):
         genericTestCreate(self)
 
@@ -175,63 +160,35 @@ class SubscriptionTransactionCRUD(TestCase):
 
     def forcePost(self,data):
         postData = copy.deepcopy(data)
-        postData['subscriptionId'] = Subscription.objects.get(subscriptionId=data['subscriptionId'])
+        postData['partnerId'] = Partner.objects.get(partnerId=data['partnerId'])
         u = self.model(**postData)
         u.save()
-        return u.subscriptionTransactionId
+        return u.partnerPatternId
 
     def tearDown(self):
         for d in toDelete:
             forceDelete(self, d)
 
-class PartyCRUD(TestCase):
-    url = serverUrl+'subscriptions/parties/'
+
+class SubscriptionTermCRUD(TestCase):
+    partnerId='tair'
+    url = serverUrl+'partners/terms/'
     data = {
-        'partyType':'user',
+        'partnerId':'tair',
+        'period':180,
+        'price':360.00,
+        'groupDiscountPercentage':0.7,
+        'autoRenew':False,
     }
     updateData = {
-        'partyType':'organization',
+        'partnerId':'tair',
+        'period':365,
+        'price':180.00,
+        'groupDiscountPercentage':0.8,
+        'autoRenew':True,
     }
-    pkName = 'partyId'
-    model = Party
-    def test_for_create(self):
-        genericTestCreate(self)
-
-    def test_for_getAll(self):
-        genericTestGetAll(self)
-
-    def test_for_update(self):
-        genericTestUpdate(self)
-
-    def test_for_delete(self):
-        genericTestDelete(self)
-
-    def test_for_get(self):
-        genericTestGet(self)
-
-    def forcePost(self,data):
-        u = self.model(**data)
-        u.save()
-        return u.partyId
-
-    def tearDown(self):
-        for d in toDelete:
-            forceDelete(self, d)
-
-class IpRangeCRUD(TestCase):
-    url = serverUrl+'subscriptions/ipranges/'
-    data = {
-        'start':'120.0.0.0',
-        'end':'120.255.255.255',
-        'partyId':1
-    }
-    updateData = {
-        'start':'120.0.0.0',
-        'end':'120.255.211.200',
-        'partyId':1
-    }
-    pkName = 'ipRangeId'
-    model = IpRange
+    pkName = 'subscriptionTermId'
+    model = SubscriptionTerm
     def test_for_create(self):
         genericTestCreate(self)
 
@@ -249,10 +206,10 @@ class IpRangeCRUD(TestCase):
 
     def forcePost(self,data):
         postData = copy.deepcopy(data)
-        postData['partyId'] = Party.objects.get(partyId=data['partyId'])
+        postData['partnerId'] = Partner.objects.get(partnerId=data['partnerId'])
         u = self.model(**postData)
         u.save()
-        return u.ipRangeId
+        return u.subscriptionTermId
 
     def tearDown(self):
         for d in toDelete:
@@ -263,5 +220,3 @@ print "Running unit tests on subscription web services API........."
 if __name__ == '__main__':
     sys.argv[1:] = []
     unittest.main()
-    ret = not runner.run(suite).wasSuccessful()
-    sys.exit(ret)
