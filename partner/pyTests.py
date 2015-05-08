@@ -215,7 +215,7 @@ class SubscriptionTermCRUD(TestCase):
         for d in toDelete:
             forceDelete(self, d)
 
-print "Running unit tests on subscription web services API........."
+print "Running unit tests on partner web services API........."
 
 if __name__ == '__main__':
     sys.argv[1:] = []
