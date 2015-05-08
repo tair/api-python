@@ -2,14 +2,14 @@
 
 #if [[ $# -ne 2 ]] 
 #then    
-#    echo "Usage: ./runUnitTests -h '<hostname>' OR /runUnitTests --host '<hostname>'"
+#    echo "Usage: ./runUnitTests -h '<hostname>' '<internalip:port>' OR /runUnitTests --host '<hostname>' '<internalip:port>'"
 #    exit
 #fi
 
 export DJANGO_SETTINGS_MODULE=paywall2.settings
 
 
-./manage.py runserver 172.31.62.220:8000 &
+./manage.py runserver $3 &
 pid=$!
 
 sleep 5
