@@ -1,6 +1,3 @@
-#Copyright 2015 Phoenix Bioinformatics Corporation. All rights reserved.
-
-
 # -*- coding: utf-8 -*-
 from __future__ import unicode_literals
 
@@ -10,14 +7,16 @@ from django.db import models, migrations
 class Migration(migrations.Migration):
 
     dependencies = [
+        ('partner', '0001_initial'),
     ]
 
     operations = [
         migrations.CreateModel(
             name='ipAddr',
             fields=[
-                ('ip', models.CharField(max_length=200, serialize=False, primary_key=True)),
+                ('ip', models.GenericIPAddressField(serialize=False, primary_key=True)),
                 ('count', models.IntegerField(default=1)),
+                ('partner', models.ForeignKey(to='partner.Partner', db_column=b'partnerId')),
             ],
             options={
                 'db_table': 'IPAddressCount',
@@ -26,8 +25,9 @@ class Migration(migrations.Migration):
         migrations.CreateModel(
             name='limits',
             fields=[
-                ('name', models.CharField(max_length=64, serialize=False, primary_key=True)),
+                ('limitId', models.AutoField(serialize=False, primary_key=True)),
                 ('val', models.IntegerField()),
+                ('partner', models.ForeignKey(to='partner.Partner', db_column=b'partnerId')),
             ],
             options={
                 'db_table': 'LimitValue',

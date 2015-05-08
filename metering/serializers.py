@@ -10,9 +10,9 @@ from rest_framework import serializers
 class ipSerializer(serializers.ModelSerializer):
     class Meta:
         model = ipAddr
-        fields = ('ip', 'count')
+        fields = ('ip', 'count', 'partner')
 
 class limitSerializer(serializers.ModelSerializer):
     class Meta:
         model = limits
-        fields = ('name', 'val')
+        fields = ('limitId', 'val', 'partner')

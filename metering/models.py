@@ -1,10 +1,7 @@
 #Copyright 2015 Phoenix Bioinformatics Corporation. All rights reserved.
 
-
-
-
-
 from django.db import models
+from partner.models import Partner
 
 # Create your models here.
 #class PositiveBigIntegerField(models.BigIntegerField):
@@ -25,16 +22,18 @@ from django.db import models
 
 
 class ipAddr(models.Model):
-    ip = models.CharField(max_length=200, primary_key=True)
+    ip = models.GenericIPAddressField(max_length=200, primary_key=True)
     count = models.IntegerField(default=1)
+    partner = models.ForeignKey(Partner, db_column="partnerId")
     class Meta:
         db_table = "IPAddressCount"
     def __str__(self):
         return self.ip
 
 class limits(models.Model):
-    name = models.CharField(max_length=64, primary_key=True)
+    limitId = models.AutoField(primary_key=True)
     val = models.IntegerField()
+    partner = models.ForeignKey(Partner, db_column="partnerId")
     class Meta:
         db_table = "LimitValue"
     def __str__(self):

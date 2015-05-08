@@ -1,8 +1,5 @@
 #Copyright 2015 Phoenix Bioinformatics Corporation. All rights reserved.
 
-
-
-
 from metering.models import ipAddr, limits
 from metering.serializers import ipSerializer, limitSerializer
 from rest_framework import generics
@@ -18,39 +15,44 @@ from django.shortcuts import redirect
 #List view of all IP counts
 class ipList(APIView):
     def get(self, request, format=None):
-        ips = ipAddr.objects.using('mySQLTest').all()
+        ips = ipAddr.objects.all()
+        partnerId = request.QUERY_PARAMS.get('partnerId', None)
+        ips = ips.filter(partner=partnerId)
         serializer = ipSerializer(ips, many=True)
         return Response(serializer.data, status.HTTP_200_OK)
 
     def post(self, request, format=None):
-        ip = request.data['ip']
-        try:
-            ipAddr.objects.get(ip=ip)
-            return Response(status=HTTP_400_BAD_REQUEST)
-        except:
-            u = ipAddr(ip=ip, count=1)
-            u.save(using='mySQLTest')
-            serializer = ipSerializer(u)
-            return Response(serializer.data, status=status.HTTP_201_CREATED)
+        serializer = ipSerializer(data=request.data)
+        if serializer.is_valid():
+          serializer.save()
+          return Response(status=status.HTTP_201_CREATED)
+        return Response(status=status.HTTP_400_BAD_REQUEST)
 
     def delete(self, request, format=None):
-        ipAddr.objects.using('mySQLTest').all().delete()
+        ips = ipAddr.objects.all()
+        partnerId = request.QUERY_PARAMS.get('partnerId', None)
+        ips = ips.filter(partner=partnerId)
+        ips.delete()
         return Response(status=status.HTTP_204_NO_CONTENT)
+
 
 #Detail view for each IP
 class ipDetail(APIView):
     def get(self, request, pk, format=None):
-        snippet = get_object(pk)
-        serializer = ipSerializer(snippet)
+        partnerId = request.QUERY_PARAMS.get('partnerId', None)
+        snippet = get_object(pk, partnerId)
+        serializer = ipSerializer(snippet, many=True)
         return Response(serializer.data, status=status.HTTP_200_OK)
 
     def delete(self, request, pk, format=None):
-        snippet = get_object(pk)
-        snippet.delete(using='mySQLTest')
+        partnerId = request.QUERY_PARAMS.get('partnerId', None)
+        snippet = get_object(pk, partnerId)
+        snippet.delete()
         return Response(status=status.HTTP_204_NO_CONTENT)
 
     def put(self, request, pk, format=None):
-        snippet = get_object(pk)
+        partnerId = request.QUERY_PARAMS.get('partnerId', None)
+        snippet = get_object(pk, partnerId)
         serializer = ipSerializer(snippet, data=request.data)
         if serializer.is_valid():
             serializer.save()
@@ -59,11 +61,12 @@ class ipDetail(APIView):
         
 #Increment request for an IP
 def increment(request, ip, format=None):
-    currIp = get_object(ip)
+    partnerId = request.QUERY_PARAMS.get('partnerId', None)
+    currIp = get_object(ip, partnerId)
     if (currIp.count < get_limit("MeteringLimit")):
         currIp.count += 1
-        currIp.save(using='mySQLTest')
-    return redirect('/meters/ip/'+ip)
+        currIp.save()
+    return redirect('/meters/ip/'+ip+'/')
 
 ############################################For Limits#############################################
 #Return limit status of IP
@@ -107,9 +110,12 @@ class meteringLimit(APIView):
 
 
 ###########################################Auxillary functions#####################################
-def get_object(pk):
+def get_object(pk, partner):
     try:
-        return ipAddr.objects.using('mySQLTest').get(ip=pk)
+        ips = ipAddr.objects.all()
+        if partner is not None:
+            ips = ipAddr.objects.filter(partner=partner)
+        return ips.filter(ip=pk)
     except ipAddr.DoesNotExist:
         #TODO: Put status message for debug
         raise Http404
