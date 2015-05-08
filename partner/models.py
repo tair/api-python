@@ -51,7 +51,6 @@ class SubscriptionTerm(models.Model):
     period = models.IntegerField()
     price = models.DecimalField(decimal_places=2,max_digits=6)
     groupDiscountPercentage = models.DecimalField(decimal_places=2,max_digits=6)
-    autoRenew = models.BooleanField(default=False)
 
     class Meta:
         db_table = "SubscriptionTerm"

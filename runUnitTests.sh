@@ -29,6 +29,7 @@ then
 fi
 
 python -m authorization.pyTests $1 $2
+
 if [ $? != 0 ]
 then
     hasError=1
@@ -46,5 +47,4 @@ if [ $hasError == 1 ]
 then
     exit 1
 fi
-
 

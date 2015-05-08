@@ -6,8 +6,8 @@ from rest_framework import generics
 from services import MeteringService, SubscriptionService
 from controls import Authorization
 
-from models import AccessType, AccessRule, Pattern
-from serializers import AccessTypeSerializer, AccessRuleSerializer, PatternSerializer
+from models import AccessType, AccessRule, UriPattern
+from serializers import AccessTypeSerializer, AccessRuleSerializer, UriPatternSerializer
 from partner.models import Partner
 
 import json
@@ -45,7 +45,7 @@ class SubscriptionsAccess(APIView):
         return HttpResponse(json.dumps(response), content_type="application/json")
 
 
-# Basic CRUD operation for AccessType, AccessRule, and Pattern
+# Basic CRUD operation for AccessType, AccessRule, and UriPattern
 
 # /accessTypes/
 class AccessTypesList(generics.ListCreateAPIView):
@@ -70,11 +70,11 @@ class AccessRulesDetail(generics.RetrieveUpdateDestroyAPIView):
     serializer_class = AccessRuleSerializer
 
 # /patterns/
-class PatternsList(generics.ListCreateAPIView):
-    queryset = Pattern.objects.all()
-    serializer_class = PatternSerializer
+class UriPatternList(generics.ListCreateAPIView):
+    queryset = UriPattern.objects.all()
+    serializer_class = UriPatternSerializer
 
 # /patterns/<primary-key>
-class PatternsDetail(generics.RetrieveUpdateDestroyAPIView):
-    queryset = Pattern.objects.all()
-    serializer_class = PatternSerializer
+class UriPatternDetail(generics.RetrieveUpdateDestroyAPIView):
+    queryset = UriPattern.objects.all()
+    serializer_class = UriPatternSerializer

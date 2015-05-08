@@ -9,15 +9,15 @@ class Status():
     meterWarn = "Warning"
     needSubscription = "NeedSubscription"
 
-class Pattern(models.Model):
+class UriPattern(models.Model):
     patternId = models.AutoField(primary_key=True)
     pattern = models.CharField(max_length=200, default='')
     class Meta:
-        db_table = "Pattern"
+        db_table = "UriPattern"
 
 class AccessRule(models.Model):
     accessRuleId = models.AutoField(primary_key=True)
-    patternId = models.ForeignKey('Pattern')
+    patternId = models.ForeignKey('UriPattern')
     accessTypeId = models.ForeignKey('AccessType')
     partnerId = models.ForeignKey('partner.Partner')
     class Meta:

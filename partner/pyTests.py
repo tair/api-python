@@ -178,14 +178,12 @@ class SubscriptionTermCRUD(TestCase):
         'period':180,
         'price':360.00,
         'groupDiscountPercentage':0.7,
-        'autoRenew':False,
     }
     updateData = {
         'partnerId':'tair',
         'period':365,
         'price':180.00,
         'groupDiscountPercentage':0.8,
-        'autoRenew':True,
     }
     pkName = 'subscriptionTermId'
     model = SubscriptionTerm

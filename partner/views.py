@@ -59,7 +59,6 @@ class TermsQueries(APIView):
     def get(self, request, format=None):
         price = request.GET.get('price')
         period = request.GET.get('period')
-        autoRenew = request.GET.get('autoRenew')
         groupDiscountPercentage = request.GET.get('groupDiscountPercentage')
 
         obj = SubscriptionTerm.objects.all()
@@ -67,8 +66,6 @@ class TermsQueries(APIView):
             obj = obj.filter(price=price)
         if not period == None:
             obj = obj.filter(period=period)
-        if not autoRenew == None:
-            obj = obj.filter(autoRenew=autoRenew)
         if not groupDiscountPercentage == None:
             obj = obj.filter(groupDiscountPercentage=groupDiscountPercentage)
         obj = Partner.filters(self, obj, 'partnerId')

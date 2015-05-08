@@ -4,7 +4,6 @@ from django.shortcuts import render
 from django.http import HttpResponse
 from django.utils import timezone
 import stripe
-
 from partner.models import SubscriptionTerm as Term
 from subscription.models import Subscription
 

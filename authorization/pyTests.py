@@ -4,7 +4,7 @@ import django
 import unittest
 import sys, getopt
 from unittest import TestCase
-from authorization.models import Pattern, AccessRule, AccessType
+from authorization.models import UriPattern, AccessRule, AccessType
 from partner.models import Partner
 import requests
 import json
@@ -91,7 +91,7 @@ def genericTestGet(obj):
     obj.assertEqual(req.status_code, 200)
     forceDelete(obj,pk)
 
-class PatternsCRUD(TestCase):
+class UriPatternCRUD(TestCase):
     url = serverUrl+'authorizations/patterns/'
     data = {
         'pattern':'/news/'
@@ -100,7 +100,7 @@ class PatternsCRUD(TestCase):
         'pattern':'/news2/'
     }
     pkName = 'patternId'
-    model = Pattern
+    model = UriPattern
     def test_for_create(self):
         genericTestCreate(self)    
 
@@ -159,7 +159,7 @@ class AccessRulesCRUD(TestCase):
         genericTestGet(self)
 
     def forcePost(self,data):
-        patternObj = Pattern.objects.get(patternId=data['patternId'])
+        patternObj = UriPattern.objects.get(patternId=data['patternId'])
         accessTypeObj = AccessType.objects.get(accessTypeId=data['accessTypeId'])
         partnerObj = Partner.objects.get(partnerId=data['partnerId'])
         u = self.model(patternId=patternObj,

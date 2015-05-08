@@ -16,7 +16,8 @@ import json
 
 # top level: /subscriptions/
 
-# Basic CRUD operation for Parties, Payments, IpRanges, Subscriptions
+# Basic CRUD operation for Parties, IpRanges, Subscriptions, and SubscriptionTransactions
+
 # /parties/
 class PartiesList(generics.ListCreateAPIView):
     queryset = Party.objects.all()
