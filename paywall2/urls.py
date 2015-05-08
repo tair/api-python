@@ -18,4 +18,6 @@ urlpatterns = patterns('',
     url(r'^subscriptions/', include('subscription.urls')),
     url(r'^authorizations/', include('authorization.urls')),
     url(r'^partners/', include('partner.urls')),
+    url(r'^accessControls/', include('accessControl.urls')),
+    url(r'^session-logs/', include('loggingapp.urls')),
 )
