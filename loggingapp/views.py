@@ -6,16 +6,15 @@ import datetime
 
 from loggingapp.models import Sessions2, PageViews2, PartySessionAffiliation, IpSessionAffiliation, IpTableForLogging
 from loggingapp.serializers import sessionsSerializer, pageViewsSerializer
+from subscription.models import Party
 # Create your views here.
 
 #Create a session
-#TODO: Does an empty session have an IP/PartyId assciated with it?
 class SessionCreate(generics.CreateAPIView):
   queryset = Sessions2.objects.all()
   serializer_class = sessionsSerializer
 
 #Session queries based on start, end and partId
-#TODO: Add filtering based on IP address
 class SessionList(generics.ListAPIView):
   serializer_class = sessionsSerializer
   def get_queryset(self):
@@ -47,25 +46,13 @@ class PageViewCreate(generics.CreateAPIView):
   queryset = PageViews2.objects.all()
   serializer_class = pageViewsSerializer
   def perform_create(self, serializer):
-    if ("partyId" in self.request.POST) and ("pageViewSession" in self.request.POST):
-      PartySessionAffiliation(partySessionAffiliationParty=self.request.POST['partyId'],
-                              partySessionAffiliationSession=self.request.POST['pageViewSession']).save()
+    if ("partyId" in self.request.data) and ("pageViewSession" in self.request.data):
+      PartySessionAffiliation(partySessionAffiliationParty=Party.objects.get(partyId=self.request.data['partyId']),
+             partySessionAffiliationSession=Sessions2.objects.get(sessionId=self.request.data['pageViewSession'])).save()
+    
     if serializer.is_valid():
       serializer.save()
      
-    #serializer(data={ "pageViewURI"=self.request.POST['pageViewURI'], 
-    #                  "pageViewDateTime"=self.request.POST['pageViewDateTime']
-    #                }).save()
-
-
-
-
-
-
-
-
-
-
 
 ###############
   #def perform_create(self, serializer):
