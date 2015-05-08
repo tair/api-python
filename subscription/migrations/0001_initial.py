@@ -7,10 +7,21 @@ from django.db import models, migrations
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('partner', '0001_initial'),
+        ('partner', '0006_auto_20150508_0337'),
     ]
 
     operations = [
+        migrations.CreateModel(
+            name='IpRange',
+            fields=[
+                ('ipRangeId', models.AutoField(serialize=False, primary_key=True)),
+                ('start', models.GenericIPAddressField()),
+                ('end', models.GenericIPAddressField()),
+            ],
+            options={
+                'db_table': 'IpRange',
+            },
+        ),
         migrations.CreateModel(
             name='Party',
             fields=[
@@ -22,28 +33,35 @@ class Migration(migrations.Migration):
             },
         ),
         migrations.CreateModel(
-            name='SubscriptionIpRange',
+            name='Subscription',
             fields=[
-                ('subscriptionIpRangeId', models.AutoField(serialize=False, primary_key=True)),
-                ('start', models.GenericIPAddressField()),
-                ('end', models.GenericIPAddressField()),
-                ('partyId', models.ForeignKey(to='subscription.Party', db_column=b'partyId')),
+                ('subscriptionId', models.AutoField(serialize=False, primary_key=True)),
+                ('startDate', models.DateTimeField(default=b'2000-01-01T00:00:00Z')),
+                ('endDate', models.DateTimeField(default=b'2012-12-21T00:00:00Z')),
+                ('partnerId', models.ForeignKey(db_column=b'partnerId', to='partner.Partner', null=True)),
+                ('partyId', models.ForeignKey(db_column=b'partyId', to='subscription.Party', null=True)),
             ],
             options={
-                'db_table': 'SubscriptionIpRange',
+                'db_table': 'Subscription',
             },
         ),
         migrations.CreateModel(
-            name='SubscriptionTerm',
+            name='SubscriptionTransaction',
             fields=[
-                ('subscriptionTermId', models.AutoField(serialize=False, primary_key=True)),
-                ('period', models.CharField(max_length=200)),
-                ('price', models.DecimalField(max_digits=6, decimal_places=2)),
-                ('groupDiscountPercentage', models.DecimalField(max_digits=6, decimal_places=2)),
-                ('autoRenew', models.BooleanField(default=False)),
+                ('subscriptionTransactionId', models.AutoField(serialize=False, primary_key=True)),
+                ('transactionDate', models.DateTimeField(default=b'2000-01-01T00:00:00Z')),
+                ('startDate', models.DateTimeField(default=b'2001-01-01T00:00:00Z')),
+                ('endDate', models.DateTimeField(default=b'2020-01-01T00:00:00Z')),
+                ('transactionType', models.CharField(max_length=200)),
+                ('subscriptionId', models.ForeignKey(to='subscription.Subscription', db_column=b'subscriptionId')),
             ],
             options={
-                'db_table': 'SubscriptionTerm',
+                'db_table': 'SubscriptionTransaction',
             },
+        ),
+        migrations.AddField(
+            model_name='iprange',
+            name='partyId',
+            field=models.ForeignKey(to='subscription.Party', db_column=b'partyId'),
         ),
     ]

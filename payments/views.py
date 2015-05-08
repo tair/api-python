@@ -4,8 +4,10 @@ from django.shortcuts import render
 from django.http import HttpResponse
 from django.utils import timezone
 import stripe
-from subscription.models import SubscriptionTerm as Term
-from subscription.models import SubscriptionState
+
+from partner.models import SubscriptionTerm as Term
+from subscription.models import Subscription
+
 #import paypalrestsdk
 import datetime
 

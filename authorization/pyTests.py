@@ -39,7 +39,7 @@ def forceGet(obj, pk):
 def forceDelete(obj,pk):
     try:
         filters = {obj.pkName:pk}
-        self.model.objects.get(**filters).delete()
+        obj.model.objects.get(**filters).delete()
     except:
         pass
 
@@ -66,6 +66,8 @@ def genericTestUpdate(obj):
     if hasattr(obj, 'partnerId'):
         url += '?partnerId=%s' % obj.partnerId
     req = requests.put(url, data=obj.updateData)
+    if obj.pkName in obj.updateData:
+        pk = obj.updateData[obj.pkName]
     toDelete.append(pk)
     obj.assertEqual(req.status_code, 200)
     forceDelete(obj,pk)
@@ -206,8 +208,10 @@ class AccessTypesCRUD(TestCase):
         for d in toDelete:
             forceDelete(self,d)
 
-print "Running unit tests on subscription web services API........."
+print "Running unit tests on authorization web services API........."
 
 if __name__ == '__main__':
     sys.argv[1:] = []
     unittest.main()
+    ret = not runner.run(suite).wasSuccessful()
+    sys.exit(ret)

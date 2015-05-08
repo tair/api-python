@@ -26,7 +26,7 @@ class Authorization:
 
     @staticmethod
     def subscription(ip, partyId, url, partnerId):
-        accessType = AccessType.getByUrl(url, partyId)
+        accessType = AccessType.getByUrl(url, partnerId)
         if not accessType == "Paid":
             # free content, allow access.
             return True

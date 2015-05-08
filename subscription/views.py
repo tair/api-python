@@ -2,8 +2,8 @@
 
 from django.http import HttpResponse
 
-from subscription.models import Party, SubscriptionState, SubscriptionIpRange, SubscriptionTerm
-from subscription.serializers import PartySerializer, SubscriptionStateSerializer, SubscriptionIpRangeSerializer, SubscriptionTermSerializer
+from subscription.models import Party, Subscription, IpRange, SubscriptionTransaction
+from subscription.serializers import PartySerializer, SubscriptionSerializer, IpRangeSerializer, SubscriptionTransactionSerializer
 
 from partner.models import Partner
 
@@ -16,7 +16,7 @@ import json
 
 # top level: /subscriptions/
 
-# Basic CRUD operation for Parties, Payments, IpRanges, Terms, Subscriptions
+# Basic CRUD operation for Parties, Payments, IpRanges, Subscriptions
 # /parties/
 class PartiesList(generics.ListCreateAPIView):
     queryset = Party.objects.all()
@@ -29,37 +29,35 @@ class PartiesDetail(generics.RetrieveUpdateDestroyAPIView):
 
 # /ipranges/
 class IpRangesList(generics.ListCreateAPIView):
-    queryset = SubscriptionIpRange.objects.all()
-    serializer_class = SubscriptionIpRangeSerializer
+    queryset = IpRange.objects.all()
+    serializer_class = IpRangeSerializer
 
 # /ipranges/<primary_key>/
 class IpRangesDetail(generics.RetrieveUpdateDestroyAPIView):
-    queryset = SubscriptionIpRange.objects.all()
-    serializer_class = SubscriptionIpRangeSerializer
-
-# /terms/
-class TermsList(generics.ListCreateAPIView):
-    def get_queryset(self):
-        return Partner.getQuerySet(self, SubscriptionTerm, 'partnerId')
-    serializer_class = SubscriptionTermSerializer
-
-# /terms/<primary_key>/
-class TermsDetail(generics.RetrieveUpdateDestroyAPIView):
-    def get_queryset(self):
-        return Partner.getQuerySet(self, SubscriptionTerm, 'partnerId')
-    serializer_class = SubscriptionTermSerializer
+    queryset = IpRange.objects.all()
+    serializer_class = IpRangeSerializer
 
 # /subscriptions/
-class SubscriptionStatesList(generics.ListCreateAPIView):
+class SubscriptionsList(generics.ListCreateAPIView):
     def get_queryset(self):
-        return Partner.getQuerySet(self, SubscriptionState, 'partnerId')
-    serializer_class = SubscriptionStateSerializer
+        return Partner.getQuerySet(self, Subscription, 'partnerId')
+    serializer_class = SubscriptionSerializer
 
 # /subscriptions/<primary_key>/
-class SubscriptionStatesDetail(generics.RetrieveUpdateDestroyAPIView):
+class SubscriptionsDetail(generics.RetrieveUpdateDestroyAPIView):
     def get_queryset(self):
-        return Partner.getQuerySet(self, SubscriptionState, 'partnerId')
-    serializer_class = SubscriptionStateSerializer
+        return Partner.getQuerySet(self, Subscription, 'partnerId')
+    serializer_class = SubscriptionSerializer
+
+# /transactions/
+class SubscriptionTransactionsList(generics.ListCreateAPIView):
+    queryset = SubscriptionTransaction.objects.all()
+    serializer_class = SubscriptionTransactionSerializer
+
+# /transactions/<primary_key>/
+class SubscriptionTransactionsDetail(generics.RetrieveUpdateDestroyAPIView):
+    queryset = SubscriptionTransaction.objects.all()
+    serializer_class = SubscriptionTransactionSerializer
 
 #------------------- End of Basic CRUD operations --------------
 
@@ -73,11 +71,11 @@ class SubscriptionsActive(APIView):
         ip = request.GET.get('ip')
         isActive = False
         if not partyId == None:
-            obj = SubscriptionState.getActiveById(partyId)
+            obj = Subscription.getActiveById(partyId)
             obj = Partner.filters(self, obj, 'partnerId')
             isActive = len(obj) > 0
         elif not ip == None:
-            objList = SubscriptionState.getActiveByIp(ip)
+            objList = Subscription.getActiveByIp(ip)
             partnerId = Partner.getPartnerId(self)
             for obj in objList:
                 if obj.partnerId.partnerId == partnerId:
@@ -87,32 +85,3 @@ class SubscriptionsActive(APIView):
             return Response(status=status.HTTP_400_BAD_REQUEST)
 
         return HttpResponse(json.dumps({'active':isActive}), content_type="application/json")
-
-# /subscriptions/<primary key>/prices
-class SubscriptionsPrices(APIView):
-    def get(self, request, pk, format=None):
-        obj = SubscriptionTerm.getByPartyId(pk)
-        obj = Partner.filter(self, obj, 'partnerId')
-        serializer = SubscriptionTermSerializer(obj, many=True)
-        return Response(serializer.data)
-
-# /terms
-class TermsQueries(APIView):
-    def get(self, request, format=None):
-        price = request.GET.get('price')
-        period = request.GET.get('period')
-        autoRenew = request.GET.get('autoRenew')
-        groupDiscountPercentage = request.GET.get('groupDiscountPercentage')
-
-        obj = SubscriptionTerm.objects.all()
-        if not price == None:
-            obj = obj.filter(price=price)
-        if not period == None:
-            obj = obj.filter(period=period)
-        if not autoRenew == None:
-            obj = obj.filter(autoRenew=autoRenew)
-        if not groupDiscountPercentage == None:
-            obj = obj.filter(groupDiscountPercentage=groupDiscountPercentage)
-        obj = Partner.filter(self, obj, 'partnerId')
-        serializer = SubscriptionTermSerializer(obj, many=True)
-        return Response(serializer.data, status=status.HTTP_200_OK)

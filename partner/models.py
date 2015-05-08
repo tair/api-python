@@ -9,7 +9,6 @@ from django.http import Http404
 class Partner(models.Model):
     partnerId = models.CharField(max_length=200, primary_key=True)
     name = models.CharField(max_length=200)
-    accessKey = models.CharField(max_length=200, unique=True)
 
     @staticmethod
     def validatePartnerId(serializerObj, savePartnerId):
@@ -37,3 +36,22 @@ class Partner(models.Model):
 
     class Meta:
         db_table = "Partner"
+
+class PartnerPattern(models.Model):
+    partnerPatternId = models.AutoField(primary_key=True)
+    partnerId = models.ForeignKey('Partner', db_column='partnerId')
+    pattern = models.CharField(max_length=200)
+    
+    class Meta:
+        db_table = "PartnerPattern"
+
+class SubscriptionTerm(models.Model):
+    subscriptionTermId = models.AutoField(primary_key=True)
+    partnerId = models.ForeignKey('partner.Partner', db_column="partnerId")
+    period = models.IntegerField()
+    price = models.DecimalField(decimal_places=2,max_digits=6)
+    groupDiscountPercentage = models.DecimalField(decimal_places=2,max_digits=6)
+    autoRenew = models.BooleanField(default=False)
+
+    class Meta:
+        db_table = "SubscriptionTerm"
