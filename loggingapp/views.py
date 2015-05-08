@@ -41,7 +41,6 @@ class SessionList(generics.ListAPIView):
     return queryset
 
 #Add page view to session
-#TODO: Add session updating
 class PageViewCreate(generics.CreateAPIView):
   queryset = PageViews2.objects.all()
   serializer_class = pageViewsSerializer
@@ -65,7 +64,6 @@ class PageViewCreate(generics.CreateAPIView):
       serializer.save()
      
 #Page view queries based on start, end and partyId
-#TODO: Add filtering based on IP address
 class PageViewList(generics.ListAPIView):
   serializer_class = pageViewsSerializer
   def get_queryset(self):

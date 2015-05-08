@@ -1,11 +1,13 @@
 from django.db import models
 from subscription.models import Party
+from django.utils import timezone
+import datetime
 # Create your models here.
 
 class Sessions2(models.Model):
   sessionId = models.AutoField(primary_key=True)
-  sessionStartDateTime = models.DateTimeField()
-  sessionEndDateTime = models.DateTimeField()
+  sessionStartDateTime = models.DateTimeField(auto_now_add=True)
+  sessionEndDateTime = models.DateTimeField(auto_now_add=True)
   #sessionExpiration = models.DateTimeField()
   #sessionUserId = models.IntegerField()
   #sessionUserType = models.CharField(max_length=10)
