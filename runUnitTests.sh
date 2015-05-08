@@ -9,7 +9,7 @@
 export DJANGO_SETTINGS_MODULE=paywall2.settings
 
 
-./manage.py runserver 172.31.34.88:8000 &
+./manage.py runserver 172.31.62.220:8000 &
 pid=$!
 
 sleep 5

@@ -4,13 +4,6 @@ from django.http import HttpResponse
 from rest_framework.views import APIView
 from rest_framework import generics
 
-<<<<<<< HEAD
-from models import Partner
-from serializers import PartnerSerializer
-
-import json
-
-=======
 from models import Partner, PartnerPattern, SubscriptionTerm
 from serializers import PartnerSerializer, PartnerPatternSerializer, SubscriptionTermSerializer
 
@@ -19,7 +12,6 @@ import json
 from rest_framework import status
 from rest_framework.response import Response
 
->>>>>>> partners
 # top level: /partners/
 
 
@@ -34,8 +26,6 @@ class PartnerList(generics.ListCreateAPIView):
 class PartnerDetail(generics.RetrieveUpdateDestroyAPIView):
     queryset = Partner.objects.all()
     serializer_class = PartnerSerializer
-<<<<<<< HEAD
-=======
 
 # /patterns
 class PartnerPatternsList(generics.ListCreateAPIView):
@@ -84,4 +74,3 @@ class TermsQueries(APIView):
         obj = Partner.filters(self, obj, 'partnerId')
         serializer = SubscriptionTermSerializer(obj, many=True)
         return Response(serializer.data, status=status.HTTP_200_OK)
->>>>>>> partners

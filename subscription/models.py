@@ -66,7 +66,7 @@ class Subscription(models.Model):
         return objList
 
     class Meta:
-        db_table = "SubscriptionState"
+        db_table = "Subscription"
 
 class SubscriptionTransaction(models.Model):
     subscriptionTransactionId = models.AutoField(primary_key=True)
