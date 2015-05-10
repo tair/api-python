@@ -9,6 +9,7 @@
 
 *~
 
-# Eclipse project #
-###################
+# Eclipse projects #
+####################
 .project
+.pydevproject
