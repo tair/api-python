@@ -8,3 +8,7 @@
 *.sqlite
 
 *~
+
+# Eclipse project #
+###################
+.project
