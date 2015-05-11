@@ -31,7 +31,7 @@ class Partner(models.Model):
         partnerId = Partner.getPartnerId(view)
         filters = {modelPartnerId:partnerId}
         if partnerId == None:
-            return []
+            return obj.none()
         return obj.filter(**filters)
 
     class Meta:

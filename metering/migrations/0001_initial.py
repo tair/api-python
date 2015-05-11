@@ -7,14 +7,15 @@ from django.db import models, migrations
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('partner', '0001_initial'),
+        ('partner', '0007_remove_subscriptionterm_autorenew'),
     ]
 
     operations = [
         migrations.CreateModel(
             name='ipAddr',
             fields=[
-                ('ip', models.GenericIPAddressField(serialize=False, primary_key=True)),
+                ('id', models.AutoField(verbose_name='ID', serialize=False, auto_created=True, primary_key=True)),
+                ('ip', models.GenericIPAddressField(db_index=True)),
                 ('count', models.IntegerField(default=1)),
                 ('partner', models.ForeignKey(to='partner.Partner', db_column=b'partnerId')),
             ],
