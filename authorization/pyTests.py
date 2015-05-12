@@ -3,104 +3,32 @@
 import django
 import unittest
 import sys, getopt
-from unittest import TestCase
-from authorization.models import UriPattern, AccessRule, AccessType
-from partner.models import Partner
 import requests
-import json
+from unittest import TestCase
+from common.controls import PyTestGenerics
+
+from subscription.pyTests import SubscriptionPyTest
+from subscription.testSamples import SubscriptionSample, IpRangeSample, PartySample
+from authorization.models import Status
+
+from testSamples import UriPatternSample, AccessRuleSample, AccessTypeSample
+
+initPyTest = PyTestGenerics.initPyTest
+genericTestCreate = PyTestGenerics.genericTestCreate
+genericTestGet = PyTestGenerics.genericTestGet
+genericTestGetAll = PyTestGenerics.genericTestGetAll
+genericTestUpdate = PyTestGenerics.genericTestUpdate
+genericTestDelete = PyTestGenerics.genericTestDelete
+genericForceDelete = PyTestGenerics.forceDelete
 
 # Create your tests here.                                                                                                                                                                                 
 django.setup()
+serverUrl = initPyTest()
+print "using server url %s" % serverUrl
 
-try:
-    opts, args = getopt.getopt(sys.argv[1:], "h:" , ["host="])
-except getopt.GetoptError:
-    print "Usage: python -m metering.pyTests --host <hostname>\n\rExample hostname: 'http://pb.steveatgetexp.com:8080/'"
-    sys.exit(1)
-
-serverUrl = ""
-for opt, arg in opts:
-    if opt=='--host' or opt=='-h':
-        serverUrl = arg
-
-if serverUrl=="":
-    print "hostname is required"
-    sys.exit(1)
-
-toDelete = []
-
-def forceGet(obj, pk):
-    try:
-        filters = {obj.pkName:pk}
-        return obj.model.objects.get(**filters)
-    except:
-        return None
-
-def forceDelete(obj,pk):
-    try:
-        filters = {obj.pkName:pk}
-        obj.model.objects.get(**filters).delete()
-    except:
-        pass
-
-def genericTestCreate(obj):
-    req = requests.post(obj.url, data=obj.data)
-    toDelete.append(req.json()[obj.pkName])
-    obj.assertEqual(req.status_code, 201)
-    obj.assertIsNotNone(forceGet(obj,req.json()[obj.pkName]))
-    forceDelete(obj,req.json()[obj.pkName])
-
-def genericTestGetAll(obj):
-    pk = obj.forcePost(obj.data)
-    url = obj.url
-    if hasattr(obj, 'partnerId'):
-        url += '?partnerId=%s' % obj.partnerId
-    req = requests.get(url)
-    toDelete.append(pk)
-    obj.assertEqual(req.status_code, 200)
-    forceDelete(obj,pk)
-
-def genericTestUpdate(obj):
-    pk = obj.forcePost(obj.data)
-    url = obj.url + str(pk) + '/'
-    if hasattr(obj, 'partnerId'):
-        url += '?partnerId=%s' % obj.partnerId
-    req = requests.put(url, data=obj.updateData)
-    if obj.pkName in obj.updateData:
-        pk = obj.updateData[obj.pkName]
-    toDelete.append(pk)
-    obj.assertEqual(req.status_code, 200)
-    forceDelete(obj,pk)
-
-def genericTestDelete(obj):
-    pk = obj.forcePost(obj.data)
-    url = obj.url + str(pk) + '/'
-    if hasattr(obj, 'partnerId'):
-        url += '?partnerId=%s' % obj.partnerId
-    req = requests.delete(url)
-    toDelete.append(pk)
-    obj.assertIsNone(forceGet(obj,pk))
-
-def genericTestGet(obj):
-    pk = obj.forcePost(obj.data)
-    url = obj.url + str(pk) + '/'
-    if hasattr(obj, 'partnerId'):
-        url += '?partnerId=%s' % obj.partnerId
-    req = requests.get(url)
-    toDelete.append(pk)
-    obj.assertEqual(req.status_code, 200)
-    forceDelete(obj,pk)
 
 class UriPatternCRUD(TestCase):
-    url = serverUrl+'authorizations/patterns/'
-    data = {
-        'pattern':'/news/'
-    }
-    updateData = {
-        'pattern':'/news2/'
-    }
-    pkName = 'patternId'
-    model = UriPattern
+    sample = UriPatternSample(serverUrl)
     def test_for_create(self):
         genericTestCreate(self)    
 
@@ -116,33 +44,8 @@ class UriPatternCRUD(TestCase):
     def test_for_get(self):
         genericTestGet(self)
 
-    def forcePost(self,data):
-        u = self.model(pattern=data['pattern'])
-        u.save()
-        return u.patternId
-       
-    def tearDown(self):
-        for d in toDelete:
-            forceDelete(self,d)
-
 class AccessRulesCRUD(TestCase):
-    partnerId = 'tair'
-    url = serverUrl+'authorizations/accessRules/'
-    data = {
-        'accessRuleId':1,
-        'patternId':103,
-        'accessTypeId':103,
-        'partnerId':'tair',
-    }
-
-    updateData = {
-        'accessRuleId':1,
-        'patternId':104,
-        'accessTypeId':104,
-        'partnerId':'cdiff',
-    }
-    pkName = 'accessRuleId'
-    model = AccessRule
+    sample = AccessRuleSample(serverUrl)
     def test_for_create(self):
         genericTestCreate(self)
 
@@ -157,33 +60,9 @@ class AccessRulesCRUD(TestCase):
 
     def test_for_get(self):
         genericTestGet(self)
-
-    def forcePost(self,data):
-        patternObj = UriPattern.objects.get(patternId=data['patternId'])
-        accessTypeObj = AccessType.objects.get(accessTypeId=data['accessTypeId'])
-        partnerObj = Partner.objects.get(partnerId=data['partnerId'])
-        u = self.model(patternId=patternObj,
-                       accessTypeId=accessTypeObj,
-                       partnerId=partnerObj,
-        )
-        u.save()
-        return u.accessRuleId
-
-    def tearDown(self):
-        for d in toDelete:
-            forceDelete(self,d)
 
 class AccessTypesCRUD(TestCase):
-    url = serverUrl+'authorizations/accessTypes/'
-    data = {
-        'name':'test1',
-    }
-
-    updateData = {
-        'name':'test2',
-    }
-    pkName = 'accessTypeId'
-    model = AccessType
+    sample = AccessTypeSample(serverUrl)
     def test_for_create(self):
         genericTestCreate(self)
 
@@ -199,14 +78,64 @@ class AccessTypesCRUD(TestCase):
     def test_for_get(self):
         genericTestGet(self)
 
-    def forcePost(self,data):
-        u = self.model(name=data['name'])
-        u.save()
-        return u.accessTypeId
 
-    def tearDown(self):
-        for d in toDelete:
-            forceDelete(self,d)
+class AuthorizationPyTest(TestCase):
+    accessUrl = serverUrl+'authorizations/access/'
+    subscriptionAccessUrl = serverUrl+'authorizations/subscriptions/'
+
+    partnerId = 'tair'
+    freeUrl = '/free/'
+    paidUrl = '/test/'
+
+    successIp = SubscriptionPyTest.successIp
+    failIp = SubscriptionPyTest.failIp
+
+    partyData = SubscriptionPyTest.partyData
+    ipRangeData = SubscriptionPyTest.ipRangeData
+    successSubscriptionData = SubscriptionPyTest.successSubscriptionData
+    failSubscriptionData = SubscriptionPyTest.failEndDateSubscriptionData
+
+    subscriptionSample = SubscriptionSample(serverUrl)
+    ipRangeSample = IpRangeSample(serverUrl)
+    partySample = PartySample(serverUrl)
+
+    def runAccessTest(self, subscriptionData, ipRangeData, partyData, usePartyId, ip, pattern, expectedStatus):
+        # initialization
+        partySample = self.partySample
+        subscriptionSample = self.subscriptionSample
+        ipRangeSample = self.ipRangeSample
+
+        # setting up data
+        partySample.data = partyData
+        subscriptionSample.data = subscriptionData
+        ipRangeSample.data = ipRangeData
+
+        # creating object
+        partyId = partySample.forcePost(partySample.data)
+        subscriptionSample.data['partyId'] = partyId
+        subscriptionId = subscriptionSample.forcePost(subscriptionSample.data)
+        ipRangeSample.data['partyId'] = partyId
+        ipRangeId = ipRangeSample.forcePost(ipRangeSample.data)
+
+        # run test
+        url = self.accessUrl + '?partnerId=%s&url=%s' % (self.partnerId, pattern)
+        if not ip == None:
+            url = url+'&ip=%s' % (ip)
+        if usePartyId:
+            url = url+'&partyId=%s' % (partyId)
+        req = requests.get(url)
+        self.assertEqual(req.status_code, 200)
+        self.assertEqual(req.json()['status'], expectedStatus)
+
+        # delete objects
+        genericForceDelete(subscriptionSample.model, subscriptionSample.pkName, subscriptionId)
+        genericForceDelete(ipRangeSample.model, ipRangeSample.pkName, ipRangeId)
+        genericForceDelete(partySample.model, partySample.pkName, partyId)
+
+    def test_for_access(self):
+        self.runAccessTest(self.successSubscriptionData, self.ipRangeData, self.partyData, True, None, self.paidUrl, Status.ok)
+        self.runAccessTest(self.failSubscriptionData, self.ipRangeData, self.partyData, True, None, self.paidUrl, Status.needSubscription)
+        self.runAccessTest(self.successSubscriptionData, self.ipRangeData, self.partyData, False, self.successIp, self.paidUrl, Status.ok)
 
 print "Running unit tests on authorization web services API........."
 

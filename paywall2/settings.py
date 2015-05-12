@@ -50,6 +50,8 @@ INSTALLED_APPS = (
     'subscription',
     'authorization',
     'partner',
+    'loggingapp',
+    'common',
 )
 
 REST_FRAMEWORK = {

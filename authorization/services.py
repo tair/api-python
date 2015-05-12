@@ -8,6 +8,9 @@ class MeteringService():
     # Returns subscription status for a given ipAddress
     @staticmethod
     def checkByIp(ipAddress):
+        if ipAddress == None:
+            return Status.needSubscription
+
         status = Status.ok
 
         #check if ip is in databse
