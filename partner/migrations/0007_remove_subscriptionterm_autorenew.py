@@ -7,12 +7,12 @@ from django.db import models, migrations
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('loggingapp', '0001_initial'),
+        ('partner', '0006_auto_20150508_0337'),
     ]
 
     operations = [
         migrations.RemoveField(
-            model_name='sessions',
-            name='sessionEnd',
+            model_name='subscriptionterm',
+            name='autoRenew',
         ),
     ]

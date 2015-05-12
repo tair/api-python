@@ -22,7 +22,7 @@ from partner.models import Partner
 
 
 class ipAddr(models.Model):
-    ip = models.GenericIPAddressField(max_length=200, primary_key=True)
+    ip = models.GenericIPAddressField(max_length=200, db_index=True)
     count = models.IntegerField(default=1)
     partner = models.ForeignKey(Partner, db_column="partnerId")
     class Meta:

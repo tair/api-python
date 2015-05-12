@@ -1,220 +1,103 @@
 #Copyright 2015 Phoenix Bioinformatics Corporation. All rights reserved.                                                                                                                                  
-
+import sys
 import django
 import unittest
-import sys, getopt
 from unittest import TestCase
 from partner.models import Partner, PartnerPattern, SubscriptionTerm
-import requests
-import json
-
 import copy
+from common.controls import PyTestGenerics
+from testSamples import PartnerSample, PartnerPatternSample, SubscriptionTermSample
+import requests
+
+initPyTest = PyTestGenerics.initPyTest
+genericTestCreate = PyTestGenerics.genericTestCreate
+genericTestGet = PyTestGenerics.genericTestGet
+genericTestGetAll = PyTestGenerics.genericTestGetAll
+genericTestUpdate = PyTestGenerics.genericTestUpdate
+genericTestDelete = PyTestGenerics.genericTestDelete
+genericForceDelete = PyTestGenerics.forceDelete
 
 # Create your tests here.                                                                                                                                                                                 
 django.setup()
-
-try:
-    opts, args = getopt.getopt(sys.argv[1:], "h:" , ["host="])
-except getopt.GetoptError:
-    print "Usage: python -m metering.pyTests --host <hostname>\n\rExample hostname: 'http://pb.steveatgetexp.com:8080/'"
-    sys.exit(1)
-
-serverUrl = ""
-for opt, arg in opts:
-    if opt=='--host' or opt=='-h':
-        serverUrl = arg
-
-if serverUrl=="":
-    print "hostname is required"
-    sys.exit(1)
-
-toDelete = []
+serverUrl = initPyTest()
 
 print "using server url %s" % serverUrl
 
-def forceGet(obj, pk):
-    try:
-        filters = {obj.pkName:pk}
-        return obj.model.objects.get(**filters)
-    except:
-        pass
-
-def forceDelete(obj,pk):
-    filters = {obj.pkName:pk}
-    try:
-        obj.model.objects.get(**filters).delete()
-    except:
-        pass
-
-def genericTestCreate(obj):
-    req = requests.post(obj.url, data=obj.data)
-    toDelete.append(req.json()[obj.pkName])
-    obj.assertEqual(req.status_code, 201)
-    obj.assertIsNotNone(forceGet(obj, req.json()[obj.pkName]))
-    forceDelete(obj, req.json()[obj.pkName])
-
-def genericTestGetAll(obj):
-    pk = obj.forcePost(obj.data)
-    url = obj.url
-    if hasattr(obj, 'partnerId'):
-        url += '?partnerId=%s' % obj.partnerId
-    req = requests.get(url)
-    toDelete.append(pk)
-    obj.assertEqual(req.status_code, 200)
-    forceDelete(obj, pk)
-
-def genericTestUpdate(obj):
-    pk = obj.forcePost(obj.data)
-    url = obj.url + str(pk) + '/'
-    if hasattr(obj, 'partnerId'):
-        url += '?partnerId=%s' % obj.partnerId
-    req = requests.put(url, data=obj.updateData)
-    toDelete.append(pk)
-    obj.assertEqual(req.status_code, 200)
-    if obj.pkName in obj.updateData:
-        pk = obj.updateData[obj.pkName]
-    forceDelete(obj,pk)
-
-def genericTestDelete(obj):
-    pk = obj.forcePost(obj.data)
-    url = obj.url + str(pk) + '/'
-    if hasattr(obj, 'partnerId'):
-        url += '?partnerId=%s' % obj.partnerId
-    req = requests.delete(url)
-    toDelete.append(pk)
-    obj.assertIsNone(forceGet(obj, pk))
-
-def genericTestGet(obj):
-    pk = obj.forcePost(obj.data)
-    url = obj.url + str(pk) + '/'
-    if hasattr(obj, 'partnerId'):
-        url += '?partnerId=%s' % obj.partnerId
-    req = requests.get(url)
-    toDelete.append(pk)
-    obj.assertEqual(req.status_code, 200)
-    forceDelete(obj,pk)
-
 class PartnerCRUD(TestCase):
-    url = serverUrl+'partners/'
-    data = {
-        'partnerId':'test',
-        'name':'testPartner',
-    }
-    updateData = {
-        'partnerId':'test1',
-        'name':'testPartner2',
-    }
-    pkName = 'partnerId'
-    model = Partner
+    sample = PartnerSample(serverUrl)
     def test_for_create(self):
-        genericTestCreate(self)    
-
+        genericTestCreate(self)
     def test_for_getAll(self):
         genericTestGetAll(self)
- 
     def test_for_update(self):
         genericTestUpdate(self)
- 
     def test_for_delete(self):
         genericTestDelete(self)
- 
     def test_for_get(self):
         genericTestGet(self)
-
-    def forcePost(self,data):
-        u = self.model(**data)
-        u.save()
-        return u.partnerId
-       
-    def tearDown(self):
-        for d in toDelete:
-            forceDelete(self, d)
 
 class PartnerPatternCRUD(TestCase):
-    url = serverUrl+'partners/patterns/'
-    partnerId = 'cdiff'
-    data = {
-        'partnerId':'cdiff',
-        'pattern':'/test/',
-    }
-    updateData = {
-        'partnerId':'tair',
-        'pattern':'/test2/',
-    }
-    pkName = 'partnerPatternId'
-    model = PartnerPattern
+    sample = PartnerPatternSample(serverUrl)
     def test_for_create(self):
         genericTestCreate(self)
-
     def test_for_getAll(self):
         genericTestGetAll(self)
-
     def test_for_update(self):
         genericTestUpdate(self)
-
     def test_for_delete(self):
         genericTestDelete(self)
-
     def test_for_get(self):
         genericTestGet(self)
-
-    def forcePost(self,data):
-        postData = copy.deepcopy(data)
-        postData['partnerId'] = Partner.objects.get(partnerId=data['partnerId'])
-        u = self.model(**postData)
-        u.save()
-        return u.partnerPatternId
-
-    def tearDown(self):
-        for d in toDelete:
-            forceDelete(self, d)
-
 
 class SubscriptionTermCRUD(TestCase):
-    partnerId='tair'
-    url = serverUrl+'partners/terms/'
-    data = {
-        'partnerId':'tair',
-        'period':180,
-        'price':360.00,
-        'groupDiscountPercentage':0.7,
-    }
-    updateData = {
-        'partnerId':'tair',
-        'period':365,
-        'price':180.00,
-        'groupDiscountPercentage':0.8,
-    }
-    pkName = 'subscriptionTermId'
-    model = SubscriptionTerm
+    sample = SubscriptionTermSample(serverUrl)
     def test_for_create(self):
         genericTestCreate(self)
-
     def test_for_getAll(self):
         genericTestGetAll(self)
-
     def test_for_update(self):
         genericTestUpdate(self)
-
     def test_for_delete(self):
         genericTestDelete(self)
-
     def test_for_get(self):
         genericTestGet(self)
 
-    def forcePost(self,data):
-        postData = copy.deepcopy(data)
-        postData['partnerId'] = Partner.objects.get(partnerId=data['partnerId'])
-        u = self.model(**postData)
-        u.save()
-        return u.subscriptionTermId
+class SubscriptionTermQueryTest(TestCase):
+    url = serverUrl+'partners/terms/queries/'
 
-    def tearDown(self):
-        for d in toDelete:
-            forceDelete(self, d)
+    def runSubscriptionTermQueryTest(self, key, value, shouldSuccess):
+        #initialization
+        subscriptionTermSample = SubscriptionTermSample(serverUrl)
+        partnerSample = PartnerSample(serverUrl)
+
+        #setup data
+        pass
+
+        #creating objects
+        partnerId = partnerSample.forcePost(partnerSample.data)
+        subscriptionTermSample.data['partnerId']=partnerId
+        subscriptionTermId = subscriptionTermSample.forcePost(subscriptionTermSample.data)
+
+        #run tests
+        url = self.url + '?partnerId=%s&%s=%s' % (partnerId, key, value)
+        req = requests.get(url)
+        self.assertEqual(len(req.json()) > 0, shouldSuccess)
+
+        #delete objects
+        genericForceDelete(subscriptionTermSample.model, subscriptionTermSample.pkName, subscriptionTermId)
+        genericForceDelete(partnerSample.model, partnerSample.pkName, partnerId)
+
+    def test_for_subscriptionTermQuery(self):
+        sample = SubscriptionTermSample(serverUrl)
+        self.runSubscriptionTermQueryTest('price', sample.data['price'], True)
+        self.runSubscriptionTermQueryTest('price', sample.data['price']+5, False)
+        self.runSubscriptionTermQueryTest('period', sample.data['period'], True)
+        self.runSubscriptionTermQueryTest('period', sample.data['period']+5, False)
 
 print "Running unit tests on partner web services API........."
 
 if __name__ == '__main__':
     sys.argv[1:] = []
     unittest.main()
+    ret = not runner.run(suite).wasSuccessful()
+    sys.exit(ret)

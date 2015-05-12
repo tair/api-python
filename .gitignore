@@ -8,3 +8,8 @@
 *.sqlite
 
 *~
+
+# Eclipse projects #
+####################
+.project
+.pydevproject
