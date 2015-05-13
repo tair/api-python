@@ -1,0 +1,15 @@
+# Compiled source #
+###################
+*.pyc
+*.pye
+
+# Logs and databases #
+######################
+*.sqlite
+
+*~
+
+# Eclipse projects #
+####################
+.project
+.pydevproject
