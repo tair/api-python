@@ -7,7 +7,7 @@ class MeteringService():
 
     # Returns subscription status for a given ipAddress
     @staticmethod
-    def checkByIp(ipAddress):
+    def checkByIp(ipAddress,partnerId):
         if ipAddress == None:
             return Status.needSubscription
 
@@ -19,7 +19,7 @@ class MeteringService():
 
         if response.status_code == 200:
             # ip is already in database, check for status
-            requestUrl = '%s/ip/%s/limit' % (MeteringService.serviceUrl, ipAddress)
+            requestUrl = '%s/ip/%s/limit?partnerId=%s' % (MeteringService.serviceUrl, ipAddress, partnerId)
             response = requests.get(requestUrl)
             contentJson = json.loads(response.content)
             status = contentJson['status']

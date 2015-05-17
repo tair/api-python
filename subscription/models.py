@@ -4,7 +4,6 @@ from django.db import models
 from django.db import connection
 from netaddr import IPAddress
 from django.utils import timezone
-import datetime
 
 # Create your models here.
 class NumericField(models.Field):
@@ -47,7 +46,7 @@ class Subscription(models.Model):
 
     @staticmethod
     def getActiveById(partyId):
-        now = datetime.datetime.now()
+        now = timezone.now()
         return Subscription.objects.all() \
                                    .filter(partyId=partyId) \
                                    .filter(endDate__gt=now) \
