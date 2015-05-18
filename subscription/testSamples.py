@@ -36,8 +36,8 @@ class SubscriptionSample():
 
     def forcePost(self,data):
         postData = copy.deepcopy(data)
-        postData['partyId'] = Party.objects.get(partyId=self.data['partyId'])
-        postData['partnerId'] = Partner.objects.get(partnerId=self.data['partnerId'])
+        postData['partyId'] = Party.objects.get(partyId=data['partyId'])
+        postData['partnerId'] = Partner.objects.get(partnerId=data['partnerId'])
         return genericForcePost(self.model, self.pkName, postData)
 
 

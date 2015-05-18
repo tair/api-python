@@ -7,7 +7,7 @@ import requests
 from unittest import TestCase
 from common.controls import PyTestGenerics
 
-from subscription.pyTests import SubscriptionPyTest
+from subscription.pyTests import SubscriptionActiveTest
 from subscription.testSamples import SubscriptionSample, IpRangeSample, PartySample
 from authorization.models import Status
 
@@ -87,13 +87,13 @@ class AuthorizationPyTest(TestCase):
     freeUrl = '/free/'
     paidUrl = '/test/'
 
-    successIp = SubscriptionPyTest.successIp
-    failIp = SubscriptionPyTest.failIp
+    successIp = SubscriptionActiveTest.successIp
+    failIp = SubscriptionActiveTest.failIp
 
-    partyData = SubscriptionPyTest.partyData
-    ipRangeData = SubscriptionPyTest.ipRangeData
-    successSubscriptionData = SubscriptionPyTest.successSubscriptionData
-    failSubscriptionData = SubscriptionPyTest.failEndDateSubscriptionData
+    partyData = SubscriptionActiveTest.partyData
+    ipRangeData = SubscriptionActiveTest.ipRangeData
+    successSubscriptionData = SubscriptionActiveTest.successSubscriptionData
+    failSubscriptionData = SubscriptionActiveTest.failEndDateSubscriptionData
 
     subscriptionSample = SubscriptionSample(serverUrl)
     ipRangeSample = IpRangeSample(serverUrl)

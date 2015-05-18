@@ -14,6 +14,7 @@ from rest_framework import generics
 
 import json
 
+import datetime
 # top level: /subscriptions/
 
 # Basic CRUD operation for Parties, IpRanges, Subscriptions, and SubscriptionTransactions
@@ -44,6 +45,17 @@ class SubscriptionsList(generics.ListCreateAPIView):
         return Partner.getQuerySet(self, Subscription, 'partnerId')
     serializer_class = SubscriptionSerializer
 
+    # overrides default POST to create a subscription transaction
+    def post(self, request):
+        serializer = self.serializer_class(data=request.data)
+        if serializer.is_valid():
+            subscription = serializer.save()
+            transaction = SubscriptionTransaction.createFromSubscription(subscription, 'Initial')
+            returnData = serializer.data
+            returnData['subscriptionTransactionId']=transaction.subscriptionTransactionId
+            return Response(returnData, status=status.HTTP_201_CREATED)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
 # /subscriptions/<primary_key>/
 class SubscriptionsDetail(generics.RetrieveUpdateDestroyAPIView):
     def get_queryset(self):
@@ -65,7 +77,7 @@ class SubscriptionTransactionsDetail(generics.RetrieveUpdateDestroyAPIView):
 
 # Specific queries
 
-# /subscriptions/active/
+# /active/
 class SubscriptionsActive(APIView):
     def get(self, request, format=None):
         partyId = request.GET.get('partyId')
@@ -86,3 +98,22 @@ class SubscriptionsActive(APIView):
             return Response(status=status.HTTP_400_BAD_REQUEST)
 
         return HttpResponse(json.dumps({'active':isActive}), content_type="application/json")
+
+
+# /<pk>/renewal/
+class SubscriptionRenewal(generics.GenericAPIView):
+    def get_queryset(self):
+        return Partner.getQuerySet(self, Subscription, 'partnerId')
+    serializer_class = SubscriptionSerializer
+
+    def put(self, request, pk):
+        subscription = Subscription.objects.get(subscriptionId=pk)
+        serializer = SubscriptionSerializer(subscription, data=request.data)
+        if serializer.is_valid():
+            subscription = serializer.save()
+            transaction = SubscriptionTransaction.createFromSubscription(subscription, 'Renewal')
+            returnData = serializer.data
+            returnData['subscriptionTransactionId']=transaction.subscriptionTransactionId
+            return Response(returnData)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+

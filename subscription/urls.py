@@ -14,6 +14,7 @@ urlpatterns = [
     url(r'^ipranges/(?P<pk>[0-9.]+)/$', views.IpRangesDetail.as_view()),
     url(r'^$', views.SubscriptionsList.as_view()),
     url(r'^(?P<pk>[0-9.]+)/$', views.SubscriptionsDetail.as_view()),
+    url(r'^(?P<pk>[0-9.]+)/renewal/$', views.SubscriptionRenewal.as_view()),
 
     # Specific queries about subscription
     url(r'^active/$', views.SubscriptionsActive.as_view()),

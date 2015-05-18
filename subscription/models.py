@@ -75,6 +75,23 @@ class SubscriptionTransaction(models.Model):
     endDate = models.DateTimeField(default='2020-01-01T00:00:00Z')
     transactionType = models.CharField(max_length=200)
 
+    @staticmethod
+    def createFromSubscription(subscription, transactionType):
+        now = timezone.now()
+        transactionJson = {
+            'subscriptionId':subscription.subscriptionId,
+            'transactionDate':now,
+            'startDate':subscription.startDate,
+            'endDate':subscription.endDate,
+            'transactionType':transactionType,
+        }
+        from serializers import SubscriptionTransactionSerializer
+        transactionSerializer = SubscriptionTransactionSerializer(data=transactionJson)
+        if transactionSerializer.is_valid():
+            return transactionSerializer.save()
+        # failed to create transaction
+        return None
+        
     class Meta:
         db_table = "SubscriptionTransaction"
 
