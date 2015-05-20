@@ -11,6 +11,7 @@ import json
 from testSamples import SubscriptionSample, SubscriptionTransactionSample, PartySample, IpRangeSample
 import copy
 from common.controls import PyTestGenerics
+from rest_framework import status
 
 initPyTest = PyTestGenerics.initPyTest
 genericTestCreate = PyTestGenerics.genericTestCreate
@@ -32,8 +33,17 @@ print "using server url %s" % serverUrl
 class SubscriptionCRUD(TestCase):
 
     sample = SubscriptionSample(serverUrl)
+    # post request for subscription is not generic. It creates a SubscriptionTransaction
+    # object in addition to a Subscription object.
     def test_for_create(self):
-        genericTestCreate(self)
+        sample = self.sample
+        req = requests.post(sample.url, data=sample.data)
+        self.assertEqual(req.status_code, status.HTTP_201_CREATED)
+        self.assertIsNotNone(PyTestGenerics.forceGet(sample.model,sample.pkName,req.json()[sample.pkName]))
+        transactionId = req.json()['subscriptionTransactionId']
+        self.assertIsNotNone(PyTestGenerics.forceGet(SubscriptionTransaction,'subscriptionTransactionId',transactionId))
+        PyTestGenerics.forceDelete(SubscriptionTransaction, 'subscriptionTransactionId', transactionId)
+        PyTestGenerics.forceDelete(sample.model,sample.pkName,req.json()[sample.pkName])
 
     def test_for_getAll(self):
         genericTestGetAll(self)
@@ -101,7 +111,23 @@ class IpRangeCRUD(TestCase):
 
 # ----------------- END OF BASIC CRUD OPERATIONS ----------------------
 
-class SubscriptionPyTest(TestCase):
+class SubscriptionRenewalTest(TestCase):
+    def test_for_update(self):
+        sample = SubscriptionSample(serverUrl)
+        pk = sample.forcePost(sample.data)
+        url = serverUrl + 'subscriptions/' + str(pk) + '/renewal'
+        if hasattr(sample, 'partnerId'):
+            url += '?partnerId=%s' % sample.partnerId
+        req = requests.put(url, data=sample.updateData)
+        if sample.pkName in sample.updateData:
+            pk = sample.updateData[sample.pkName]
+        self.assertEqual(req.status_code, 200)
+        transactionId = req.json()['subscriptionTransactionId']
+        self.assertIsNotNone(PyTestGenerics.forceGet(SubscriptionTransaction,'subscriptionTransactionId',transactionId))
+        PyTestGenerics.forceDelete(SubscriptionTransaction, 'subscriptionTransactionId', transactionId)
+        PyTestGenerics.forceDelete(sample.model,sample.pkName,pk)
+
+class SubscriptionActiveTest(TestCase):
     url = serverUrl+'subscriptions/active/'
     partnerId = 'tair'
     successIp = '123.1.0.0'
@@ -139,13 +165,13 @@ class SubscriptionPyTest(TestCase):
         partySample = PartySample(serverUrl)
         subscriptionSample = SubscriptionSample(serverUrl)
 
-        # setting up data
-        subscriptionSample.data = subscriptionData
+        # setting up local data that would be modified
+        lSubscriptionData = copy.deepcopy(subscriptionData)
 
         # creating objects
         partyId = partySample.forcePost(partySample.data)
-        subscriptionSample.data['partyId'] = partyId
-        subscriptionId = subscriptionSample.forcePost(subscriptionSample.data)
+        lSubscriptionData['partyId'] = partyId
+        subscriptionId = subscriptionSample.forcePost(lSubscriptionData)
 
         # run test
         url = self.url + '?partnerId=%s&partyId=%s' % (self.partnerId, partyId)
@@ -162,15 +188,16 @@ class SubscriptionPyTest(TestCase):
         subscriptionSample = SubscriptionSample(serverUrl)
         ipRangeSample = IpRangeSample(serverUrl)
 
-        # setting up data
-        ipRangeSample.data = ipRangeData
+        # setting up local data that would be modified
+        lIpRangeData = copy.deepcopy(ipRangeData)
+        lSubscriptionData = copy.deepcopy(subscriptionSample.data)
 
         # creating object
         partyId = partySample.forcePost(partySample.data)
-        subscriptionSample.data['partyId'] = partyId
-        subscriptionId = subscriptionSample.forcePost(subscriptionSample.data)
-        ipRangeSample.data['partyId'] = partyId
-        ipRangeId = ipRangeSample.forcePost(ipRangeSample.data)
+        lSubscriptionData['partyId'] = partyId
+        subscriptionId = subscriptionSample.forcePost(lSubscriptionData)
+        lIpRangeData['partyId'] = partyId
+        ipRangeId = ipRangeSample.forcePost(lIpRangeData)
 
         # run test
         url = self.url + '?partnerId=%s&ip=%s' % (self.partnerId, ip)

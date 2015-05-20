@@ -4,7 +4,6 @@ from django.db import models
 from django.db import connection
 from netaddr import IPAddress
 from django.utils import timezone
-import datetime
 
 # Create your models here.
 class NumericField(models.Field):
@@ -47,7 +46,7 @@ class Subscription(models.Model):
 
     @staticmethod
     def getActiveById(partyId):
-        now = datetime.datetime.now()
+        now = timezone.now()
         return Subscription.objects.all() \
                                    .filter(partyId=partyId) \
                                    .filter(endDate__gt=now) \
@@ -76,6 +75,23 @@ class SubscriptionTransaction(models.Model):
     endDate = models.DateTimeField(default='2020-01-01T00:00:00Z')
     transactionType = models.CharField(max_length=200)
 
+    @staticmethod
+    def createFromSubscription(subscription, transactionType):
+        now = timezone.now()
+        transactionJson = {
+            'subscriptionId':subscription.subscriptionId,
+            'transactionDate':now,
+            'startDate':subscription.startDate,
+            'endDate':subscription.endDate,
+            'transactionType':transactionType,
+        }
+        from serializers import SubscriptionTransactionSerializer
+        transactionSerializer = SubscriptionTransactionSerializer(data=transactionJson)
+        if transactionSerializer.is_valid():
+            return transactionSerializer.save()
+        # failed to create transaction
+        return None
+        
     class Meta:
         db_table = "SubscriptionTransaction"
 

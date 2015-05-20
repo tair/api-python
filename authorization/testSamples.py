@@ -9,7 +9,6 @@ from authorization.models import UriPattern, AccessRule, AccessType
 from partner.models import Partner
 from common.controls import PyTestGenerics
 
-from subscription.pyTests import SubscriptionPyTest
 from authorization.models import Status
 import copy
 

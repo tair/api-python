@@ -7,7 +7,7 @@ class Authorization:
     @staticmethod
     def getAccessStatus(ip, partyId, url, partnerId):
         status = Status.ok
-        meterStatus = MeteringService.checkByIp(ip)
+        meterStatus = MeteringService.checkByIp(ip, partnerId)
         if meterStatus == Status.ok:
             status = Status.ok
         else:
