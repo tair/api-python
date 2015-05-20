@@ -35,6 +35,15 @@ class PartnerCRUD(TestCase):
         genericTestDelete(self)
     def test_for_get(self):
         genericTestGet(self)
+    def test_for_getByUri(self):
+        partnerPatternSample = PartnerPatternSample(serverUrl)
+        partnerPatternId = partnerPatternSample.forcePost(partnerPatternSample.data)
+        partnerId = self.sample.forcePost(self.sample.data)
+        url = self.sample.url + "?uri=%s" % partnerPatternSample.data['pattern']
+        req = requests.get(url)
+        self.assertEqual(len(req.json()) > 0, True)
+        genericForceDelete(partnerPatternSample.model, partnerPatternSample.pkName, partnerPatternId)
+        genericForceDelete(self.sample.model, self.sample.pkName, partnerId)
 
 class PartnerPatternCRUD(TestCase):
     sample = PartnerPatternSample(serverUrl)
