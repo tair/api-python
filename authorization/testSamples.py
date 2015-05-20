@@ -39,15 +39,15 @@ class AccessRuleSample():
     path = 'authorizations/accessRules/'
     data = {
         'accessRuleId':1,
-        'patternId':103,
-        'accessTypeId':103,
+        'patternId':1,
+        'accessTypeId':1,
         'partnerId':'tair',
     }
 
     updateData = {
         'accessRuleId':1,
-        'patternId':104,
-        'accessTypeId':104,
+        'patternId':7,
+        'accessTypeId':1,
         'partnerId':'cdiff',
     }
     pkName = 'accessRuleId'

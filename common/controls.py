@@ -1,6 +1,7 @@
 import requests
 import json
 import sys, getopt
+from rest_framework import generics
 
 class PyTestGenerics:
     @staticmethod
@@ -65,9 +66,9 @@ class PyTestGenerics:
     def genericTestUpdate(test):
         sample = test.sample
         pk = sample.forcePost(sample.data)
-        url = sample.url + str(pk) + '/'
+        url = sample.url + '?%s=%s' % (sample.pkName, str(pk))
         if hasattr(sample, 'partnerId'):
-            url += '?partnerId=%s' % sample.partnerId
+            url += '&partnerId=%s' % sample.partnerId
         req = requests.put(url, data=sample.updateData)
         if sample.pkName in sample.updateData:
             pk = sample.updateData[sample.pkName]
@@ -78,9 +79,9 @@ class PyTestGenerics:
     def genericTestDelete(test):
         sample = test.sample
         pk = sample.forcePost(sample.data)
-        url = sample.url + str(pk) + '/'
+        url = sample.url + '?%s=%s' % (sample.pkName, str(pk))
         if hasattr(sample, 'partnerId'):
-            url += '?partnerId=%s' % sample.partnerId
+            url += '&partnerId=%s' % sample.partnerId
         req = requests.delete(url)
         test.assertIsNone(PyTestGenerics.forceGet(sample.model,sample.pkName,pk))
 
@@ -88,9 +89,9 @@ class PyTestGenerics:
     def genericTestGet(test):
         sample = test.sample
         pk = sample.forcePost(sample.data)
-        url = sample.url + str(pk) + '/'
+        url = sample.url + '?%s=%s' % (sample.pkName, str(pk))
         if hasattr(sample, 'partnerId'):
-            url += '?partnerId=%s' % sample.partnerId
+            url += '&partnerId=%s' % sample.partnerId
         req = requests.get(url)
         test.assertEqual(req.status_code, 200)
         PyTestGenerics.forceDelete(sample.model,sample.pkName,pk)

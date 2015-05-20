@@ -9,6 +9,7 @@ from controls import Authorization
 from models import AccessType, AccessRule, UriPattern
 from serializers import AccessTypeSerializer, AccessRuleSerializer, UriPatternSerializer
 from partner.models import Partner
+from common.views import GenericCRUDView
 
 import json
 
@@ -48,33 +49,17 @@ class SubscriptionsAccess(APIView):
 # Basic CRUD operation for AccessType, AccessRule, and UriPattern
 
 # /accessTypes/
-class AccessTypesList(generics.ListCreateAPIView):
-    queryset = AccessType.objects.all()
-    serializer_class = AccessTypeSerializer
-
-# /accessTypes/<primary-key>
-class AccessTypesDetail(generics.RetrieveUpdateDestroyAPIView):
+class AccessTypeCRUD(GenericCRUDView):
     queryset = AccessType.objects.all()
     serializer_class = AccessTypeSerializer
 
 # /accessRules/
-class AccessRulesList(generics.ListCreateAPIView):
-    def get_queryset(self):
-        return Partner.getQuerySet(self, AccessRule, 'partnerId')
-    serializer_class = AccessRuleSerializer
-
-# /accessRules/<primary-key>
-class AccessRulesDetail(generics.RetrieveUpdateDestroyAPIView):
+class AccessRuleCRUD(GenericCRUDView):
     def get_queryset(self):
         return Partner.getQuerySet(self, AccessRule, 'partnerId')
     serializer_class = AccessRuleSerializer
 
 # /patterns/
-class UriPatternList(generics.ListCreateAPIView):
-    queryset = UriPattern.objects.all()
-    serializer_class = UriPatternSerializer
-
-# /patterns/<primary-key>
-class UriPatternDetail(generics.RetrieveUpdateDestroyAPIView):
+class UriPatternCRUD(GenericCRUDView):
     queryset = UriPattern.objects.all()
     serializer_class = UriPatternSerializer

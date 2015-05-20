@@ -38,6 +38,10 @@ class PartnerCRUD(TestCase):
 
 class PartnerPatternCRUD(TestCase):
     sample = PartnerPatternSample(serverUrl)
+    partnerSample = PartnerSample(serverUrl)
+    def setUp(self):
+        self.partnerId = self.partnerSample.forcePost(self.partnerSample.data)
+        self.sample.partnerId=self.sample.data['partnerId']=self.sample.updateData['partnerId']=self.partnerId
     def test_for_create(self):
         genericTestCreate(self)
     def test_for_getAll(self):
@@ -48,9 +52,15 @@ class PartnerPatternCRUD(TestCase):
         genericTestDelete(self)
     def test_for_get(self):
         genericTestGet(self)
+    def tearDown(self):
+        genericForceDelete(self.partnerSample.model, self.partnerSample.pkName, self.partnerId)
 
 class SubscriptionTermCRUD(TestCase):
     sample = SubscriptionTermSample(serverUrl)
+    partnerSample = PartnerSample(serverUrl)
+    def setUp(self):
+        self.partnerId = self.partnerSample.forcePost(self.partnerSample.data)
+        self.sample.partnerId=self.sample.data['partnerId']=self.sample.updateData['partnerId']=self.partnerId
     def test_for_create(self):
         genericTestCreate(self)
     def test_for_getAll(self):
@@ -61,6 +71,8 @@ class SubscriptionTermCRUD(TestCase):
         genericTestDelete(self)
     def test_for_get(self):
         genericTestGet(self)
+    def tearDown(self):
+        genericForceDelete(self.partnerSample.model, self.partnerSample.pkName, self.partnerId)
 
 class SubscriptionTermQueryTest(TestCase):
     url = serverUrl+'partners/terms/queries/'

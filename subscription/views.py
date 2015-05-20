@@ -11,6 +11,7 @@ from rest_framework import status
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework import generics
+from common.views import GenericCRUDView
 
 import json
 
@@ -20,27 +21,17 @@ import datetime
 # Basic CRUD operation for Parties, IpRanges, Subscriptions, and SubscriptionTransactions
 
 # /parties/
-class PartiesList(generics.ListCreateAPIView):
-    queryset = Party.objects.all()
-    serializer_class = PartySerializer
-
-# /parties/<primary_key>
-class PartiesDetail(generics.RetrieveUpdateDestroyAPIView):
+class PartyCRUD(GenericCRUDView):
     queryset = Party.objects.all()
     serializer_class = PartySerializer
 
 # /ipranges/
-class IpRangesList(generics.ListCreateAPIView):
+class IpRangeCRUD(GenericCRUDView):
     queryset = IpRange.objects.all()
     serializer_class = IpRangeSerializer
 
-# /ipranges/<primary_key>/
-class IpRangesDetail(generics.RetrieveUpdateDestroyAPIView):
-    queryset = IpRange.objects.all()
-    serializer_class = IpRangeSerializer
-
-# /subscriptions/
-class SubscriptionsList(generics.ListCreateAPIView):
+# /
+class SubscriptionCRUD(GenericCRUDView):
     def get_queryset(self):
         return Partner.getQuerySet(self, Subscription, 'partnerId')
     serializer_class = SubscriptionSerializer
@@ -56,19 +47,8 @@ class SubscriptionsList(generics.ListCreateAPIView):
             return Response(returnData, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
-# /subscriptions/<primary_key>/
-class SubscriptionsDetail(generics.RetrieveUpdateDestroyAPIView):
-    def get_queryset(self):
-        return Partner.getQuerySet(self, Subscription, 'partnerId')
-    serializer_class = SubscriptionSerializer
-
 # /transactions/
-class SubscriptionTransactionsList(generics.ListCreateAPIView):
-    queryset = SubscriptionTransaction.objects.all()
-    serializer_class = SubscriptionTransactionSerializer
-
-# /transactions/<primary_key>/
-class SubscriptionTransactionsDetail(generics.RetrieveUpdateDestroyAPIView):
+class SubscriptionTransactionCRUD(GenericCRUDView):
     queryset = SubscriptionTransaction.objects.all()
     serializer_class = SubscriptionTransactionSerializer
 
