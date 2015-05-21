@@ -2,7 +2,8 @@ import django
 import unittest
 import sys, getopt
 from unittest import TestCase
-from subscription.models import Subscription, Party, IpRange, SubscriptionTransaction
+from subscription.models import Subscription, SubscriptionTransaction
+from party.models import Party
 from partner.models import Partner
 import requests
 import json
@@ -69,44 +70,3 @@ class SubscriptionTransactionSample():
         postData['subscriptionId'] = Subscription.objects.get(subscriptionId=data['subscriptionId'])
         return genericForcePost(self.model, self.pkName, postData)
 
-class PartySample():
-    path = 'subscriptions/parties/'
-    url = None
-    data = {
-        'partyType':'user',
-    }
-    updateData = {
-        'partyType':'organization',
-    }
-    pkName = 'partyId'
-    model = Party
-
-    def __init__(self, serverUrl):
-        self.url = serverUrl+self.path
-
-    def forcePost(self,data):
-        return genericForcePost(self.model, self.pkName, data)
-
-class IpRangeSample():
-    path = 'subscriptions/ipranges/'
-    url = None
-    data = {
-        'start':'120.0.0.0',
-        'end':'120.255.255.255',
-        'partyId':1
-    }
-    updateData = {
-        'start':'120.0.0.0',
-        'end':'120.255.211.200',
-        'partyId':1
-    }
-    pkName = 'ipRangeId'
-    model = IpRange
-
-    def __init__(self, serverUrl):
-        self.url = serverUrl+self.path
-
-    def forcePost(self,data):
-        postData = copy.deepcopy(data)
-        postData['partyId'] = Party.objects.get(partyId=data['partyId'])
-        return genericForcePost(self.model, self.pkName, postData)

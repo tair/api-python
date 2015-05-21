@@ -6,7 +6,7 @@ import datetime
 
 from loggingapp.models import Sessions2, PageViews2, PartySessionAffiliation, IpSessionAffiliation, IpTableForLogging
 from loggingapp.serializers import sessionsSerializer, pageViewsSerializer
-from subscription.models import Party
+from party.models import Party
 # Create your views here.
 
 #Create a session

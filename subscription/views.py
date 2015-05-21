@@ -2,8 +2,8 @@
 
 from django.http import HttpResponse
 
-from subscription.models import Party, Subscription, IpRange, SubscriptionTransaction
-from subscription.serializers import PartySerializer, SubscriptionSerializer, IpRangeSerializer, SubscriptionTransactionSerializer
+from subscription.models import Subscription, SubscriptionTransaction
+from subscription.serializers import SubscriptionSerializer, SubscriptionTransactionSerializer
 
 from partner.models import Partner
 
@@ -18,17 +18,7 @@ import json
 import datetime
 # top level: /subscriptions/
 
-# Basic CRUD operation for Parties, IpRanges, Subscriptions, and SubscriptionTransactions
-
-# /parties/
-class PartyCRUD(GenericCRUDView):
-    queryset = Party.objects.all()
-    serializer_class = PartySerializer
-
-# /ipranges/
-class IpRangeCRUD(GenericCRUDView):
-    queryset = IpRange.objects.all()
-    serializer_class = IpRangeSerializer
+# Basic CRUD operation for Subscriptions, and SubscriptionTransactions
 
 # /
 class SubscriptionCRUD(GenericCRUDView):

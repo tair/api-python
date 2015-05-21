@@ -8,7 +8,8 @@ from unittest import TestCase
 from common.controls import PyTestGenerics
 
 from subscription.pyTests import SubscriptionActiveTest
-from subscription.testSamples import SubscriptionSample, IpRangeSample, PartySample
+from subscription.testSamples import SubscriptionSample
+from party.testSamples import IpRangeSample, PartySample
 from partner.testSamples import PartnerSample
 from authorization.models import Status
 

@@ -50,6 +50,7 @@ INSTALLED_APPS = (
     'subscription',
     'authorization',
     'partner',
+    'party',
     'loggingapp',
     'common',
 )

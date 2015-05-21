@@ -4,11 +4,12 @@ import django
 import unittest
 import sys, getopt
 from unittest import TestCase
-from subscription.models import Subscription, Party, IpRange, SubscriptionTransaction
+from subscription.models import Subscription, SubscriptionTransaction
 from partner.models import Partner
 import requests
 import json
-from testSamples import SubscriptionSample, SubscriptionTransactionSample, PartySample, IpRangeSample
+from testSamples import SubscriptionSample, SubscriptionTransactionSample
+from party.testSamples import PartySample, IpRangeSample
 from partner.testSamples import PartnerSample
 import copy
 from common.controls import PyTestGenerics
@@ -105,49 +106,6 @@ class SubscriptionTransactionCRUD(TestCase):
         genericForceDelete(self.partySample.model, self.partySample.pkName, self.partyId)
         genericForceDelete(self.partnerSample.model, self.partnerSample.pkName, self.partnerId)
         genericForceDelete(self.subscriptionSample.model, self.subscriptionSample.pkName, self.subscriptionId)
-
-class PartyCRUD(TestCase):
-    sample = PartySample(serverUrl)
-    def test_for_create(self):
-        genericTestCreate(self)
-
-    def test_for_getAll(self):
-        genericTestGetAll(self)
-
-    def test_for_update(self):
-        genericTestUpdate(self)
-
-    def test_for_delete(self):
-        genericTestDelete(self)
-
-    def test_for_get(self):
-        genericTestGet(self)
-
-class IpRangeCRUD(TestCase):
-    sample = IpRangeSample(serverUrl)
-    partySample = PartySample(serverUrl)
-
-    def setUp(self):
-        partyId = self.partySample.forcePost(self.partySample.data)
-        self.sample.data['partyId']=self.sample.updateData['partyId']=partyId
-
-    def test_for_create(self):
-        genericTestCreate(self)
-
-    def test_for_getAll(self):
-        genericTestGetAll(self)
-
-    def test_for_update(self):
-        genericTestUpdate(self)
-
-    def test_for_delete(self):
-        genericTestDelete(self)
-
-    def test_for_get(self):
-        genericTestGet(self)
-
-    def tearDown(self):
-        genericForceDelete(self.partySample.model, self.partySample.pkName, self.sample.data['partyId'])
 
 # ----------------- END OF BASIC CRUD OPERATIONS ----------------------
 

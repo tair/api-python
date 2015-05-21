@@ -6,9 +6,7 @@ from rest_framework.urlpatterns import format_suffix_patterns
 
 urlpatterns = [
     # Basic CRUD operations
-    url(r'^parties/$', views.PartyCRUD.as_view()),
     url(r'^transactions/$', views.SubscriptionTransactionCRUD.as_view()),
-    url(r'^ipranges/$', views.IpRangeCRUD.as_view()),
     url(r'^$', views.SubscriptionCRUD.as_view()),
 
     # Specific queries about subscription
