@@ -8,43 +8,20 @@ from party.models import Party, IpRange
 import requests
 import json
 from testSamples import PartySample, IpRangeSample
-from common.controls import PyTestGenerics
+from common.pyTests import PyTestGenerics, GenericCRUDTest
 
-initPyTest = PyTestGenerics.initPyTest
-genericTestCreate = PyTestGenerics.genericTestCreate
-genericTestGet = PyTestGenerics.genericTestGet
-genericTestGetAll = PyTestGenerics.genericTestGetAll
-genericTestUpdate = PyTestGenerics.genericTestUpdate
-genericTestDelete = PyTestGenerics.genericTestDelete
-genericForceGet = PyTestGenerics.forceGet
-genericForceDelete = PyTestGenerics.forceDelete
-genericForcePost = PyTestGenerics.forcePost
 
 # Create your tests here.                                                                                                                                                                                 
 django.setup()
-serverUrl = initPyTest()
+serverUrl = PyTestGenerics.initPyTest()
 print "using server url %s" % serverUrl
 
 # ---------------------- UNIT TEST FOR BASIC CRUD OPERATIONS -------------
 
-class PartyCRUD(TestCase):
+class PartyCRUD(GenericCRUDTest, TestCase):
     sample = PartySample(serverUrl)
-    def test_for_create(self):
-        genericTestCreate(self)
 
-    def test_for_getAll(self):
-        genericTestGetAll(self)
-
-    def test_for_update(self):
-        genericTestUpdate(self)
-
-    def test_for_delete(self):
-        genericTestDelete(self)
-
-    def test_for_get(self):
-        genericTestGet(self)
-
-class IpRangeCRUD(TestCase):
+class IpRangeCRUD(GenericCRUDTest, TestCase):
     sample = IpRangeSample(serverUrl)
     partySample = PartySample(serverUrl)
 
@@ -52,23 +29,8 @@ class IpRangeCRUD(TestCase):
         partyId = self.partySample.forcePost(self.partySample.data)
         self.sample.data['partyId']=self.sample.updateData['partyId']=partyId
 
-    def test_for_create(self):
-        genericTestCreate(self)
-
-    def test_for_getAll(self):
-        genericTestGetAll(self)
-
-    def test_for_update(self):
-        genericTestUpdate(self)
-
-    def test_for_delete(self):
-        genericTestDelete(self)
-
-    def test_for_get(self):
-        genericTestGet(self)
-
     def tearDown(self):
-        genericForceDelete(self.partySample.model, self.partySample.pkName, self.sample.data['partyId'])
+        PyTestGenerics.forceDelete(self.partySample.model, self.partySample.pkName, self.sample.data['partyId'])
 
 # ----------------- END OF BASIC CRUD OPERATIONS ----------------------
 

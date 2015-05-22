@@ -12,33 +12,25 @@ from testSamples import SubscriptionSample, SubscriptionTransactionSample
 from party.testSamples import PartySample, IpRangeSample
 from partner.testSamples import PartnerSample
 import copy
-from common.controls import PyTestGenerics
+from common.pyTests import PyTestGenerics, GenericCRUDTest, GenericTest
 from rest_framework import status
 
-initPyTest = PyTestGenerics.initPyTest
-genericTestCreate = PyTestGenerics.genericTestCreate
-genericTestGet = PyTestGenerics.genericTestGet
-genericTestGetAll = PyTestGenerics.genericTestGetAll
-genericTestUpdate = PyTestGenerics.genericTestUpdate
-genericTestDelete = PyTestGenerics.genericTestDelete
-genericForceGet = PyTestGenerics.forceGet
-genericForceDelete = PyTestGenerics.forceDelete
-genericForcePost = PyTestGenerics.forcePost
 
 # Create your tests here.                                                                                                                                                                                 
 django.setup()
-serverUrl = initPyTest()
+serverUrl = PyTestGenerics.initPyTest()
 print "using server url %s" % serverUrl
 
 # ---------------------- UNIT TEST FOR BASIC CRUD OPERATIONS -------------
 
-class SubscriptionCRUD(TestCase):
+class SubscriptionCRUD(GenericCRUDTest, TestCase):
 
     sample = SubscriptionSample(serverUrl)
     partySample = PartySample(serverUrl)
     partnerSample = PartnerSample(serverUrl)
 
     def setUp(self):
+        super(SubscriptionCRUD,self).setUp()
         self.partyId = self.partySample.forcePost(self.partySample.data)
         self.partnerId = self.partnerSample.forcePost(self.partnerSample.data)
         self.sample.data['partyId']=self.sample.updateData['partyId']=self.partyId
@@ -56,23 +48,12 @@ class SubscriptionCRUD(TestCase):
         PyTestGenerics.forceDelete(SubscriptionTransaction, 'subscriptionTransactionId', transactionId)
         PyTestGenerics.forceDelete(sample.model,sample.pkName,req.json()[sample.pkName])
 
-    def test_for_getAll(self):
-        genericTestGetAll(self)
- 
-    def test_for_update(self):
-        genericTestUpdate(self)
- 
-    def test_for_delete(self):
-        genericTestDelete(self)
- 
-    def test_for_get(self):
-        genericTestGet(self)
-
     def tearDown(self):
-        genericForceDelete(self.partySample.model, self.partySample.pkName, self.partyId)
-        genericForceDelete(self.partnerSample.model, self.partnerSample.pkName, self.partnerId)
+        super(SubscriptionCRUD,self).tearDown()
+        PyTestGenerics.forceDelete(self.partySample.model, self.partySample.pkName, self.partyId)
+        PyTestGenerics.forceDelete(self.partnerSample.model, self.partnerSample.pkName, self.partnerId)
 
-class SubscriptionTransactionCRUD(TestCase):
+class SubscriptionTransactionCRUD(GenericCRUDTest, TestCase):
     sample = SubscriptionTransactionSample(serverUrl)
 
     partySample = PartySample(serverUrl)
@@ -80,6 +61,7 @@ class SubscriptionTransactionCRUD(TestCase):
     subscriptionSample = SubscriptionSample(serverUrl)
 
     def setUp(self):
+        super(SubscriptionTransactionCRUD,self).setUp()
         self.partyId = self.partySample.forcePost(self.partySample.data)
         self.partnerId = self.partnerSample.forcePost(self.partnerSample.data)
         self.subscriptionSample.data['partyId']=self.partyId
@@ -87,29 +69,15 @@ class SubscriptionTransactionCRUD(TestCase):
         self.subscriptionId = self.subscriptionSample.forcePost(self.subscriptionSample.data)
         self.sample.data['subscriptionId']=self.sample.updateData['subscriptionId']=self.subscriptionId
 
-    def test_for_create(self):
-        genericTestCreate(self)
-
-    def test_for_getAll(self):
-        genericTestGetAll(self)
-
-    def test_for_update(self):
-        genericTestUpdate(self)
-
-    def test_for_delete(self):
-        genericTestDelete(self)
-
-    def test_for_get(self):
-        genericTestGet(self)
-
     def tearDown(self):
-        genericForceDelete(self.partySample.model, self.partySample.pkName, self.partyId)
-        genericForceDelete(self.partnerSample.model, self.partnerSample.pkName, self.partnerId)
-        genericForceDelete(self.subscriptionSample.model, self.subscriptionSample.pkName, self.subscriptionId)
+        super(SubscriptionTransactionCRUD,self).tearDown()
+        PyTestGenerics.forceDelete(self.partySample.model, self.partySample.pkName, self.partyId)
+        PyTestGenerics.forceDelete(self.partnerSample.model, self.partnerSample.pkName, self.partnerId)
+        PyTestGenerics.forceDelete(self.subscriptionSample.model, self.subscriptionSample.pkName, self.subscriptionId)
 
 # ----------------- END OF BASIC CRUD OPERATIONS ----------------------
 
-class SubscriptionRenewalTest(TestCase):
+class SubscriptionRenewalTest(GenericTest, TestCase):
     def test_for_update(self):
         subscriptionSample = SubscriptionSample(serverUrl)
         partnerSample = PartnerSample(serverUrl)
@@ -132,7 +100,7 @@ class SubscriptionRenewalTest(TestCase):
         PyTestGenerics.forceDelete(partnerSample.model,partnerSample.pkName,partnerId)
         PyTestGenerics.forceDelete(partySample.model,partySample.pkName,partyId)
 
-class SubscriptionActiveTest(TestCase):
+class SubscriptionActiveTest(GenericTest, TestCase):
     url = serverUrl+'subscriptions/active/'
     partnerId = 'tair'
     successIp = '123.1.0.0'
@@ -188,9 +156,9 @@ class SubscriptionActiveTest(TestCase):
         self.assertEqual(req.json()['active'], shouldSuccess)
 
         # delete objects
-        genericForceDelete(subscriptionSample.model, subscriptionSample.pkName, subscriptionId)
-        genericForceDelete(partySample.model, partySample.pkName, partyId)
-        genericForceDelete(partnerSample.model, partnerSample.pkName, partnerId)
+        PyTestGenerics.forceDelete(subscriptionSample.model, subscriptionSample.pkName, subscriptionId)
+        PyTestGenerics.forceDelete(partySample.model, partySample.pkName, partyId)
+        PyTestGenerics.forceDelete(partnerSample.model, partnerSample.pkName, partnerId)
 
     def runIpTest(self, ipRangeData, ip, shouldSuccess):
         # initialization
@@ -218,10 +186,10 @@ class SubscriptionActiveTest(TestCase):
         self.assertEqual(req.json()['active'], shouldSuccess)
 
         # delete objects
-        genericForceDelete(subscriptionSample.model, subscriptionSample.pkName, subscriptionId)
-        genericForceDelete(ipRangeSample.model, ipRangeSample.pkName, ipRangeId)
-        genericForceDelete(partySample.model, partySample.pkName, partyId)
-        genericForceDelete(partnerSample.model, partnerSample.pkName, partnerId)
+        PyTestGenerics.forceDelete(subscriptionSample.model, subscriptionSample.pkName, subscriptionId)
+        PyTestGenerics.forceDelete(ipRangeSample.model, ipRangeSample.pkName, ipRangeId)
+        PyTestGenerics.forceDelete(partySample.model, partySample.pkName, partyId)
+        PyTestGenerics.forceDelete(partnerSample.model, partnerSample.pkName, partnerId)
 
     # main test for subscription active
     def test_for_SubscriptionActive(self):

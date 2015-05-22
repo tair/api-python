@@ -5,7 +5,7 @@ import unittest
 import sys, getopt
 import requests
 from unittest import TestCase
-from common.controls import PyTestGenerics
+from common.controls import PyTestGenerics, GenericCRUDTest, GenericTest
 
 from subscription.pyTests import SubscriptionActiveTest
 from subscription.testSamples import SubscriptionSample
@@ -15,43 +15,23 @@ from authorization.models import Status
 
 from testSamples import UriPatternSample, AccessRuleSample, AccessTypeSample
 
-initPyTest = PyTestGenerics.initPyTest
-genericTestCreate = PyTestGenerics.genericTestCreate
-genericTestGet = PyTestGenerics.genericTestGet
-genericTestGetAll = PyTestGenerics.genericTestGetAll
-genericTestUpdate = PyTestGenerics.genericTestUpdate
-genericTestDelete = PyTestGenerics.genericTestDelete
-genericForceDelete = PyTestGenerics.forceDelete
 
 # Create your tests here.                                                                                                                                                                                 
 django.setup()
-serverUrl = initPyTest()
+serverUrl = PyTestGenerics.initPyTest()
 print "using server url %s" % serverUrl
 
 
-class UriPatternCRUD(TestCase):
+class UriPatternCRUD(GenericCRUDTest, TestCase):
     sample = UriPatternSample(serverUrl)
-    def test_for_create(self):
-        genericTestCreate(self)    
 
-    def test_for_getAll(self):
-        genericTestGetAll(self)
- 
-    def test_for_update(self):
-        genericTestUpdate(self)
- 
-    def test_for_delete(self):
-        genericTestDelete(self)
- 
-    def test_for_get(self):
-        genericTestGet(self)
-
-class AccessRulesCRUD(TestCase):
+class AccessRuleCRUD(GenericCRUDTest, TestCase):
     sample = AccessRuleSample(serverUrl)
     partnerSample = PartnerSample(serverUrl)
     patternSample = UriPatternSample(serverUrl)
     accessTypeSample = AccessTypeSample(serverUrl)
     def setUp(self):
+        super(AccessRuleCRUD,self).setUp()
         self.partnerId = self.partnerSample.forcePost(self.partnerSample.data)
         self.patternId = self.patternSample.forcePost(self.patternSample.data)
         self.accessTypeId = self.accessTypeSample.forcePost(self.accessTypeSample.data)
@@ -59,45 +39,16 @@ class AccessRulesCRUD(TestCase):
         self.sample.data['patternId']=self.sample.updateData['patternId']=self.patternId
         self.sample.data['accessTypeId']=self.sample.data['accessTypeId']=self.accessTypeId
 
-    def test_for_create(self):
-        genericTestCreate(self)
-
-    def test_for_getAll(self):
-        genericTestGetAll(self)
-
-    def test_for_update(self):
-        genericTestUpdate(self)
-
-    def test_for_delete(self):
-        genericTestDelete(self)
-
-    def test_for_get(self):
-        genericTestGet(self)
-
     def tearDown(self):
-        genericForceDelete(self.partnerSample.model, self.partnerSample.pkName, self.partnerId)
-        genericForceDelete(self.patternSample.model, self.patternSample.pkName, self.patternId)
-        genericForceDelete(self.accessTypeSample.model, self.accessTypeSample.pkName, self.accessTypeId)
+        super(AccessRuleCRUD,self).tearDown()
+        PyTestGenerics.forceDelete(self.partnerSample.model, self.partnerSample.pkName, self.partnerId)
+        PyTestGenerics.forceDelete(self.patternSample.model, self.patternSample.pkName, self.patternId)
+        PyTestGenerics.forceDelete(self.accessTypeSample.model, self.accessTypeSample.pkName, self.accessTypeId)
 
-class AccessTypesCRUD(TestCase):
+class AccessTypesCRUD(GenericCRUDTest, TestCase):
     sample = AccessTypeSample(serverUrl)
-    def test_for_create(self):
-        genericTestCreate(self)
 
-    def test_for_getAll(self):
-        genericTestGetAll(self)
-
-    def test_for_update(self):
-        genericTestUpdate(self)
-
-    def test_for_delete(self):
-        genericTestDelete(self)
-
-    def test_for_get(self):
-        genericTestGet(self)
-
-
-class AuthorizationPyTest(TestCase):
+class AuthorizationPyTest(GenericTest, TestCase):
     accessUrl = serverUrl+'authorizations/access/'
     subscriptionAccessUrl = serverUrl+'authorizations/subscriptions/'
 
@@ -161,13 +112,13 @@ class AuthorizationPyTest(TestCase):
         self.assertEqual(req.json()['status'], expectedStatus)
 
         # delete objects
-        genericForceDelete(subscriptionSample.model, subscriptionSample.pkName, subscriptionId)
-        genericForceDelete(ipRangeSample.model, ipRangeSample.pkName, ipRangeId)
-        genericForceDelete(partySample.model, partySample.pkName, partyId)
-        genericForceDelete(partnerSample.model, partnerSample.pkName, partnerId)
-        genericForceDelete(accessTypeSample.model, accessTypeSample.pkName, accessTypeId)
-        genericForceDelete(uriPatternSample.model, uriPatternSample.pkName, uriPatternId)
-        genericForceDelete(accessRuleSample.model, accessRuleSample.pkName, accessRuleId)
+        PyTestGenerics.forceDelete(subscriptionSample.model, subscriptionSample.pkName, subscriptionId)
+        PyTestGenerics.forceDelete(ipRangeSample.model, ipRangeSample.pkName, ipRangeId)
+        PyTestGenerics.forceDelete(partySample.model, partySample.pkName, partyId)
+        PyTestGenerics.forceDelete(partnerSample.model, partnerSample.pkName, partnerId)
+        PyTestGenerics.forceDelete(accessTypeSample.model, accessTypeSample.pkName, accessTypeId)
+        PyTestGenerics.forceDelete(uriPatternSample.model, uriPatternSample.pkName, uriPatternId)
+        PyTestGenerics.forceDelete(accessRuleSample.model, accessRuleSample.pkName, accessRuleId)
 
     def test_for_access(self):
         self.runAccessTest(self.successSubscriptionData, self.ipRangeData, self.partyData, True, None, self.paidUrl, Status.ok)
