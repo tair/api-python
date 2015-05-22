@@ -20,4 +20,5 @@ urlpatterns = patterns('',
     url(r'^authorizations/', include('authorization.urls')),
     url(r'^partners/', include('partner.urls')),
     url(r'^session-logs/', include('loggingapp.urls')),
+    url(r'^users/', include('authentication.urls', namespace="authentication")),
 )

@@ -53,6 +53,7 @@ INSTALLED_APPS = (
     'party',
     'loggingapp',
     'common',
+    'authentication',
 )
 
 REST_FRAMEWORK = {

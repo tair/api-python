@@ -6,9 +6,12 @@ from subscription.models import Party
 class UsernamePartyAffiliation(models.Model):
   username = models.CharField(max_length=32, db_index=True)
   password = models.CharField(max_length=32)
+  email = models.CharField(max_length=128, null=True)
+  organization = models.CharField(max_length=64, null=True)
   partyId = models.ForeignKey(Party)
   class Meta:
     db_table = "UsernamePassword"
+    unique_together = ("username",)
 
 class GooglePartyAffiliation(models.Model):
   gmail = models.CharField(max_length=128, db_index=True)
