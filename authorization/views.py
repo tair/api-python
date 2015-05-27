@@ -3,7 +3,6 @@
 from django.http import HttpResponse
 from rest_framework.views import APIView
 from rest_framework import generics
-from services import MeteringService, SubscriptionService
 from controls import Authorization
 
 from models import AccessType, AccessRule, UriPattern
@@ -22,11 +21,12 @@ import json
 # /access/
 class Access(APIView):
     def get(self, request, format=None):
+        loginKey = request.COOKIES.get('loginKey')
         ip = request.GET.get('ip')
         url = request.GET.get('url')
         partyId = request.GET.get('partyId')
         partnerId = request.GET.get('partnerId')
-        status = Authorization.getAccessStatus(ip, partyId, url, partnerId)
+        status = Authorization.getAccessStatus(loginKey, ip, partyId, url, partnerId, getHostUrlFromRequest(request))
         response = {
             "status":status,
         }
@@ -39,12 +39,25 @@ class SubscriptionsAccess(APIView):
         url = request.GET.get('url')
         partyId = request.GET.get('partyId')
         partnerId = request.GET.get('partnerId')
-        access = Authorization.subscription(ip, partyId, url, partnerId)
+        access = Authorization.subscription(ip, partyId, url, partnerId, getHostUrlFromRequest(request))
         response = {
             "access":access,
         }
         return HttpResponse(json.dumps(response), content_type="application/json")
 
+# /authentications/
+class AuthenticationsAccess(APIView):
+    def get(self, request, format=None):
+        loginKey = request.COOKIES.get('loginKey')
+        url = request.GET.get('url')
+        partyId = request.GET.get('partyId')
+        partnerId = request.GET.get('partnerId')
+        hostUrl = "http://%s" % request.get_host()
+        access = Authorization.authentication(loginKey, partyId, url, partnerId, getHostUrlFromRequest(request))
+        response = {
+            "access":access,
+        }
+        return HttpResponse(json.dumps(response), content_type="application/json")
 
 # Basic CRUD operation for AccessType, AccessRule, and UriPattern
 
@@ -63,3 +76,12 @@ class AccessRuleCRUD(GenericCRUDView):
 class UriPatternCRUD(GenericCRUDView):
     queryset = UriPattern.objects.all()
     serializer_class = UriPatternSerializer
+
+# Utility functions
+
+def getHostUrlFromRequest(request):
+    if (request.is_secure()):
+        protocol = 'https'
+    else:
+        protocol = 'http'
+    return "%s://%s" % (protocol, request.get_host())

@@ -7,7 +7,7 @@ from django.db import models, migrations
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('subscription', '0001_initial'),
+        ('party', '0001_initial'),
     ]
 
     operations = [
@@ -16,8 +16,11 @@ class Migration(migrations.Migration):
             fields=[
                 ('id', models.AutoField(verbose_name='ID', serialize=False, auto_created=True, primary_key=True)),
                 ('gmail', models.CharField(max_length=128, db_index=True)),
-                ('partyId', models.ForeignKey(to='subscription.Party')),
+                ('partyId', models.ForeignKey(to='party.Party')),
             ],
+            options={
+                'db_table': 'GoogleEmail',
+            },
         ),
         migrations.CreateModel(
             name='UsernamePartyAffiliation',
@@ -25,10 +28,16 @@ class Migration(migrations.Migration):
                 ('id', models.AutoField(verbose_name='ID', serialize=False, auto_created=True, primary_key=True)),
                 ('username', models.CharField(max_length=32, db_index=True)),
                 ('password', models.CharField(max_length=32)),
-                ('partyId', models.ForeignKey(to='subscription.Party')),
+                ('email', models.CharField(max_length=128, null=True)),
+                ('organization', models.CharField(max_length=64, null=True)),
+                ('partyId', models.ForeignKey(to='party.Party')),
             ],
             options={
                 'db_table': 'UsernamePassword',
             },
+        ),
+        migrations.AlterUniqueTogether(
+            name='usernamepartyaffiliation',
+            unique_together=set([('username',)]),
         ),
     ]

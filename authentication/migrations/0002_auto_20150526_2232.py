@@ -11,8 +11,8 @@ class Migration(migrations.Migration):
     ]
 
     operations = [
-        migrations.AlterModelTable(
-            name='googlepartyaffiliation',
-            table='GoogleEmail',
+        migrations.AlterUniqueTogether(
+            name='usernamepartyaffiliation',
+            unique_together=set([]),
         ),
     ]

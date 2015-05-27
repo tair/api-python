@@ -54,18 +54,14 @@ class SubscriptionsActive(APIView):
         ip = request.GET.get('ip')
         isActive = False
         if not partyId == None:
-            obj = Subscription.getActiveById(partyId)
-            obj = Partner.filters(self, obj, 'partnerId')
-            isActive = len(obj) > 0
-        elif not ip == None:
+            objList = Subscription.getActiveById(partyId)
+            isActive = isActive or len(objList) > 0
+        if not ip == None:
             objList = Subscription.getActiveByIp(ip)
-            partnerId = Partner.getPartnerId(self)
-            for obj in objList:
-                if obj.partnerId.partnerId == partnerId:
-                    isActive = True
-                    break
-        else:
-            return Response(status=status.HTTP_400_BAD_REQUEST)
+            isActive = isActive or len(objList) > 0
+
+        # TODO add in security check to filter objList
+        
 
         return HttpResponse(json.dumps({'active':isActive}), content_type="application/json")
 

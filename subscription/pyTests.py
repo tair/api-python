@@ -102,9 +102,12 @@ class SubscriptionRenewalTest(GenericTest, TestCase):
 
 class SubscriptionActiveTest(GenericTest, TestCase):
     url = serverUrl+'subscriptions/active/'
-    partnerId = 'tair'
-    successIp = '123.1.0.0'
+
+    # should be consistent with IpRangeSample object
+    successIp = '120.1.0.0'
     failIp = '12.2.3.4'
+    
+    # should be consistent with SubscriptionSample object
     successSubscriptionData = {
         'startDate':'2012-04-12T00:00:00Z',
         'endDate':'2018-04-12T00:00:00Z',
@@ -122,14 +125,6 @@ class SubscriptionActiveTest(GenericTest, TestCase):
         'endDate':'2020-04-12T00:00:00Z',
         'partnerId':None,
         'partyId':None,
-    }
-    ipRangeData = {
-        'start':'123.0.0.0',
-        'end':'123.255.255.255',
-        'partyId':None, # To be populated after Party is created
-    }
-    partyData ={
-        'partyType':'user',
     }
 
     def runIdTest(self, subscriptionData, shouldSuccess):
@@ -160,7 +155,7 @@ class SubscriptionActiveTest(GenericTest, TestCase):
         PyTestGenerics.forceDelete(partySample.model, partySample.pkName, partyId)
         PyTestGenerics.forceDelete(partnerSample.model, partnerSample.pkName, partnerId)
 
-    def runIpTest(self, ipRangeData, ip, shouldSuccess):
+    def runIpTest(self, ip, shouldSuccess):
         # initialization
         partnerSample = PartnerSample(serverUrl)
         partySample = PartySample(serverUrl)
@@ -168,7 +163,6 @@ class SubscriptionActiveTest(GenericTest, TestCase):
         ipRangeSample = IpRangeSample(serverUrl)
 
         # setting up local data that would be modified
-        lIpRangeData = copy.deepcopy(ipRangeData)
         lSubscriptionData = copy.deepcopy(subscriptionSample.data)
 
         # creating object
@@ -177,8 +171,8 @@ class SubscriptionActiveTest(GenericTest, TestCase):
         lSubscriptionData['partyId'] = partyId
         lSubscriptionData['partnerId'] = partnerId
         subscriptionId = subscriptionSample.forcePost(lSubscriptionData)
-        lIpRangeData['partyId'] = partyId
-        ipRangeId = ipRangeSample.forcePost(lIpRangeData)
+        ipRangeSample.data['partyId'] = partyId
+        ipRangeId = ipRangeSample.forcePost(ipRangeSample.data)
 
         # run test
         url = self.url + '?partnerId=%s&ip=%s' % (partnerId, ip)
@@ -196,8 +190,8 @@ class SubscriptionActiveTest(GenericTest, TestCase):
         self.runIdTest(self.successSubscriptionData, True)
         self.runIdTest(self.failStartDateSubscriptionData, False)
         self.runIdTest(self.failEndDateSubscriptionData, False)
-        self.runIpTest(self.ipRangeData, self.successIp, True)
-        self.runIpTest(self.ipRangeData, self.failIp, False)
+        self.runIpTest(self.successIp, True)
+        self.runIpTest(self.failIp, False)
 
 print "Running unit tests on subscription web services API........."
 

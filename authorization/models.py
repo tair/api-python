@@ -7,6 +7,7 @@ from partner.models import Partner
 class Status():
     ok = "OK"
     meterWarn = "Warning"
+    needLogin = "NeedLogin"
     needSubscription = "NeedSubscription"
 
 class UriPattern(models.Model):
@@ -28,15 +29,15 @@ class AccessType(models.Model):
     name = models.CharField(max_length=200)
     
     @staticmethod
-    def getByUrl(url, partnerId):
+    def checkHasAccessRule(url, accessTypeName, partnerId):
         accessRules = AccessRule.objects.all().filter(partnerId=partnerId)
         for rule in accessRules:
             pattern = re.compile(rule.patternId.pattern)
-            if pattern.match(url):
-                return rule.accessTypeId.name
+            if pattern.search(url) and rule.accessTypeId.name == accessTypeName:
+                return True
 
-        # no match url, free content by default
-        return "Free"
+        # no match url.
+        return False
 
     class Meta:
         db_table = "AccessType"

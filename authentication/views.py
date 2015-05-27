@@ -42,8 +42,8 @@ def login(request):
       pu = Party.objects.filter(partyId=request.COOKIES.get('partyId'))
       if pu:
         usu = UsernamePartyAffiliation.objects.filter(partyId_id__in=pu.values('partyId')).first()
-        if base64.b64encode(hmac.new(str(request.COOKIES.get('partyId')).encode('ascii'), usu.password.encode('ascii'), hashlib.sha1).digest()) == request.COOKIES.get('secret_key'):
-          return HttpResponse(json.dumps({"bool": "True"}))
+        if generateSecretKey(str(request.COOKIES.get('partyId')), usu.password) == request.COOKIES.get('secret_key'):
+          return HttpResponse(json.dumps({"bool": True}))
   if request.method == 'POST':
     user = UsernamePartyAffiliation.objects.filter(username=request.POST.get('user'))
     if user: 
@@ -51,7 +51,7 @@ def login(request):
       if ( user.password == request.POST.get('password') ):
         response = HttpResponse(json.dumps({"detail": "Correct password"}))
         response.set_cookie("partyId", user.partyId_id)
-        response.set_cookie("secret_key", base64.b64encode(hmac.new(str(user.partyId_id).encode('ascii'), user.password.encode('ascii'), hashlib.sha1).digest()))
+        response.set_cookie("secret_key", generateSecretKey(str(user.partyId_id), user.password))
         return response
   return render(request, "authentication/login.html")
 
@@ -59,6 +59,9 @@ def login(request):
 def registerUser(request):
   context = {'partnerId': request.GET.get('partnerId', "")}
   return render(request, "authentication/register.html", context)
+
+def generateSecretKey(partyId, password):
+  return base64.b64encode(hmac.new(str(partyId).encode('ascii'), password.encode('ascii'), hashlib.sha1).digest())
 
 #class adduser(APIView):
 #  def post(self, request, format=None):

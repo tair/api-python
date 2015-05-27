@@ -21,32 +21,27 @@ class Subscription(models.Model):
     def getByIp(ipAddress):
         subscriptionList = []
         parties = Party.getByIp(ipAddress)
-        for party in parties:
-            subscriptions = Subscription.objects.filter(partyId=party)
-            for item in subscriptions:
-                subscriptionList.append(item)
+        return Subscription.objects.filter(partyId__in=parties)
 
-        return subscriptionList
+    @staticmethod
+    def filterActive(subscriptionQuerySet):
+        now = timezone.now()
+        return subscriptionQuerySet.filter(endDate__gt=now) \
+                                   .filter(startDate__lt=now)
 
     @staticmethod
     def getActiveById(partyId):
-        now = timezone.now()
-        return Subscription.objects.all() \
-                                   .filter(partyId=partyId) \
-                                   .filter(endDate__gt=now) \
-                                   .filter(startDate__lt=now) 
+        subscriptionQuerySet = Subscription.objects.all() \
+                                                   .filter(partyId=partyId)
+        return Subscription.filterActive(subscriptionQuerySet)
 
     @staticmethod
     def getActiveByIp(ipAddress):
         now = timezone.now()
 
         # get a list of subscription filtered by IP
-        subscriptionListByIp = Subscription.getByIp(ipAddress)
-        objList = []
-        for obj in subscriptionListByIp:
-            if obj.endDate > now and obj.startDate < now:
-                objList.append(obj)
-        return objList
+        subscriptionQuerySet = Subscription.getByIp(ipAddress)
+        return Subscription.filterActive(subscriptionQuerySet)
 
     class Meta:
         db_table = "Subscription"

@@ -13,14 +13,17 @@ from party.testSamples import IpRangeSample, PartySample
 from partner.testSamples import PartnerSample
 from authorization.models import Status
 
-from testSamples import UriPatternSample, AccessRuleSample, AccessTypeSample
+from testSamples import UriPatternSample, AccessRuleSample, AccessTypeSample, UsernamePartyAffiliationSample
 
+from authentication.views import generateSecretKey
 
 # Create your tests here.                                                                                                                                                                                 
 django.setup()
 serverUrl = PyTestGenerics.initPyTest()
 print "using server url %s" % serverUrl
 
+
+# ---------------------- UNIT TEST FOR BASIC CRUD OPERATIONS -------------
 
 class UriPatternCRUD(GenericCRUDTest, TestCase):
     sample = UriPatternSample(serverUrl)
@@ -48,83 +51,162 @@ class AccessRuleCRUD(GenericCRUDTest, TestCase):
 class AccessTypesCRUD(GenericCRUDTest, TestCase):
     sample = AccessTypeSample(serverUrl)
 
-class AuthorizationPyTest(GenericTest, TestCase):
-    accessUrl = serverUrl+'authorizations/access/'
-    subscriptionAccessUrl = serverUrl+'authorizations/subscriptions/'
+# ----------------- END OF BASIC CRUD OPERATIONS ----------------------
 
-    partnerId = 'tair'
-    freeUrl = '/free/'
-    paidUrl = '/test/'
 
+# Base class for sample management for access, subscription, and authorization access tests.
+class AuthorizationTestBase(GenericTest, TestCase):
     successIp = SubscriptionActiveTest.successIp
     failIp = SubscriptionActiveTest.failIp
 
-    partyData = SubscriptionActiveTest.partyData
-    ipRangeData = SubscriptionActiveTest.ipRangeData
     successSubscriptionData = SubscriptionActiveTest.successSubscriptionData
     failSubscriptionData = SubscriptionActiveTest.failEndDateSubscriptionData
 
-    subscriptionSample = SubscriptionSample(serverUrl)
-    ipRangeSample = IpRangeSample(serverUrl)
-    partySample = PartySample(serverUrl)
-    partnerSample = PartnerSample(serverUrl)
+    def initSamples(self):
+        self.partnerSample = PartnerSample(serverUrl)
+        self.partySample = PartySample(serverUrl)
+        self.subscriptionSample = SubscriptionSample(serverUrl)
+        self.ipRangeSample = IpRangeSample(serverUrl)
+        self.uriPatternSample = UriPatternSample(serverUrl)
+        self.accessTypeSample = AccessTypeSample(serverUrl)
+        self.accessRuleSample = AccessRuleSample(serverUrl)
+        self.usernamePartyAffiliationSample = UsernamePartyAffiliationSample()
 
-    def runAccessTest(self, subscriptionData, ipRangeData, partyData, usePartyId, ip, pattern, expectedStatus):
-        # initialization
-        partnerSample = self.partnerSample
-        partySample = self.partySample
-        subscriptionSample = self.subscriptionSample
-        ipRangeSample = self.ipRangeSample
-        uriPatternSample = UriPatternSample(serverUrl)
-        accessTypeSample = AccessTypeSample(serverUrl)
-        accessRuleSample = AccessRuleSample(serverUrl)
+    def createSamples(self):
+        # create independent objects
+        self.accessTypeId = self.accessTypeSample.forcePost(self.accessTypeSample.data)
+        self.uriPatternId = self.uriPatternSample.forcePost(self.uriPatternSample.data)
+        self.partnerId = self.partnerSample.forcePost(self.partnerSample.data)
+        self.partyId = self.partySample.forcePost(self.partySample.data)
+        
+        # create AccessRule based on AccessType, Pattern, and Partner objects created
+        self.accessRuleSample.data['accessTypeId']=self.accessTypeId
+        self.accessRuleSample.data['patternId']=self.uriPatternId
+        self.accessRuleSample.data['partnerId'] = self.partnerId
+        self.accessRuleId = self.accessRuleSample.forcePost(self.accessRuleSample.data)
+
+        # create Subscription object based on Party and Partner objects created
+        self.subscriptionSample.data['partyId'] = self.partyId
+        self.subscriptionSample.data['partnerId'] = self.partnerId
+        self.subscriptionId = self.subscriptionSample.forcePost(self.subscriptionSample.data)
+        
+        # create IpRange object based on data Party created
+        self.ipRangeSample.data['partyId'] = self.partyId
+        self.ipRangeId = self.ipRangeSample.forcePost(self.ipRangeSample.data)
+
+        # create UsernamePartyAffiliation object based on Party created
+        PyTestGenerics.forceDelete(self.usernamePartyAffiliationSample.model, 'username', self.usernamePartyAffiliationSample.data['username'])
+        self.usernamePartyAffiliationSample.data['partyId'] = self.partyId
+        self.usernamePartyAffiliationId = self.usernamePartyAffiliationSample.forcePost(self.usernamePartyAffiliationSample.data)
+
+    def deleteSamples(self):
+        PyTestGenerics.forceDelete(self.subscriptionSample.model, self.subscriptionSample.pkName, self.subscriptionId)
+        PyTestGenerics.forceDelete(self.ipRangeSample.model, self.ipRangeSample.pkName, self.ipRangeId)
+        PyTestGenerics.forceDelete(self.partySample.model, self.partySample.pkName, self.partyId)
+        PyTestGenerics.forceDelete(self.partnerSample.model, self.partnerSample.pkName, self.partnerId)
+        PyTestGenerics.forceDelete(self.accessTypeSample.model, self.accessTypeSample.pkName, self.accessTypeId)
+        PyTestGenerics.forceDelete(self.uriPatternSample.model, self.uriPatternSample.pkName, self.uriPatternId)
+        PyTestGenerics.forceDelete(self.accessRuleSample.model, self.accessRuleSample.pkName, self.accessRuleId)
+        PyTestGenerics.forceDelete(self.usernamePartyAffiliationSample.model, self.usernamePartyAffiliationSample.pkName, self.usernamePartyAffiliationId)
+
+class AuthenticationTest(AuthorizationTestBase):
+    url = serverUrl+'authorizations/authentications/'
+
+    def runTest(self, urlType, expectedStatus):
+        #initialize samples
+        self.initSamples()
 
         # setting up data
-        partySample.data = partyData
-        subscriptionSample.data = subscriptionData
-        ipRangeSample.data = ipRangeData
-        accessTypeSample.data['name'] = 'Paid'
-        uriPatternSample.data['pattern'] = pattern
+        self.accessTypeSample.data['name'] = urlType
 
-        # creating object
-        accessTypeId = accessTypeSample.forcePost(accessTypeSample.data)
-        uriPatternId = uriPatternSample.forcePost(uriPatternSample.data)
-        partnerId = partnerSample.forcePost(partnerSample.data)
-        accessRuleSample.data['accessTypeId']=accessTypeId
-        accessRuleSample.data['patternId']=uriPatternId
-        accessRuleSample.data['partnerId'] = partnerId
-        accessRuleId = accessRuleSample.forcePost(accessRuleSample.data)
-        partyId = partySample.forcePost(partySample.data)
-        subscriptionSample.data['partyId'] = partyId
-        subscriptionSample.data['partnerId'] = partnerId
-        subscriptionId = subscriptionSample.forcePost(subscriptionSample.data)
-        ipRangeSample.data['partyId'] = partyId
-        ipRangeId = ipRangeSample.forcePost(ipRangeSample.data)
+        # create sample models in database
+        self.createSamples()
 
-        # run test
-        url = self.accessUrl + '?partnerId=%s&url=%s' % (partnerId, pattern)
+        # run the system test
+        loginKey = generateSecretKey(self.partyId, self.usernamePartyAffiliationSample.data['password'])
+        url = self.url + '?partnerId=%s&url=%s&partyId=%s' % (self.partnerId, self.uriPatternSample.data['pattern'], self.partyId)
+        cookies = {'loginKey':loginKey}
+        req = requests.get(url,cookies=cookies)
+        self.assertEqual(req.status_code, 200)
+        self.assertEqual(req.json()['access'], expectedStatus)
+
+        # delete samples in database
+        self.deleteSamples()
+
+    def test_for_authentication(self):
+        self.runTest("Login", True)
+
+class SubscriptionTest(AuthorizationTestBase):
+    url = serverUrl+'authorizations/subscriptions/'
+
+    def runTest(self, subscriptionData, usePartyId, ip, urlType, expectedStatus):
+        #initialize samples
+        self.initSamples()
+        
+        # setting up data
+        self.subscriptionSample.data = subscriptionData
+        self.accessTypeSample.data['name'] = urlType
+
+        # create sample models in database
+        self.createSamples()
+        
+        # run the system test
+        url = self.url + '?partnerId=%s&url=%s' % (self.partnerId, self.uriPatternSample.data['pattern'])
         if not ip == None:
             url = url+'&ip=%s' % (ip)
         if usePartyId:
-            url = url+'&partyId=%s' % (partyId)
+            url = url+'&partyId=%s' % (self.partyId)
+
+        req = requests.get(url)
+        self.assertEqual(req.status_code, 200)
+        self.assertEqual(req.json()['access'], expectedStatus)
+
+        # delete samples in database
+        self.deleteSamples()
+
+    def test_for_subscription(self):
+        # valid subscription based on partyId, Paid url. access should be True
+        self.runTest(self.successSubscriptionData, True, None, 'Paid', True)
+        # invalid subscription, Paid url. access should be False
+        self.runTest(self.failSubscriptionData, True, None, 'Paid', False)
+        # invalid subscription, not Paid url. access should be True
+        self.runTest(self.failSubscriptionData, True, None, 'Free', True)
+        # valid subscription based on IP, Paid url, access should be True
+        self.runTest(self.successSubscriptionData, False, self.successIp, 'Paid', True) 
+
+class AccessTest(AuthorizationTestBase):
+    url = serverUrl+'authorizations/access/'
+
+    def runTest(self, subscriptionData, usePartyId, ip, urlType, expectedStatus):
+        # initialize samples
+        self.initSamples()
+
+        # setting up data
+        self.subscriptionSample.data = subscriptionData
+        self.accessTypeSample.data['name'] = urlType
+
+        # create sample models in database
+        self.createSamples()
+
+        # run the system test
+        url = self.url + '?partnerId=%s&url=%s' % (self.partnerId, self.uriPatternSample.data['pattern'])
+        if not ip == None:
+            url = url+'&ip=%s' % (ip)
+        if usePartyId:
+            url = url+'&partyId=%s' % (self.partyId)
         req = requests.get(url)
         self.assertEqual(req.status_code, 200)
         self.assertEqual(req.json()['status'], expectedStatus)
 
-        # delete objects
-        PyTestGenerics.forceDelete(subscriptionSample.model, subscriptionSample.pkName, subscriptionId)
-        PyTestGenerics.forceDelete(ipRangeSample.model, ipRangeSample.pkName, ipRangeId)
-        PyTestGenerics.forceDelete(partySample.model, partySample.pkName, partyId)
-        PyTestGenerics.forceDelete(partnerSample.model, partnerSample.pkName, partnerId)
-        PyTestGenerics.forceDelete(accessTypeSample.model, accessTypeSample.pkName, accessTypeId)
-        PyTestGenerics.forceDelete(uriPatternSample.model, uriPatternSample.pkName, uriPatternId)
-        PyTestGenerics.forceDelete(accessRuleSample.model, accessRuleSample.pkName, accessRuleId)
+        # delete samples in database
+        self.deleteSamples()
 
     def test_for_access(self):
-        self.runAccessTest(self.successSubscriptionData, self.ipRangeData, self.partyData, True, None, self.paidUrl, Status.ok)
-        self.runAccessTest(self.failSubscriptionData, self.ipRangeData, self.partyData, True, None, self.paidUrl, Status.needSubscription)
-        # TODO this test requires a construction of a metering object. Defer it after metering is finalized.
-        #self.runAccessTest(self.successSubscriptionData, self.ipRangeData, self.partyData, False, self.successIp, self.paidUrl, Status.ok)
+        # valid subscription, paid url, status should be OK
+        self.runTest(self.successSubscriptionData, True, None, 'Paid', Status.ok)
+        # invalid subscription, paid url, status should be need subscription
+        self.runTest(self.failSubscriptionData, True, None, 'Paid', Status.needSubscription)
+        #self.runAccessTest(self.successSubscriptionData, False, self.successIp, self.paidUrl, Status.ok)
 
 print "Running unit tests on authorization web services API........."
 

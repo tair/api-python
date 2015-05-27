@@ -1,5 +1,5 @@
 from django.db import models
-from subscription.models import Party
+from party.models import Party
 
 # Create your models here.
 

@@ -16,5 +16,6 @@ urlpatterns = [
     # Specific queries
     url(r'^access/$', views.Access.as_view()),
     url(r'^subscriptions/$', views.SubscriptionsAccess.as_view()),
+    url(r'^authentications/$', views.AuthenticationsAccess.as_view()),
 ]
 urlpatterns = format_suffix_patterns(urlpatterns)
