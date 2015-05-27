@@ -4,15 +4,15 @@
 
 
 
-from metering.models import ipAddr, limits
+from metering.models import IpAddressCount, LimitValue
 from rest_framework import serializers
 
-class ipSerializer(serializers.ModelSerializer):
+class IpAddressCountSerializer(serializers.ModelSerializer):
     class Meta:
-        model = ipAddr
-        fields = ('ip', 'count', 'partner')
+        model = IpAddressCount
+        fields = ('id', 'ip', 'count', 'partnerId')
 
-class limitSerializer(serializers.ModelSerializer):
+class LimitValueSerializer(serializers.ModelSerializer):
     class Meta:
-        model = limits
-        fields = ('limitId', 'val', 'partner')
+        model = LimitValue
+        fields = ('limitId', 'val', 'partnerId')
