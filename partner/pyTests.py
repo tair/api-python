@@ -5,7 +5,7 @@ import unittest
 from unittest import TestCase
 from partner.models import Partner, PartnerPattern, SubscriptionTerm
 import copy
-from common.controls import PyTestGenerics, GenericCRUDTest, GenericTest
+from common.pyTests import PyTestGenerics, GenericCRUDTest, GenericTest
 from testSamples import PartnerSample, PartnerPatternSample, SubscriptionTermSample
 import requests
 

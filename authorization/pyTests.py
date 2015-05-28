@@ -5,7 +5,7 @@ import unittest
 import sys, getopt
 import requests
 from unittest import TestCase
-from common.controls import PyTestGenerics, GenericCRUDTest, GenericTest
+from common.pyTests import PyTestGenerics, GenericCRUDTest, GenericTest
 
 from subscription.pyTests import SubscriptionActiveTest
 from subscription.testSamples import SubscriptionSample

@@ -9,7 +9,7 @@ import requests
 import json
 
 import copy
-from common.controls import PyTestGenerics
+from common.pyTests import PyTestGenerics
 
 genericForcePost = PyTestGenerics.forcePost
 

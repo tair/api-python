@@ -9,7 +9,7 @@ from authorization.models import UriPattern, AccessRule, AccessType
 from authentication.models import UsernamePartyAffiliation
 from partner.models import Partner
 from party.models import Party
-from common.controls import PyTestGenerics
+from common.pyTests import PyTestGenerics
 
 from authorization.models import Status
 import copy
