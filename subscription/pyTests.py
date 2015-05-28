@@ -10,11 +10,11 @@ import requests
 import json
 from testSamples import SubscriptionSample, SubscriptionTransactionSample
 from party.testSamples import PartySample, IpRangeSample
-from partner.testSamples import PartnerSample
+from partner.testSamples import PartnerSample, SubscriptionTermSample
 import copy
 from common.pyTests import PyTestGenerics, GenericCRUDTest, GenericTest
 from rest_framework import status
-
+from controls import PaymentControl
 
 # Create your tests here.                                                                                                                                                                                 
 django.setup()
@@ -192,6 +192,33 @@ class SubscriptionActiveTest(GenericTest, TestCase):
         self.runIdTest(self.failEndDateSubscriptionData, False)
         self.runIpTest(self.successIp, True)
         self.runIpTest(self.failIp, False)
+
+class PostPaymentSubscriptionTest(GenericTest, TestCase):
+
+    partySample = PartySample(serverUrl)
+    partnerSample = PartnerSample(serverUrl)
+    subscriptionTermSample = SubscriptionTermSample(serverUrl)
+
+    def setUp(self):
+        super(PostPaymentSubscriptionTest, self).setUp()
+        self.partyId = self.partySample.forcePost(self.partySample.data)
+        self.partnerId = self.partnerSample.forcePost(self.partnerSample.data)
+        self.subscriptionTermSample.data['partnerId']=self.partnerId
+        self.subscriptionTermId = self.subscriptionTermSample.forcePost(self.subscriptionTermSample.data)
+
+    def test_for_postPaymentSubscription(self):
+        (subscriptionId, subscriptionTransactionId) = PaymentControl.postPaymentSubscription(self.subscriptionTermId, self.partyId)
+        self.assertIsNotNone(PyTestGenerics.forceGet(Subscription, 'subscriptionId', subscriptionId))
+        self.assertIsNotNone(PyTestGenerics.forceGet(SubscriptionTransaction, 'subscriptionTransactionId', subscriptionTransactionId))
+
+        PyTestGenerics.forceDelete(Subscription, 'subscriptionId', subscriptionId)
+        PyTestGenerics.forceDelete(SubscriptionTransaction, 'subscriptionTransactionId', subscriptionTransactionId)
+
+    def tearDown(self):
+        super(PostPaymentSubscriptionTest, self).tearDown()
+        PyTestGenerics.forceDelete(self.partySample.model, self.partySample.pkName, self.partyId)
+        PyTestGenerics.forceDelete(self.partnerSample.model, self.partnerSample.pkName, self.partnerId)
+        PyTestGenerics.forceDelete(self.subscriptionTermSample.model, self.subscriptionTermSample.pkName, self.subscriptionTermId)
 
 print "Running unit tests on subscription web services API........."
 

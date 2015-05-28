@@ -12,5 +12,6 @@ urlpatterns = [
     # Specific queries about subscription
     url(r'^(?P<pk>[0-9.]+)/renewal/$', views.SubscriptionRenewal.as_view()),
     url(r'^active/$', views.SubscriptionsActive.as_view()),
+    url(r'^payments/$', views.SubscriptionsPayment.as_view()),
 ]
 urlpatterns = format_suffix_patterns(urlpatterns)
