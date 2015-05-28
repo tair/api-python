@@ -16,13 +16,13 @@ sleep 5
 
 hasError=0
 
-#python -m metering.pyTests $1 $2
+python -m metering.pyTests $1 $2
 if [ $? != 0 ]
 then
     hasError=1
 fi
 
-#python -m subscription.pyTests $1 $2 
+python -m subscription.pyTests $1 $2 
 if [ $? != 0 ]
 then
     hasError=1
@@ -35,13 +35,13 @@ then
     hasError=1
 fi
 
-#python -m partner.pyTests $1 $2
+python -m partner.pyTests $1 $2
 if [ $? != 0 ]
 then
     hasError=1
 fi
 
-#python -m party.pyTests $1 $2
+python -m party.pyTests $1 $2
 if [ $? != 0 ]
 then
     hasError=1
