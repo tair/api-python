@@ -7,7 +7,7 @@ from rest_framework import serializers
 class sessionsSerializer(serializers.ModelSerializer):
     class Meta:
         model = Sessions2
-        fields = ('sessionId', 'sessionStartDateTime', 'sessionEndDateTime')
+        fields = ('sessionId', 'sessionStartDateTime', 'sessionEndDateTime', 'sessionPartnerId')
 
 class pageViewsSerializer(serializers.ModelSerializer):
   class Meta:

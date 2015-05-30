@@ -4,7 +4,7 @@ import unittest
 from unittest import TestCase
 from partner.models import Partner, PartnerPattern, SubscriptionTerm
 import copy
-from common.controls import PyTestGenerics
+from common.pyTests import PyTestGenerics
 
 genericForcePost = PyTestGenerics.forcePost
 

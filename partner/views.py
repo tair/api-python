@@ -9,6 +9,8 @@ from serializers import PartnerSerializer, PartnerPatternSerializer, Subscriptio
 
 import json
 
+from common.views import GenericCRUDView
+
 from rest_framework import status
 from rest_framework.response import Response
 
@@ -18,35 +20,35 @@ from rest_framework.response import Response
 # Basic CRUD operation for Partner
 
 # /
-class PartnerList(generics.ListCreateAPIView):
+class PartnerCRUD(GenericCRUDView):
     queryset = Partner.objects.all()
     serializer_class = PartnerSerializer
 
-# /<primary-key>
-class PartnerDetail(generics.RetrieveUpdateDestroyAPIView):
-    queryset = Partner.objects.all()
-    serializer_class = PartnerSerializer
+    def get(self, request, format=None):
+        params = request.GET
+        obj = self.get_queryset()
+        for key in params:
+            if key == 'uri':
+                obj = obj.extra(
+                    tables=["PartnerPattern"],
+                    where=["Partner.partnerId=PartnerPattern.partnerId", "PartnerPattern.pattern=%s"], 
+                    params=[params[key]]
+                )
+                continue
+            value = params[key]
+            filters = {key:value}
+            obj = obj.filter(**filters)
+        serializer = self.serializer_class(obj, many=True)
+        return Response(serializer.data)
 
 # /patterns
-class PartnerPatternsList(generics.ListCreateAPIView):
-    def get_queryset(self):
-        return Partner.getQuerySet(self, PartnerPattern, 'partnerId')
-    serializer_class = PartnerPatternSerializer
-
-# /patterns/<primary-key>
-class PartnerPatternsDetail(generics.RetrieveUpdateDestroyAPIView):
+class PartnerPatternCRUD(GenericCRUDView):
     def get_queryset(self):
         return Partner.getQuerySet(self, PartnerPattern, 'partnerId')
     serializer_class = PartnerPatternSerializer
 
 # /terms/
-class TermsList(generics.ListCreateAPIView):
-    def get_queryset(self):
-        return Partner.getQuerySet(self, SubscriptionTerm, 'partnerId')
-    serializer_class = SubscriptionTermSerializer
-
-# /terms/<primary_key>/
-class TermsDetail(generics.RetrieveUpdateDestroyAPIView):
+class TermsCRUD(GenericCRUDView):
     def get_queryset(self):
         return Partner.getQuerySet(self, SubscriptionTerm, 'partnerId')
     serializer_class = SubscriptionTermSerializer

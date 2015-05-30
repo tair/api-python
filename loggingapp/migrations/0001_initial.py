@@ -7,7 +7,7 @@ from django.db import models, migrations
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('subscription', '0001_initial'),
+        ('party', '0001_initial'),
     ]
 
     operations = [
@@ -36,7 +36,7 @@ class Migration(migrations.Migration):
             name='PartySessionAffiliation',
             fields=[
                 ('partySessionAffiliationId', models.AutoField(serialize=False, primary_key=True)),
-                ('partySessionAffiliationParty', models.ForeignKey(to='subscription.Party', db_column=b'partyId')),
+                ('partySessionAffiliationParty', models.ForeignKey(to='party.Party', db_column=b'partyId')),
             ],
         ),
         migrations.CreateModel(

@@ -1,147 +1,121 @@
-#Copyright 2015 Phoenix Bioinformatics Corporation. All rights reserved.
-
-
-
-
-from unittest import TestCase
-import unittest
+#Copyright 2015 Phoenix Bioinformatics Corporation. All rights reserved.                                                                                                                                  
 
 import django
-from models import ipAddr, limits
-import requests
+import unittest
 import sys, getopt
-# Create your tests here.
+from unittest import TestCase
+from metering.models import IpAddressCount, LimitValue
+from partner.models import Partner
+import requests
+import json
+from testSamples import LimitValueSample, IpAddressCountSample
+from partner.testSamples import PartnerSample
+import copy
+from common.pyTests import PyTestGenerics, GenericCRUDTest, GenericTest
+from rest_framework import status
+
+
+# Create your tests here.                                                                                                                                                                                 
 django.setup()
+serverUrl = PyTestGenerics.initPyTest()
+print "using server url %s" % serverUrl
 
-try:
-    opts, args = getopt.getopt(sys.argv[1:], "h:" , ["host="])
-except getopt.GetoptError:
-    print "Usage: python -m metering.pyTests --host <hostname>\n\rExample hostname: 'http://52.4.81.100:8080/'"
-    sys.exit(1)
+# ---------------------- UNIT TEST FOR BASIC CRUD OPERATIONS -------------
 
-serverUrl = ""
-for opt, arg in opts:
-    if opt=='--host' or opt=='-h':
-        serverUrl = arg
+class IpAddressCountCRUD(GenericCRUDTest, TestCase):
 
-if serverUrl=="":
-    print "hostname is required"
-    sys.exit(1)
+    sample = IpAddressCountSample(serverUrl)
+    partnerSample = PartnerSample(serverUrl)
 
-testIP = '786.786.786.786'
-
-print "Running tests for metering web service API...........\n"
-
-class TestForIpAddr(TestCase):
-    def test_for_getIPList(self):
-        forcePostIP(testIP)
-        req = requests.get(serverUrl+'meters/ip/')
-        self.assertEqual(req.status_code, 200)
-        boolean = False
-        for ips in req.json():
-            if ips['ip']==testIP:
-                boolean = True
-        self.assertEqual(boolean, True)
-        forceDeleteIP(testIP)
-
-    def test_for_getIPDetail(self):
-        forcePostIP(testIP)
-        req = requests.get(serverUrl+'meters/ip/'+testIP)
-        self.assertEqual(req.status_code, 200)
-        self.assertEqual(req.json()['ip'], testIP)
-        forceDeleteIP(testIP)
-
-    def test_for_deleteIP(self):
-        forcePostIP(testIP)
-        req = requests.delete(serverUrl+'meters/ip/'+testIP)
-        self.assertEqual(req.status_code, 204)
-
-    def test_for_postIP(self):
-        data = {'ip': testIP}
-        req = requests.post(serverUrl+'meters/ip/', data=data)
-        self.assertEqual(req.status_code, 201)
-        ip = forceGetIP(testIP)
-        self.assertIsNotNone(ip, not None)
-        self.assertEqual(ip.ip, testIP)
-        self.assertEqual(ip.count, 1)
-        forceDeleteIP(testIP)
-
-    def test_for_incrementIP(self):
-        forcePostIP(testIP)
-        req = requests.get(serverUrl+'meters/ip/'+testIP+'/increment')
-        self.assertEqual(req.status_code, 200)
-        ip = forceGetIP(testIP)
-        self.assertEqual(ip.count, 2)
-        forceDeleteIP(testIP)
-
-    def test_for_IPlimit(self):
-        forcePostIP(testIP)
-        req = requests.get(serverUrl+'meters/ip/'+testIP+'/limit')
-        self.assertEqual(req.status_code, 200)
-        self.assertEqual(req.json()['status'], "OK")
-        setCount = limits.objects.using('mySQLTest').get(name="WarningLimit").val
-        forceSetIP(testIP, setCount)
-        req = requests.get(serverUrl+'meters/ip/'+testIP+'/limit')
-        self.assertEqual(req.status_code, 200)
-        self.assertEqual(req.json()['status'], "Warning")
-        setCount = limits.objects.using('mySQLTest').get(name="MeteringLimit").val 
-        forceSetIP(testIP, setCount)
-        req = requests.get(serverUrl+'meters/ip/'+testIP+'/limit')
-        self.assertEqual(req.status_code, 200)
-        self.assertEqual(req.json()['status'], "Block")
-        forceDeleteIP(testIP)
-
-    def test_for_deleteAll(self):
-        pass
+    def setUp(self):
+        super(IpAddressCountCRUD,self).setUp()
+        self.partnerId = self.partnerSample.forcePost(self.partnerSample.data)
+        self.sample.partnerId=self.sample.data['partnerId']=self.sample.updateData['partnerId']=self.partnerId
 
     def tearDown(self):
-        for ips in ipAddr.objects.all():
-            if (ips.ip==testIP):
-                ips.delete()
+        super(IpAddressCountCRUD,self).tearDown()
+        PyTestGenerics.forceDelete(self.partnerSample.model, self.partnerSample.pkName, self.partnerId)
 
-class TestForLimits(TestCase):
-    def test_for_getWarningLimit(self):
-        req = requests.get(serverUrl+'meters/limits/warningLimit')
-        self.assertEqual(req.status_code, 200)
+class LimitValueCRUD(GenericCRUDTest, TestCase):
 
-    def test_for_getMeteringLimit(self):
-        req = requests.get(serverUrl+'meters/limits/meteringLimit')
-        self.assertEqual(req.status_code, 200)
+    sample = LimitValueSample(serverUrl)
+    partnerSample = PartnerSample(serverUrl)
 
-    def test_for_setWarningLimit(self):
-        pass
+    def setUp(self):
+        super(LimitValueCRUD,self).setUp()
+        self.partnerId = self.partnerSample.forcePost(self.partnerSample.data)
+        self.sample.partnerId=self.sample.data['partnerId']=self.sample.updateData['partnerId']=self.partnerId
 
-    def test_for_setMeteringLimit(self):
-        pass
+    def tearDown(self):
+        super(LimitValueCRUD,self).tearDown()
+        PyTestGenerics.forceDelete(self.partnerSample.model, self.partnerSample.pkName, self.partnerId)
 
+# ----------------- END OF BASIC CRUD OPERATIONS ----------------------
 
-#Auxillary functions
-def forcePostIP(ip):
-    try:
-        ipAddr.objects.using('mySQLTest').get(ip=ip)
-    except:
-        u = ipAddr(ip=ip, count=1)
-        u.save(using='mySQLTest')
+class IncrementMeteringCountTest(GenericTest, TestCase):
+    ipAddressCountSample = IpAddressCountSample(serverUrl)
+    limitValueSample = LimitValueSample(serverUrl)
+    partnerSample = PartnerSample(serverUrl)
+    def setUp(self):
+        super(IncrementMeteringCountTest, self).setUp()
+        self.partnerId = self.partnerSample.forcePost(self.partnerSample.data)
+        self.ipAddressCountSample.data['partnerId'] = self.partnerId
+        self.ipAddressCountSample.data['count'] = 1
+        self.ipAddressCountId = self.ipAddressCountSample.forcePost(self.ipAddressCountSample.data)
+        self.limitValueSample.data['partnerId'] = self.partnerId
+        self.limitValueId = self.limitValueSample.forcePost(self.limitValueSample.data)
 
-def forceDeleteIP(ip):
-    try:
-        u = ipAddr.objects.using('mySQLTest').get(ip=ip)
-        u.delete(using='mySQLTest')
-    except:
-        pass
+    def test_for_increment(self):
+        currentCount = self.ipAddressCountSample.data['count']
+        url = '%smeters/ip/%s/increment/' % (serverUrl, self.ipAddressCountSample.data['ip'])
+        req = requests.post(url)
+        newCount = IpAddressCount.objects.get(id=self.ipAddressCountId).count
+        self.assertEqual(currentCount+1, newCount)
 
-def forceGetIP(ips):
-    try:
-        u = ipAddr.objects.using('mySQLTest').get(ip=ips)
-        return u
-    except:
-        return None
+    def tearDown(self):
+        super(IncrementMeteringCountTest,self).tearDown()
+        PyTestGenerics.forceDelete(self.partnerSample.model, self.partnerSample.pkName, self.partnerId)
+        PyTestGenerics.forceDelete(self.ipAddressCountSample.model, self.ipAddressCountSample.pkName, self.ipAddressCountId)
+        PyTestGenerics.forceDelete(self.limitValueSample.model, self.limitValueSample.pkName, self.limitValueId)
 
-def forceSetIP(ip, count):
-    u = ipAddr.objects.using('mySQLTest').get(ip=ip)
-    u.count = count
-    u.save(using='mySQLTest')
+class CheckLimitTest(GenericTest, TestCase):
+    successIpAddressCountSample = IpAddressCountSample(serverUrl)
+    failIpAddressCountSample = IpAddressCountSample(serverUrl)
+    limitValueSample = LimitValueSample(serverUrl)
+    partnerSample = PartnerSample(serverUrl)
+    successIp = '123.45.6.7'
+    failIp = '123.45.6.8'
+    
+    def setUp(self):
+        super(CheckLimitTest, self).setUp()
+        self.partnerId = self.partnerSample.forcePost(self.partnerSample.data)
+        self.successIpAddressCountSample.data['partnerId'] = self.partnerId
+        self.successIpAddressCountSample.data['count'] = 1
+        self.successIpAddressCountSample.data['ip'] = self.successIp
+        self.successIpAddressCountId = self.successIpAddressCountSample.forcePost(self.successIpAddressCountSample.data)
+        self.failIpAddressCountSample.data['partnerId'] = self.partnerId
+        self.failIpAddressCountSample.data['ip'] = self.failIp
+        self.failIpAddressCountSample.data['count'] = 10000
+        self.failIpAddressCountId = self.failIpAddressCountSample.forcePost(self.failIpAddressCountSample.data)
+        self.limitValueSample.data['partnerId'] = self.partnerId
+        self.limitValueId = self.limitValueSample.forcePost(self.limitValueSample.data)
 
+    def test_for_check_limit(self):
+        url = '%smeters/ip/%s/limit/' % (serverUrl, self.successIp)
+        req = requests.get(url)
+        self.assertEqual(req.json()['status'], 'OK')
+        url = '%smeters/ip/%s/limit/' % (serverUrl, self.failIp)
+        req = requests.get(url)
+        self.assertEqual(req.json()['status'], 'Block')
+
+    def tearDown(self):
+        super(CheckLimitTest,self).tearDown()
+        PyTestGenerics.forceDelete(self.partnerSample.model, self.partnerSample.pkName, self.partnerId)
+        PyTestGenerics.forceDelete(self.successIpAddressCountSample.model, self.successIpAddressCountSample.pkName, self.successIpAddressCountId)
+        PyTestGenerics.forceDelete(self.failIpAddressCountSample.model, self.failIpAddressCountSample.pkName, self.failIpAddressCountId)
+        PyTestGenerics.forceDelete(self.limitValueSample.model, self.limitValueSample.pkName, self.limitValueId)
+
+print "Running unit tests on subscription web services API........."
 
 if __name__ == '__main__':
     sys.argv[1:] = []

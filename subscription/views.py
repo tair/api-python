@@ -2,45 +2,29 @@
 
 from django.http import HttpResponse
 
-from subscription.models import Party, Subscription, IpRange, SubscriptionTransaction
-from subscription.serializers import PartySerializer, SubscriptionSerializer, IpRangeSerializer, SubscriptionTransactionSerializer
+from subscription.controls import PaymentControl
+from subscription.models import Subscription, SubscriptionTransaction
+from subscription.serializers import SubscriptionSerializer, SubscriptionTransactionSerializer
 
-from partner.models import Partner
+from partner.models import Partner, SubscriptionTerm
 
 from rest_framework import status
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework import generics
+from common.views import GenericCRUDView
 
+from django.shortcuts import render
+import stripe
 import json
 
 import datetime
 # top level: /subscriptions/
 
-# Basic CRUD operation for Parties, IpRanges, Subscriptions, and SubscriptionTransactions
+# Basic CRUD operation for Subscriptions, and SubscriptionTransactions
 
-# /parties/
-class PartiesList(generics.ListCreateAPIView):
-    queryset = Party.objects.all()
-    serializer_class = PartySerializer
-
-# /parties/<primary_key>
-class PartiesDetail(generics.RetrieveUpdateDestroyAPIView):
-    queryset = Party.objects.all()
-    serializer_class = PartySerializer
-
-# /ipranges/
-class IpRangesList(generics.ListCreateAPIView):
-    queryset = IpRange.objects.all()
-    serializer_class = IpRangeSerializer
-
-# /ipranges/<primary_key>/
-class IpRangesDetail(generics.RetrieveUpdateDestroyAPIView):
-    queryset = IpRange.objects.all()
-    serializer_class = IpRangeSerializer
-
-# /subscriptions/
-class SubscriptionsList(generics.ListCreateAPIView):
+# /
+class SubscriptionCRUD(GenericCRUDView):
     def get_queryset(self):
         return Partner.getQuerySet(self, Subscription, 'partnerId')
     serializer_class = SubscriptionSerializer
@@ -56,19 +40,8 @@ class SubscriptionsList(generics.ListCreateAPIView):
             return Response(returnData, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
-# /subscriptions/<primary_key>/
-class SubscriptionsDetail(generics.RetrieveUpdateDestroyAPIView):
-    def get_queryset(self):
-        return Partner.getQuerySet(self, Subscription, 'partnerId')
-    serializer_class = SubscriptionSerializer
-
 # /transactions/
-class SubscriptionTransactionsList(generics.ListCreateAPIView):
-    queryset = SubscriptionTransaction.objects.all()
-    serializer_class = SubscriptionTransactionSerializer
-
-# /transactions/<primary_key>/
-class SubscriptionTransactionsDetail(generics.RetrieveUpdateDestroyAPIView):
+class SubscriptionTransactionCRUD(GenericCRUDView):
     queryset = SubscriptionTransaction.objects.all()
     serializer_class = SubscriptionTransactionSerializer
 
@@ -84,18 +57,13 @@ class SubscriptionsActive(APIView):
         ip = request.GET.get('ip')
         isActive = False
         if not partyId == None:
-            obj = Subscription.getActiveById(partyId)
-            obj = Partner.filters(self, obj, 'partnerId')
-            isActive = len(obj) > 0
-        elif not ip == None:
+            objList = Subscription.getActiveById(partyId)
+            isActive = isActive or len(objList) > 0
+        if not ip == None:
             objList = Subscription.getActiveByIp(ip)
-            partnerId = Partner.getPartnerId(self)
-            for obj in objList:
-                if obj.partnerId.partnerId == partnerId:
-                    isActive = True
-                    break
-        else:
-            return Response(status=status.HTTP_400_BAD_REQUEST)
+            isActive = isActive or len(objList) > 0
+
+        # TODO add in security check to filter objList
 
         return HttpResponse(json.dumps({'active':isActive}), content_type="application/json")
 
@@ -117,3 +85,30 @@ class SubscriptionRenewal(generics.GenericAPIView):
             return Response(returnData)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
+# /payments/
+class SubscriptionsPayment(APIView):
+    def get(self, request):
+        message = {}
+        if (not PaymentControl.isValidRequest(request, message)):
+            return HttpResponse(message['message'], 400)
+        termId=request.GET.get('termId')
+        partyId=request.GET.get('partyId')
+        #Currently assumes that subscription objects in database stores price in cents
+        #TODO: Handle more human readable price
+        message['price'] = int(SubscriptionTerm.objects.get(subscriptionTermId=termId).price)
+        message['partyId'] = partyId
+        message['termId'] = termId
+        return render(request, "subscription/paymentIndex.html", message)
+
+    def post(self, request):
+        stripe_api_secret_test_key = PaymentControl.stripe_api_secret_test_key
+        stripe.api_key = stripe_api_secret_test_key
+        token = request.POST['stripeToken']
+        price = int(request.POST['price'])
+        partyId = request.POST['partyId']
+        termId = request.POST['termId']
+        description = "Test charge"
+        status, message = PaymentControl.tryCharge(stripe_api_secret_test_key, token, price, description, partyId, termId)
+        if status:
+            return HttpResponse(message['message'], 201)
+        return render(request, "subscription/paymentIndex.html", message)

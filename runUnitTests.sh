@@ -41,6 +41,12 @@ then
     hasError=1
 fi
 
+python -m party.pyTests $1 $2
+if [ $? != 0 ]
+then
+    hasError=1
+fi
+
 pkill -TERM -P $pid
 
 if [ $hasError == 1 ]

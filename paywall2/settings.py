@@ -46,12 +46,13 @@ INSTALLED_APPS = (
     'rest_framework',
     #Custom Apps
     'metering',
-    'payments',
     'subscription',
     'authorization',
     'partner',
+    'party',
     'loggingapp',
     'common',
+    'authentication',
 )
 
 REST_FRAMEWORK = {
@@ -80,7 +81,7 @@ WSGI_APPLICATION = 'paywall2.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.mysql',
-        'NAME': 'steveTest3',
+        'NAME': 'steveTest',
         'USER': 'phoenix',
         'PASSWORD': 'phoenix123',
         'HOST': 'paywalltestmysqldb.c871k9lscygy.us-east-1.rds.amazonaws.com',
