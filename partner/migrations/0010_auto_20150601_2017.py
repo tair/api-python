@@ -1,6 +1,3 @@
-#Copyright 2015 Phoenix Bioinformatics Corporation. All rights reserved.
-
-
 # -*- coding: utf-8 -*-
 from __future__ import unicode_literals
 
@@ -10,14 +7,15 @@ from django.db import models, migrations
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('metering', '0004_ipaddr_limits'),
+        ('partner', '0009_auto_20150529_1937'),
     ]
 
     operations = [
-        migrations.DeleteModel(
-            name='ipAddr',
+        migrations.RemoveField(
+            model_name='apikey',
+            name='partnerId',
         ),
         migrations.DeleteModel(
-            name='limits',
+            name='ApiKey',
         ),
     ]

@@ -2,14 +2,22 @@ from rest_framework.response import Response
 from rest_framework import generics, status
 
 class GenericCRUDView(generics.GenericAPIView):
+
+    requireApiKey = True
+    def get_queryset(self):
+        queryset = self.queryset
+        params = self.request.GET
+        for key in params:
+            if key in queryset.model._meta.get_all_field_names():
+                value = params[key]
+                filters = {key:value}
+                queryset = queryset.filter(**filters)
+        return queryset
+
     def get(self, request, format=None):
         serializer_class = self.get_serializer_class()
         params = request.GET
         obj = self.get_queryset()
-        for key in params:
-            value = params[key]
-            filters = {key:value}
-            obj = obj.filter(**filters)
         serializer = serializer_class(obj, many=True)
         return Response(serializer.data)
 
@@ -20,10 +28,6 @@ class GenericCRUDView(generics.GenericAPIView):
         if not params:
             return Response({'error':'does not allow update without query parameters'})
         obj = self.get_queryset()
-        for key in params:
-            value = params[key]
-            filters = {key:value}
-            obj = obj.filter(**filters)
         ret = []
         for entry in obj:
             serializer = serializer_class(entry, data=request.data)
@@ -46,10 +50,6 @@ class GenericCRUDView(generics.GenericAPIView):
         if not params:
             return Response({'error':'does not allow delete without query parameters'})
         obj = self.get_queryset()
-        for key in params:
-            value = params[key]
-            filters = {key:value}
-            obj = obj.filter(**filters)
         for entry in obj:
             entry.delete()
         return Response({'success':'delete complete'})

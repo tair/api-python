@@ -25,36 +25,28 @@ class PartnerCRUD(GenericCRUDView):
     serializer_class = PartnerSerializer
 
     def get(self, request, format=None):
-        params = request.GET
         obj = self.get_queryset()
-        for key in params:
-            if key == 'uri':
-                obj = obj.extra(
-                    tables=["PartnerPattern"],
-                    where=["Partner.partnerId=PartnerPattern.partnerId", "PartnerPattern.pattern=%s"], 
-                    params=[params[key]]
-                )
-                continue
-            value = params[key]
-            filters = {key:value}
-            obj = obj.filter(**filters)
+        params = request.GET
+        if 'uri' in params:
+            obj = obj.extra(
+                tables=["PartnerPattern"],
+                where=["Partner.partnerId=PartnerPattern.partnerId", "PartnerPattern.pattern=%s"],
+                params=[params['uri']]
+            )
         serializer = self.serializer_class(obj, many=True)
         return Response(serializer.data)
 
 # /patterns
 class PartnerPatternCRUD(GenericCRUDView):
-    def get_queryset(self):
-        return Partner.getQuerySet(self, PartnerPattern, 'partnerId')
+    queryset = PartnerPattern.objects.all()
     serializer_class = PartnerPatternSerializer
 
 # /terms/
 class TermsCRUD(GenericCRUDView):
-    def get_queryset(self):
-        return Partner.getQuerySet(self, SubscriptionTerm, 'partnerId')
+    queryset = SubscriptionTerm.objects.all()
     serializer_class = SubscriptionTermSerializer
 
-
-#specific queries
+# specific api calls
 
 # /terms
 class TermsQueries(APIView):
@@ -70,6 +62,5 @@ class TermsQueries(APIView):
             obj = obj.filter(period=period)
         if not groupDiscountPercentage == None:
             obj = obj.filter(groupDiscountPercentage=groupDiscountPercentage)
-        obj = Partner.filters(self, obj, 'partnerId')
         serializer = SubscriptionTermSerializer(obj, many=True)
         return Response(serializer.data, status=status.HTTP_200_OK)

@@ -26,7 +26,8 @@ class Access(APIView):
         url = request.GET.get('url')
         partyId = request.GET.get('partyId')
         partnerId = request.GET.get('partnerId')
-        status = Authorization.getAccessStatus(loginKey, ip, partyId, url, partnerId, getHostUrlFromRequest(request))
+        apiKey = request.GET.get('apiKey')
+        status = Authorization.getAccessStatus(loginKey, ip, partyId, url, partnerId, getHostUrlFromRequest(request), apiKey)
         response = {
             "status":status,
         }
@@ -39,7 +40,8 @@ class SubscriptionsAccess(APIView):
         url = request.GET.get('url')
         partyId = request.GET.get('partyId')
         partnerId = request.GET.get('partnerId')
-        access = Authorization.subscription(ip, partyId, url, partnerId, getHostUrlFromRequest(request))
+        apiKey = request.GET.get('apiKey')
+        access = Authorization.subscription(ip, partyId, url, partnerId, getHostUrlFromRequest(request), apiKey)
         response = {
             "access":access,
         }
@@ -53,7 +55,8 @@ class AuthenticationsAccess(APIView):
         partyId = request.GET.get('partyId')
         partnerId = request.GET.get('partnerId')
         hostUrl = "http://%s" % request.get_host()
-        access = Authorization.authentication(loginKey, partyId, url, partnerId, getHostUrlFromRequest(request))
+        apiKey = request.GET.get('apiKey')
+        access = Authorization.authentication(loginKey, partyId, url, partnerId, getHostUrlFromRequest(request), apiKey)
         response = {
             "access":access,
         }
@@ -68,8 +71,7 @@ class AccessTypeCRUD(GenericCRUDView):
 
 # /accessRules/
 class AccessRuleCRUD(GenericCRUDView):
-    def get_queryset(self):
-        return Partner.getQuerySet(self, AccessRule, 'partnerId')
+    queryset = AccessRule.objects.all()
     serializer_class = AccessRuleSerializer
 
 # /patterns/

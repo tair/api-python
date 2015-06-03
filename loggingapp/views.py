@@ -26,16 +26,10 @@ class PageViewCRUD(GenericCRUDView):
   def get(self, request, format=None):
     params = request.GET
     obj = self.get_queryset()
-    for key in params:
-      if key == 'startDate':
-        obj = obj.filter(pageViewDate__gte=params[key])
-        continue
-      if key == 'endDate':
-        obj = obj.filter(pageViewDate__lte=params[key])
-        continue
-      value = params[key]
-      filters = {key:value}
-      obj = obj.filter(**filters)
+    if 'startDate' in params:
+      obj = obj.filter(pageViewDate__gte=params['startDate'])
+    if 'endDate' in params:
+      obj = obj.filter(pageViewDate__lte=params['endDate'])
     serializer = self.serializer_class(obj, many=True)
     return Response(serializer.data)
 

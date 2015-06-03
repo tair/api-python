@@ -2,14 +2,31 @@ import requests
 import json
 import sys, getopt
 
-class GenericCRUDTest(object):
-    def setUp(self):
-        # TODO: insert ApiKey model creation here
-        pass
+from common.testSamples import CommonApiKeySample
+from partner.models import Partner
+from apikey.models import ApiKey
 
+class GenericTest(object):
+    apiKeySample = CommonApiKeySample()
+    apiKey = None
+    def setUp(self):
+        #delete possible entries that we use as test case
+        ApiKey.objects.filter(apiKey=self.apiKeySample.data['apiKey']).delete()
+        self.apiKeyId = self.apiKeySample.forcePost(self.apiKeySample.data)
+        self.apiKey = self.apiKeySample.data['apiKey']
+
+    def tearDown(self):
+        PyTestGenerics.forceDelete(self.apiKeySample.model, self.apiKeySample.pkName, self.apiKeyId)
+
+class GenericCRUDTest(GenericTest):
     def test_for_create(self):
         sample = self.sample
-        req = requests.post(sample.url, data=sample.data)
+        url = sample.url
+        if self.apiKey:
+            url = url+'?apiKey=%s' % (self.apiKey)
+        cookies = {'apiKey':self.apiKey}
+        req = requests.post(url, data=sample.data, cookies=cookies)
+
         self.assertEqual(req.status_code, 201)
         self.assertIsNotNone(PyTestGenerics.forceGet(sample.model,sample.pkName,req.json()[sample.pkName]))
         PyTestGenerics.forceDelete(sample.model,sample.pkName,req.json()[sample.pkName])
@@ -18,9 +35,10 @@ class GenericCRUDTest(object):
         sample = self.sample
         pk = sample.forcePost(sample.data)
         url = sample.url
-        if hasattr(sample,'partnerId'):
-            url += '?partnerId=%s' % sample.partnerId
-        req = requests.get(url)
+        if self.apiKey:
+            url = url+'?apiKey=%s' % (self.apiKey)
+        cookies = {'apiKey':self.apiKey}
+        req = requests.get(url, cookies=cookies)
         self.assertEqual(req.status_code, 200)
         PyTestGenerics.forceDelete(sample.model,sample.pkName,pk)
 
@@ -28,9 +46,10 @@ class GenericCRUDTest(object):
         sample = self.sample
         pk = sample.forcePost(sample.data)
         url = sample.url + '?%s=%s' % (sample.pkName, str(pk))
-        if hasattr(sample, 'partnerId'):
-            url += '&partnerId=%s' % sample.partnerId
-        req = requests.put(url, data=sample.updateData)
+        if self.apiKey:
+            url = url+'&apiKey=%s' % (self.apiKey)
+        cookies = {'apiKey':self.apiKey}
+        req = requests.put(url, data=sample.updateData,cookies=cookies)
         if sample.pkName in sample.updateData:
             pk = sample.updateData[sample.pkName]
         self.assertEqual(req.status_code, 200)
@@ -40,33 +59,22 @@ class GenericCRUDTest(object):
         sample = self.sample
         pk = sample.forcePost(sample.data)
         url = sample.url + '?%s=%s' % (sample.pkName, str(pk))
-        if hasattr(sample, 'partnerId'):
-            url += '&partnerId=%s' % sample.partnerId
-        req = requests.delete(url)
+        if self.apiKey:
+            url = url+'&apiKey=%s' % (self.apiKey)
+        cookies = {'apiKey':self.apiKey}
+        req = requests.delete(url, cookies=cookies)
         self.assertIsNone(PyTestGenerics.forceGet(sample.model,sample.pkName,pk))
 
     def test_for_get(self):
         sample = self.sample
         pk = sample.forcePost(sample.data)
         url = sample.url + '?%s=%s' % (sample.pkName, str(pk))
-        if hasattr(sample, 'partnerId'):
-            url += '&partnerId=%s' % sample.partnerId
-        req = requests.get(url)
+        if self.apiKey:
+            url = url+'&apiKey=%s' % (self.apiKey)
+        cookies = {'apiKey':self.apiKey}
+        req = requests.get(url, cookies=cookies)
         self.assertEqual(req.status_code, 200)
         PyTestGenerics.forceDelete(sample.model,sample.pkName,pk)
-
-    def tearDown(self):
-        # TODO: insert ApiKey model deletion here
-        pass
-
-class GenericTest(object):
-    def setUp(self):
-        # TODO: insert ApiKey model creation here
-        pass
-
-    def tearDown(self):
-        # TODO: insert ApiKey model deletion here
-        pass
 
 class PyTestGenerics:
     @staticmethod

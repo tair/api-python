@@ -124,8 +124,8 @@ class AuthenticationTest(AuthorizationTestBase):
 
         # run the system test
         loginKey = generateSecretKey(self.partyId, self.usernamePartyAffiliationSample.data['password'])
-        url = self.url + '?partnerId=%s&url=%s&partyId=%s' % (self.partnerId, self.uriPatternSample.data['pattern'], self.partyId)
-        cookies = {'loginKey':loginKey}
+        url = self.url + '?partnerId=%s&url=%s&partyId=%s&apiKey=%s' % (self.partnerId, self.uriPatternSample.data['pattern'], self.partyId, self.apiKey)
+        cookies = {'loginKey':loginKey, 'apiKey':self.apiKey}
         req = requests.get(url,cookies=cookies)
         self.assertEqual(req.status_code, 200)
         self.assertEqual(req.json()['access'], expectedStatus)
@@ -151,13 +151,14 @@ class SubscriptionTest(AuthorizationTestBase):
         self.createSamples()
         
         # run the system test
-        url = self.url + '?partnerId=%s&url=%s' % (self.partnerId, self.uriPatternSample.data['pattern'])
+        url = self.url + '?partnerId=%s&url=%s&apiKey=%s' % (self.partnerId, self.uriPatternSample.data['pattern'], self.apiKey)
         if not ip == None:
             url = url+'&ip=%s' % (ip)
         if usePartyId:
             url = url+'&partyId=%s' % (self.partyId)
 
-        req = requests.get(url)
+        cookies = {'apiKey':self.apiKey}
+        req = requests.get(url,cookies=cookies)
         self.assertEqual(req.status_code, 200)
         self.assertEqual(req.json()['access'], expectedStatus)
 
@@ -189,12 +190,13 @@ class AccessTest(AuthorizationTestBase):
         self.createSamples()
 
         # run the system test
-        url = self.url + '?partnerId=%s&url=%s' % (self.partnerId, self.uriPatternSample.data['pattern'])
+        url = self.url + '?partnerId=%s&url=%s&apiKey=%s' % (self.partnerId, self.uriPatternSample.data['pattern'], self.apiKey)
         if not ip == None:
             url = url+'&ip=%s' % (ip)
         if usePartyId:
             url = url+'&partyId=%s' % (self.partyId)
-        req = requests.get(url)
+        cookies = {'apiKey':self.apiKey}
+        req = requests.get(url, cookies=cookies)
         self.assertEqual(req.status_code, 200)
         self.assertEqual(req.json()['status'], expectedStatus)
 

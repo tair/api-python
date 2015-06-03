@@ -30,6 +30,7 @@ class PageViewCRUD(GenericCRUDTest, TestCase):
     partySample = PartySample(serverUrl)
 
     def setUp(self):
+        super(PageViewCRUD, self).setUp()
         self.partyId = self.partySample.forcePost(self.partySample.data)
         self.sample.data['partyId']=self.sample.updateData['partyId']=self.partyId
 
@@ -41,6 +42,7 @@ class PageViewCRUD(GenericCRUDTest, TestCase):
         pass
 
     def tearDown(self):
+        super(PageViewCRUD, self).tearDown()
         PyTestGenerics.forceDelete(self.partySample.model, self.partySample.pkName, self.sample.data['partyId'])
 
 # ----------------- END OF BASIC CRUD OPERATIONS ----------------------
@@ -70,12 +72,13 @@ class SessionCountViewTest(GenericTest, TestCase):
             self.pageViewIdList.append(self.sample.forcePost(self.sample.data))
 
     def runTest(self, startDate, endDate, expectedCount):
-        url = self.url + '?'
+        url = self.url + '?apiKey=%s' % self.apiKey
         if startDate:
             url += '&startDate=%s' % startDate
         if endDate:
             url += '&endDate=%s' % endDate
-        req = requests.get(url)
+        cookies = {'apiKey':self.apiKey}
+        req = requests.get(url,cookies=cookies)
         self.assertEqual(req.status_code, 200)
         count = req.json()['count']
         self.assertEqual(count, expectedCount)
