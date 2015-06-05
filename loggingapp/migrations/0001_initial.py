@@ -2,69 +2,44 @@
 from __future__ import unicode_literals
 
 from django.db import models, migrations
+import datetime
 
 
 class Migration(migrations.Migration):
 
     dependencies = [
         ('party', '0001_initial'),
+        ('partner', '0007_remove_subscriptionterm_autorenew'),
     ]
 
     operations = [
         migrations.CreateModel(
-            name='IpSessionAffiliation',
-            fields=[
-                ('ipSessionAffiliationId', models.AutoField(serialize=False, primary_key=True)),
-            ],
-        ),
-        migrations.CreateModel(
-            name='IpTableForLogging',
-            fields=[
-                ('ipTableId', models.AutoField(serialize=False, primary_key=True)),
-                ('ipTableIp', models.GenericIPAddressField()),
-            ],
-        ),
-        migrations.CreateModel(
-            name='PageViews2',
+            name='PageView',
             fields=[
                 ('pageViewId', models.AutoField(serialize=False, primary_key=True)),
-                ('pageViewURI', models.CharField(max_length=250)),
-                ('pageViewDateTime', models.DateTimeField()),
+                ('uri', models.CharField(max_length=250)),
+                ('pageViewDate', models.DateTimeField(default=datetime.datetime.utcnow)),
+                ('partyId', models.ForeignKey(to='party.Party', db_column=b'partyId')),
             ],
+            options={
+                'db_table': 'PageView',
+            },
         ),
         migrations.CreateModel(
-            name='PartySessionAffiliation',
-            fields=[
-                ('partySessionAffiliationId', models.AutoField(serialize=False, primary_key=True)),
-                ('partySessionAffiliationParty', models.ForeignKey(to='party.Party', db_column=b'partyId')),
-            ],
-        ),
-        migrations.CreateModel(
-            name='Sessions2',
+            name='Session',
             fields=[
                 ('sessionId', models.AutoField(serialize=False, primary_key=True)),
-                ('sessionStartDateTime', models.DateTimeField(auto_now_add=True)),
-                ('sessionEndDateTime', models.DateTimeField(auto_now_add=True)),
+                ('sessionStartDateTime', models.DateTimeField(default=datetime.datetime.utcnow)),
+                ('sessionEndDateTime', models.DateTimeField(default=datetime.datetime.utcnow)),
+                ('partnerId', models.ForeignKey(to='partner.Partner', db_column=b'partnerId')),
             ],
+            options={
+                'db_table': 'Session',
+            },
         ),
         migrations.AddField(
-            model_name='partysessionaffiliation',
-            name='partySessionAffiliationSession',
-            field=models.ForeignKey(to='loggingapp.Sessions2', db_column=b'sessionId'),
-        ),
-        migrations.AddField(
-            model_name='pageviews2',
-            name='pageViewSession',
-            field=models.ForeignKey(db_column=b'sessionId', to='loggingapp.Sessions2', null=True),
-        ),
-        migrations.AddField(
-            model_name='ipsessionaffiliation',
-            name='ipSessionAffiliationIp',
-            field=models.ForeignKey(to='loggingapp.IpTableForLogging', db_column=b'ipTableId'),
-        ),
-        migrations.AddField(
-            model_name='ipsessionaffiliation',
-            name='ipSessionAffiliationSession',
-            field=models.ForeignKey(to='loggingapp.Sessions2', db_column=b'sessionId'),
+            model_name='pageview',
+            name='sessionId',
+            field=models.ForeignKey(db_column=b'sessionId', to='loggingapp.Session', null=True),
         ),
     ]

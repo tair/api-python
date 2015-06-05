@@ -40,7 +40,9 @@ class SubscriptionCRUD(GenericCRUDTest, TestCase):
     # object in addition to a Subscription object.
     def test_for_create(self):
         sample = self.sample
-        req = requests.post(sample.url, data=sample.data)
+        url = sample.url + '?apiKey=%s' % self.apiKey
+        cookies = {'apiKey':self.apiKey}
+        req = requests.post(url, data=sample.data, cookies=cookies)
         self.assertEqual(req.status_code, status.HTTP_201_CREATED)
         self.assertIsNotNone(PyTestGenerics.forceGet(sample.model,sample.pkName,req.json()[sample.pkName]))
         transactionId = req.json()['subscriptionTransactionId']
@@ -90,8 +92,9 @@ class SubscriptionRenewalTest(GenericTest, TestCase):
         subscriptionSample.data['partyId']=subscriptionSample.updateData['partyId']=partyId
         subscriptionId = subscriptionSample.forcePost(subscriptionSample.data)
 
-        url = serverUrl + 'subscriptions/' + str(subscriptionId) + '/renewal'
-        req = requests.put(url, data=subscriptionSample.updateData)
+        url = serverUrl + 'subscriptions/' + str(subscriptionId) + '/renewal?apiKey=%s' % self.apiKey
+        cookies = {'apiKey':self.apiKey}
+        req = requests.put(url, data=subscriptionSample.updateData,cookies=cookies)
         self.assertEqual(req.status_code, 200)
         transactionId = req.json()['subscriptionTransactionId']
         self.assertIsNotNone(PyTestGenerics.forceGet(SubscriptionTransaction,'subscriptionTransactionId',transactionId))
@@ -145,9 +148,9 @@ class SubscriptionActiveTest(GenericTest, TestCase):
         subscriptionId = subscriptionSample.forcePost(lSubscriptionData)
 
         # run test
-        url = self.url + '?partnerId=%s&partyId=%s' % (partnerId, partyId)
-        req = requests.get(url)
-        print url
+        url = self.url + '?partnerId=%s&partyId=%s&apiKey=%s' % (partnerId, partyId, self.apiKey)
+        cookies = {'apiKey':self.apiKey}
+        req = requests.get(url, cookies=cookies)
         self.assertEqual(req.json()['active'], shouldSuccess)
 
         # delete objects
@@ -175,8 +178,9 @@ class SubscriptionActiveTest(GenericTest, TestCase):
         ipRangeId = ipRangeSample.forcePost(ipRangeSample.data)
 
         # run test
-        url = self.url + '?partnerId=%s&ip=%s' % (partnerId, ip)
-        req = requests.get(url)
+        url = self.url + '?partnerId=%s&ip=%s&apiKey=%s' % (partnerId, ip, self.apiKey)
+        cookies = {'apiKey':self.apiKey}
+        req = requests.get(url,cookies=cookies)
         self.assertEqual(req.json()['active'], shouldSuccess)
 
         # delete objects

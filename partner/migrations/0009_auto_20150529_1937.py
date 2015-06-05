@@ -2,19 +2,18 @@
 from __future__ import unicode_literals
 
 from django.db import models, migrations
-import datetime
 
 
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('loggingapp', '0004_auto_20150518_1830'),
+        ('partner', '0008_apikey'),
     ]
 
     operations = [
         migrations.AlterField(
-            model_name='pageviews2',
-            name='pageViewDateTime',
-            field=models.DateTimeField(default=datetime.datetime.now),
+            model_name='apikey',
+            name='apiKey',
+            field=models.CharField(unique=True, max_length=200),
         ),
     ]

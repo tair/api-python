@@ -10,30 +10,6 @@ class Partner(models.Model):
     partnerId = models.CharField(max_length=200, primary_key=True)
     name = models.CharField(max_length=200)
 
-    @staticmethod
-    def validatePartnerId(serializerObj, savePartnerId):
-        request = serializerObj.context['view'].request
-        queryPartnerId = request.GET.get('partnerId')
-        if not queryPartnerId == savePartnerId:
-            raise Http404
-
-    @staticmethod
-    def getQuerySet(view, model, modelPartnerId):
-        return Partner.filters(view, model.objects.all(), modelPartnerId)
-
-    @staticmethod
-    def getPartnerId(view):
-        return view.request.GET.get('partnerId')
-
-    @staticmethod
-    def filters(view, obj, modelPartnerId):
-        # TODO, add security handling here. (e.g. gets accessKey and translate to partnerId)
-        partnerId = Partner.getPartnerId(view)
-        filters = {modelPartnerId:partnerId}
-        if partnerId == None:
-            return obj.none()
-        return obj.filter(**filters)
-
     class Meta:
         db_table = "Partner"
 

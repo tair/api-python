@@ -51,12 +51,13 @@ INSTALLED_APPS = (
     'partner',
     'party',
     'loggingapp',
+    'apikey',
     'common',
     'authentication',
 )
 
 REST_FRAMEWORK = {
-    'DEFAULT_PERMISSION_CLASSES': ('rest_framework.permissions.AllowAny',),
+    'DEFAULT_PERMISSION_CLASSES': ('rest_framework.permissions.AllowAny','common.permissions.ApiKeyPermission'),
     'PAGE_SIZE': 10
 }
 

@@ -25,8 +25,7 @@ import datetime
 
 # /
 class SubscriptionCRUD(GenericCRUDView):
-    def get_queryset(self):
-        return Partner.getQuerySet(self, Subscription, 'partnerId')
+    queryset = Subscription.objects.all()
     serializer_class = SubscriptionSerializer
 
     # overrides default POST to create a subscription transaction
@@ -70,8 +69,7 @@ class SubscriptionsActive(APIView):
 
 # /<pk>/renewal/
 class SubscriptionRenewal(generics.GenericAPIView):
-    def get_queryset(self):
-        return Partner.getQuerySet(self, Subscription, 'partnerId')
+    queryset = Subscription.objects.all()
     serializer_class = SubscriptionSerializer
 
     def put(self, request, pk):

@@ -4,12 +4,11 @@ import django
 import unittest
 import sys, getopt
 from unittest import TestCase
-from party.models import Party, IpRange
 import requests
 import json
-from testSamples import PartySample, IpRangeSample
+from models import ApiKey
+from testSamples import ApiKeySample
 from common.pyTests import PyTestGenerics, GenericCRUDTest
-
 
 # Create your tests here.                                                                                                                                                                                 
 django.setup()
@@ -18,22 +17,16 @@ print "using server url %s" % serverUrl
 
 # ---------------------- UNIT TEST FOR BASIC CRUD OPERATIONS -------------
 
-class PartyCRUD(GenericCRUDTest, TestCase):
-    sample = PartySample(serverUrl)
-
-class IpRangeCRUD(GenericCRUDTest, TestCase):
-    sample = IpRangeSample(serverUrl)
-    partySample = PartySample(serverUrl)
+class ApiKeyCRUD(GenericCRUDTest, TestCase):
+    sample = ApiKeySample(serverUrl)
 
     def setUp(self):
-        super(IpRangeCRUD,self).setUp()
-        partyId = self.partySample.forcePost(self.partySample.data)
-        self.sample.data['partyId']=self.sample.updateData['partyId']=partyId
+#        super(ApiKeyCRUD, self).setUp()
+        ApiKey.objects.filter(apiKey=self.sample.data['apiKey']).delete()
 
+    # overrides parent class teardown.
     def tearDown(self):
-        super(IpRangeCRUD,self).tearDown()
-        PyTestGenerics.forceDelete(self.partySample.model, self.partySample.pkName, self.sample.data['partyId'])
-
+        pass
 # ----------------- END OF BASIC CRUD OPERATIONS ----------------------
 
 print "Running unit tests on party web services API........."

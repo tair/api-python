@@ -29,7 +29,6 @@ then
 fi
 
 python -m authorization.pyTests $1 $2
-
 if [ $? != 0 ]
 then
     hasError=1
@@ -42,6 +41,18 @@ then
 fi
 
 python -m party.pyTests $1 $2
+if [ $? != 0 ]
+then
+    hasError=1
+fi
+
+python -m loggingapp.pyTests $1 $2
+if [ $? != 0 ]
+then
+    hasError=1
+fi
+
+python -m apikey.pyTests $1 $2
 if [ $? != 0 ]
 then
     hasError=1
