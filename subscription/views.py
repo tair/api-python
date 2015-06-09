@@ -55,7 +55,7 @@ class SubscriptionsActive(APIView):
         partyId = request.GET.get('partyId')
         ip = request.GET.get('ip')
         isActive = False
-        if not partyId == None:
+        if not partyId == None and partyId.isdigit():
             objList = Subscription.getActiveById(partyId)
             isActive = isActive or len(objList) > 0
         if not ip == None:
