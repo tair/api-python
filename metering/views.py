@@ -55,8 +55,7 @@ class increment(APIView):
 # /ip/<pk>/limit/
 class check_limit(APIView):
     def get(self, request, ip, format=None):
-        partnerId = "cdiff"
-        if IpAddressCount.objects.filter(ip=ip,partnerId=partnerId).exists():
+        if IpAddressCount.objects.filter(ip=ip).exists():
             currIp = IpAddressCount.objects.get(ip=ip)
             if (currIp.count >= LimitValue.objects.aggregate(Max('val'))['val__max']):
                 ret = {'status': "Block"}
