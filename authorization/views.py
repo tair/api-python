@@ -26,7 +26,7 @@ class Access(APIView):
         url = request.GET.get('url')
         partyId = request.GET.get('partyId')
         partnerId = request.GET.get('partnerId')
-        apiKey = request.GET.get('apiKey')
+        apiKey = request.COOKIES.get('apiKey')
         status = Authorization.getAccessStatus(loginKey, ip, partyId, url, partnerId, getHostUrlFromRequest(request), apiKey)
         response = {
             "status":status,
@@ -40,7 +40,7 @@ class SubscriptionsAccess(APIView):
         url = request.GET.get('url')
         partyId = request.GET.get('partyId')
         partnerId = request.GET.get('partnerId')
-        apiKey = request.GET.get('apiKey')
+        apiKey = request.COOKIES.get('apiKey')
         access = Authorization.subscription(ip, partyId, url, partnerId, getHostUrlFromRequest(request), apiKey)
         response = {
             "access":access,
@@ -55,7 +55,7 @@ class AuthenticationsAccess(APIView):
         partyId = request.GET.get('partyId')
         partnerId = request.GET.get('partnerId')
         hostUrl = "http://%s" % request.get_host()
-        apiKey = request.GET.get('apiKey')
+        apiKey = request.COOKIES.get('apiKey')
         access = Authorization.authentication(loginKey, partyId, url, partnerId, getHostUrlFromRequest(request), apiKey)
         response = {
             "access":access,

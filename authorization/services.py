@@ -7,13 +7,14 @@ class SubscriptionService():
     def check(ipAddress,partyId,partnerId, hostUrl, apiKey):
         if ipAddress == None and partyId == None:
             return False
-        requestUrl = '%s/subscriptions/active/?partnerId=%s&apiKey=%s' % (hostUrl,partnerId, apiKey)
+        requestUrl = '%s/subscriptions/active/?partnerId=%s' % (hostUrl,partnerId)
         if not partyId == None:
             requestUrl += '&partyId=%s' % (partyId)
         if not ipAddress == None:
             requestUrl += '&ip=%s' % (ipAddress)
         cookies = {'apiKey':apiKey}
-        response = requests.get(requestUrl, cookies=cookies)
+
+        response = requests.get(requestUrl, cookies=cookies, verify=False)
         contentJson = json.loads(response.content)
 
         return contentJson['active']
@@ -27,9 +28,9 @@ class AuthenticationService():
             return False
         if partyId == None:
             return False
-        requestUrl = '%s/users/login/?apiKey=%s' % (hostUrl, apiKey)
+        requestUrl = '%s/users/login/' % (hostUrl)
         cookies = {'partyId':partyId, 'secret_key':loginKey, 'apiKey':apiKey}
-        response = requests.get(requestUrl, cookies=cookies)
+        response = requests.get(requestUrl, cookies=cookies, verify=False)
 
         try:
             contentJson = json.loads(response.content)

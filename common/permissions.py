@@ -15,3 +15,6 @@ class ApiKeyPermission():
         if (ApiKey.objects.all().filter(apiKey=apiKey).exists()):
             return True
         return False
+
+    def has_object_permission(self, request, view, obj):
+        return True
