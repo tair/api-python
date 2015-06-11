@@ -16,12 +16,12 @@ class IpAddressCountSample():
     path = 'meters/'
     url = None
     data = {
-        'ip':'767.45.6.7',
+        'ip':'123.45.6.7',
         'count':1,
         'partnerId':None,
     }
     updateData = {
-        'ip':'767.45.6.7',
+        'ip':'123.45.6.7',
         'count':5,
         'partnerId':None,
     }

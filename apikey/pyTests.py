@@ -23,6 +23,7 @@ class ApiKeyCRUD(GenericCRUDTest, TestCase):
     def setUp(self):
 #        super(ApiKeyCRUD, self).setUp()
         ApiKey.objects.filter(apiKey=self.sample.data['apiKey']).delete()
+        ApiKey.objects.filter(apiKey=self.sample.updateData['apiKey']).delete()
 
     # overrides parent class teardown.
     def tearDown(self):

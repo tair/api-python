@@ -40,7 +40,7 @@ class AccessRuleCRUD(GenericCRUDTest, TestCase):
         self.accessTypeId = self.accessTypeSample.forcePost(self.accessTypeSample.data)
         self.sample.partnerId=self.sample.data['partnerId']=self.sample.updateData['partnerId']=self.partnerId
         self.sample.data['patternId']=self.sample.updateData['patternId']=self.patternId
-        self.sample.data['accessTypeId']=self.sample.data['accessTypeId']=self.accessTypeId
+        self.sample.data['accessTypeId']=self.sample.updateData['accessTypeId']=self.accessTypeId
 
     def tearDown(self):
         super(AccessRuleCRUD,self).tearDown()

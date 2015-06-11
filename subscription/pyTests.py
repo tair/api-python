@@ -34,7 +34,7 @@ class SubscriptionCRUD(GenericCRUDTest, TestCase):
         self.partyId = self.partySample.forcePost(self.partySample.data)
         self.partnerId = self.partnerSample.forcePost(self.partnerSample.data)
         self.sample.data['partyId']=self.sample.updateData['partyId']=self.partyId
-        self.sample.partnerId=self.sample.data['partnerId']=self.sample.updateData['partyId']=self.partnerId
+        self.sample.partnerId=self.sample.data['partnerId']=self.sample.updateData['partnerId']=self.partnerId
 
     # post request for subscription is not generic. It creates a SubscriptionTransaction
     # object in addition to a Subscription object.
