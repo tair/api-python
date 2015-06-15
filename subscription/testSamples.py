@@ -2,7 +2,7 @@ import django
 import unittest
 import sys, getopt
 from unittest import TestCase
-from subscription.models import Subscription, SubscriptionTransaction
+from subscription.models import Subscription, SubscriptionTransaction, ActivationCode
 from party.models import Party
 from partner.models import Partner
 import requests
@@ -13,8 +13,35 @@ from common.pyTests import PyTestGenerics
 
 genericForcePost = PyTestGenerics.forcePost
 
+class ActivationCodeSample():
+    path = 'subscriptions/activationCodes/'
+    url = None
+    data = {
+        'activationCode':'testactivationcode',
+        'partnerId':None,
+        'partyId':None,
+        'period':180,
+        'purchaseDate':'2001-01-01T00:00:00Z',
+    }
+    updateData = {
+        'activationCode':'testactivationcode2',
+        'partnerId':None,
+        'partyId':None,
+        'period':150,
+        'purchaseDate':'2005-01-01T00:00:00Z',
+    }
+    pkName = 'activationCodeId'
+    model = ActivationCode
+
+    def __init__(self, serverUrl):
+        self.url = serverUrl+self.path
+
+    def forcePost(self,data):
+        postData = copy.deepcopy(data)
+        postData['partnerId'] = Partner.objects.get(partnerId=data['partnerId'])
+        return genericForcePost(self.model, self.pkName, postData)
+
 class SubscriptionSample():
-    partnerId = 'tair'
     path = 'subscriptions/'
     url = None
     data = {

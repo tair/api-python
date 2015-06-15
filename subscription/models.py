@@ -46,6 +46,16 @@ class Subscription(models.Model):
     class Meta:
         db_table = "Subscription"
 
+class ActivationCode(models.Model):
+    activationCodeId = models.AutoField(primary_key=True)
+    activationCode = models.CharField(max_length=200, unique=True)
+    partnerId = models.ForeignKey('partner.Partner', db_column="partnerId")
+    partyId = models.ForeignKey('party.Party', null=True)
+    period = models.IntegerField()
+    purchaseDate = models.DateTimeField(default='2001-01-01T00:00:00Z')
+    class Meta:
+        db_table = "ActivationCode"
+
 class SubscriptionTransaction(models.Model):
     subscriptionTransactionId = models.AutoField(primary_key=True)
     subscriptionId = models.ForeignKey('Subscription', db_column="subscriptionId")
@@ -55,13 +65,17 @@ class SubscriptionTransaction(models.Model):
     transactionType = models.CharField(max_length=200)
 
     @staticmethod
-    def createFromSubscription(subscription, transactionType):
+    def createFromSubscription(subscription, transactionType, transactionStartDate=None, transactionEndDate=None):
         now = timezone.now()
+        if not transactionStartDate:
+            transactionStartDate = subscription.startDate
+        if not transactionEndDate:
+            transactionEndDate = subscription.endDate
         transactionJson = {
             'subscriptionId':subscription.subscriptionId,
             'transactionDate':now,
-            'startDate':subscription.startDate,
-            'endDate':subscription.endDate,
+            'startDate':transactionStartDate,
+            'endDate':transactionEndDate,
             'transactionType':transactionType,
         }
         from serializers import SubscriptionTransactionSerializer
@@ -70,7 +84,7 @@ class SubscriptionTransaction(models.Model):
             return transactionSerializer.save()
         # failed to create transaction
         return None
-        
+
     class Meta:
         db_table = "SubscriptionTransaction"
 

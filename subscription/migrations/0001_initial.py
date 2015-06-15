@@ -7,11 +7,24 @@ from django.db import models, migrations
 class Migration(migrations.Migration):
 
     dependencies = [
+        ('partner', '0010_auto_20150601_2017'),
         ('party', '0001_initial'),
-        ('partner', '0007_remove_subscriptionterm_autorenew'),
     ]
 
     operations = [
+        migrations.CreateModel(
+            name='ActivationCode',
+            fields=[
+                ('activationCodeId', models.AutoField(serialize=False, primary_key=True)),
+                ('used', models.BooleanField(default=True)),
+                ('startDate', models.DateTimeField(default=b'2001-01-01T00:00:00Z')),
+                ('endDate', models.DateTimeField(default=b'2001-02-02T00:00:00Z')),
+                ('partnerId', models.ForeignKey(to='partner.Partner', db_column=b'partnerId')),
+            ],
+            options={
+                'db_table': 'ActivationCode',
+            },
+        ),
         migrations.CreateModel(
             name='Subscription',
             fields=[

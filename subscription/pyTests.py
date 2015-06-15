@@ -4,11 +4,11 @@ import django
 import unittest
 import sys, getopt
 from unittest import TestCase
-from subscription.models import Subscription, SubscriptionTransaction
+from subscription.models import Subscription, SubscriptionTransaction, ActivationCode
 from partner.models import Partner
 import requests
 import json
-from testSamples import SubscriptionSample, SubscriptionTransactionSample
+from testSamples import SubscriptionSample, SubscriptionTransactionSample, ActivationCodeSample
 from party.testSamples import PartySample, IpRangeSample
 from partner.testSamples import PartnerSample, SubscriptionTermSample
 import copy
@@ -23,16 +23,38 @@ print "using server url %s" % serverUrl
 
 # ---------------------- UNIT TEST FOR BASIC CRUD OPERATIONS -------------
 
+class ActivationCodeCRUD(GenericCRUDTest, TestCase):
+    sample = ActivationCodeSample(serverUrl)
+    partnerSample = PartnerSample(serverUrl)
+
+    def setUp(self):
+        super(ActivationCodeCRUD, self).setUp()
+        self.partnerId = self.partnerSample.forcePost(self.partnerSample.data)
+        self.sample.data['partnerId'] = self.sample.updateData['partnerId']=self.partnerId
+
+        # delete activationCode entries that will be used for test
+        ActivationCode.objects.filter(activationCode=self.sample.data['activationCode']).delete()
+        ActivationCode.objects.filter(activationCode=self.sample.updateData['activationCode']).delete()
+
+    def tearDown(self):
+        super(ActivationCodeCRUD,self).tearDown()
+        PyTestGenerics.forceDelete(self.partnerSample.model, self.partnerSample.pkName, self.partnerId)
+        
+
 class SubscriptionCRUD(GenericCRUDTest, TestCase):
 
     sample = SubscriptionSample(serverUrl)
     partySample = PartySample(serverUrl)
     partnerSample = PartnerSample(serverUrl)
+    activationCodeSample = ActivationCodeSample(serverUrl)
 
     def setUp(self):
         super(SubscriptionCRUD,self).setUp()
         self.partyId = self.partySample.forcePost(self.partySample.data)
+        Partner.objects.filter(partnerId=self.partnerSample.data['partnerId']).delete()
         self.partnerId = self.partnerSample.forcePost(self.partnerSample.data)
+        ActivationCode.objects.filter(activationCode=self.activationCodeSample.data['activationCode']).delete()
+        self.activationCodeId = self.activationCodeSample.forcePost(self.activationCodeSample.data)
         self.sample.data['partyId']=self.sample.updateData['partyId']=self.partyId
         self.sample.partnerId=self.sample.data['partnerId']=self.sample.updateData['partnerId']=self.partnerId
 
@@ -40,9 +62,22 @@ class SubscriptionCRUD(GenericCRUDTest, TestCase):
     # object in addition to a Subscription object.
     def test_for_create(self):
         sample = self.sample
-        url = sample.url + '?apiKey=%s' % self.apiKey
+        url = sample.url
         cookies = {'apiKey':self.apiKey}
+
+        # Creation via basic CRUD format
         req = requests.post(url, data=sample.data, cookies=cookies)
+        self.assertEqual(req.status_code, status.HTTP_201_CREATED)
+        self.assertIsNotNone(PyTestGenerics.forceGet(sample.model,sample.pkName,req.json()[sample.pkName]))
+        transactionId = req.json()['subscriptionTransactionId']
+        self.assertIsNotNone(PyTestGenerics.forceGet(SubscriptionTransaction,'subscriptionTransactionId',transactionId))
+        PyTestGenerics.forceDelete(SubscriptionTransaction, 'subscriptionTransactionId', transactionId)
+        PyTestGenerics.forceDelete(sample.model,sample.pkName,req.json()[sample.pkName])
+
+        # Creationg via activation code
+        activationCode = ActivationCode.objects.get(activationCodeId=self.activationCodeId).activationCode
+        data ={"partyId":self.partyId, "activationCode":activationCode}
+        req = requests.post(url, data=data, cookies=cookies)
         self.assertEqual(req.status_code, status.HTTP_201_CREATED)
         self.assertIsNotNone(PyTestGenerics.forceGet(sample.model,sample.pkName,req.json()[sample.pkName]))
         transactionId = req.json()['subscriptionTransactionId']
@@ -54,6 +89,7 @@ class SubscriptionCRUD(GenericCRUDTest, TestCase):
         super(SubscriptionCRUD,self).tearDown()
         PyTestGenerics.forceDelete(self.partySample.model, self.partySample.pkName, self.partyId)
         PyTestGenerics.forceDelete(self.partnerSample.model, self.partnerSample.pkName, self.partnerId)
+        PyTestGenerics.forceDelete(self.activationCodeSample.model, self.activationCodeSample.pkName, self.activationCodeId)
 
 class SubscriptionTransactionCRUD(GenericCRUDTest, TestCase):
     sample = SubscriptionTransactionSample(serverUrl)
@@ -197,30 +233,24 @@ class SubscriptionActiveTest(GenericTest, TestCase):
         self.runIpTest(self.successIp, True)
         self.runIpTest(self.failIp, False)
 
-class PostPaymentSubscriptionTest(GenericTest, TestCase):
+class PostPaymentHandlingTest(GenericTest, TestCase):
 
-    partySample = PartySample(serverUrl)
     partnerSample = PartnerSample(serverUrl)
     subscriptionTermSample = SubscriptionTermSample(serverUrl)
 
     def setUp(self):
-        super(PostPaymentSubscriptionTest, self).setUp()
-        self.partyId = self.partySample.forcePost(self.partySample.data)
+        super(PostPaymentHandlingTest, self).setUp()
         self.partnerId = self.partnerSample.forcePost(self.partnerSample.data)
-        self.subscriptionTermSample.data['partnerId']=self.partnerId
         self.subscriptionTermId = self.subscriptionTermSample.forcePost(self.subscriptionTermSample.data)
 
     def test_for_postPaymentSubscription(self):
-        (subscriptionId, subscriptionTransactionId) = PaymentControl.postPaymentSubscription(self.subscriptionTermId, self.partyId)
-        self.assertIsNotNone(PyTestGenerics.forceGet(Subscription, 'subscriptionId', subscriptionId))
-        self.assertIsNotNone(PyTestGenerics.forceGet(SubscriptionTransaction, 'subscriptionTransactionId', subscriptionTransactionId))
-
-        PyTestGenerics.forceDelete(Subscription, 'subscriptionId', subscriptionId)
-        PyTestGenerics.forceDelete(SubscriptionTransaction, 'subscriptionTransactionId', subscriptionTransactionId)
+        activationCodeArray = PaymentControl.postPaymentHandling(self.subscriptionTermId, 5)
+        for activationCode in activationCodeArray:
+            self.assertIsNotNone(PyTestGenerics.forceGet(ActivationCode, 'activationCode', activationCode))
+            PyTestGenerics.forceDelete(ActivationCode, 'activationCode', activationCode)
 
     def tearDown(self):
-        super(PostPaymentSubscriptionTest, self).tearDown()
-        PyTestGenerics.forceDelete(self.partySample.model, self.partySample.pkName, self.partyId)
+        super(PostPaymentHandlingTest, self).tearDown()
         PyTestGenerics.forceDelete(self.partnerSample.model, self.partnerSample.pkName, self.partnerId)
         PyTestGenerics.forceDelete(self.subscriptionTermSample.model, self.subscriptionTermSample.pkName, self.subscriptionTermId)
 
