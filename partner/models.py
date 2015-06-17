@@ -16,7 +16,8 @@ class Partner(models.Model):
 class PartnerPattern(models.Model):
     partnerPatternId = models.AutoField(primary_key=True)
     partnerId = models.ForeignKey('Partner', db_column='partnerId')
-    pattern = models.CharField(max_length=200)
+    sourceUri = models.CharField(max_length=200)
+    targetUri = models.CharField(max_length=200)
     
     class Meta:
         db_table = "PartnerPattern"

@@ -28,11 +28,9 @@ class PartnerCRUD(GenericCRUDView):
         obj = self.get_queryset()
         params = request.GET
         if 'uri' in params:
-            obj = obj.extra(
-                tables=["PartnerPattern"],
-                where=["Partner.partnerId=PartnerPattern.partnerId", "PartnerPattern.pattern=%s"],
-                params=[params['uri']]
-            )
+            patternObj = PartnerPattern.objects.filter(sourceUri=params['uri'])
+            serializer = PartnerPatternSerializer(patternObj, many=True)
+            return Response(serializer.data)
         serializer = self.serializer_class(obj, many=True)
         return Response(serializer.data)
 

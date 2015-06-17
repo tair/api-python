@@ -41,11 +41,13 @@ class PartnerPatternSample():
     partnerId = 'cdiff'
     data = {
         'partnerId':'cdiff',
-        'pattern':'/test/',
+        'sourceUri':'https://paywall2.steveatgetexp.com',
+        'targetUri':'https://back-prod.steveatgetexp.com',
     }
     updateData = {
         'partnerId':'tair',
-        'pattern':'/test2/',
+        'sourceUri':'https://paywall2a.steveatgetexp.com',
+        'targetUri':'https://back-prod.steveatgetexp.com',
     }
     pkName = 'partnerPatternId'
     model = PartnerPattern

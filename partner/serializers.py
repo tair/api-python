@@ -11,7 +11,7 @@ class PartnerSerializer(serializers.ModelSerializer):
 class PartnerPatternSerializer(serializers.ModelSerializer):
     class Meta:
         model = PartnerPattern
-        fields = ('partnerPatternId', 'partnerId','pattern')
+        fields = ('partnerPatternId', 'partnerId','sourceUri', 'targetUri')
 
 class SubscriptionTermSerializer(serializers.ModelSerializer):
     class Meta:
