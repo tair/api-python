@@ -48,7 +48,6 @@ class TermsCRUD(GenericCRUDView):
 class SubscriptionDescriptionCRUD(GenericCRUDView):
     queryset = SubscriptionDescription.objects.all()
     serializer_class = SubscriptionDescriptionSerializer
-    requireApiKey = False
 
     def get(self, request, format=None):
         obj = self.get_queryset()
@@ -73,4 +72,3 @@ class SubscriptionDescriptionCRUD(GenericCRUDView):
 class SubscriptionDescriptionItemCRUD(GenericCRUDView):
     queryset = SubscriptionDescriptionItem.objects.all()
     serializer_class = SubscriptionDescriptionItemSerializer
-    requireApiKey = False
