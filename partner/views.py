@@ -48,12 +48,13 @@ class TermsCRUD(GenericCRUDView):
 class SubscriptionDescriptionCRUD(GenericCRUDView):
     queryset = SubscriptionDescription.objects.all()
     serializer_class = SubscriptionDescriptionSerializer
+    requireApiKey = False
 
     def get(self, request, format=None):
         obj = self.get_queryset()
         params = request.GET
         if 'includeText' in params and params['includeText'] and 'partnerId' in params:
-            out = []
+            out = {}
             for entry in obj:
                 outEntry = {}
                 outEntry['id'] = entry.descriptionType
@@ -63,7 +64,7 @@ class SubscriptionDescriptionCRUD(GenericCRUDView):
                 outEntry['benefits'] = []
                 for itemEntry in itemObj:
                     outEntry['benefits'].append(itemEntry.text)
-                out.append(outEntry)
+                out[outEntry['id']] = outEntry
             return Response(out)
         serializer = self.serializer_class(obj, many=True)
         return Response(serializer.data)
@@ -72,3 +73,4 @@ class SubscriptionDescriptionCRUD(GenericCRUDView):
 class SubscriptionDescriptionItemCRUD(GenericCRUDView):
     queryset = SubscriptionDescriptionItem.objects.all()
     serializer_class = SubscriptionDescriptionItemSerializer
+    requireApiKey = False
