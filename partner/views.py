@@ -4,8 +4,8 @@ from django.http import HttpResponse
 from rest_framework.views import APIView
 from rest_framework import generics
 
-from models import Partner, PartnerPattern, SubscriptionTerm
-from serializers import PartnerSerializer, PartnerPatternSerializer, SubscriptionTermSerializer
+from models import Partner, PartnerPattern, SubscriptionTerm, SubscriptionDescription, SubscriptionDescriptionItem
+from serializers import PartnerSerializer, PartnerPatternSerializer, SubscriptionTermSerializer, SubscriptionDescriptionSerializer, SubscriptionDescriptionItemSerializer
 
 import json
 
@@ -44,21 +44,31 @@ class TermsCRUD(GenericCRUDView):
     queryset = SubscriptionTerm.objects.all()
     serializer_class = SubscriptionTermSerializer
 
-# specific api calls
+# /descriptions/
+class SubscriptionDescriptionCRUD(GenericCRUDView):
+    queryset = SubscriptionDescription.objects.all()
+    serializer_class = SubscriptionDescriptionSerializer
 
-# /terms
-class TermsQueries(APIView):
     def get(self, request, format=None):
-        price = request.GET.get('price')
-        period = request.GET.get('period')
-        groupDiscountPercentage = request.GET.get('groupDiscountPercentage')
+        obj = self.get_queryset()
+        params = request.GET
+        if 'includeText' in params and params['includeText'] and 'partnerId' in params:
+            out = []
+            for entry in obj:
+                outEntry = {}
+                outEntry['id'] = entry.descriptionType
+                outEntry['heading'] = entry.header
+                subscriptionDescriptionId = entry.subscriptionDescriptionId
+                itemObj = SubscriptionDescriptionItem.objects.filter(subscriptionDescriptionId=subscriptionDescriptionId)
+                outEntry['benefits'] = []
+                for itemEntry in itemObj:
+                    outEntry['benefits'].append(itemEntry.text)
+                out.append(outEntry)
+            return Response(out)
+        serializer = self.serializer_class(obj, many=True)
+        return Response(serializer.data)
 
-        obj = SubscriptionTerm.objects.all()
-        if not price == None:
-            obj = obj.filter(price=price)
-        if not period == None:
-            obj = obj.filter(period=period)
-        if not groupDiscountPercentage == None:
-            obj = obj.filter(groupDiscountPercentage=groupDiscountPercentage)
-        serializer = SubscriptionTermSerializer(obj, many=True)
-        return Response(serializer.data, status=status.HTTP_200_OK)
+# /descriptionItems/
+class SubscriptionDescriptionItemCRUD(GenericCRUDView):
+    queryset = SubscriptionDescriptionItem.objects.all()
+    serializer_class = SubscriptionDescriptionItemSerializer

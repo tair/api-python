@@ -3,10 +3,10 @@ import sys
 import django
 import unittest
 from unittest import TestCase
-from partner.models import Partner, PartnerPattern, SubscriptionTerm
+from partner.models import Partner, PartnerPattern, SubscriptionTerm, SubscriptionDescription, SubscriptionDescriptionItem
 import copy
 from common.pyTests import PyTestGenerics, GenericCRUDTest, GenericTest
-from testSamples import PartnerSample, PartnerPatternSample, SubscriptionTermSample
+from testSamples import PartnerSample, PartnerPatternSample, SubscriptionTermSample, SubscriptionDescriptionSample, SubscriptionDescriptionItemSample
 import requests
 
 initPyTest = PyTestGenerics.initPyTest
@@ -56,39 +56,6 @@ class SubscriptionTermCRUD(GenericCRUDTest, TestCase):
     def tearDown(self):
         super(SubscriptionTermCRUD,self).tearDown()
         genericForceDelete(self.partnerSample.model, self.partnerSample.pkName, self.partnerId)
-
-class SubscriptionTermQueryTest(GenericTest, TestCase):
-    url = serverUrl+'partners/terms/queries/'
-
-    def runSubscriptionTermQueryTest(self, key, value, shouldSuccess):
-        #initialization
-        subscriptionTermSample = SubscriptionTermSample(serverUrl)
-        partnerSample = PartnerSample(serverUrl)
-
-        #setup data
-        pass
-
-        #creating objects
-        partnerId = partnerSample.forcePost(partnerSample.data)
-        subscriptionTermSample.data['partnerId']=partnerId
-        subscriptionTermId = subscriptionTermSample.forcePost(subscriptionTermSample.data)
-
-        #run tests
-        url = self.url + '?partnerId=%s&%s=%s&%s=%s' % (partnerId, key, value,'apiKey',self.apiKey)
-        cookies = {'apiKey':self.apiKey}
-        req = requests.get(url,cookies=cookies)
-        self.assertEqual(len(req.json()) > 0, shouldSuccess)
-
-        #delete objects
-        genericForceDelete(subscriptionTermSample.model, subscriptionTermSample.pkName, subscriptionTermId)
-        genericForceDelete(partnerSample.model, partnerSample.pkName, partnerId)
-
-    def test_for_subscriptionTermQuery(self):
-        sample = SubscriptionTermSample(serverUrl)
-        self.runSubscriptionTermQueryTest('price', sample.data['price'], True)
-        self.runSubscriptionTermQueryTest('price', sample.data['price']+5, False)
-        self.runSubscriptionTermQueryTest('period', sample.data['period'], True)
-        self.runSubscriptionTermQueryTest('period', sample.data['period']+5, False)
 
 print "Running unit tests on partner web services API........."
 

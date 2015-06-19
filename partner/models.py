@@ -9,6 +9,7 @@ from django.http import Http404
 class Partner(models.Model):
     partnerId = models.CharField(max_length=200, primary_key=True)
     name = models.CharField(max_length=200)
+    logoUri = models.CharField(max_length=200)
 
     class Meta:
         db_table = "Partner"
@@ -31,3 +32,20 @@ class SubscriptionTerm(models.Model):
 
     class Meta:
         db_table = "SubscriptionTerm"
+
+class SubscriptionDescriptionItem(models.Model):
+    subscriptionDescriptionItemId = models.AutoField(primary_key=True)
+    subscriptionDescriptionId = models.ForeignKey('SubscriptionDescription', db_column='subscriptionDescriptionId')
+    text = models.CharField(max_length=2048)
+
+    class Meta:
+        db_table = "SubscriptionDescriptionItem"
+
+class SubscriptionDescription(models.Model):
+    subscriptionDescriptionId = models.AutoField(primary_key=True)
+    header = models.CharField(max_length=200)
+    partnerId = models.ForeignKey('Partner', db_column='partnerId')
+    descriptionType = models.CharField(max_length=200, default='Default') # Default, Individual, Institution, Commercial
+
+    class Meta:
+        db_table = "SubscriptionDescription"

@@ -7,14 +7,14 @@ from django.db import models, migrations
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('subscription', '0001_initial'),
+        ('partner', '0002_subscriptiondescription_subscriptiondescriptionitem'),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='activationcode',
-            name='activationCode',
-            field=models.CharField(default='test', unique=True, max_length=200),
+            model_name='subscriptiondescriptionitem',
+            name='text',
+            field=models.CharField(default='you get 5% discount for every purchase', max_length=2048),
             preserve_default=False,
         ),
     ]

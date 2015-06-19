@@ -7,7 +7,7 @@ from django.db import models, migrations
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('partner', '0010_auto_20150601_2017'),
+        ('partner', '0001_initial'),
         ('party', '0001_initial'),
     ]
 
@@ -16,10 +16,11 @@ class Migration(migrations.Migration):
             name='ActivationCode',
             fields=[
                 ('activationCodeId', models.AutoField(serialize=False, primary_key=True)),
-                ('used', models.BooleanField(default=True)),
-                ('startDate', models.DateTimeField(default=b'2001-01-01T00:00:00Z')),
-                ('endDate', models.DateTimeField(default=b'2001-02-02T00:00:00Z')),
+                ('activationCode', models.CharField(unique=True, max_length=200)),
+                ('period', models.IntegerField()),
+                ('purchaseDate', models.DateTimeField(default=b'2001-01-01T00:00:00Z')),
                 ('partnerId', models.ForeignKey(to='partner.Partner', db_column=b'partnerId')),
+                ('partyId', models.ForeignKey(to='party.Party', null=True)),
             ],
             options={
                 'db_table': 'ActivationCode',

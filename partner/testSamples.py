@@ -2,7 +2,7 @@ import sys
 import django
 import unittest
 from unittest import TestCase
-from partner.models import Partner, PartnerPattern, SubscriptionTerm
+from partner.models import Partner, PartnerPattern, SubscriptionTerm, SubscriptionDescription, SubscriptionDescriptionItem
 import copy
 from common.pyTests import PyTestGenerics
 
@@ -85,4 +85,48 @@ class SubscriptionTermSample():
     def forcePost(self,data):
         postData = copy.deepcopy(data)
         postData['partnerId'] = Partner.objects.get(partnerId=data['partnerId'])
+        return genericForcePost(self.model, self.pkName, postData)
+
+class SubscriptionDescriptionSample():
+    url = None
+    path = 'partners/descriptions/'
+    data = {
+        'header':'Commercial Description',
+        'descriptionType':'Commercial',
+        'partnerId':None,
+    }
+    updateData = {
+        'header':'Commercial Description2',
+        'descriptionType':'Institution',
+        'partnerId':None,
+    }
+    pkName = 'subscriptionDescriptionId'
+    model = SubscriptionDescription
+
+    def __init__(self, serverUrl):
+        self.url = serverUrl+self.path
+
+    def forcePost(self,data):
+        postData = copy.deepcopy(data)
+        postData['partnerId'] = Partner.objects.get(partnerId=data['partnerId'])
+        return genericForcePost(self.model, self.pkName, postData)
+
+class SubscriptionDescriptionItemSample():
+    url = None
+    path = 'partners/descriptionItems/'
+    data = {
+        'subscriptionDescriptionId':None,
+    }
+    updateData = {
+        'subscriptionDescriptionId':None,
+    }
+    pkName = 'subscriptionDescriptionItemId'
+    model = SubscriptionDescriptionItem
+
+    def __init__(self, serverUrl):
+        self.url = serverUrl+self.path
+
+    def forcePost(self,data):
+        postData = copy.deepcopy(data)
+        postData['subscriptionDescritpionId'] = SubscriptionDescription.objects.get(subscriptionDescriptionId=data['subscriptionDescriptionId'])
         return genericForcePost(self.model, self.pkName, postData)
