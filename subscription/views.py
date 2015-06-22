@@ -20,6 +20,9 @@ import stripe
 import json
 
 import datetime
+
+from django.conf import settings
+
 # top level: /subscriptions/
 
 # Basic CRUD operation for Subscriptions, and SubscriptionTransactions
@@ -129,11 +132,12 @@ class SubscriptionsPayment(APIView):
         message['price'] = int(SubscriptionTerm.objects.get(subscriptionTermId=termId).price)
         message['quantity'] = request.GET.get('quantity')
         message['termId'] = termId
+        message['stripeKey'] = settings.STRIPE_PUBLIC_KEY
         return render(request, "subscription/paymentIndex.html", message)
 
     def post(self, request):
-        stripe_api_secret_test_key = PaymentControl.stripe_api_secret_test_key
-        stripe.api_key = stripe_api_secret_test_key
+        stripe_api_secret_test_key = settings.STRIPE_PRIVATE_KEY
+        stripe.api_key = stripe_api_secret_test_key 
         token = request.POST['stripeToken']
         price = int(request.POST['price'])
         termId = request.POST['termId']

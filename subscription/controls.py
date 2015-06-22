@@ -61,7 +61,6 @@ class SubscriptionControl():
         return (subscription, transactionType, transactionStartDate, transactionEndDate)
 
 class PaymentControl():
-    stripe_api_secret_test_key = "sk_test_dXy85QkwH66s64bIWKbikyMt"
 
     @staticmethod
     def tryCharge(secret_key, stripe_token, priceToCharge, chargeDescription, termId, quantity):

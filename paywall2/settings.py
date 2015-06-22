@@ -25,6 +25,10 @@ BASE_DIR = os.path.dirname(os.path.dirname(__file__))
 # SECURITY WARNING: keep the secret key used in production secret!
 SECRET_KEY = '#-4)vm=f8fm#adsgno$d%2^df31zd@_eisul(x!yk^ygbidvf*'
 
+STRIPE_PUBLIC_KEY = 'pk_test_VEu0r74glZkzeT8IXLmXxojP'
+
+STRIPE_PRIVATE_KEY = 'sk_test_dXy85QkwH66s64bIWKbikyMt'
+
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 

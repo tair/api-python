@@ -12,7 +12,7 @@
 
   <!-- Event handling on submit --!>
   <script type="text/javascript">
-    Stripe.setPublishableKey('pk_test_VEu0r74glZkzeT8IXLmXxojP');
+    Stripe.setPublishableKey("{{stripeKey}}");
 
     var responseHandlerForStripe = function(status, response) {
       var $form = $('#payment-form');
