@@ -1,7 +1,8 @@
 
 #import Path, AccessType
-from services import SubscriptionService, AuthenticationService
 from models import Status, AccessType
+from subscription.models import Subscription
+from authentication.models import UsernamePartyAffiliation
 
 class Authorization:
     @staticmethod
@@ -22,8 +23,16 @@ class Authorization:
         if not AccessType.checkHasAccessRule(url, "Paid", partnerId):
             # does not have Paid access rule to this url, allow access.
             return True
-        if SubscriptionService.check(ip, partyId, partnerId, hostUrl, apiKey):
+        if Authorization.hasActiveSubscription(ip, partyId, partnerId):
             # have subscription, allow access.
+            return True
+        return False
+
+    @staticmethod
+    def hasActiveSubscription(ip, partyId, partnerId):
+        if partyId and len(Subscription.getActiveById(partyId, partnerId)) > 0:
+            return True
+        if ip and len(Subscription.getActiveByIp(ip, partnerId)) > 0:
             return True
         return False
 
@@ -32,7 +41,7 @@ class Authorization:
         if not AccessType.checkHasAccessRule(url, "Login", partnerId):
             # does not have Login access rule to this url, allow access.
             return True
-        if AuthenticationService.check(loginKey, partyId, partnerId, hostUrl, apiKey):
+        if UsernamePartyAffiliation.validate(partyId, loginKey):
             # have authentication, allow access.
             return True
         return False

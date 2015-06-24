@@ -30,17 +30,18 @@ class Subscription(models.Model):
                                    .filter(startDate__lt=now)
 
     @staticmethod
-    def getActiveById(partyId):
+    def getActiveById(partyId, partnerId):
         subscriptionQuerySet = Subscription.objects.all() \
-                                                   .filter(partyId=partyId)
+                                                   .filter(partyId=partyId) \
+                                                   .filter(partnerId=partnerId)
         return Subscription.filterActive(subscriptionQuerySet)
 
     @staticmethod
-    def getActiveByIp(ipAddress):
+    def getActiveByIp(ipAddress, partnerId):
         now = timezone.now()
-
         # get a list of subscription filtered by IP
-        subscriptionQuerySet = Subscription.getByIp(ipAddress)
+        subscriptionQuerySet = Subscription.getByIp(ipAddress) \
+                                           .filter(partnerId=partnerId)
         return Subscription.filterActive(subscriptionQuerySet)
 
     class Meta:

@@ -86,24 +86,6 @@ class ActivationCodeCRUD(GenericCRUDView):
 
 # Specific queries
 
-# /active/
-class SubscriptionsActive(APIView):
-    def get(self, request, format=None):
-        partyId = request.GET.get('partyId')
-        ip = request.GET.get('ip')
-        isActive = False
-        if not partyId == None and partyId.isdigit():
-            objList = Subscription.getActiveById(partyId)
-            isActive = isActive or len(objList) > 0
-        if not ip == None:
-            objList = Subscription.getActiveByIp(ip)
-            isActive = isActive or len(objList) > 0
-
-        # TODO add in security check to filter objList
-
-        return HttpResponse(json.dumps({'active':isActive}), content_type="application/json")
-
-
 # /<pk>/renewal/
 class SubscriptionRenewal(generics.GenericAPIView):
     queryset = Subscription.objects.all()

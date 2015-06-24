@@ -35,15 +35,13 @@ class listcreateuser(GenericCRUDView):
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST) 
 
-#/authentications/login/
+        #/authentications/login/
 def login(request):
   if request.method == 'GET':
-    if ("partyId" in request.COOKIES) and ("secret_key" in request.COOKIES):
-      pu = Party.objects.filter(partyId=request.COOKIES.get('partyId'))
-      if pu:
-        usu = UsernamePartyAffiliation.objects.filter(partyId_id__in=pu.values('partyId')).first()
-        if generateSecretKey(str(request.COOKIES.get('partyId')), usu.password) == request.COOKIES.get('secret_key'):
-          return HttpResponse(json.dumps({"bool": True}))
+    partyId = request.COOKIES.get('partyId')
+    secretKey = request.COOKIES.get('secret_key')
+    if UsernamePartyAffiliation.validate(partyId, secretKey):
+      return HttpResponse(json.dumps({"bool": True}))
   if request.method == 'POST':
     user = UsernamePartyAffiliation.objects.filter(username=request.POST.get('user'))
     if user: 

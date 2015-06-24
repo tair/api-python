@@ -7,10 +7,10 @@ import requests
 from unittest import TestCase
 from common.pyTests import PyTestGenerics, GenericCRUDTest, GenericTest
 
-from subscription.pyTests import SubscriptionActiveTest
 from subscription.testSamples import SubscriptionSample
 from party.testSamples import IpRangeSample, PartySample
 from partner.testSamples import PartnerSample
+from partner.models import Partner
 from authorization.models import Status
 
 from testSamples import UriPatternSample, AccessRuleSample, AccessTypeSample, UsernamePartyAffiliationSample
@@ -56,11 +56,24 @@ class AccessTypesCRUD(GenericCRUDTest, TestCase):
 
 # Base class for sample management for access, subscription, and authorization access tests.
 class AuthorizationTestBase(GenericTest, TestCase):
-    successIp = SubscriptionActiveTest.successIp
-    failIp = SubscriptionActiveTest.failIp
 
-    successSubscriptionData = SubscriptionActiveTest.successSubscriptionData
-    failSubscriptionData = SubscriptionActiveTest.failEndDateSubscriptionData
+    # should be consistent with IpRangeSample object
+    successIp = '120.1.0.0'
+    failIp = '12.2.3.4'
+    
+    # should be consistent with SubscriptionSample object
+    successSubscriptionData = {
+        'startDate':'2012-04-12T00:00:00Z',
+        'endDate':'2018-04-12T00:00:00Z',
+        'partnerId':None, # To be populated after Partner is created
+        'partyId':None, # To be populated after Party is created
+    }
+    failSubscriptionData = {
+        'startDate':'2012-04-12T00:00:00Z',
+        'endDate':'2014-04-12T00:00:00Z',
+        'partnerId':None,
+        'partyId':None, 
+    }
 
     def initSamples(self):
         self.partnerSample = PartnerSample(serverUrl)
@@ -76,9 +89,10 @@ class AuthorizationTestBase(GenericTest, TestCase):
         # create independent objects
         self.accessTypeId = self.accessTypeSample.forcePost(self.accessTypeSample.data)
         self.uriPatternId = self.uriPatternSample.forcePost(self.uriPatternSample.data)
+        Partner.objects.filter(partnerId=self.partnerSample.data['partnerId']).delete()
         self.partnerId = self.partnerSample.forcePost(self.partnerSample.data)
         self.partyId = self.partySample.forcePost(self.partySample.data)
-        
+
         # create AccessRule based on AccessType, Pattern, and Partner objects created
         self.accessRuleSample.data['accessTypeId']=self.accessTypeId
         self.accessRuleSample.data['patternId']=self.uriPatternId
