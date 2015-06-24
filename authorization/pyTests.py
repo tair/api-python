@@ -13,7 +13,7 @@ from partner.testSamples import PartnerSample
 from partner.models import Partner
 from authorization.models import Status
 
-from testSamples import UriPatternSample, AccessRuleSample, AccessTypeSample, UsernamePartyAffiliationSample
+from testSamples import UriPatternSample, AccessRuleSample, AccessTypeSample, UserSample
 
 from authentication.views import generateSecretKey
 
@@ -83,7 +83,7 @@ class AuthorizationTestBase(GenericTest, TestCase):
         self.uriPatternSample = UriPatternSample(serverUrl)
         self.accessTypeSample = AccessTypeSample(serverUrl)
         self.accessRuleSample = AccessRuleSample(serverUrl)
-        self.usernamePartyAffiliationSample = UsernamePartyAffiliationSample()
+        self.userSample = UserSample()
 
     def createSamples(self):
         # create independent objects
@@ -108,10 +108,10 @@ class AuthorizationTestBase(GenericTest, TestCase):
         self.ipRangeSample.data['partyId'] = self.partyId
         self.ipRangeId = self.ipRangeSample.forcePost(self.ipRangeSample.data)
 
-        # create UsernamePartyAffiliation object based on Party created
-        PyTestGenerics.forceDelete(self.usernamePartyAffiliationSample.model, 'username', self.usernamePartyAffiliationSample.data['username'])
-        self.usernamePartyAffiliationSample.data['partyId'] = self.partyId
-        self.usernamePartyAffiliationId = self.usernamePartyAffiliationSample.forcePost(self.usernamePartyAffiliationSample.data)
+        # create User object based on Party created
+        PyTestGenerics.forceDelete(self.userSample.model, 'username', self.userSample.data['username'])
+        self.userSample.data['partyId'] = self.partyId
+        self.userId = self.userSample.forcePost(self.userSample.data)
 
     def deleteSamples(self):
         PyTestGenerics.forceDelete(self.subscriptionSample.model, self.subscriptionSample.pkName, self.subscriptionId)
@@ -121,7 +121,7 @@ class AuthorizationTestBase(GenericTest, TestCase):
         PyTestGenerics.forceDelete(self.accessTypeSample.model, self.accessTypeSample.pkName, self.accessTypeId)
         PyTestGenerics.forceDelete(self.uriPatternSample.model, self.uriPatternSample.pkName, self.uriPatternId)
         PyTestGenerics.forceDelete(self.accessRuleSample.model, self.accessRuleSample.pkName, self.accessRuleId)
-        PyTestGenerics.forceDelete(self.usernamePartyAffiliationSample.model, self.usernamePartyAffiliationSample.pkName, self.usernamePartyAffiliationId)
+        PyTestGenerics.forceDelete(self.userSample.model, self.userSample.pkName, self.userId)
 
 class AuthenticationTest(AuthorizationTestBase):
     url = serverUrl+'authorizations/authentications/'
@@ -137,7 +137,7 @@ class AuthenticationTest(AuthorizationTestBase):
         self.createSamples()
 
         # run the system test
-        loginKey = generateSecretKey(self.partyId, self.usernamePartyAffiliationSample.data['password'])
+        loginKey = generateSecretKey(self.partyId, self.userSample.data['password'])
         url = self.url + '?partnerId=%s&url=%s&partyId=%s&apiKey=%s' % (self.partnerId, self.uriPatternSample.data['pattern'], self.partyId, self.apiKey)
         cookies = {'loginKey':loginKey, 'apiKey':self.apiKey}
         req = requests.get(url,cookies=cookies)

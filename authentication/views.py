@@ -9,21 +9,21 @@ from rest_framework.views import APIView
 from rest_framework.response import Response
 from common.views import GenericCRUDView
 
-from authentication.models import UsernamePartyAffiliation, GooglePartyAffiliation
-from authentication.serializers import usernamePartyAffiliationSerializer, usernamePartyAffiliationSerializerNoPassword
+from authentication.models import User, GooglePartyAffiliation
+from authentication.serializers import UserSerializer, UserSerializerNoPassword
 from subscription.models import Party
 from partner.models import Partner
 # Create your views here.
 
 #/authentications/
 class listcreateuser(GenericCRUDView):
-  queryset = UsernamePartyAffiliation.objects.all()
+  queryset = User.objects.all()
 
   def get_serializer_class(self):
     if self.request.method == 'GET':
-      return usernamePartyAffiliationSerializerNoPassword
-    return usernamePartyAffiliationSerializer
- 
+      return UserSerializerNoPassword
+    return UserSerializer
+
   def post(self, request, format=None):
         serializer_class = self.get_serializer_class()
         data = request.data
@@ -40,16 +40,16 @@ def login(request):
   if request.method == 'GET':
     partyId = request.COOKIES.get('partyId')
     secretKey = request.COOKIES.get('secret_key')
-    if UsernamePartyAffiliation.validate(partyId, secretKey):
+    if User.validate(partyId, secretKey):
       return HttpResponse(json.dumps({"bool": True}))
   if request.method == 'POST':
-    user = UsernamePartyAffiliation.objects.filter(username=request.POST.get('user'))
+    user = User.objects.filter(username=request.POST.get('user'))
     if user: 
       user = user.first()
       if ( user.password == request.POST.get('password') ):
         response = HttpResponse(json.dumps({"detail": "Correct password"}))
-        response.set_cookie("partyId", user.partyId_id)
-        response.set_cookie("secret_key", generateSecretKey(str(user.partyId_id), user.password))
+        response.set_cookie("partyId", user.partyId)
+        response.set_cookie("secret_key", generateSecretKey(str(user.partyId), user.password))
         return response
   return render(request, "authentication/login.html")
 
