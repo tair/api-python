@@ -25,6 +25,7 @@ class PartnerPattern(models.Model):
 
 class SubscriptionTerm(models.Model):
     subscriptionTermId = models.AutoField(primary_key=True)
+    description = models.CharField(max_length=200)
     partnerId = models.ForeignKey('partner.Partner', db_column="partnerId")
     period = models.IntegerField()
     price = models.DecimalField(decimal_places=2,max_digits=6)
