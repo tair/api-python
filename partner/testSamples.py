@@ -69,12 +69,14 @@ class SubscriptionTermSample():
         'period':180,
         'price':360.00,
         'groupDiscountPercentage':0.7,
+        'description':'test'
     }
     updateData = {
         'partnerId':'tair',
         'period':365,
         'price':180.00,
         'groupDiscountPercentage':0.8,
+        'description':'test2'
     }
     pkName = 'subscriptionTermId'
     model = SubscriptionTerm
