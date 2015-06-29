@@ -5,10 +5,10 @@ from rest_framework import serializers
 class UserSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
-        fields = ('username', 'password', 'email', 'institution', 'partyId')
+        fields = ('username', 'password', 'email', 'institution', 'partyId', 'partnerId', 'userIdentifier')
 
 class UserSerializerNoPassword(serializers.ModelSerializer):
     class Meta:
         model = User
-        fields = ('username', 'email', 'institution', 'partyId')
+        fields = ('username', 'email', 'institution', 'partyId', 'partnerId', 'userIdentifier')
 

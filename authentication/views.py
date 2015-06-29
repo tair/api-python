@@ -35,23 +35,32 @@ class listcreateuser(GenericCRUDView):
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST) 
 
-        #/authentications/login/
+#/authentications/login/
 def login(request):
   if request.method == 'GET':
     partyId = request.COOKIES.get('partyId')
     secretKey = request.COOKIES.get('secret_key')
-    if User.validate(partyId, secretKey):
+    if partyId and secretKey and User.validate(partyId, secretKey):
       return HttpResponse(json.dumps({"bool": True}))
+    return render(request,"authentication/login.html")
+
   if request.method == 'POST':
-    user = User.objects.filter(username=request.POST.get('user'))
+    requestUsername = request.POST.get('user')
+    requestPassword = hashlib.sha1(request.POST.get('password')).hexdigest()
+    user = User.objects.filter(username=requestUsername)
+    
     if user: 
       user = user.first()
-      if ( user.password == request.POST.get('password') ):
+      if ( user.password == requestPassword ):
         response = HttpResponse(json.dumps({"detail": "Correct password"}))
-        response.set_cookie("partyId", user.partyId)
-        response.set_cookie("secret_key", generateSecretKey(str(user.partyId), user.password))
+        response.set_cookie("partyId", user.partyId.partyId)
+        response.set_cookie("secret_key", generateSecretKey(str(user.partyId.partyId), user.password))
         return response
-  return render(request, "authentication/login.html")
+      else:
+        return HttpResponse(json.dumps({"message":"Incorrect password %s" % (requestPassword)}))
+    else:
+      return HttpResponse(json.dumps({"message":"No user"}))
+
 
 #/authentications/register/
 def registerUser(request):

@@ -92,6 +92,8 @@ class UserSample():
         'email':'steve@getexp.com',
         'institution':'test organization',
         'partyId':None,
+        'partnerId':None,
+        'userIdentifier':'1234536',
     }
     pkName = 'id'
     model = User
@@ -99,5 +101,6 @@ class UserSample():
     def forcePost(self,data):
         postData = copy.deepcopy(data)
         postData['partyId'] = Party.objects.get(partyId=data['partyId'])
+        postData['partnerId'] = Partner.objects.get(partnerId=data['partnerId'])
         return genericForcePost(self.model, self.pkName, postData)
 

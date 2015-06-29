@@ -111,6 +111,7 @@ class AuthorizationTestBase(GenericTest, TestCase):
         # create User object based on Party created
         PyTestGenerics.forceDelete(self.userSample.model, 'username', self.userSample.data['username'])
         self.userSample.data['partyId'] = self.partyId
+        self.userSample.data['partnerId'] = self.partnerId
         self.userId = self.userSample.forcePost(self.userSample.data)
 
     def deleteSamples(self):
