@@ -71,17 +71,14 @@ class PaymentControl():
         stripe.api_key = secret_key
         try:
             charge = stripe.Charge.create(
-                amount=priceToCharge,
+                amount=int(priceToCharge*100), # stripe takes in cents; UI passes in dollars. multiply by 100 to convert.
                 currency="usd",
                 source=stripe_token,
                 description=chargeDescription,
             )
             activationCodes = PaymentControl.postPaymentHandling(termId, quantity)
             status = True
-            outString = "Thanks! Your card has been charged. Your activation code(s) are: \n"
-            for code in activationCodes:
-                outString = outString + "%s\n" % code
-            message['message'] = outString
+            message['activationCodes'] = activationCodes
         except stripe.error.InvalidRequestError, e:
             status = False
             message['message'] = e.json_body['error']['message']
@@ -97,7 +94,9 @@ class PaymentControl():
         except Exception, e:
             status = False
             message['message'] = "Unexpected exception: %s" % (e)
-        return status, message
+
+        message['status'] = status
+        return message
 
     @staticmethod
     def isValidRequest(request, message):
@@ -121,7 +120,7 @@ class PaymentControl():
     @staticmethod
     def getTermPrice(termId):
         try:
-            return int(SubscriptionTerm.objects.get(subscriptionTermId=termId).price)
+            return float(SubscriptionTerm.objects.get(subscriptionTermId=termId).price)
         except:
             return None
 

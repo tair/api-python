@@ -30,7 +30,7 @@ class Authorization:
 
     @staticmethod
     def hasActiveSubscription(ip, partyId, partnerId):
-        if partyId and len(Subscription.getActiveById(partyId, partnerId)) > 0:
+        if partyId and partyId.isdigit() and len(Subscription.getActiveById(partyId, partnerId)) > 0:
             return True
         if ip and len(Subscription.getActiveByIp(ip, partnerId)) > 0:
             return True

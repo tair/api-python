@@ -23,6 +23,8 @@ import datetime
 
 from django.conf import settings
 
+from django.core.mail import send_mail
+
 # top level: /subscriptions/
 
 # Basic CRUD operation for Subscriptions, and SubscriptionTransactions
@@ -121,11 +123,67 @@ class SubscriptionsPayment(APIView):
         stripe_api_secret_test_key = settings.STRIPE_PRIVATE_KEY
         stripe.api_key = stripe_api_secret_test_key 
         token = request.POST['stripeToken']
-        price = int(request.POST['price'])
+        price = float(request.POST['price'])
         termId = request.POST['termId']
         quantity = int(request.POST['quantity'])
         description = "Test charge"
-        status, message = PaymentControl.tryCharge(stripe_api_secret_test_key, token, price, description, termId, quantity)
-        if status:
-            return HttpResponse(message['message'], 201)
-        return render(request, "subscription/paymentIndex.html", message)
+        message = PaymentControl.tryCharge(stripe_api_secret_test_key, token, price, description, termId, quantity)
+        return HttpResponse(json.dumps(message), content_type="application/json")
+
+# /institutions/
+class InstitutionSubscription(APIView):
+    def post (self, request):
+        data = request.data
+        dataTuple = (
+            data.get('firstName'), 
+            data.get('lastName'), 
+            data.get('email'), 
+            data.get('institution'), 
+            data.get('librarianName'), 
+            data.get('librarianEmail'),
+            data.get('comments'),
+        )
+ 
+        subject = "New Institution Subscription Request"
+        message = "First Name: %s\n" \
+                  "Last Name: %s \n" \
+                  "Email: %s \n" \
+                  "Institution Name: %s \n" \
+                  "Librarian Contact Name: %s \n" \
+                  "Librarian Email: %s \n" \
+                  "Comments: %s \n" \
+                  % dataTuple
+                  
+        from_email = "steve@getexp.com"
+        recipient_list = ["steve@getexp.com"]
+        send_mail(subject=subject, message=message, from_email=from_email, recipient_list=recipient_list)
+        return HttpResponse(json.dumps({'message':'success'}), content_type="application/json")
+
+# /commercials/
+class CommercialSubscription(APIView):
+    def post (self, request):
+        data = request.data
+        dataTuple = (
+            data.get('firstName'),
+            data.get('lastName'),
+            data.get('email'),
+            data.get('institution'),
+            data.get('individualLicense'),
+            data.get('commericalLicense'),
+            data.get('comments'),
+        )
+
+        subject = "New Commercial Subscription Request"
+        message = "First Name: %s\n" \
+                  "Last Name: %s \n" \
+                  "Email: %s \n" \
+                  "Institution Name: %s \n" \
+                  "Individual License: %s \n" \
+                  "Commercial License: %s \n" \
+                  "Comments: %s \n" \
+                  % dataTuple
+
+        from_email = "steve@getexp.com"
+        recipient_list = ["steve@getexp.com"]
+        send_mail(subject=subject, message=message, from_email=from_email, recipient_list=recipient_list)
+        return HttpResponse(json.dumps({'message':'success'}), content_type="application/json")
