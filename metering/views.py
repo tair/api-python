@@ -31,17 +31,19 @@ class LimitValueCRUD(GenericCRUDView):
 # /ip/<pk>/increment/
 class increment(APIView):
     def post(self, request, ip, format=None):
+        partnerId = request.GET.get('partnerId')
         if IpAddressCount.objects.filter(ip=ip).exists():
             maxCount = LimitValue.objects.aggregate(Max('val'))['val__max']
             IpAddressCount.objects.filter(count__lt=maxCount) \
                                   .filter(ip=ip) \
+                                  .filter(partnerId=partnerId) \
                                   .update(count=F('count')+1)
             ret={'message':'success'}
         else:
             data = {
                 "ip":ip,
                 "count":1,
-                "partnerId":"cdiff",
+                "partnerId":partnerId,
             }
             serializer = IpAddressCountSerializer(data=data)
             if serializer.is_valid():
@@ -55,8 +57,9 @@ class increment(APIView):
 # /ip/<pk>/limit/
 class check_limit(APIView):
     def get(self, request, ip, format=None):
-        if IpAddressCount.objects.filter(ip=ip).exists():
-            currIp = IpAddressCount.objects.get(ip=ip)
+        partnerId = request.GET.get('partnerId')
+        if IpAddressCount.objects.filter(ip=ip).filter(partnerId=partnerId).exists():
+            currIp = IpAddressCount.objects.get(ip=ip,partnerId=partnerId)
             if (currIp.count >= LimitValue.objects.aggregate(Max('val'))['val__max']):
                 ret = {'status': "Block"}
             elif (currIp.count in LimitValue.objects.values_list('val', flat=True)):

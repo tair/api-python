@@ -67,7 +67,7 @@ class IncrementMeteringCountTest(GenericTest, TestCase):
 
     def test_for_increment(self):
         currentCount = self.ipAddressCountSample.data['count']
-        url = '%smeters/ip/%s/increment/?apiKey=%s' % (serverUrl, self.ipAddressCountSample.data['ip'], self.apiKey)
+        url = '%smeters/ip/%s/increment/?partnerId=%s' % (serverUrl, self.ipAddressCountSample.data['ip'], self.partnerId)
         cookies = {'apiKey':self.apiKey}
         req = requests.post(url, cookies=cookies)
         newCount = IpAddressCount.objects.get(id=self.ipAddressCountId).count
@@ -102,11 +102,11 @@ class CheckLimitTest(GenericTest, TestCase):
         self.limitValueId = self.limitValueSample.forcePost(self.limitValueSample.data)
 
     def test_for_check_limit(self):
-        url = '%smeters/ip/%s/limit/?apiKey=%s' % (serverUrl, self.successIp, self.apiKey)
+        url = '%smeters/ip/%s/limit/?partnerId=%s' % (serverUrl, self.successIp, self.partnerId)
         cookies = {'apiKey':self.apiKey}
         req = requests.get(url, cookies=cookies)
         self.assertEqual(req.json()['status'], 'OK')
-        url = '%smeters/ip/%s/limit/?apiKey=%s' % (serverUrl, self.failIp, self.apiKey)
+        url = '%smeters/ip/%s/limit/?partnerId=%s' % (serverUrl, self.failIp, self.partnerId)
         req = requests.get(url, cookies=cookies)
         self.assertEqual(req.json()['status'], 'Block')
 
