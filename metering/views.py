@@ -60,9 +60,9 @@ class check_limit(APIView):
         partnerId = request.GET.get('partnerId')
         if IpAddressCount.objects.filter(ip=ip).filter(partnerId=partnerId).exists():
             currIp = IpAddressCount.objects.get(ip=ip,partnerId=partnerId)
-            if (currIp.count >= LimitValue.objects.aggregate(Max('val'))['val__max']):
+            if (currIp.count >= LimitValue.objects.filter(partnerId=partnerId).aggregate(Max('val'))['val__max']):
                 ret = {'status': "Block"}
-            elif (currIp.count in LimitValue.objects.values_list('val', flat=True)):
+            elif (currIp.count in LimitValue.objects.filter(partnerId=partnerId).values_list('val', flat=True)):
                 ret = {'status': "Warning"}
             else:
                 ret = {'status': "OK"}
