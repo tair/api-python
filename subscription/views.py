@@ -126,8 +126,9 @@ class SubscriptionsPayment(APIView):
         price = float(request.POST['price'])
         termId = request.POST['termId']
         quantity = int(request.POST['quantity'])
+        email = request.POST['email']
         description = "Test charge"
-        message = PaymentControl.tryCharge(stripe_api_secret_test_key, token, price, description, termId, quantity)
+        message = PaymentControl.tryCharge(stripe_api_secret_test_key, token, price, description, termId, quantity, email)
         return HttpResponse(json.dumps(message), content_type="application/json")
 
 # /institutions/

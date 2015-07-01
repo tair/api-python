@@ -63,7 +63,7 @@ class SubscriptionControl():
 class PaymentControl():
 
     @staticmethod
-    def tryCharge(secret_key, stripe_token, priceToCharge, chargeDescription, termId, quantity):
+    def tryCharge(secret_key, stripe_token, priceToCharge, chargeDescription, termId, quantity, emailAddress):
         message = {}
         message['price'] = priceToCharge
         message['termId'] = termId
@@ -77,6 +77,7 @@ class PaymentControl():
                 description=chargeDescription,
             )
             activationCodes = PaymentControl.postPaymentHandling(termId, quantity)
+            PaymentControl.emailActivationCodes(activationCodes, emailAddress)
             status = True
             message['activationCodes'] = activationCodes
         except stripe.error.InvalidRequestError, e:
@@ -97,6 +98,17 @@ class PaymentControl():
 
         message['status'] = status
         return message
+
+    @staticmethod
+    def emailActivationCodes(activationCodes, emailAddress):
+        message = "Your activation codes are: \n"
+        for code in activationCodes:
+            message += "%s\n", code
+
+        subject = "Thank You For Subscribing"
+        from_email = "steve@getexp.com"
+        recipient_list = [emailAddress]
+        send_mail(subject=subject, message=message, from_email=from_email, recipient_list=recipient_list)
 
     @staticmethod
     def isValidRequest(request, message):
@@ -146,7 +158,5 @@ class PaymentControl():
             activationCodeObj.purchaseDate=now
             activationCodeObj.save()
             codeArray.append(activationCodeObj.activationCode)
-
-        # TODO: Send email to user who does the payment.
 
         return codeArray
