@@ -29,6 +29,7 @@ class IpAddressCountCRUD(GenericCRUDTest, TestCase):
 
     def setUp(self):
         super(IpAddressCountCRUD,self).setUp()
+        Partner.objects.filter(partnerId=self.partnerSample.data['partnerId']).delete()
         self.partnerId = self.partnerSample.forcePost(self.partnerSample.data)
         self.sample.partnerId=self.sample.data['partnerId']=self.sample.updateData['partnerId']=self.partnerId
 
@@ -43,6 +44,7 @@ class LimitValueCRUD(GenericCRUDTest, TestCase):
 
     def setUp(self):
         super(LimitValueCRUD,self).setUp()
+        Partner.objects.filter(partnerId=self.partnerSample.data['partnerId']).delete()
         self.partnerId = self.partnerSample.forcePost(self.partnerSample.data)
         self.sample.partnerId=self.sample.data['partnerId']=self.sample.updateData['partnerId']=self.partnerId
 
@@ -58,6 +60,7 @@ class IncrementMeteringCountTest(GenericTest, TestCase):
     partnerSample = PartnerSample(serverUrl)
     def setUp(self):
         super(IncrementMeteringCountTest, self).setUp()
+        Partner.objects.filter(partnerId=self.partnerSample.data['partnerId']).delete()
         self.partnerId = self.partnerSample.forcePost(self.partnerSample.data)
         self.ipAddressCountSample.data['partnerId'] = self.partnerId
         self.ipAddressCountSample.data['count'] = 1
@@ -89,6 +92,7 @@ class CheckLimitTest(GenericTest, TestCase):
     
     def setUp(self):
         super(CheckLimitTest, self).setUp()
+        Partner.objects.filter(partnerId=self.partnerSample.data['partnerId']).delete()
         self.partnerId = self.partnerSample.forcePost(self.partnerSample.data)
         self.successIpAddressCountSample.data['partnerId'] = self.partnerId
         self.successIpAddressCountSample.data['count'] = 1

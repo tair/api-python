@@ -35,6 +35,7 @@ class AccessRuleCRUD(GenericCRUDTest, TestCase):
     accessTypeSample = AccessTypeSample(serverUrl)
     def setUp(self):
         super(AccessRuleCRUD,self).setUp()
+        Partner.objects.filter(partnerId=self.partnerSample.data['partnerId']).delete()
         self.partnerId = self.partnerSample.forcePost(self.partnerSample.data)
         self.patternId = self.patternSample.forcePost(self.patternSample.data)
         self.accessTypeId = self.accessTypeSample.forcePost(self.accessTypeSample.data)

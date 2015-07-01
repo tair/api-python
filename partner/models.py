@@ -10,6 +10,7 @@ class Partner(models.Model):
     partnerId = models.CharField(max_length=200, primary_key=True)
     name = models.CharField(max_length=200)
     logoUri = models.CharField(max_length=200)
+    termOfServiceUri = models.CharField(max_length=200)
 
     class Meta:
         db_table = "Partner"

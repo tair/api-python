@@ -14,10 +14,14 @@ class PartnerSample():
     data = {
         'partnerId':'test',
         'name':'testPartner',
+        'logoUri':'randomuri.com',
+        'termOfServiceUri':'anotherrandomuri.com',
     }
     updateData = {
         'partnerId':'test',
         'name':'testPartner2',
+        'logoUri':'randomuri.com',
+        'termOfServiceUri':'anotherrandomuri.com',
     }
     pkName = 'partnerId'
     model = Partner
@@ -38,14 +42,13 @@ class PartnerSample():
 class PartnerPatternSample():
     url = None
     path = 'partners/patterns/'
-    partnerId = 'cdiff'
     data = {
-        'partnerId':'cdiff',
+        'partnerId':None,
         'sourceUri':'https://paywall2.steveatgetexp.com',
         'targetUri':'https://back-prod.steveatgetexp.com',
     }
     updateData = {
-        'partnerId':'tair',
+        'partnerId':None,
         'sourceUri':'https://paywall2a.steveatgetexp.com',
         'targetUri':'https://back-prod.steveatgetexp.com',
     }
@@ -61,18 +64,17 @@ class PartnerPatternSample():
         return genericForcePost(self.model, self.pkName, postData)
 
 class SubscriptionTermSample():
-    partnerId='tair'
     url = None
     path = 'partners/terms/'
     data = {
-        'partnerId':'tair',
+        'partnerId':None,
         'period':180,
         'price':360.00,
         'groupDiscountPercentage':0.7,
         'description':'test'
     }
     updateData = {
-        'partnerId':'tair',
+        'partnerId':None,
         'period':365,
         'price':180.00,
         'groupDiscountPercentage':0.8,

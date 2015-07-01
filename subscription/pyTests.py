@@ -29,6 +29,7 @@ class ActivationCodeCRUD(GenericCRUDTest, TestCase):
 
     def setUp(self):
         super(ActivationCodeCRUD, self).setUp()
+        Partner.objects.filter(partnerId=self.partnerSample.data['partnerId']).delete()
         self.partnerId = self.partnerSample.forcePost(self.partnerSample.data)
         self.sample.data['partnerId'] = self.sample.updateData['partnerId']=self.partnerId
 
@@ -101,6 +102,7 @@ class SubscriptionTransactionCRUD(GenericCRUDTest, TestCase):
     def setUp(self):
         super(SubscriptionTransactionCRUD,self).setUp()
         self.partyId = self.partySample.forcePost(self.partySample.data)
+        Partner.objects.filter(partnerId=self.partnerSample.data['partnerId']).delete()
         self.partnerId = self.partnerSample.forcePost(self.partnerSample.data)
         self.subscriptionSample.data['partyId']=self.partyId
         self.subscriptionSample.data['partnerId']=self.partnerId
@@ -121,6 +123,7 @@ class SubscriptionRenewalTest(GenericTest, TestCase):
         partnerSample = PartnerSample(serverUrl)
         partySample = PartySample(serverUrl)
 
+        Partner.objects.filter(partnerId=partnerSample.data['partnerId']).delete()
         partnerId = partnerSample.forcePost(partnerSample.data)
         partyId = partySample.forcePost(partySample.data)
         
@@ -146,7 +149,9 @@ class PostPaymentHandlingTest(GenericTest, TestCase):
 
     def setUp(self):
         super(PostPaymentHandlingTest, self).setUp()
+        Partner.objects.filter(partnerId=self.partnerSample.data['partnerId']).delete()
         self.partnerId = self.partnerSample.forcePost(self.partnerSample.data)
+        self.subscriptionTermSample.data['partnerId'] = self.partnerId
         self.subscriptionTermId = self.subscriptionTermSample.forcePost(self.subscriptionTermSample.data)
 
     def test_for_postPaymentSubscription(self):
