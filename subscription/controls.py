@@ -12,6 +12,8 @@ from django.utils import timezone
 
 import random
 
+from django.core.mail import send_mail
+
 class SubscriptionControl():
 
     @staticmethod
@@ -103,7 +105,7 @@ class PaymentControl():
     def emailActivationCodes(activationCodes, emailAddress):
         message = "Your activation codes are: \n"
         for code in activationCodes:
-            message += "%s\n", code
+            message += "%s\n" % code
 
         subject = "Thank You For Subscribing"
         from_email = "steve@getexp.com"
