@@ -70,6 +70,9 @@ class PaymentControl():
         message['price'] = priceToCharge
         message['termId'] = termId
         message['quantity'] = quantity
+	if not PaymentControl.validateCharge(priceToCharge, termId, quantity):
+	 	message['message'] = "Charge validation error"
+		return message
         stripe.api_key = secret_key
         try:
             charge = stripe.Charge.create(
@@ -162,3 +165,12 @@ class PaymentControl():
             codeArray.append(activationCodeObj.activationCode)
 
         return codeArray
+    
+    @staticmethod
+    def validateCharge(price, termId, quantity):
+        so = SubscriptionTerm.objects.get(subscriptionTermId=termId)
+        calcprice = so.price*quantity
+        if so.groupDiscountPercentage > 0 and quantity > 2:
+            calcprice = so.price*quantity*(1-(so.groupDiscountPercentage/100))
+        
+	return (price*100 == int(calcprice*100))

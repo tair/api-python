@@ -156,7 +156,7 @@ class InstitutionSubscription(APIView):
                   % dataTuple
                   
         from_email = "steve@getexp.com"
-        recipient_list = ["steve@getexp.com"]
+        recipient_list = ["steve@getexp.com", "azeem@getexp.com"]
         send_mail(subject=subject, message=message, from_email=from_email, recipient_list=recipient_list)
         return HttpResponse(json.dumps({'message':'success'}), content_type="application/json")
 
@@ -185,6 +185,6 @@ class CommercialSubscription(APIView):
                   % dataTuple
 
         from_email = "steve@getexp.com"
-        recipient_list = ["steve@getexp.com"]
+        recipient_list = ["steve@getexp.com", "azeem@getexp.com"]
         send_mail(subject=subject, message=message, from_email=from_email, recipient_list=recipient_list)
         return HttpResponse(json.dumps({'message':'success'}), content_type="application/json")
