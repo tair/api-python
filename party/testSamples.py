@@ -15,9 +15,11 @@ class PartySample():
     url = None
     data = {
         'partyType':'user',
+        'name':'test',
     }
     updateData = {
         'partyType':'organization',
+        'name':'test1',
     }
     pkName = 'partyId'
     model = Party
