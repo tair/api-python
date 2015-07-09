@@ -127,8 +127,17 @@ class SubscriptionsPayment(APIView):
         termId = request.POST['termId']
         quantity = int(request.POST['quantity'])
         email = request.POST['email']
+	firstname = request.POST['firstName']
+	lastname = request.POST['lastName']
+	institute = request.POST['institute']
+	street = request.POST['street']
+	city = request.POST['city']
+	state = request.POST['state']
+	country = request.POST['country']
+	zip = request.POST['zip']
+	
         description = "Test charge"
-        message = PaymentControl.tryCharge(stripe_api_secret_test_key, token, price, description, termId, quantity, email)
+        message = PaymentControl.tryCharge(stripe_api_secret_test_key, token, price, description, termId, quantity, email, firstname, lastname, institute, street, city, state, country, zip)
         return HttpResponse(json.dumps(message), content_type="application/json")
 
 # /institutions/
@@ -136,25 +145,29 @@ class InstitutionSubscription(APIView):
     def post (self, request):
         data = request.data
         dataTuple = (
-            data.get('firstName'), 
-            data.get('lastName'), 
-            data.get('email'), 
-            data.get('institution'), 
-            data.get('librarianName'), 
-            data.get('librarianEmail'),
             data.get('comments'),
+            data.get('firstName'),
+            data.get('lastName'),
+            data.get('email'),
+            data.get('institution'),
+            data.get('librarianName'),
+            data.get('librarianEmail'),
         )
- 
-        subject = "New Institution Subscription Request"
-        message = "First Name: %s\n" \
+
+        subject = "%s Institutional Subscription Request For %s" % (data.get('partnerName'), data.get('institution'))
+        message = "%s\n" \
+                  "\n" \
+                 "My information is below.\n" \
+                  "First Name: %s\n" \
                   "Last Name: %s \n" \
                   "Email: %s \n" \
                   "Institution Name: %s \n" \
+                  "\n" \
+                  "My library contact information is below.\n" \
                   "Librarian Contact Name: %s \n" \
                   "Librarian Email: %s \n" \
-                  "Comments: %s \n" \
                   % dataTuple
-                  
+
         from_email = "steve@getexp.com"
         recipient_list = ["steve@getexp.com", "azeem@getexp.com"]
         send_mail(subject=subject, message=message, from_email=from_email, recipient_list=recipient_list)
@@ -165,24 +178,29 @@ class CommercialSubscription(APIView):
     def post (self, request):
         data = request.data
         dataTuple = (
+            data.get('comments'),
             data.get('firstName'),
             data.get('lastName'),
             data.get('email'),
             data.get('institution'),
-            data.get('individualLicense'),
-            data.get('commericalLicense'),
-            data.get('comments'),
         )
 
-        subject = "New Commercial Subscription Request"
-        message = "First Name: %s\n" \
+        subject = "%s Commercial Subscription Request For %s" % (data.get('partnerName'), data.get('institution'))
+        message = "%s\n" \
+                  "\n" \
+                  "Please contact me about a commercial subscription. My information is below.\n" \
+                  "First Name: %s\n" \
                   "Last Name: %s \n" \
                   "Email: %s \n" \
-                  "Institution Name: %s \n" \
-                  "Individual License: %s \n" \
-                  "Commercial License: %s \n" \
-                  "Comments: %s \n" \
+                  "Company Name: %s \n" \
+                  "\n" \
+                  "I am interested in: \n" \
                   % dataTuple
+
+        if data.get('individualLicense'):
+            message += "Individual Licenses\n"
+        if data.get('commercialLicense'):
+            message += "Commercial Licenses\n"
 
         from_email = "steve@getexp.com"
         recipient_list = ["steve@getexp.com", "azeem@getexp.com"]

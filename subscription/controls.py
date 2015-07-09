@@ -65,7 +65,7 @@ class SubscriptionControl():
 class PaymentControl():
 
     @staticmethod
-    def tryCharge(secret_key, stripe_token, priceToCharge, chargeDescription, termId, quantity, emailAddress):
+    def tryCharge(secret_key, stripe_token, priceToCharge, chargeDescription, termId, quantity, emailAddress, firstname, lastname, institute, street, city, state, country, zip):
         message = {}
         message['price'] = priceToCharge
         message['termId'] = termId
@@ -74,17 +74,21 @@ class PaymentControl():
 	 	message['message'] = "Charge validation error"
 		return message
         stripe.api_key = secret_key
+ 
+        charge = stripe.Charge.create(
+            amount=int(priceToCharge*100), # stripe takes in cents; UI passes in dollars. multiply by 100 to convert.
+            currency="usd",
+            source=stripe_token,
+            description=chargeDescription,
+            metadata = {'Email': emailAddress, 'Institute': institute}
+        )
+        activationCodes = PaymentControl.postPaymentHandling(termId, quantity)
+        emailInfo = PaymentControl.getEmailInfo(activationCodes, termId, quantity, priceToCharge, charge.id, emailAddress, firstname, lastname, institute, street, city, state, country, zip)
+        PaymentControl.emailReceipt(emailInfo)
+        status = True
+        message['activationCodes'] = activationCodes
         try:
-            charge = stripe.Charge.create(
-                amount=int(priceToCharge*100), # stripe takes in cents; UI passes in dollars. multiply by 100 to convert.
-                currency="usd",
-                source=stripe_token,
-                description=chargeDescription,
-            )
-            activationCodes = PaymentControl.postPaymentHandling(termId, quantity)
-            PaymentControl.emailActivationCodes(activationCodes, emailAddress)
-            status = True
-            message['activationCodes'] = activationCodes
+            pass
         except stripe.error.InvalidRequestError, e:
             status = False
             message['message'] = e.json_body['error']['message']
@@ -105,15 +109,70 @@ class PaymentControl():
         return message
 
     @staticmethod
-    def emailActivationCodes(activationCodes, emailAddress):
-        message = "Your activation codes are: \n"
-        for code in activationCodes:
-            message += "%s\n" % code
+    def getEmailInfo(activationCodes, termId, quantity, payment, transactionId, email, firstname, lastname, institute, street, city, state, country, zip):
+        termObj = SubscriptionTerm.objects.get(subscriptionTermId=termId)
+        partnerObj = termObj.partnerId
+        name = firstname+" "+lastname
+        institute = institute
+        address = street
+        city = city
+        state = state
+        country = country
+        zipcode = zip
+        senderEmail = "steve@getexp.com"
+        recipientEmails = [email]
+        return {
+            "partnerLogo": partnerObj.logoUri,
+            "name": name,
+            "partnerName": partnerObj.name,
+            "accessCodes": activationCodes,
+            "subscriptionDescription": "%s Subscription" % partnerObj.name,
+            "institute": institute,
+            "subscriptionTerm": termObj.description,
+            "subscriptionQuantity": quantity,
+            "payment": payment,
+            "transactionId": transactionId,
+            "addr1": address,
+            "addr2": "%s, %s" % (city, state),
+            "addr3": "%s - %s" % (country, zipcode),
+            "recipientEmails": recipientEmails,
+            "senderEmail": "steve@getexp.com",
+            "subject":"Thank You For Subscribing",
+        }
 
-        subject = "Thank You For Subscribing"
-        from_email = "steve@getexp.com"
-        recipient_list = [emailAddress]
-        send_mail(subject=subject, message=message, from_email=from_email, recipient_list=recipient_list)
+    @staticmethod
+    def emailReceipt(emailInfo):
+        kwargs = emailInfo
+        listr = '<ul style="font-size: 16px; color: #b9ca32;">'
+        for l in kwargs['accessCodes']:
+            listr += "<li>"+l+"</li><br>"
+        listr += "</ul>"
+
+        import os
+        module_dir = os.path.dirname(__file__)  # get current directory
+        file_path = os.path.join(module_dir, 'individualEmail.html')
+        with open(file_path, 'r,') as myfile:
+            html_message = myfile.read() % (
+                kwargs['partnerLogo'],
+                kwargs['name'],
+                kwargs['partnerName'],
+                listr,
+                "https://google.com",
+                kwargs['subscriptionDescription'],
+                kwargs['institute'],
+                kwargs['subscriptionTerm'],
+                kwargs['subscriptionQuantity'],
+                kwargs['payment'],
+                kwargs['transactionId'],
+                """
+                """+kwargs['addr1']+""",<br>
+                """+kwargs['addr2']+""",<br>
+                """+kwargs['addr3']+"""<br>
+                """)
+        subject = kwargs['subject']
+        from_email = kwargs['senderEmail']
+        recipient_list = kwargs['recipientEmails']
+        send_mail(subject=subject, from_email=from_email, recipient_list=recipient_list, html_message=html_message, message=None)
 
     @staticmethod
     def isValidRequest(request, message):
