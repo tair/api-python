@@ -48,3 +48,10 @@ class IpRange(models.Model):
 
     class Meta:
         db_table = "IpRange"
+
+class Country(models.Model):
+    countryId = models.AutoField(primary_key=True)
+    name = models.CharField(max_length=200)
+
+    class Meta:
+        db_table = "Country"

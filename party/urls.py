@@ -6,7 +6,8 @@ from rest_framework.urlpatterns import format_suffix_patterns
 
 urlpatterns = [
     # Basic CRUD operations
-    url(r'^organizations/$', views.OrganizationCRUD.as_view()),
+    url(r'^countries/$', views.CountryView.as_view()),
+    url(r'^organizations/$', views.OrganizationView.as_view()),
     url(r'^ipranges/$', views.IpRangeCRUD.as_view()),
     url(r'^$', views.PartyCRUD.as_view()),
 
