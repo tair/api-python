@@ -27,6 +27,7 @@ class listcreateuser(GenericCRUDView):
   def post(self, request, format=None):
         serializer_class = self.get_serializer_class()
         data = request.data
+        data['password'] = hashlib.sha1(data['password']).hexdigest()
         pu = Party(); pu.save()
         data['partyId'] = pu.partyId
         serializer = serializer_class(data=data)
@@ -52,7 +53,7 @@ def login(request):
     if user: 
       user = user.first()
       if ( user.password == requestPassword ):
-        response = HttpResponse(json.dumps({"detail": "Correct password"}))
+        response = HttpResponse(json.dumps({"message": "Correct password"}))
         response.set_cookie("partyId", user.partyId.partyId)
         response.set_cookie("secret_key", generateSecretKey(str(user.partyId.partyId), user.password))
         return response
