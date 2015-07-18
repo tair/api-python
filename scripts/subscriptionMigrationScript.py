@@ -74,7 +74,7 @@ for entry in organizationData:
     endDate = entry[offset+2]
     
     if not endDate or endDate == "":
-        endDate = "01-JAN-99"
+        endDate = "01-JAN-99 01.00.00.000000000 AM AMERICA/LOS_ANGELES"
     startDate = parseTime(startDate)
     endDate = parseTime(endDate)
 

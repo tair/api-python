@@ -16,7 +16,7 @@ def connect():
     host = 'paywalltestmysqldb.c871k9lscygy.us-east-1.rds.amazonaws.com'
     user="phoenix"
     password="phoenix123"
-    dbName="paywall2Test"
+    dbName="demo2"
     
     conn = MySQLdb.connect(host=host,
                          user=user,

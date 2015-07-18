@@ -32,7 +32,7 @@ class LimitValueCRUD(GenericCRUDView):
 class increment(APIView):
     def post(self, request, ip, format=None):
         partnerId = request.GET.get('partnerId')
-        if IpAddressCount.objects.filter(ip=ip).exists():
+        if IpAddressCount.objects.filter(ip=ip).filter(partnerId=partnerId).exists():
             maxCount = LimitValue.objects.aggregate(Max('val'))['val__max']
             IpAddressCount.objects.filter(count__lt=maxCount) \
                                   .filter(ip=ip) \

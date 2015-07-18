@@ -10,7 +10,7 @@ from party.models import Party
 import datetime
 from django.utils import timezone
 
-import random
+import uuid
 
 from django.core.mail import send_mail
 
@@ -126,6 +126,7 @@ class PaymentControl():
             "name": name,
             "partnerName": partnerObj.name,
             "accessCodes": activationCodes,
+	    "loginUrl": "azeemui.steveatgetexp.com/pw2/dev/#/login?partnerId="+partnerObj.partnerId,
             "subscriptionDescription": "%s Subscription" % partnerObj.name,
             "institute": institute,
             "subscriptionTerm": termObj.description,
@@ -143,7 +144,7 @@ class PaymentControl():
     @staticmethod
     def emailReceipt(emailInfo):
         kwargs = emailInfo
-        listr = '<ul style="font-size: 16px; color: #b9ca32;">'
+        listr = '<ul style="font-size: 16px; color: #b9ca32; font-family: Arial, Helvetica, sans-serif; -webkit-font-smoothing: antialiased;">'
         for l in kwargs['accessCodes']:
             listr += "<li>"+l+"</li><br>"
         listr += "</ul>"
@@ -157,7 +158,7 @@ class PaymentControl():
                 kwargs['name'],
                 kwargs['partnerName'],
                 listr,
-                "https://google.com",
+                kwargs['loginUrl'],
                 kwargs['subscriptionDescription'],
                 kwargs['institute'],
                 kwargs['subscriptionTerm'],
@@ -215,7 +216,7 @@ class PaymentControl():
         for i in xrange(quantity):
             # create an activation code based on partnerId and period.
             activationCodeObj = ActivationCode()
-            activationCodeObj.activationCode=str(random.randint(0,100000000))
+            activationCodeObj.activationCode=str(uuid.uuid4())
             activationCodeObj.partnerId=partnerObj
             activationCodeObj.period=period
             activationCodeObj.partyId=None
@@ -231,5 +232,5 @@ class PaymentControl():
         calcprice = so.price*quantity
         if so.groupDiscountPercentage > 0 and quantity > 2:
             calcprice = so.price*quantity*(1-(so.groupDiscountPercentage/100))
-        
-	return (price*100 == int(calcprice*100))
+        calcprice = round(calcprice*100)/100
+	return (price == calcprice)

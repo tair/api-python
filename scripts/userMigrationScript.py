@@ -16,7 +16,7 @@ def connect():
     host = 'paywalltestmysqldb.c871k9lscygy.us-east-1.rds.amazonaws.com'
     user="phoenix"
     password="phoenix123"
-    dbName="paywall2Test"
+    dbName="demo2"
     
     conn = MySQLdb.connect(host=host,
                          user=user,
@@ -34,7 +34,7 @@ def create_signature(password):
 # Begin main program:
 
 # Step1: Open the source CSV file and load into memory.
-with open('sampleUser.csv', 'rb') as f:
+with open('community2csv', 'rb') as f:
     reader = csv.reader(f)
     data = list(reader)
 
@@ -44,7 +44,7 @@ with open('sampleUser.csv', 'rb') as f:
 # Sample queries.
 newUserSql = "INSERT INTO User (username, password, email, partyId, partnerId, userIdentifier) VALUES (%s, %s, %s, %s, %s, %s)"
 updateUserSql = "UPDATE User SET password=%s, email=%s, partnerId=%s, userIdentifier=%s WHERE username=%s"
-partySql = "INSERT INTO Party (partyType) VALUES ('user')"
+partySql = "INSERT INTO Party (partyType, name) VALUES ('user', %s)"
 countSql = "SELECT COUNT(*) FROM User WHERE username=%s"
 
 partnerId = 'tair'
@@ -65,7 +65,7 @@ for entry in data:
 
     if numUsername == 0:
         # username not exist, create new Party and User entry.
-        cur.execute(partySql)
+        cur.execute(partySql, username)
         partyId = conn.insert_id()
         cur.execute(newUserSql, (username, digestedPw, email, partyId, partnerId, communityId))
     else:

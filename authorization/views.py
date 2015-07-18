@@ -21,12 +21,13 @@ import json
 # /access/
 class Access(APIView):
     def get(self, request, format=None):
-        loginKey = request.COOKIES.get('loginKey')
+        partyId = request.COOKIES.get('partyId')
+        loginKey = request.COOKIES.get('secret_key')
         ip = request.GET.get('ip')
         url = request.GET.get('url')
-        partyId = request.GET.get('partyId')
         partnerId = request.GET.get('partnerId')
         apiKey = request.COOKIES.get('apiKey')
+
         status = Authorization.getAccessStatus(loginKey, ip, partyId, url, partnerId, getHostUrlFromRequest(request), apiKey)
         response = {
             "status":status,

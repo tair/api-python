@@ -46,21 +46,28 @@ def login(request):
     return render(request,"authentication/login.html")
 
   if request.method == 'POST':
+    if not 'user' in request.POST:
+        return HttpResponse(json.dumps({"message": "No username provided"}), status=400)
+    if not 'password' in request.POST:
+        return HttpResponse(json.dumps({"message": "No password provided"}), status=400)
+    if not 'partnerId' in request.GET:
+        return HttpResponse(json.dumps({"message": "No partnerId provided"}), status=400)
     requestUsername = request.POST.get('user')
     requestPassword = hashlib.sha1(request.POST.get('password')).hexdigest()
-    user = User.objects.filter(username=requestUsername)
+    requestPartner = request.GET.get('partnerId')
+    user = User.objects.filter(partnerId=requestPartner).filter(username=requestUsername)
     
     if user: 
       user = user.first()
       if ( user.password == requestPassword ):
-        response = HttpResponse(json.dumps({"message": "Correct password"}))
-        response.set_cookie("partyId", user.partyId.partyId)
-        response.set_cookie("secret_key", generateSecretKey(str(user.partyId.partyId), user.password))
+        response = HttpResponse(json.dumps({"message": "Correct password"}), status=200)
+        response.set_cookie("partyId", user.partyId.partyId, domain=".steveatgetexp.com")
+        response.set_cookie("secret_key", generateSecretKey(str(user.partyId.partyId), user.password), domain=".steveatgetexp.com")
         return response
       else:
-        return HttpResponse(json.dumps({"message":"Incorrect password %s" % (requestPassword)}))
+        return HttpResponse(json.dumps({"message":"Incorrect password %s" % (requestPassword)}), status=401)
     else:
-      return HttpResponse(json.dumps({"message":"No user"}))
+      return HttpResponse(json.dumps({"message":"No such user"}), status=401)
 
 
 #/authentications/register/

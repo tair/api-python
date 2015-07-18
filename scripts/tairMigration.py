@@ -11,8 +11,6 @@ from apikey.serializers import ApiKeySerializer
 from authorization.serializers import AccessTypeSerializer, AccessRuleSerializer, UriPatternSerializer
 from metering.serializers import LimitValueSerializer
 
-import tairSetting
-
 APIKEY = [
     {'apiKey':'test123'},
 ]
@@ -33,10 +31,10 @@ TAIR = {
         {'description':'2 years', 'period':730, 'price':196, 'groupDiscountPercentage':10},
     ],
     'SubscriptionDescription':[
-        {'header':'TAIR','descriptionType':'def'},
-        {'header':'Academic Individual', 'descriptionType':'individual'},
-        {'header':'Academic Institution', 'descriptionType':'institution'},
-        {'header':'Commercial', 'descriptionType':'commercial'},
+        {'header':'Subscription Benefit','descriptionType':'def'},
+        {'header':'Individual Subscription Benefit', 'descriptionType':'individual'},
+        {'header':'Institution Subscription Benefit', 'descriptionType':'institution'},
+        {'header':'Commercial Subscription Benefit', 'descriptionType':'commercial'},
     ],
     'def':[
         'Unlimited access to the TAIR pages',
@@ -45,17 +43,18 @@ TAIR = {
         'Downloadable, current genome-wide datasets',
     ],
     'individual':[
-        'Low-cost access for a single researcher',
-        'Discounts available when two or more researchers subscribe together',
-        'Subscription cost can often be charged to your grants',
+        'Access for a single research',
+        'Each lab member requires their own individual subscription',
+        'Discounts available when two or more individuals subscribe together',
     ],
     'institution':[
-        'Access for all researchers, students and staff at your institution',
-        'Cost is typically covered from the library budget',
-        'pricing',
+        'Unlimited access for all researchers, students and staff at your institution',
+        'Cost is typically covered by your library',
+        'Access is granted automatically by IP address',
     ],
     'commercial':[
-        'Individual or company-wide subscription options',
+        'Used by most top agroscience companies',
+        'Subscription options for entire companies or individual commercial uses',
         'License terms appropriate for commercial uses',
     ],
     'PaidPattern':[
@@ -77,7 +76,6 @@ TEST = {
     },
     'PartnerPattern':[
         {'sourceUri':'https://yahoo.com', 'targetUri':'https://google.com'},
-        {'sourceUri':'https://steve.com', 'targetUri':'https://azeem.com'},
     ],
     'SubscriptionTerm':[
         {'description':'Two Month', 'period':60, 'price':100, 'groupDiscountPercentage':0},
