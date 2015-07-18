@@ -111,7 +111,7 @@ WSGI_APPLICATION = 'paywall2.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.mysql',
-        'NAME': 'steveTest',
+        'NAME': 'paywall2Test',
         'USER': 'phoenix',
         'PASSWORD': 'phoenix123',
         'HOST': 'paywalltestmysqldb.c871k9lscygy.us-east-1.rds.amazonaws.com',
