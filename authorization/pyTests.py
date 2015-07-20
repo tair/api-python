@@ -209,9 +209,9 @@ class AccessTest(AuthorizationTestBase):
         url = self.url + '?partnerId=%s&url=%s&apiKey=%s' % (self.partnerId, self.uriPatternSample.data['pattern'], self.apiKey)
         if not ip == None:
             url = url+'&ip=%s' % (ip)
-        if usePartyId:
-            url = url+'&partyId=%s' % (self.partyId)
         cookies = {'apiKey':self.apiKey}
+        if usePartyId:
+            cookies['partyId'] = str(self.partyId)
         req = requests.get(url, cookies=cookies)
         self.assertEqual(req.status_code, 200)
         self.assertEqual(req.json()['status'], expectedStatus)

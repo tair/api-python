@@ -51,9 +51,9 @@ class SubscriptionsAccess(APIView):
 # /authentications/
 class AuthenticationsAccess(APIView):
     def get(self, request, format=None):
-        loginKey = request.COOKIES.get('loginKey')
+        partyId = request.COOKIES.get('partyId')
+        loginKey = request.COOKIES.get('secret_key')
         url = request.GET.get('url')
-        partyId = request.GET.get('partyId')
         partnerId = request.GET.get('partnerId')
         hostUrl = "http://%s" % request.get_host()
         apiKey = request.COOKIES.get('apiKey')

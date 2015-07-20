@@ -14,6 +14,8 @@ from common.pyTests import PyTestGenerics
 from authorization.models import Status
 import copy
 
+import hashlib
+
 genericForcePost = PyTestGenerics.forcePost
 
 
@@ -88,7 +90,7 @@ class AccessTypeSample():
 class UserSample():
     data = {
         'username':'steve',
-        'password':'stevepass',
+        'password':hashlib.sha1('stevepass').hexdigest(),
         'email':'steve@getexp.com',
         'institution':'test organization',
         'partyId':None,
