@@ -60,9 +60,13 @@ def login(request):
     if user: 
       user = user.first()
       if ( user.password == requestPassword ):
-        response = HttpResponse(json.dumps({"message": "Correct password"}), status=200)
-        response.set_cookie("partyId", user.partyId.partyId, domain=".steveatgetexp.com")
-        response.set_cookie("secret_key", generateSecretKey(str(user.partyId.partyId), user.password), domain=".steveatgetexp.com")
+        response = HttpResponse(json.dumps({
+					"message": "Correct password", 
+					"partyId": user.partyId.partyId, 
+					"secret_key": generateSecretKey(str(user.partyId.partyId), user.password)
+				}), status=200)
+        #response.set_cookie("partyId", user.partyId.partyId, domain=".steveatgetexp.com")
+        #response.set_cookie("secret_key", generateSecretKey(str(user.partyId.partyId), user.password), domain=".steveatgetexp.com")
         return response
       else:
         return HttpResponse(json.dumps({"message":"Incorrect password %s" % (requestPassword)}), status=401)
