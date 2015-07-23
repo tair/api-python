@@ -26,6 +26,7 @@ TAIR = {
     },
     'PartnerPattern':[
         {'sourceUri':'proxy2.steveatgetexp.com', 'targetUri':'http://back-prod.arabidopsis.org'},
+        {'sourceUri':'demotair.steveatgetexp.com', 'targetUri':'http://back-prod.arabidopsis.org'},
     ],
     'SubscriptionTerm':[
         {'description':'1 month', 'period':30, 'price':9.80, 'groupDiscountPercentage':10},
@@ -120,6 +121,7 @@ TEST = {
     },
     'PartnerPattern':[
         {'sourceUri':'testyfd.com', 'targetUri':'http://back-prod.testyfd.com'},
+        {'sourceUri':'demoyfd.steveatgetexp.com', 'targetUri':'http://back-demoyfd.steveatgetexp.com'},
     ],
     'SubscriptionTerm':[
         {'description':'Two Month', 'period':60, 'price':100, 'groupDiscountPercentage':0},
