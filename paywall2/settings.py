@@ -114,7 +114,8 @@ DATABASES = {
         'NAME': 'paywall2Test',
         'USER': 'phoenix',
         'PASSWORD': 'phoenix123',
-        'HOST': 'paywalltestmysqldb.c871k9lscygy.us-east-1.rds.amazonaws.com',
+#        'HOST': 'paywalltestmysqldb.c871k9lscygy.us-east-1.rds.amazonaws.com',
+        'HOST': 'paywall2.cwyjt5kql77y.us-west-2.rds.amazonaws.com',
         'PORT': '3306',
     }
 }
