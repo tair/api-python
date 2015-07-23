@@ -10,6 +10,8 @@ from partner.serializers import PartnerSerializer, PartnerPatternSerializer, Sub
 from apikey.serializers import ApiKeySerializer
 from authorization.serializers import AccessTypeSerializer, AccessRuleSerializer, UriPatternSerializer
 from metering.serializers import LimitValueSerializer
+from party.serializers import PartySerializer
+from authentication.serializers import UserSerializer
 
 APIKEY = [
     {'apiKey':'test123'},
@@ -58,12 +60,55 @@ TAIR = {
         'License terms appropriate for commercial uses',
     ],
     'PaidPattern':[
-        '/news/',
-        '/tools/',
+        '/servlet/TairObject\?((id=\d+\&type=assignment)|(type=assignment\&id=\d+))',
+        '/servlet/TairObject\?((id=\d+\&type=gene)|(type=gene\&id=\d+))',
+        '/servlet/TairObject\?((id=\d+\&type=assemblyunit)|(type=assemblyunit\&id=\d+))',
+        '/servlet/TairObject\?((id=\d+\&type=marker)|(type=marker\&id=\d+))',
+        '/servlet/TairObject\?((id=\d+\&type=locus)|(type=locus\&id=\d+))',
+        '/servlet/TairObject\?((id=\d+\&type=contig)|(type=contig\&id=\d+))',
+        '/servlet/TairObject\?((id=\d+\&type=cloneend)|(type=cloneend\&id=\d+))',
+        '/servlet/TairObject\?((id=\d+\&type=polyallele)|(type=polyallele\&id=\d+))',
+        '/servlet/TairObject\?((id=\d+\&type=restrictionenzyme)|(type=restrictionenzyme\&id=\d+))',
+        '/servlet/TairObject\?((id=\d+\&type=sequence)|(type=sequence\&id=\d+))',
+        '/servlet/TairObject\?((id=\d+\&type=species_variant)|(type=species_variant\&id=\d+))',
+        '/servlet/TairObject\?((id=\d+\&type=host_strain)|(type=host_strain\&id=\d+))',
+        '/servlet/TairObject\?((id=\d+\&type=keyword)|(type=keyword\&id=\d+))',
+        '/servlets/Search.*type=annotation',
+        '/servlets/tools/',
+        '/servlets/mapper',
+        '/biocyc/index.jsp',
+        '/tools/nbrowse.jsp',
+        '/tools/igb/91',
+        '/Blast/',
+        '/wublast/',
+        '/fasta/',
+        '/ChromosomeMap/',
+        '/portals/masc/',
+        '/portals/mutants/',
+        '/portals/proteome/',
+        '/portals/metabolome/',
+        '/download/index-auto.jsp/(\?!?dir=/download_files/Protocols)',
+#        '/download/index-auto.jsp/(?!?dir=/download_files/Protocols)',
+        '/submit/ExternalLinkSubmission.jsp',
+        '/submit/genefamily_submission.jsp',
+        '/submit/gene_annotation.submission.jsp',
+        '/submit/marker_submission.jsp',
+        '/submit/pathway_submission.jsp',
+        '/submit/phenotype_submission.jsp',
+        '/submit/protocol_submission.jsp',
+        '/submit/submit_2010.jsp',
+        '/news/newsgroup.jsp',
+        '/news/newsletter_archive.jsp',
+        '/news/events.jsp',
+        '/news/jobs.jsp',
     ],
     'LimitValue':[
         3,
         5,
+    ],
+    'TestUser':[
+        {'username':'stevetest', 'password':'stevepass', 'email':'steve@getexp.com', 'institution':'getexp', 'userIdentifier':'steve'},
+        {'username':'azeemtest', 'password':'azeempass', 'email':'azeem@getexp.com', 'institution':'getexp', 'userIdentifier':'azeem'},
     ],
 }
 
@@ -75,7 +120,7 @@ TEST = {
         'termOfServiceUri':'https://www.google.com/intl/en/policies/terms/?fg=1',
     },
     'PartnerPattern':[
-        {'sourceUri':'https://yahoo.com', 'targetUri':'https://google.com'},
+        {'sourceUri':'testyfd.com', 'targetUri':'http://back-prod.testyfd.com'},
     ],
     'SubscriptionTerm':[
         {'description':'Two Month', 'period':60, 'price':100, 'groupDiscountPercentage':0},
@@ -94,7 +139,6 @@ TEST = {
         'You will get a million dollars',
     ],
     'individual':[
-        'Somebody set up us the bomb',
         'All your base are belong to us',
         'For great justice',
     ],
@@ -114,6 +158,10 @@ TEST = {
         5,
         10,
         15,
+    ],
+    'TestUser':[
+        {'username':'stevetest', 'password':'stevepass', 'email':'steve@getexp.com', 'institution':'getexp', 'userIdentifier':'steve'},
+        {'username':'azeemtest', 'password':'azeempass', 'email':'azeem@getexp.com', 'institution':'getexp', 'userIdentifier':'azeem'},
     ],
 }
 
@@ -177,30 +225,47 @@ def loadMeteringLimit(limitValues, partnerId):
         if serializer.is_valid():
             serializer.save()
 
-def loadStuff(stuff, paidAccessTypeId):
-    partnerId = stuff['Partner']['partnerId']
-    serializer = PartnerSerializer(data=stuff['Partner'])
+def loadTestUser(testUsers, partnerId):
+    for item in testUsers:
+        serializer = PartySerializer(data={'partyType':'user'})
+        if serializer.is_valid():
+            serializer.save()
+        partyId= serializer.data['partyId']
+        serializer = UserSerializer(data={
+            'username':item['username'],
+            'password':item['password'],
+            'email':item['email'],
+            'institution':item['institution'],
+            'userIdentifier':item['userIdentifier'],
+            'partyId':partyId,
+            'partnerId':partnerId,
+        })
+        if serializer.is_valid():
+            serializer.save()
+
+def loadPartner(partner, paidAccessTypeId):
+    partnerId = partner['Partner']['partnerId']
+    serializer = PartnerSerializer(data=partner['Partner'])
     if serializer.is_valid():
         serializer.save()
     else:
         print "Unable to create partner %s, exiting" % partnerId
         exit()
 
-    loadItem(PartnerPatternSerializer, stuff['PartnerPattern'], partnerId)
-    loadItem(SubscriptionTermSerializer, stuff['SubscriptionTerm'], partnerId)
-    loadSubscriptionDescriptionAndItem(stuff, partnerId)
+    loadItem(PartnerPatternSerializer, partner['PartnerPattern'], partnerId)
+    loadItem(SubscriptionTermSerializer, partner['SubscriptionTerm'], partnerId)
+    loadSubscriptionDescriptionAndItem(partner, partnerId)
+    loadAccessRule(partner['PaidPattern'], partnerId, paidAccessTypeId)
+    loadMeteringLimit(partner['LimitValue'], partnerId)
+    loadTestUser(partner['TestUser'], partnerId)
 
-    loadAccessRule(stuff['PaidPattern'], partnerId, paidAccessTypeId)
-
-    loadMeteringLimit(stuff['LimitValue'], partnerId)
-
-def loadApiKey(stuff):
-    for item in stuff:
+def loadApiKey(apiKeys):
+    for item in apiKeys:
         serializer = ApiKeySerializer(data=item)
         if serializer.is_valid():
             serializer.save()
 
 loadApiKey(APIKEY)
 paidAccessTypeId = createPaidType()
-loadStuff(TEST, paidAccessTypeId)
-loadStuff(TAIR, paidAccessTypeId)
+loadPartner(TEST, paidAccessTypeId)
+loadPartner(TAIR, paidAccessTypeId)
