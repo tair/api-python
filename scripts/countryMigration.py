@@ -13,7 +13,7 @@ import MySQLdb
 
 # function to connect to api database.
 def connect():
-    host = 'paywalltestmysqldb.c871k9lscygy.us-east-1.rds.amazonaws.com'
+    host =  'paywall2.cwyjt5kql77y.us-west-2.rds.amazonaws.com'
     user="phoenix"
     password="phoenix123"
     dbName="demo2"
