@@ -89,8 +89,6 @@ CORS_ALLOW_CREDENTIALS = True
 
 CORS_ALLOW_METHODS = (
     'GET',
-    'POST',
-    'UPDATE',
 )
 
 CORS_ALLOW_HEADERS = (
@@ -113,7 +111,7 @@ WSGI_APPLICATION = 'paywall2.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.mysql',
-        'NAME': 'paywall2Test',
+        'NAME': 'steveTest',
         'USER': 'phoenix',
         'PASSWORD': 'phoenix123',
 #        'HOST': 'paywalltestmysqldb.c871k9lscygy.us-east-1.rds.amazonaws.com',
@@ -165,7 +163,7 @@ STATIC_URL = '/static/'
 EMAIL_USE_TLS = True
 EMAIL_HOST = 'email-smtp.us-west-2.amazonaws.com'
 EMAIL_PORT = 25
-# Fill in the username and password for emails. 
+# Fill in the username and password for emails.
 # For AWS SES, this will be the username/password of the IAM created for SES.
 EMAIL_HOST_USER = None
 EMAIL_HOST_PASSWORD = None

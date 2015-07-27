@@ -1,0 +1,17 @@
+<html>
+  <head>
+    <script>
+      function getParameterByName(name) {
+          name = name.replace(/[\[]/, "\\[").replace(/[\]]/, "\\]");
+          var regex = new RegExp("[\\?&]" + name + "=([^&#]*)"),
+          results = regex.exec(location.search);
+          return results === null ? "" : decodeURIComponent(results[1].replace(/\+/g, " "));
+      }
+    </script>
+  </head>
+  <body>
+    <h4>Warning page</h4>
+    <button onclick="window.location.href=getParameterByName('redirectUrl')">Previous Page</button>
+  </body>
+</html>
+

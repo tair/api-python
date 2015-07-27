@@ -7,13 +7,13 @@ import requests
 from unittest import TestCase
 from common.pyTests import PyTestGenerics, GenericCRUDTest, GenericTest
 
-from subscription.pyTests import SubscriptionActiveTest
 from subscription.testSamples import SubscriptionSample
 from party.testSamples import IpRangeSample, PartySample
 from partner.testSamples import PartnerSample
+from partner.models import Partner
 from authorization.models import Status
 
-from testSamples import UriPatternSample, AccessRuleSample, AccessTypeSample, UsernamePartyAffiliationSample
+from testSamples import UriPatternSample, AccessRuleSample, AccessTypeSample, UserSample
 
 from authentication.views import generateSecretKey
 
@@ -35,12 +35,13 @@ class AccessRuleCRUD(GenericCRUDTest, TestCase):
     accessTypeSample = AccessTypeSample(serverUrl)
     def setUp(self):
         super(AccessRuleCRUD,self).setUp()
+        Partner.objects.filter(partnerId=self.partnerSample.data['partnerId']).delete()
         self.partnerId = self.partnerSample.forcePost(self.partnerSample.data)
         self.patternId = self.patternSample.forcePost(self.patternSample.data)
         self.accessTypeId = self.accessTypeSample.forcePost(self.accessTypeSample.data)
         self.sample.partnerId=self.sample.data['partnerId']=self.sample.updateData['partnerId']=self.partnerId
         self.sample.data['patternId']=self.sample.updateData['patternId']=self.patternId
-        self.sample.data['accessTypeId']=self.sample.data['accessTypeId']=self.accessTypeId
+        self.sample.data['accessTypeId']=self.sample.updateData['accessTypeId']=self.accessTypeId
 
     def tearDown(self):
         super(AccessRuleCRUD,self).tearDown()
@@ -56,11 +57,24 @@ class AccessTypesCRUD(GenericCRUDTest, TestCase):
 
 # Base class for sample management for access, subscription, and authorization access tests.
 class AuthorizationTestBase(GenericTest, TestCase):
-    successIp = SubscriptionActiveTest.successIp
-    failIp = SubscriptionActiveTest.failIp
 
-    successSubscriptionData = SubscriptionActiveTest.successSubscriptionData
-    failSubscriptionData = SubscriptionActiveTest.failEndDateSubscriptionData
+    # should be consistent with IpRangeSample object
+    successIp = '120.1.0.0'
+    failIp = '12.2.3.4'
+    
+    # should be consistent with SubscriptionSample object
+    successSubscriptionData = {
+        'startDate':'2012-04-12T00:00:00Z',
+        'endDate':'2018-04-12T00:00:00Z',
+        'partnerId':None, # To be populated after Partner is created
+        'partyId':None, # To be populated after Party is created
+    }
+    failSubscriptionData = {
+        'startDate':'2012-04-12T00:00:00Z',
+        'endDate':'2014-04-12T00:00:00Z',
+        'partnerId':None,
+        'partyId':None, 
+    }
 
     def initSamples(self):
         self.partnerSample = PartnerSample(serverUrl)
@@ -70,15 +84,16 @@ class AuthorizationTestBase(GenericTest, TestCase):
         self.uriPatternSample = UriPatternSample(serverUrl)
         self.accessTypeSample = AccessTypeSample(serverUrl)
         self.accessRuleSample = AccessRuleSample(serverUrl)
-        self.usernamePartyAffiliationSample = UsernamePartyAffiliationSample()
+        self.userSample = UserSample()
 
     def createSamples(self):
         # create independent objects
         self.accessTypeId = self.accessTypeSample.forcePost(self.accessTypeSample.data)
         self.uriPatternId = self.uriPatternSample.forcePost(self.uriPatternSample.data)
+        Partner.objects.filter(partnerId=self.partnerSample.data['partnerId']).delete()
         self.partnerId = self.partnerSample.forcePost(self.partnerSample.data)
         self.partyId = self.partySample.forcePost(self.partySample.data)
-        
+
         # create AccessRule based on AccessType, Pattern, and Partner objects created
         self.accessRuleSample.data['accessTypeId']=self.accessTypeId
         self.accessRuleSample.data['patternId']=self.uriPatternId
@@ -94,10 +109,11 @@ class AuthorizationTestBase(GenericTest, TestCase):
         self.ipRangeSample.data['partyId'] = self.partyId
         self.ipRangeId = self.ipRangeSample.forcePost(self.ipRangeSample.data)
 
-        # create UsernamePartyAffiliation object based on Party created
-        PyTestGenerics.forceDelete(self.usernamePartyAffiliationSample.model, 'username', self.usernamePartyAffiliationSample.data['username'])
-        self.usernamePartyAffiliationSample.data['partyId'] = self.partyId
-        self.usernamePartyAffiliationId = self.usernamePartyAffiliationSample.forcePost(self.usernamePartyAffiliationSample.data)
+        # create User object based on Party created
+        PyTestGenerics.forceDelete(self.userSample.model, 'username', self.userSample.data['username'])
+        self.userSample.data['partyId'] = self.partyId
+        self.userSample.data['partnerId'] = self.partnerId
+        self.userId = self.userSample.forcePost(self.userSample.data)
 
     def deleteSamples(self):
         PyTestGenerics.forceDelete(self.subscriptionSample.model, self.subscriptionSample.pkName, self.subscriptionId)
@@ -107,7 +123,7 @@ class AuthorizationTestBase(GenericTest, TestCase):
         PyTestGenerics.forceDelete(self.accessTypeSample.model, self.accessTypeSample.pkName, self.accessTypeId)
         PyTestGenerics.forceDelete(self.uriPatternSample.model, self.uriPatternSample.pkName, self.uriPatternId)
         PyTestGenerics.forceDelete(self.accessRuleSample.model, self.accessRuleSample.pkName, self.accessRuleId)
-        PyTestGenerics.forceDelete(self.usernamePartyAffiliationSample.model, self.usernamePartyAffiliationSample.pkName, self.usernamePartyAffiliationId)
+        PyTestGenerics.forceDelete(self.userSample.model, self.userSample.pkName, self.userId)
 
 class AuthenticationTest(AuthorizationTestBase):
     url = serverUrl+'authorizations/authentications/'
@@ -123,9 +139,9 @@ class AuthenticationTest(AuthorizationTestBase):
         self.createSamples()
 
         # run the system test
-        loginKey = generateSecretKey(self.partyId, self.usernamePartyAffiliationSample.data['password'])
-        url = self.url + '?partnerId=%s&url=%s&partyId=%s&apiKey=%s' % (self.partnerId, self.uriPatternSample.data['pattern'], self.partyId, self.apiKey)
-        cookies = {'loginKey':loginKey, 'apiKey':self.apiKey}
+        loginKey = generateSecretKey(self.partyId, self.userSample.data['password'])
+        url = self.url + '?url=%s&partnerId=%s' % (self.uriPatternSample.data['pattern'], self.partnerId)
+        cookies = {'partyId':str(self.partyId), 'secret_key':loginKey, 'apiKey':self.apiKey}
         req = requests.get(url,cookies=cookies)
         self.assertEqual(req.status_code, 200)
         self.assertEqual(req.json()['access'], expectedStatus)
@@ -193,9 +209,9 @@ class AccessTest(AuthorizationTestBase):
         url = self.url + '?partnerId=%s&url=%s&apiKey=%s' % (self.partnerId, self.uriPatternSample.data['pattern'], self.apiKey)
         if not ip == None:
             url = url+'&ip=%s' % (ip)
-        if usePartyId:
-            url = url+'&partyId=%s' % (self.partyId)
         cookies = {'apiKey':self.apiKey}
+        if usePartyId:
+            cookies['partyId'] = str(self.partyId)
         req = requests.get(url, cookies=cookies)
         self.assertEqual(req.status_code, 200)
         self.assertEqual(req.json()['status'], expectedStatus)

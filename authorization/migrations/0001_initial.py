@@ -7,7 +7,7 @@ from django.db import models, migrations
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('partner', '__first__'),
+        ('partner', '0001_initial'),
     ]
 
     operations = [
@@ -31,14 +31,13 @@ class Migration(migrations.Migration):
             },
         ),
         migrations.CreateModel(
-            name='Pattern',
+            name='UriPattern',
             fields=[
                 ('patternId', models.AutoField(serialize=False, primary_key=True)),
                 ('pattern', models.CharField(default=b'', max_length=200)),
-                ('partnerId', models.ForeignKey(to='partner.Partner')),
             ],
             options={
-                'db_table': 'Pattern',
+                'db_table': 'UriPattern',
             },
         ),
         migrations.AddField(
@@ -48,7 +47,12 @@ class Migration(migrations.Migration):
         ),
         migrations.AddField(
             model_name='accessrule',
+            name='partnerId',
+            field=models.ForeignKey(to='partner.Partner'),
+        ),
+        migrations.AddField(
+            model_name='accessrule',
             name='patternId',
-            field=models.ForeignKey(to='authorization.Pattern'),
+            field=models.ForeignKey(to='authorization.UriPattern'),
         ),
     ]

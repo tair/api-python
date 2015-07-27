@@ -30,24 +30,43 @@ class LimitValueCRUD(GenericCRUDView):
 #Increment request for an IP
 # /ip/<pk>/increment/
 class increment(APIView):
-  def post(self, request, ip, format=None):
-    maxCount = LimitValue.objects.aggregate(Max('val'))['val__max']
-    IpAddressCount.objects.filter(count__lt=maxCount) \
-                          .filter(ip=ip) \
-                          .update(count=F('count')+1)
-    return HttpResponse(json.dumps({'message':'success'}))
+    def post(self, request, ip, format=None):
+        partnerId = request.GET.get('partnerId')
+        if IpAddressCount.objects.filter(ip=ip).filter(partnerId=partnerId).exists():
+            maxCount = LimitValue.objects.aggregate(Max('val'))['val__max']
+            IpAddressCount.objects.filter(count__lt=maxCount) \
+                                  .filter(ip=ip) \
+                                  .filter(partnerId=partnerId) \
+                                  .update(count=F('count')+1)
+            ret={'message':'success'}
+        else:
+            data = {
+                "ip":ip,
+                "count":1,
+                "partnerId":partnerId,
+            }
+            serializer = IpAddressCountSerializer(data=data)
+            if serializer.is_valid():
+                serializer.save()
+                ret={'message':'created'}
+            else:
+                ret={'message':'not success'}
+        return HttpResponse(json.dumps(ret), content_type="application/json", status=200)
 
 #Return limit status of IP
-# /ip/<pk>/increment/
+# /ip/<pk>/limit/
 class check_limit(APIView):
-  def get(self, request, ip, format=None):
-    currIp = IpAddressCount.objects.get(ip=ip)
-    
-    if (currIp.count >= LimitValue.objects.aggregate(Max('val'))['val__max']):
-        ret = {'status': "Block"}
-    elif (currIp.count in LimitValue.objects.values_list('val', flat=True)):
-        ret = {'status': "Warning"}
-    else:
-        ret = {'status': "OK"}
-
-    return HttpResponse(json.dumps(ret), content_type="application/json", status=200)
+    def get(self, request, ip, format=None):
+        partnerId = request.GET.get('partnerId')
+        if IpAddressCount.objects.filter(ip=ip).filter(partnerId=partnerId).exists():
+            currIp = IpAddressCount.objects.get(ip=ip,partnerId=partnerId)
+            if (currIp.count >= LimitValue.objects.filter(partnerId=partnerId).aggregate(Max('val'))['val__max']):
+                ret = {'status': "Block"}
+            elif (currIp.count in LimitValue.objects.filter(partnerId=partnerId).values_list('val', flat=True)):
+                ret = {'status': "Warning"}
+            else:
+                ret = {'status': "OK"}
+        else:
+            # IP address not in database. not block by IP.
+            ret = {'status': "OK"}
+        return HttpResponse(json.dumps(ret), content_type="application/json", status=200)

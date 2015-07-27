@@ -1,15 +1,14 @@
 #Copyright 2015 Phoenix Bioinformatics Corporation. All rights reserved.
-from authentication.models import UsernamePartyAffiliation
+from authentication.models import User
 from rest_framework import serializers
 
-class usernamePartyAffiliationSerializer(serializers.ModelSerializer):
+class UserSerializer(serializers.ModelSerializer):
     class Meta:
-        model = UsernamePartyAffiliation
-        fields = ('username', 'password', 'email', 'organization', 'partyId')
+        model = User
+        fields = ('username', 'password', 'email', 'institution', 'partyId', 'partnerId', 'userIdentifier')
 
-
-class usernamePartyAffiliationSerializerNoPassword(serializers.ModelSerializer):
+class UserSerializerNoPassword(serializers.ModelSerializer):
     class Meta:
-        model = UsernamePartyAffiliation
-        fields = ('username', 'email', 'organization', 'partyId')
+        model = User
+        fields = ('username', 'email', 'institution', 'partyId', 'partnerId', 'userIdentifier')
 

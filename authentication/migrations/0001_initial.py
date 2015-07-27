@@ -23,21 +23,21 @@ class Migration(migrations.Migration):
             },
         ),
         migrations.CreateModel(
-            name='UsernamePartyAffiliation',
+            name='User',
             fields=[
                 ('id', models.AutoField(verbose_name='ID', serialize=False, auto_created=True, primary_key=True)),
                 ('username', models.CharField(max_length=32, db_index=True)),
                 ('password', models.CharField(max_length=32)),
                 ('email', models.CharField(max_length=128, null=True)),
-                ('organization', models.CharField(max_length=64, null=True)),
-                ('partyId', models.ForeignKey(to='party.Party')),
+                ('institution', models.CharField(max_length=64, null=True)),
+                ('partyId', models.ForeignKey(to='party.Party', db_column=b'partyId')),
             ],
             options={
-                'db_table': 'UsernamePassword',
+                'db_table': 'User',
             },
         ),
         migrations.AlterUniqueTogether(
-            name='usernamepartyaffiliation',
+            name='user',
             unique_together=set([('username',)]),
         ),
     ]

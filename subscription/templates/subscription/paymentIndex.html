@@ -12,7 +12,7 @@
 
   <!-- Event handling on submit --!>
   <script type="text/javascript">
-    Stripe.setPublishableKey('pk_test_VEu0r74glZkzeT8IXLmXxojP');
+    Stripe.setPublishableKey("{{stripeKey}}");
 
     var responseHandlerForStripe = function(status, response) {
       var $form = $('#payment-form');
@@ -43,9 +43,9 @@
   <h1 class="text-center">Enter payment information below</h1>
   <form action="" method="POST" id="payment-form" class="form-horizontal">
     {% csrf_token %}
-    <input type="hidden" type="number" name="partyId" value={{ partyId }} />
     <input type="hidden" type="number" name="termId" value={{ termId }} />
     <input type="hidden" type="number" name="price" value={{ price }} />
+    <input type="hidden" type="number" name="quantity" value={{ quantity }} />
 
     <p class="payment-errors text-center text-danger"></p>
 
@@ -79,7 +79,7 @@
         <p class="form-control-static">{{ price }}</p>
       </div>
     </div>
-   
+    
     <div class="form-group">
       <div class="col-md-offset-5 col-md-4">
         <button type="submit" class="btn btn-primary">Submit</button>

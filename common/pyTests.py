@@ -18,6 +18,23 @@ class GenericTest(object):
     def tearDown(self):
         PyTestGenerics.forceDelete(self.apiKeySample.model, self.apiKeySample.pkName, self.apiKeyId)
 
+# This function checks if sampleData is within the array of data retrieved
+# from API call.
+def checkMatch(sampleData, retrievedDataArray, pkName, pk):
+    hasMatch = False
+    for item in retrievedDataArray:
+        # find the entry from dataArray that has the same PK
+        # as the entry created
+        if item[pkName] == pk:
+            hasMatch = True
+            for key in sampleData:
+                # makes sure that all contents from sample is the
+                # same as content retrieved from request
+                if not (item[key] == sampleData[key] or float(item[key])==float(sampleData[key])):
+                    hasMatch = False
+                    break
+    return hasMatch
+
 class GenericCRUDTest(GenericTest):
     def test_for_create(self):
         sample = self.sample
@@ -40,6 +57,8 @@ class GenericCRUDTest(GenericTest):
         cookies = {'apiKey':self.apiKey}
         req = requests.get(url, cookies=cookies)
         self.assertEqual(req.status_code, 200)
+        self.assertEqual(checkMatch(sample.data, req.json(), sample.pkName, pk), True)
+
         PyTestGenerics.forceDelete(sample.model,sample.pkName,pk)
 
     def test_for_update(self):
@@ -53,6 +72,7 @@ class GenericCRUDTest(GenericTest):
         if sample.pkName in sample.updateData:
             pk = sample.updateData[sample.pkName]
         self.assertEqual(req.status_code, 200)
+        self.assertEqual(checkMatch(sample.updateData, req.json(), sample.pkName, pk), True)
         PyTestGenerics.forceDelete(sample.model,sample.pkName,pk)
 
     def test_for_delete(self):
@@ -74,6 +94,7 @@ class GenericCRUDTest(GenericTest):
         cookies = {'apiKey':self.apiKey}
         req = requests.get(url, cookies=cookies)
         self.assertEqual(req.status_code, 200)
+        self.assertEqual(checkMatch(sample.data, req.json(), sample.pkName, pk), True)
         PyTestGenerics.forceDelete(sample.model,sample.pkName,pk)
 
 class PyTestGenerics:

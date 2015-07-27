@@ -9,24 +9,25 @@ from rest_framework.views import APIView
 from rest_framework.response import Response
 from common.views import GenericCRUDView
 
-from authentication.models import UsernamePartyAffiliation, GooglePartyAffiliation
-from authentication.serializers import usernamePartyAffiliationSerializer, usernamePartyAffiliationSerializerNoPassword
+from authentication.models import User, GooglePartyAffiliation
+from authentication.serializers import UserSerializer, UserSerializerNoPassword
 from subscription.models import Party
 from partner.models import Partner
 # Create your views here.
 
 #/authentications/
 class listcreateuser(GenericCRUDView):
-  queryset = UsernamePartyAffiliation.objects.all()
+  queryset = User.objects.all()
 
   def get_serializer_class(self):
     if self.request.method == 'GET':
-      return usernamePartyAffiliationSerializerNoPassword
-    return usernamePartyAffiliationSerializer
- 
+      return UserSerializerNoPassword
+    return UserSerializer
+
   def post(self, request, format=None):
         serializer_class = self.get_serializer_class()
         data = request.data
+        data['password'] = hashlib.sha1(data['password']).hexdigest()
         pu = Party(); pu.save()
         data['partyId'] = pu.partyId
         serializer = serializer_class(data=data)
@@ -38,22 +39,40 @@ class listcreateuser(GenericCRUDView):
 #/authentications/login/
 def login(request):
   if request.method == 'GET':
-    if ("partyId" in request.COOKIES) and ("secret_key" in request.COOKIES):
-      pu = Party.objects.filter(partyId=request.COOKIES.get('partyId'))
-      if pu:
-        usu = UsernamePartyAffiliation.objects.filter(partyId_id__in=pu.values('partyId')).first()
-        if generateSecretKey(str(request.COOKIES.get('partyId')), usu.password) == request.COOKIES.get('secret_key'):
-          return HttpResponse(json.dumps({"bool": True}))
+    partyId = request.COOKIES.get('partyId')
+    secretKey = request.COOKIES.get('secret_key')
+    if partyId and secretKey and User.validate(partyId, secretKey):
+      return HttpResponse(json.dumps({"bool": True}))
+    return render(request,"authentication/login.html")
+
   if request.method == 'POST':
-    user = UsernamePartyAffiliation.objects.filter(username=request.POST.get('user'))
+    if not 'user' in request.POST:
+        return HttpResponse(json.dumps({"message": "No username provided"}), status=400)
+    if not 'password' in request.POST:
+        return HttpResponse(json.dumps({"message": "No password provided"}), status=400)
+    if not 'partnerId' in request.GET:
+        return HttpResponse(json.dumps({"message": "No partnerId provided"}), status=400)
+    requestUsername = request.POST.get('user')
+    requestPassword = hashlib.sha1(request.POST.get('password')).hexdigest()
+    requestPartner = request.GET.get('partnerId')
+    user = User.objects.filter(partnerId=requestPartner).filter(username=requestUsername)
+    
     if user: 
       user = user.first()
-      if ( user.password == request.POST.get('password') ):
-        response = HttpResponse(json.dumps({"detail": "Correct password"}))
-        response.set_cookie("partyId", user.partyId_id)
-        response.set_cookie("secret_key", generateSecretKey(str(user.partyId_id), user.password))
+      if ( user.password == requestPassword ):
+        response = HttpResponse(json.dumps({
+					"message": "Correct password", 
+					"partyId": user.partyId.partyId, 
+					"secret_key": generateSecretKey(str(user.partyId.partyId), user.password)
+				}), status=200)
+        #response.set_cookie("partyId", user.partyId.partyId, domain=".steveatgetexp.com")
+        #response.set_cookie("secret_key", generateSecretKey(str(user.partyId.partyId), user.password), domain=".steveatgetexp.com")
         return response
-  return render(request, "authentication/login.html")
+      else:
+        return HttpResponse(json.dumps({"message":"Incorrect password %s" % (requestPassword)}), status=401)
+    else:
+      return HttpResponse(json.dumps({"message":"No such user"}), status=401)
+
 
 #/authentications/register/
 def registerUser(request):

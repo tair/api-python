@@ -2,34 +2,93 @@ from django.shortcuts import render
 from django.http import HttpResponse
 from django.utils import timezone
 import stripe
-from partner.models import SubscriptionTerm
-from subscription.models import Subscription, SubscriptionTransaction
+from partner.models import SubscriptionTerm, Partner
+from subscription.models import Subscription, SubscriptionTransaction, ActivationCode
 from serializers import SubscriptionSerializer
 from party.models import Party
 
 import datetime
 from django.utils import timezone
 
-class PaymentControl():
-    stripe_api_secret_test_key = "sk_test_dXy85QkwH66s64bIWKbikyMt"
+import uuid
+
+from django.core.mail import send_mail
+
+class SubscriptionControl():
 
     @staticmethod
-    def tryCharge(secret_key, stripe_token, priceToCharge, chargeDescription, partyId, termId):
+    def createOrUpdateSubscription(partyId, partnerId, period):
+        now = timezone.now()
+        subscriptionSet = Subscription.objects \
+                                      .all() \
+                                      .filter(partyId=partyId) \
+                                      .filter(partnerId=partnerId)
+        if len(subscriptionSet) == 0:
+            subscription = None
+        else:
+            subscription = subscriptionSet[0]
+
+        transactionType = None
+        transactionStartDate = None
+        transactionEndDate = None
+        
+        if subscription == None:
+            # case1: new subscription
+            partyObj = Party.objects.get(partyId=partyId)
+            partnerObj = Partner.objects.get(partnerId=partnerId)
+            subscription = Subscription()
+            subscription.partnerId = partnerObj
+            subscription.partyId = partyObj
+            subscription.startDate = now
+            subscription.endDate = now+datetime.timedelta(days=period)
+
+            transactionType = 'Initial'
+            transactionStartDate = subscription.startDate
+            transactionEndDate = subscription.endDate
+        else:
+            endDate = subscription.endDate
+            if (endDate<now):
+                # case2: expired subscription
+                subscription.endDate = now + datetime.timedelta(days=period)
+                transactionType = 'Renew'
+                transactionStartDate = now
+                transactionEndDate = subscription.endDate
+            else:
+                # case3: active subscription
+                subscription.endDate = endDate + datetime.timedelta(days=period)
+                transactionType = 'Renew'
+                transactionStartDate = endDate
+                transactionEndDate = subscription.endDate
+        
+        return (subscription, transactionType, transactionStartDate, transactionEndDate)
+
+class PaymentControl():
+
+    @staticmethod
+    def tryCharge(secret_key, stripe_token, priceToCharge, chargeDescription, termId, quantity, emailAddress, firstname, lastname, institute, street, city, state, country, zip):
         message = {}
         message['price'] = priceToCharge
-        message['partyId'] = partyId
         message['termId'] = termId
+        message['quantity'] = quantity
+	if not PaymentControl.validateCharge(priceToCharge, termId, quantity):
+	 	message['message'] = "Charge validation error"
+		return message
         stripe.api_key = secret_key
+ 
+        charge = stripe.Charge.create(
+            amount=int(priceToCharge*100), # stripe takes in cents; UI passes in dollars. multiply by 100 to convert.
+            currency="usd",
+            source=stripe_token,
+            description=chargeDescription,
+            metadata = {'Email': emailAddress, 'Institute': institute}
+        )
+        activationCodes = PaymentControl.postPaymentHandling(termId, quantity)
+        emailInfo = PaymentControl.getEmailInfo(activationCodes, termId, quantity, priceToCharge, charge.id, emailAddress, firstname, lastname, institute, street, city, state, country, zip)
+        PaymentControl.emailReceipt(emailInfo)
+        status = True
+        message['activationCodes'] = activationCodes
         try:
-            charge = stripe.Charge.create(
-                amount=priceToCharge,
-                currency="usd",
-                source=stripe_token,
-                description=chargeDescription,
-            )
-            PaymentControl.postPaymentSubscription(termId, partyId)
-            status = True
-            message['message'] = "Thanks! Your card has been charged"
+            pass
         except stripe.error.InvalidRequestError, e:
             status = False
             message['message'] = e.json_body['error']['message']
@@ -44,73 +103,134 @@ class PaymentControl():
             message['message'] = e.json_body['error']['message']
         except Exception, e:
             status = False
-            message['message'] = "Unexpected exception: %s %s" % (e, partyId)
-        return status, message
+            message['message'] = "Unexpected exception: %s" % (e)
+
+        message['status'] = status
+        return message
+
+    @staticmethod
+    def getEmailInfo(activationCodes, termId, quantity, payment, transactionId, email, firstname, lastname, institute, street, city, state, country, zip):
+        termObj = SubscriptionTerm.objects.get(subscriptionTermId=termId)
+        partnerObj = termObj.partnerId
+        name = firstname+" "+lastname
+        institute = institute
+        address = street
+        city = city
+        state = state
+        country = country
+        zipcode = zip
+        senderEmail = "steve@getexp.com"
+        recipientEmails = [email]
+        return {
+            "partnerLogo": partnerObj.logoUri,
+            "name": name,
+            "partnerName": partnerObj.name,
+            "accessCodes": activationCodes,
+	    "loginUrl": "azeemui.steveatgetexp.com/pw2/dev/#/login?partnerId="+partnerObj.partnerId,
+            "subscriptionDescription": "%s Subscription" % partnerObj.name,
+            "institute": institute,
+            "subscriptionTerm": termObj.description,
+            "subscriptionQuantity": quantity,
+            "payment": payment,
+            "transactionId": transactionId,
+            "addr1": address,
+            "addr2": "%s, %s" % (city, state),
+            "addr3": "%s - %s" % (country, zipcode),
+            "recipientEmails": recipientEmails,
+            "senderEmail": "steve@getexp.com",
+            "subject":"Thank You For Subscribing",
+        }
+
+    @staticmethod
+    def emailReceipt(emailInfo):
+        kwargs = emailInfo
+        listr = '<ul style="font-size: 16px; color: #b9ca32; font-family: Arial, Helvetica, sans-serif; -webkit-font-smoothing: antialiased;">'
+        for l in kwargs['accessCodes']:
+            listr += "<li>"+l+"</li><br>"
+        listr += "</ul>"
+
+        import os
+        module_dir = os.path.dirname(__file__)  # get current directory
+        file_path = os.path.join(module_dir, 'individualEmail.html')
+        with open(file_path, 'r,') as myfile:
+            html_message = myfile.read() % (
+                kwargs['partnerLogo'],
+                kwargs['name'],
+                kwargs['partnerName'],
+                listr,
+                kwargs['loginUrl'],
+                kwargs['subscriptionDescription'],
+                kwargs['institute'],
+                kwargs['subscriptionTerm'],
+                kwargs['subscriptionQuantity'],
+                kwargs['payment'],
+                kwargs['transactionId'],
+                """
+                """+kwargs['addr1']+""",<br>
+                """+kwargs['addr2']+""",<br>
+                """+kwargs['addr3']+"""<br>
+                """)
+        subject = kwargs['subject']
+        from_email = kwargs['senderEmail']
+        recipient_list = kwargs['recipientEmails']
+        send_mail(subject=subject, from_email=from_email, recipient_list=recipient_list, html_message=html_message, message=None)
 
     @staticmethod
     def isValidRequest(request, message):
         ret = True
-        termId = request.GET.get('termId', '')
-        if termId=='':
+        termId = request.GET.get('termId')
+        quantity = request.GET.get('quantity')
+        if termId==None:
             message['message']='error: no termId'
             ret = False
         elif PaymentControl.getTermPrice(termId)==None:
             message['message']='error: unable to get term price'
             ret = False
-        partyId = request.GET.get('partyId', '')
-        if partyId=='':
-            message['message']='error: no partyId'
+        elif quantity == None:
+            message['message']='error: no quantity specified'
+            ret = False
+        elif int(quantity) < 1 or int(quantity) > 99:
+            message['message']='error: quantity must be between 1 and 99'
             ret = False
         return ret
 
     @staticmethod
     def getTermPrice(termId):
         try:
-            return int(SubscriptionTerm.objects.get(subscriptionTermId=termId).price)
+            return float(SubscriptionTerm.objects.get(subscriptionTermId=termId).price)
         except:
             return None
 
     @staticmethod
-    def postPaymentSubscription(termId, partyId):
+    def postPaymentHandling(termId, quantity):
+        if quantity > 99:
+            return []
         termObj = SubscriptionTerm.objects.get(subscriptionTermId=termId)
-        partyObj = Party.objects.get(partyId=partyId)        
         period = termObj.period
-
         partnerObj = termObj.partnerId
         partnerId = partnerObj.partnerId
-
         now = timezone.now()
-        subscriptionSet = Subscription.objects \
-                                      .all() \
-                                      .filter(partyId=partyId) \
-                                      .filter(partnerId=partnerId)
-        if len(subscriptionSet) == 0:
-            subscription = None
-        else:
-            subscription = subscriptionSet[0]
 
-        transactionType = 'Initial'
-        if subscription == None:
-            # new subscription
-            subscription = Subscription()
-            subscription.partnerId = partnerObj
-            subscription.partyId = partyObj
-            subscription.startDate = now
-            subscription.endDate = now+datetime.timedelta(days=period)
-        else:
-            # already has a subscription
-            endDate = subscription.endDate
-            if (endDate>now):
-                subscription.endDate = endDate + datetime.timedelta(days=period)
-                # subscription still active, extend
-                transactionType = 'Renew'
-            else:
-                subscription.endDate = now + datetime.timedelta(days=period)
-                transactionType = 'Renew'
+        codeArray = []
 
-        subscription.save()
-        subscriptionId = subscription.subscriptionId
-        subscriptionTransactionId = SubscriptionTransaction.createFromSubscription(subscription, transactionType).subscriptionTransactionId
+        for i in xrange(quantity):
+            # create an activation code based on partnerId and period.
+            activationCodeObj = ActivationCode()
+            activationCodeObj.activationCode=str(uuid.uuid4())
+            activationCodeObj.partnerId=partnerObj
+            activationCodeObj.period=period
+            activationCodeObj.partyId=None
+            activationCodeObj.purchaseDate=now
+            activationCodeObj.save()
+            codeArray.append(activationCodeObj.activationCode)
 
-        return (subscriptionId, subscriptionTransactionId)
-
+        return codeArray
+    
+    @staticmethod
+    def validateCharge(price, termId, quantity):
+        so = SubscriptionTerm.objects.get(subscriptionTermId=termId)
+        calcprice = so.price*quantity
+        if so.groupDiscountPercentage > 0 and quantity > 2:
+            calcprice = so.price*quantity*(1-(so.groupDiscountPercentage/100))
+        calcprice = round(calcprice*100)/100
+	return (price == calcprice)

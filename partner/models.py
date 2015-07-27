@@ -9,6 +9,8 @@ from django.http import Http404
 class Partner(models.Model):
     partnerId = models.CharField(max_length=200, primary_key=True)
     name = models.CharField(max_length=200)
+    logoUri = models.CharField(max_length=200)
+    termOfServiceUri = models.CharField(max_length=200)
 
     class Meta:
         db_table = "Partner"
@@ -16,13 +18,15 @@ class Partner(models.Model):
 class PartnerPattern(models.Model):
     partnerPatternId = models.AutoField(primary_key=True)
     partnerId = models.ForeignKey('Partner', db_column='partnerId')
-    pattern = models.CharField(max_length=200)
+    sourceUri = models.CharField(max_length=200)
+    targetUri = models.CharField(max_length=200)
     
     class Meta:
         db_table = "PartnerPattern"
 
 class SubscriptionTerm(models.Model):
     subscriptionTermId = models.AutoField(primary_key=True)
+    description = models.CharField(max_length=200)
     partnerId = models.ForeignKey('partner.Partner', db_column="partnerId")
     period = models.IntegerField()
     price = models.DecimalField(decimal_places=2,max_digits=6)
@@ -30,3 +34,20 @@ class SubscriptionTerm(models.Model):
 
     class Meta:
         db_table = "SubscriptionTerm"
+
+class SubscriptionDescriptionItem(models.Model):
+    subscriptionDescriptionItemId = models.AutoField(primary_key=True)
+    subscriptionDescriptionId = models.ForeignKey('SubscriptionDescription', db_column='subscriptionDescriptionId')
+    text = models.CharField(max_length=2048)
+
+    class Meta:
+        db_table = "SubscriptionDescriptionItem"
+
+class SubscriptionDescription(models.Model):
+    subscriptionDescriptionId = models.AutoField(primary_key=True)
+    header = models.CharField(max_length=200)
+    partnerId = models.ForeignKey('Partner', db_column='partnerId')
+    descriptionType = models.CharField(max_length=200, default='Default') # Default, Individual, Institution, Commercial
+
+    class Meta:
+        db_table = "SubscriptionDescription"

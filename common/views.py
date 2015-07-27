@@ -11,7 +11,10 @@ class GenericCRUDView(generics.GenericAPIView):
             if key in queryset.model._meta.get_all_field_names():
                 value = params[key]
                 filters = {key:value}
-                queryset = queryset.filter(**filters)
+                try:
+                    queryset = queryset.filter(**filters)
+                except ValueError:
+                    return []
         return queryset
 
     def get(self, request, format=None):

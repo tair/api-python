@@ -7,13 +7,14 @@ from django.db import models, migrations
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('partner', '0005_subscriptionterm'),
+        ('partner', '0003_subscriptiondescriptionitem_text'),
     ]
 
     operations = [
-        migrations.AlterField(
+        migrations.AddField(
             model_name='subscriptionterm',
-            name='period',
-            field=models.IntegerField(),
+            name='description',
+            field=models.CharField(default='1 Month', max_length=200),
+            preserve_default=False,
         ),
     ]

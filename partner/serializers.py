@@ -1,19 +1,29 @@
 #Copyright 2015 Phoenix Bioinformatics Corporation. All rights reserved.
 
-from partner.models import Partner, PartnerPattern, SubscriptionTerm
+from partner.models import Partner, PartnerPattern, SubscriptionTerm, SubscriptionDescription, SubscriptionDescriptionItem
 from rest_framework import serializers
 
 class PartnerSerializer(serializers.ModelSerializer):
     class Meta:
         model = Partner
-        fields = ('partnerId','name')
+        fields = ('partnerId','name','logoUri','termOfServiceUri')
 
 class PartnerPatternSerializer(serializers.ModelSerializer):
     class Meta:
         model = PartnerPattern
-        fields = ('partnerPatternId', 'partnerId','pattern')
+        fields = ('partnerPatternId', 'partnerId','sourceUri', 'targetUri')
 
 class SubscriptionTermSerializer(serializers.ModelSerializer):
     class Meta:
         model = SubscriptionTerm
-        fields = ('subscriptionTermId','period','price','groupDiscountPercentage','partnerId')
+        fields = ('subscriptionTermId','period','price','groupDiscountPercentage','partnerId','description')
+
+class SubscriptionDescriptionSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = SubscriptionDescription
+        fields = ('subscriptionDescriptionId', 'header', 'partnerId', 'descriptionType')
+
+class SubscriptionDescriptionItemSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = SubscriptionDescriptionItem
+        fields = ('subscriptionDescriptionItemId', 'subscriptionDescriptionId', 'text')
