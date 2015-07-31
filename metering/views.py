@@ -21,6 +21,7 @@ from django.db.models import F
 class IpAddressCountCRUD(GenericCRUDView):
     queryset = IpAddressCount.objects.all()
     serializer_class = IpAddressCountSerializer
+    requireApiKey = False
 
 # /limits/
 class LimitValueCRUD(GenericCRUDView):

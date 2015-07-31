@@ -33,6 +33,7 @@ from django.core.mail import send_mail
 class SubscriptionCRUD(GenericCRUDView):
     queryset = Subscription.objects.all()
     serializer_class = SubscriptionSerializer
+    requireApiKey = False
 
     # overrides default POST to create a subscription transaction
     def post(self, request):
@@ -106,6 +107,8 @@ class SubscriptionRenewal(generics.GenericAPIView):
 
 # /payments/
 class SubscriptionsPayment(APIView):
+    requireApiKey = False
+
     def get(self, request):
         message = {}
         if (not PaymentControl.isValidRequest(request, message)):

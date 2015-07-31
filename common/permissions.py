@@ -8,7 +8,6 @@ class ApiKeyPermission():
         # uncomment the following line and comment the line afterward
         # to enable cookie to pass in apiKey
         apiKey = view.request.COOKIES.get('apiKey')
-#        apiKey = view.request.GET.get('apiKey')
 
         if apiKey == None:
             return False

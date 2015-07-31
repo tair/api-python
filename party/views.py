@@ -29,6 +29,7 @@ class IpRangeCRUD(GenericCRUDView):
 #------------------- End of Basic CRUD operations --------------
 
 class OrganizationView(APIView):
+    requireApiKey = False
     def get(self, request, format=None):
         partnerId = request.GET.get('partnerId')
         if not Partner.objects.all().filter(partnerId=partnerId).exists():
@@ -45,6 +46,7 @@ class OrganizationView(APIView):
         return HttpResponse(json.dumps(out), content_type="application/json")
 
 class CountryView(APIView):
+    requireApiKey = False
     def get(self, request, format=None):
         obj = Country.objects.all()
         out = []
