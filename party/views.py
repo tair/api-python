@@ -39,10 +39,11 @@ class OrganizationView(APIView):
         objs = Subscription.objects.all().filter(partnerId=partnerId).values('partyId')
         for entry in objs:
             partyList.append(entry['partyId'])
-        obj = Party.objects.all().filter(partyId__in=partyList)
+        obj = Party.objects.all().filter(partyId__in=partyList) \
+                                 .filter(shouldDisplay=True)
         out = []
         for entry in obj:
-            out.append(entry.name)
+            out.append((entry.name, entry.country.name))
         return HttpResponse(json.dumps(out), content_type="application/json")
 
 class CountryView(APIView):
