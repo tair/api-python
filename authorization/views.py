@@ -8,6 +8,7 @@ from controls import Authorization
 from models import AccessType, AccessRule, UriPattern
 from serializers import AccessTypeSerializer, AccessRuleSerializer, UriPatternSerializer
 from partner.models import Partner
+from authentication.models import User
 from common.views import GenericCRUDView
 
 import json
@@ -28,10 +29,15 @@ class Access(APIView):
         partnerId = request.GET.get('partnerId')
         apiKey = request.COOKIES.get('apiKey')
 
-        status = Authorization.getAccessStatus(loginKey, ip, partyId, url, partnerId, getHostUrlFromRequest(request), apiKey)
+        status = Authorization.getAccessStatus(loginKey, ip, partyId, url, partnerId, getHostUrlFromRequest(request), apiKey)        
+        userIdentifier = None
+        if partyId and partyId.isdigit() and User.objects.all().filter(partyId=partyId).exists():
+            userIdentifier = User.objects.all().get(partyId=partyId).userIdentifier
         response = {
             "status":status,
+            "userIdentifier":userIdentifier,
         }
+
         return HttpResponse(json.dumps(response), content_type="application/json")
 
 # /subscriptions/
