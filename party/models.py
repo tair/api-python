@@ -14,7 +14,7 @@ class Party(models.Model):
     partyId = models.AutoField(primary_key=True)
     partyType = models.CharField(max_length=200, default='user')
     name = models.CharField(max_length=200, default='')
-    shouldDisplay = models.NullBooleanField(null=True, default=True)
+    display = models.BooleanField(default=True)
     country = models.ForeignKey('Country', null=True, default=334, db_column="countryId")
 
     @staticmethod
