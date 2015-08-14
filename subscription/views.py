@@ -8,6 +8,7 @@ from subscription.serializers import SubscriptionSerializer, SubscriptionTransac
 
 from partner.models import Partner, SubscriptionTerm
 from party.models import Party
+from authentication.models import User
 
 from rest_framework import status
 from rest_framework.response import Response
@@ -210,3 +211,18 @@ class CommercialSubscription(APIView):
         recipient_list = ["steve@getexp.com", "azeem@getexp.com"]
         send_mail(subject=subject, message=message, from_email=from_email, recipient_list=recipient_list)
         return HttpResponse(json.dumps({'message':'success'}), content_type="application/json")
+
+# /<userIdentifier>/expdatebyuseridentifier/
+class EndDate(generics.GenericAPIView):
+    def get(self, request):
+        partnerId=request.GET.get("partnerId")
+        userIdentifier=request.GET.get("userIdentifier")
+        expDate = ""
+        subscribed = False
+        if User.objects.filter(userIdentifier=userIdentifier).filter(partnerId=partnerId).exists():
+            partyId = User.objects.filter(userIdentifier=userIdentifier)[0].partyId.partyId
+            sub = Subscription.getActiveById(partyId, partnerId)
+            if len(sub)>0:
+                expDate = SubscriptionSerializer(sub[0]).data['endDate']
+                subscribed = True
+        return HttpResponse(json.dumps({'expDate':expDate, 'subscribed':subscribed}), content_type="application/json")
