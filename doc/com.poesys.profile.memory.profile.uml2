@@ -1,0 +1,102 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<uml:Profile xmi:version="2.0" xmlns:xmi="http://www.omg.org/XMI" xmlns:ecore="http://www.eclipse.org/emf/2002/Ecore" xmlns:uml="http://www.eclipse.org/uml2/1.0.0/UML" xmi:id="_16_9_90d0292_1302892256785_123121_1401" name="memory" metamodelReference="_16_9_90d0292_1302892256803_129897_1402">
+  <eAnnotations xmi:id="_btgr4UbUEeWY2qcg87dWeg" source="attributes">
+    <details xmi:id="_bthS8EbUEeWY2qcg87dWeg" key="version" value="0"/>
+  </eAnnotations>
+  <eAnnotations xmi:id="_bthS8UbUEeWY2qcg87dWeg" source="ePackages">
+    <contents xmi:type="ecore:EPackage" xmi:id="_bthS8kbUEeWY2qcg87dWeg" name="memory_0" nsURI="http:///memory_0_biypoEbUEeWY2qcg87dWeg.profile.uml2" nsPrefix="memory_0">
+      <eClassifiers xmi:type="ecore:EClass" xmi:id="_bthS80bUEeWY2qcg87dWeg" name="memory__Direct">
+        <eAnnotations xmi:id="_bthS9EbUEeWY2qcg87dWeg" source="http://www.eclipse.org/emf/2002/GenModel">
+          <details xmi:id="_bthS9UbUEeWY2qcg87dWeg" key="documentation" value="Direct memory management of DTOs, meaning no caching or messaging, just query from the database into POJO DTOs"/>
+        </eAnnotations>
+        <eAnnotations xmi:id="_bthS9kbUEeWY2qcg87dWeg" source="stereotype" references="_16_9_90d0292_1302892269326_656582_1403"/>
+      </eClassifiers>
+      <eClassifiers xmi:type="ecore:EClass" xmi:id="_bthS90bUEeWY2qcg87dWeg" name="memory__Distributed">
+        <eAnnotations xmi:id="_bthS-EbUEeWY2qcg87dWeg" source="http://www.eclipse.org/emf/2002/GenModel">
+          <details xmi:id="_bthS-UbUEeWY2qcg87dWeg" key="documentation" value="Memory management using memcached or another distributed cache that allows a clustered web application server to access DTO data from an external cache; a tagged value specifies the caching software used"/>
+        </eAnnotations>
+        <eAnnotations xmi:id="_bthS-kbUEeWY2qcg87dWeg" source="stereotype" references="_16_9_90d0292_1302892531985_61824_1424"/>
+        <eStructuralFeatures xmi:type="ecore:EAttribute" xmi:id="_bthS-0bUEeWY2qcg87dWeg" name="software" ordered="false" lowerBound="1" defaultValueLiteral="memcached">
+          <eAnnotations xmi:id="_bthS_EbUEeWY2qcg87dWeg" source="http://www.eclipse.org/emf/2002/GenModel">
+            <details xmi:id="_bthS_UbUEeWY2qcg87dWeg" key="documentation" value="The specific software used to implement the distributed cache; currently memcached is the only system supported"/>
+          </eAnnotations>
+          <eType xmi:type="ecore:EDataType" href="http://www.eclipse.org/emf/2002/Ecore#//EString"/>
+        </eStructuralFeatures>
+      </eClassifiers>
+      <eClassifiers xmi:type="ecore:EClass" xmi:id="_bthS_kbUEeWY2qcg87dWeg" name="memory__Clustered">
+        <eAnnotations xmi:id="_bthS_0bUEeWY2qcg87dWeg" source="http://www.eclipse.org/emf/2002/GenModel">
+          <details xmi:id="_bthTAEbUEeWY2qcg87dWeg" key="documentation" value="Cached memory management using a Java Map of Map caches, one per supported class containing all the DTOs of that class plus a messaging implementation that takes care of deleting updated/deleted nodes from all caches in a clustered system using a Publish/Subscribe messaging model"/>
+        </eAnnotations>
+        <eAnnotations xmi:id="_bthTAUbUEeWY2qcg87dWeg" source="stereotype" references="_16_9_90d0292_1302892423597_491430_1417"/>
+      </eClassifiers>
+      <eClassifiers xmi:type="ecore:EClass" xmi:id="_bthTAkbUEeWY2qcg87dWeg" name="memory__Cached">
+        <eAnnotations xmi:id="_bthTA0bUEeWY2qcg87dWeg" source="http://www.eclipse.org/emf/2002/GenModel">
+          <details xmi:id="_bthTBEbUEeWY2qcg87dWeg" key="documentation" value="Cached memory management using a Java Map of Map caches, one per supported class containing all the DTOs of that class"/>
+        </eAnnotations>
+        <eAnnotations xmi:id="_bthTBUbUEeWY2qcg87dWeg" source="stereotype" references="_16_9_90d0292_1302892338036_277306_1410"/>
+      </eClassifiers>
+    </contents>
+  </eAnnotations>
+  <packageImport xmi:id="_16_9_90d0292_1302892256803_129897_1402">
+    <importedPackage xmi:type="uml:Model" href="pathmap://UML2_METAMODELS/UML2.metamodel.uml2#_m8qbA686EdiEh75YJ_3n8g"/>
+  </packageImport>
+  <packageImport xmi:id="_EfRZoK86EdieaYgxtVWN8QprimitiveTypesmemory">
+    <importedPackage xmi:type="uml:Model" href="pathmap://UML2_LIBRARIES/UML2PrimitiveTypes.library.uml2#_EfRZoK86EdieaYgxtVWN8Q"/>
+  </packageImport>
+  <packageImport xmi:id="_RjmyoK86EdieaYgxtVWN8QjavaPrimitiveTypesmemory">
+    <importedPackage xmi:type="uml:Model" href="pathmap://UML2_LIBRARIES/JavaPrimitiveTypes.library.uml2#_RjmyoK86EdieaYgxtVWN8Q"/>
+  </packageImport>
+  <ownedMember xmi:type="uml:Stereotype" xmi:id="_16_9_90d0292_1302892269326_656582_1403" name="Direct">
+    <ownedComment xmi:id="_16_9_90d0292_1302892326123_155537_1409" body="Direct memory management of DTOs, meaning no caching or messaging, just query from the database into POJO DTOs" annotatedElement="_16_9_90d0292_1302892269326_656582_1403"/>
+    <ownedAttribute xmi:id="_16_9_90d0292_1302893013631_300602_1805" name="base_Package" visibility="private" association="_16_9_90d0292_1302893013631_959876_1804">
+      <type xmi:type="uml:Class" href="pathmap://UML2_METAMODELS/UML2.metamodel.uml2#_m82oYa86EdiEh75YJ_3n8g"/>
+    </ownedAttribute>
+  </ownedMember>
+  <ownedMember xmi:type="uml:Stereotype" xmi:id="_16_9_90d0292_1302892531985_61824_1424" name="Distributed">
+    <ownedComment xmi:id="_16_9_90d0292_1302892631683_325962_1430" body="Memory management using memcached or another distributed cache that allows a clustered web application server to access DTO data from an external cache; a tagged value specifies the caching software used" annotatedElement="_16_9_90d0292_1302892531985_61824_1424"/>
+    <ownedAttribute xmi:id="_16_9_90d0292_1302892635659_637102_1431" name="software">
+      <ownedComment xmi:id="_16_9_90d0292_1302892689504_216435_1432" body="The specific software used to implement the distributed cache; currently memcached is the only system supported" annotatedElement="_16_9_90d0292_1302892635659_637102_1431"/>
+      <type xmi:type="uml:PrimitiveType" href="pathmap://UML2_LIBRARIES/UML2PrimitiveTypes.library.uml2#_IXlH8a86EdieaYgxtVWN8Q"/>
+      <defaultValue xmi:type="uml:LiteralString" xmi:id="_16_9_90d0292_1302892704374_470612_1433" value="memcached"/>
+    </ownedAttribute>
+    <ownedAttribute xmi:id="_16_9_90d0292_1302893029991_526452_1810" name="base_Package" visibility="private" association="_16_9_90d0292_1302893029991_89877_1809">
+      <type xmi:type="uml:Class" href="pathmap://UML2_METAMODELS/UML2.metamodel.uml2#_m82oYa86EdiEh75YJ_3n8g"/>
+    </ownedAttribute>
+  </ownedMember>
+  <ownedMember xmi:type="uml:Stereotype" xmi:id="_16_9_90d0292_1302892423597_491430_1417" name="Clustered">
+    <ownedComment xmi:id="_16_9_90d0292_1302892504550_46979_1423" body="Cached memory management using a Java Map of Map caches, one per supported class containing all the DTOs of that class plus a messaging implementation that takes care of deleting updated/deleted nodes from all caches in a clustered system using a Publish/Subscribe messaging model" annotatedElement="_16_9_90d0292_1302892423597_491430_1417"/>
+    <ownedAttribute xmi:id="_16_9_90d0292_1302892995510_754175_1800" name="base_Package" visibility="private" association="_16_9_90d0292_1302892995510_690232_1799">
+      <type xmi:type="uml:Class" href="pathmap://UML2_METAMODELS/UML2.metamodel.uml2#_m82oYa86EdiEh75YJ_3n8g"/>
+    </ownedAttribute>
+  </ownedMember>
+  <ownedMember xmi:type="uml:Extension" xmi:id="_16_9_90d0292_1302893013631_959876_1804" memberEnd="_16_9_90d0292_1302893013631_599583_1806 _16_9_90d0292_1302893013631_300602_1805">
+    <ownedEnd xmi:type="uml:ExtensionEnd" xmi:id="_16_9_90d0292_1302893013631_599583_1806" name="extension_Direct" visibility="private" type="_16_9_90d0292_1302892269326_656582_1403" association="_16_9_90d0292_1302893013631_959876_1804" aggregation="composite">
+      <upperValue xmi:type="uml:LiteralUnlimitedNatural" xmi:id="_16_9_90d0292_1302893013631_973230_1808" value="1"/>
+      <lowerValue xmi:type="uml:LiteralInteger" xmi:id="_16_9_90d0292_1302893013631_545620_1807"/>
+    </ownedEnd>
+  </ownedMember>
+  <ownedMember xmi:type="uml:Stereotype" xmi:id="_16_9_90d0292_1302892338036_277306_1410" name="Cached">
+    <ownedComment xmi:id="_16_9_90d0292_1302892418878_185197_1416" body="Cached memory management using a Java Map of Map caches, one per supported class containing all the DTOs of that class" annotatedElement="_16_9_90d0292_1302892338036_277306_1410"/>
+    <ownedAttribute xmi:id="_16_9_90d0292_1302892973000_872040_1795" name="base_Package" visibility="private" association="_16_9_90d0292_1302892973000_404089_1794">
+      <type xmi:type="uml:Class" href="pathmap://UML2_METAMODELS/UML2.metamodel.uml2#_m82oYa86EdiEh75YJ_3n8g"/>
+    </ownedAttribute>
+  </ownedMember>
+  <ownedMember xmi:type="uml:Extension" xmi:id="_16_9_90d0292_1302893029991_89877_1809" memberEnd="_16_9_90d0292_1302893029991_822657_1811 _16_9_90d0292_1302893029991_526452_1810">
+    <ownedEnd xmi:type="uml:ExtensionEnd" xmi:id="_16_9_90d0292_1302893029991_822657_1811" name="extension_Distributed" visibility="private" type="_16_9_90d0292_1302892531985_61824_1424" association="_16_9_90d0292_1302893029991_89877_1809" aggregation="composite">
+      <upperValue xmi:type="uml:LiteralUnlimitedNatural" xmi:id="_16_9_90d0292_1302893029991_652507_1813" value="1"/>
+      <lowerValue xmi:type="uml:LiteralInteger" xmi:id="_16_9_90d0292_1302893029991_907381_1812"/>
+    </ownedEnd>
+  </ownedMember>
+  <ownedMember xmi:type="uml:Extension" xmi:id="_16_9_90d0292_1302892973000_404089_1794" memberEnd="_16_9_90d0292_1302892973000_809554_1796 _16_9_90d0292_1302892973000_872040_1795">
+    <ownedEnd xmi:type="uml:ExtensionEnd" xmi:id="_16_9_90d0292_1302892973000_809554_1796" name="extension_Cached" visibility="private" type="_16_9_90d0292_1302892338036_277306_1410" association="_16_9_90d0292_1302892973000_404089_1794" aggregation="composite">
+      <upperValue xmi:type="uml:LiteralUnlimitedNatural" xmi:id="_16_9_90d0292_1302892973000_710445_1798" value="1"/>
+      <lowerValue xmi:type="uml:LiteralInteger" xmi:id="_16_9_90d0292_1302892973000_190530_1797"/>
+    </ownedEnd>
+  </ownedMember>
+  <ownedMember xmi:type="uml:Extension" xmi:id="_16_9_90d0292_1302892995510_690232_1799" memberEnd="_16_9_90d0292_1302892995510_896722_1801 _16_9_90d0292_1302892995510_754175_1800">
+    <ownedEnd xmi:type="uml:ExtensionEnd" xmi:id="_16_9_90d0292_1302892995510_896722_1801" name="extension_Clustered" visibility="private" type="_16_9_90d0292_1302892423597_491430_1417" association="_16_9_90d0292_1302892995510_690232_1799" aggregation="composite">
+      <upperValue xmi:type="uml:LiteralUnlimitedNatural" xmi:id="_16_9_90d0292_1302892995510_854448_1803" value="1"/>
+      <lowerValue xmi:type="uml:LiteralInteger" xmi:id="_16_9_90d0292_1302892995510_2188_1802"/>
+    </ownedEnd>
+  </ownedMember>
+</uml:Profile>

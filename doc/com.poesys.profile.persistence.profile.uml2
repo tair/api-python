@@ -1,0 +1,295 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<uml:Profile xmi:version="2.0" xmlns:xmi="http://www.omg.org/XMI" xmlns:ecore="http://www.eclipse.org/emf/2002/Ecore" xmlns:uml="http://www.eclipse.org/uml2/1.0.0/UML" xmi:id="_16_0_90d0292_1252021595271_318891_652" name="persistence" metamodelReference="_16_0_90d0292_1252021595271_318891_652_packageImportcreatedOnLoad">
+  <eAnnotations xmi:id="_bthTKUbUEeWY2qcg87dWeg" source="attributes">
+    <details xmi:id="_bthTKkbUEeWY2qcg87dWeg" key="version" value="0"/>
+  </eAnnotations>
+  <eAnnotations xmi:id="_bthTK0bUEeWY2qcg87dWeg" source="ePackages">
+    <contents xmi:type="ecore:EPackage" xmi:id="_bthTLEbUEeWY2qcg87dWeg" name="persistence_0" nsURI="http:///persistence_0_bizQsEbUEeWY2qcg87dWeg.profile.uml2" nsPrefix="persistence_0">
+      <eClassifiers xmi:type="ecore:EClass" xmi:id="_bthTLUbUEeWY2qcg87dWeg" name="persistence__BooleanString">
+        <eAnnotations xmi:id="_bthTLkbUEeWY2qcg87dWeg" source="http://www.eclipse.org/emf/2002/GenModel">
+          <details xmi:id="_bthTL0bUEeWY2qcg87dWeg" key="documentation" value="Defines a property as a Boolean property (it should have a boolean or Boolean data type) that the persistence mechanism represents as a string (such as Y, N or T, F)"/>
+        </eAnnotations>
+        <eAnnotations xmi:id="_bthTMEbUEeWY2qcg87dWeg" source="stereotype" references="_16_6_2_90d0292_1276714027433_306720_1562"/>
+        <eStructuralFeatures xmi:type="ecore:EAttribute" xmi:id="_bthTMUbUEeWY2qcg87dWeg" name="representation" ordered="false" lowerBound="2" upperBound="2" defaultValueLiteral="">
+          <eAnnotations xmi:id="_bthTMkbUEeWY2qcg87dWeg" source="http://www.eclipse.org/emf/2002/GenModel">
+            <details xmi:id="_bthTM0bUEeWY2qcg87dWeg" key="documentation" value="the string representation as a two-element array of strings, the first of which means &quot;True&quot;, the second of which means &quot;False&quot;"/>
+          </eAnnotations>
+          <eType xmi:type="ecore:EDataType" href="http://www.eclipse.org/emf/2002/Ecore#//EString"/>
+        </eStructuralFeatures>
+      </eClassifiers>
+      <eClassifiers xmi:type="ecore:EClass" xmi:id="_bthTNEbUEeWY2qcg87dWeg" name="persistence__CrossDatabase">
+        <eAnnotations xmi:id="_bthTNUbUEeWY2qcg87dWeg" source="http://www.eclipse.org/emf/2002/GenModel">
+          <details xmi:id="_bthTNkbUEeWY2qcg87dWeg" key="documentation" value="Indicates that a generalization should be treated as being cross-database, meaning that the two classes are in different schemas in different databases and thus cannot have a foreign key implemented between them."/>
+        </eAnnotations>
+        <eAnnotations xmi:id="_bthTN0bUEeWY2qcg87dWeg" source="stereotype" references="_16_0_90d0292_1252021595284_46097_684"/>
+      </eClassifiers>
+      <eClassifiers xmi:type="ecore:EClass" xmi:id="_bthTOEbUEeWY2qcg87dWeg" name="persistence__Persistent">
+        <eAnnotations xmi:id="_bthTOUbUEeWY2qcg87dWeg" source="http://www.eclipse.org/emf/2002/GenModel">
+          <details xmi:id="_bthTOkbUEeWY2qcg87dWeg" key="documentation" value="a class or property that persists in a data store of some kind"/>
+        </eAnnotations>
+        <eAnnotations xmi:id="_bthTO0bUEeWY2qcg87dWeg" source="stereotype" references="_16_0_90d0292_1252021595281_289521_669"/>
+        <eStructuralFeatures xmi:type="ecore:EAttribute" xmi:id="_bthTPEbUEeWY2qcg87dWeg" name="name" ordered="false" upperBound="-1" defaultValueLiteral="">
+          <eAnnotations xmi:id="_bthTPUbUEeWY2qcg87dWeg" source="http://www.eclipse.org/emf/2002/GenModel">
+            <details xmi:id="_bthTPkbUEeWY2qcg87dWeg" key="documentation" value="the data store name for the table or column if different from the class or property name"/>
+          </eAnnotations>
+          <eType xmi:type="ecore:EDataType" href="http://www.eclipse.org/emf/2002/Ecore#//EString"/>
+        </eStructuralFeatures>
+        <eStructuralFeatures xmi:type="ecore:EAttribute" xmi:id="_bthTP0bUEeWY2qcg87dWeg" name="readOnly" ordered="false" lowerBound="1" defaultValueLiteral="false">
+          <eAnnotations xmi:id="_bthTQEbUEeWY2qcg87dWeg" source="http://www.eclipse.org/emf/2002/GenModel">
+            <details xmi:id="_bthTQUbUEeWY2qcg87dWeg" key="documentation" value="whether the class or property is read only; a read-only class does not require insert-update-delete operations and strategies; a read-only property does not require a setter accessor"/>
+          </eAnnotations>
+          <eType xmi:type="ecore:EDataType" href="http://www.eclipse.org/emf/2002/Ecore#//EBoolean"/>
+        </eStructuralFeatures>
+        <eStructuralFeatures xmi:type="ecore:EAttribute" xmi:id="_bthTQkbUEeWY2qcg87dWeg" name="fetchSize" ordered="false" lowerBound="1">
+          <eAnnotations xmi:id="_bthTQ0bUEeWY2qcg87dWeg" source="http://www.eclipse.org/emf/2002/GenModel">
+            <details xmi:id="_bthTREbUEeWY2qcg87dWeg" key="documentation" value="The JDBC fetch size for queries of this object or property"/>
+          </eAnnotations>
+          <eType xmi:type="ecore:EDataType" href="http://www.eclipse.org/emf/2002/Ecore#//EInt"/>
+        </eStructuralFeatures>
+        <eStructuralFeatures xmi:type="ecore:EAttribute" xmi:id="_bthTRUbUEeWY2qcg87dWeg" name="batchSize" ordered="false" lowerBound="1">
+          <eType xmi:type="ecore:EDataType" href="http://www.eclipse.org/emf/2002/Ecore#//EInt"/>
+        </eStructuralFeatures>
+        <eStructuralFeatures xmi:type="ecore:EAttribute" xmi:id="_bthTRkbUEeWY2qcg87dWeg" name="objectName" ordered="false" lowerBound="1" defaultValueLiteral="">
+          <eAnnotations xmi:id="_bthTR0bUEeWY2qcg87dWeg" source="http://www.eclipse.org/emf/2002/GenModel">
+            <details xmi:id="_bthTSEbUEeWY2qcg87dWeg" key="documentation" value="the name of the object in the Java association class that corresponds to the object linked from the associated class; permits a singular name with the associationEnd name being plural and used for the collection of objects in the associating classes; also appears as a constraint name on the foreign-key constraint corresponding to the association"/>
+          </eAnnotations>
+          <eType xmi:type="ecore:EDataType" href="http://www.eclipse.org/emf/2002/Ecore#//EString"/>
+        </eStructuralFeatures>
+        <eStructuralFeatures xmi:type="ecore:EAttribute" xmi:id="_bthTSUbUEeWY2qcg87dWeg" name="expiration" ordered="false" lowerBound="1">
+          <eAnnotations xmi:id="_bthTSkbUEeWY2qcg87dWeg" source="http://www.eclipse.org/emf/2002/GenModel">
+            <details xmi:id="_bthTS0bUEeWY2qcg87dWeg" key="documentation" value="the expiration time, in milliseconds, for a persistent object in a target caching system that supports object expiration; default is Integer.MAX_SIZE, the maximum integer supported; 0 means expire immediately (don't cache); has no effect if the caching system does not support expiration"/>
+          </eAnnotations>
+          <eType xmi:type="ecore:EDataType" href="http://www.eclipse.org/emf/2002/Ecore#//EInt"/>
+        </eStructuralFeatures>
+      </eClassifiers>
+      <eClassifiers xmi:type="ecore:EClass" xmi:id="_bthTTEbUEeWY2qcg87dWeg" name="persistence__Subsystem">
+        <eAnnotations xmi:id="_bthTTUbUEeWY2qcg87dWeg" source="http://www.eclipse.org/emf/2002/GenModel">
+          <details xmi:id="_bthTTkbUEeWY2qcg87dWeg" key="documentation" value="A subsystem containing one or more persistent classes and a factory that generates various components of the implementation for the persistent objects"/>
+        </eAnnotations>
+        <eAnnotations xmi:id="_bthTT0bUEeWY2qcg87dWeg" source="stereotype" references="_16_0_90d0292_1252021595283_536746_678"/>
+        <eStructuralFeatures xmi:type="ecore:EAttribute" xmi:id="_bthTUEbUEeWY2qcg87dWeg" name="businessPackage" ordered="false" lowerBound="1" defaultValueLiteral="">
+          <eType xmi:type="ecore:EDataType" href="http://www.eclipse.org/emf/2002/Ecore#//EString"/>
+        </eStructuralFeatures>
+      </eClassifiers>
+      <eClassifiers xmi:type="ecore:EClass" xmi:id="_bthTUUbUEeWY2qcg87dWeg" name="persistence__Lazy">
+        <eAnnotations xmi:id="_bthTUkbUEeWY2qcg87dWeg" source="http://www.eclipse.org/emf/2002/GenModel">
+          <details xmi:id="_bthTU0bUEeWY2qcg87dWeg" key="documentation" value="a property that loads lazily rather than loading immediately with the other attributes; usually a property that is an association end"/>
+        </eAnnotations>
+        <eAnnotations xmi:id="_bthTVEbUEeWY2qcg87dWeg" source="stereotype" references="_16_0_90d0292_1252021595282_703328_674"/>
+      </eClassifiers>
+      <eClassifiers xmi:type="ecore:EClass" xmi:id="_bthTVUbUEeWY2qcg87dWeg" name="persistence__SizedProperty">
+        <eAnnotations xmi:id="_bthTVkbUEeWY2qcg87dWeg" source="http://www.eclipse.org/emf/2002/GenModel">
+          <details xmi:id="_bthTV0bUEeWY2qcg87dWeg" key="documentation" value="a property having a length (string, varchar, character, clob, blob, and so on)"/>
+        </eAnnotations>
+        <eAnnotations xmi:id="_bthTWEbUEeWY2qcg87dWeg" source="stereotype" references="_16_0_90d0292_1252021595282_356341_676"/>
+        <eStructuralFeatures xmi:type="ecore:EAttribute" xmi:id="_bthTWUbUEeWY2qcg87dWeg" name="length" ordered="false" lowerBound="1">
+          <eType xmi:type="ecore:EDataType" href="http://www.eclipse.org/emf/2002/Ecore#//EInt"/>
+        </eStructuralFeatures>
+      </eClassifiers>
+      <eClassifiers xmi:type="ecore:EClass" xmi:id="_bthTWkbUEeWY2qcg87dWeg" name="persistence__Immutable">
+        <eAnnotations xmi:id="_bthTW0bUEeWY2qcg87dWeg" source="http://www.eclipse.org/emf/2002/GenModel">
+          <details xmi:id="_bthTXEbUEeWY2qcg87dWeg" key="documentation" value="specifies that the class cannot change once created; the system generates no updators or setter access methods for data members and no update methods on the delegates"/>
+        </eAnnotations>
+        <eAnnotations xmi:id="_bthTXUbUEeWY2qcg87dWeg" source="stereotype" references="_16_0_90d0292_1252021595283_432397_680"/>
+      </eClassifiers>
+      <eClassifiers xmi:type="ecore:EClass" xmi:id="_bthTXkbUEeWY2qcg87dWeg" name="persistence__Unremovable">
+        <eAnnotations xmi:id="_bthTX0bUEeWY2qcg87dWeg" source="http://www.eclipse.org/emf/2002/GenModel">
+          <details xmi:id="_bthTYEbUEeWY2qcg87dWeg" key="documentation" value="The application cannot remove the persistent object once created (cannot delete from the database); the system generates no delete SQL classes or delete methods on the delegates"/>
+        </eAnnotations>
+        <eAnnotations xmi:id="_bthTYUbUEeWY2qcg87dWeg" source="stereotype" references="_16_0_90d0292_1252021595283_793747_682"/>
+      </eClassifiers>
+      <eClassifiers xmi:type="ecore:EClass" xmi:id="_bthTYkbUEeWY2qcg87dWeg" name="persistence__Number">
+        <eAnnotations xmi:id="_bthTY0bUEeWY2qcg87dWeg" source="http://www.eclipse.org/emf/2002/GenModel">
+          <details xmi:id="_bthTZEbUEeWY2qcg87dWeg" key="documentation" value="a numeric property having a scale and precision"/>
+        </eAnnotations>
+        <eAnnotations xmi:id="_bthTZUbUEeWY2qcg87dWeg" source="stereotype" references="_16_0_90d0292_1252021595282_289530_672"/>
+        <eStructuralFeatures xmi:type="ecore:EAttribute" xmi:id="_bthTZkbUEeWY2qcg87dWeg" name="precision" ordered="false">
+          <eType xmi:type="ecore:EDataType" href="http://www.eclipse.org/emf/2002/Ecore#//EInt"/>
+        </eStructuralFeatures>
+        <eStructuralFeatures xmi:type="ecore:EAttribute" xmi:id="_bthTZ0bUEeWY2qcg87dWeg" name="scale" ordered="false">
+          <eType xmi:type="ecore:EDataType" href="http://www.eclipse.org/emf/2002/Ecore#//EInt"/>
+        </eStructuralFeatures>
+      </eClassifiers>
+    </contents>
+  </eAnnotations>
+  <packageImport xmi:id="_16_0_90d0292_1252021595271_318891_652_packageImportcreatedOnLoad">
+    <importedPackage xmi:type="uml:Model" href="pathmap://UML2_METAMODELS/UML2.metamodel.uml2#_m8qbA686EdiEh75YJ_3n8g"/>
+  </packageImport>
+  <packageImport xmi:id="_EfRZoK86EdieaYgxtVWN8QprimitiveTypespersistence">
+    <importedPackage xmi:type="uml:Model" href="pathmap://UML2_LIBRARIES/UML2PrimitiveTypes.library.uml2#_EfRZoK86EdieaYgxtVWN8Q"/>
+  </packageImport>
+  <packageImport xmi:id="_RjmyoK86EdieaYgxtVWN8QjavaPrimitiveTypespersistence">
+    <importedPackage xmi:type="uml:Model" href="pathmap://UML2_LIBRARIES/JavaPrimitiveTypes.library.uml2#_RjmyoK86EdieaYgxtVWN8Q"/>
+  </packageImport>
+  <ownedMember xmi:type="uml:Extension" xmi:id="_16_0_90d0292_1252021595283_802267_677" memberEnd="_16_0_90d0292_1252021595295_530073_735 _16_0_90d0292_1252021595294_863054_732">
+    <ownedEnd xmi:type="uml:ExtensionEnd" xmi:id="_16_0_90d0292_1252021595295_530073_735" name="extension_SizedProperty" visibility="private" type="_16_0_90d0292_1252021595282_356341_676" association="_16_0_90d0292_1252021595283_802267_677" aggregation="composite">
+      <upperValue xmi:type="uml:LiteralUnlimitedNatural" xmi:id="_16_0_90d0292_1252021595301_34431_801" value="1"/>
+      <lowerValue xmi:type="uml:LiteralInteger" xmi:id="_16_0_90d0292_1252021595301_107239_800"/>
+    </ownedEnd>
+  </ownedMember>
+  <ownedMember xmi:type="uml:Stereotype" xmi:id="_16_6_2_90d0292_1276714027433_306720_1562" name="BooleanString">
+    <ownedComment xmi:id="_16_6_2_90d0292_1276714027436_219522_1564" body="Defines a property as a Boolean property (it should have a boolean or Boolean data type) that the persistence mechanism represents as a string (such as Y, N or T, F)" annotatedElement="_16_6_2_90d0292_1276714027433_306720_1562"/>
+    <ownedAttribute xmi:id="_16_6_2_90d0292_1276714027437_564914_1569" name="base_Property" visibility="private" association="_16_6_2_90d0292_1276714027437_857278_1568">
+      <type xmi:type="uml:Class" href="pathmap://UML2_METAMODELS/UML2.metamodel.uml2#_m9C1la86EdiEh75YJ_3n8g"/>
+    </ownedAttribute>
+    <ownedAttribute xmi:id="_16_6_2_90d0292_1276714027435_922513_1563" name="representation">
+      <ownedComment xmi:id="_16_6_2_90d0292_1276714027436_875436_1566" body="the string representation as a two-element array of strings, the first of which means &quot;True&quot;, the second of which means &quot;False&quot;" annotatedElement="_16_6_2_90d0292_1276714027435_922513_1563"/>
+      <type xmi:type="uml:PrimitiveType" href="pathmap://UML2_LIBRARIES/UML2PrimitiveTypes.library.uml2#_IXlH8a86EdieaYgxtVWN8Q"/>
+      <upperValue xmi:type="uml:LiteralUnlimitedNatural" xmi:id="_16_6_2_90d0292_1276714027436_647599_1567" value="2"/>
+      <lowerValue xmi:type="uml:LiteralInteger" xmi:id="_16_6_2_90d0292_1276714027436_261946_1565" value="2"/>
+    </ownedAttribute>
+  </ownedMember>
+  <ownedMember xmi:type="uml:Stereotype" xmi:id="_16_0_90d0292_1252021595284_46097_684" name="CrossDatabase">
+    <ownedComment xmi:id="_16_0_90d0292_1252021595297_77216_747" body="Indicates that a generalization should be treated as being cross-database, meaning that the two classes are in different schemas in different databases and thus cannot have a foreign key implemented between them." annotatedElement="_16_0_90d0292_1252021595284_46097_684"/>
+    <ownedAttribute xmi:id="_16_0_90d0292_1252021595296_706784_746" name="base_Generalization" visibility="private" association="_16_0_90d0292_1252021595284_288050_685">
+      <type xmi:type="uml:Class" href="pathmap://UML2_METAMODELS/UML2.metamodel.uml2#_m9C1da86EdiEh75YJ_3n8g"/>
+    </ownedAttribute>
+  </ownedMember>
+  <ownedMember xmi:type="uml:Extension" xmi:id="_16_0_90d0292_1252021595284_433951_683" memberEnd="_16_0_90d0292_1252021595296_90715_745 _16_0_90d0292_1252021595296_472899_743">
+    <ownedEnd xmi:type="uml:ExtensionEnd" xmi:id="_16_0_90d0292_1252021595296_90715_745" name="extension_Unremovable" visibility="private" type="_16_0_90d0292_1252021595283_793747_682" association="_16_0_90d0292_1252021595284_433951_683" aggregation="composite">
+      <upperValue xmi:type="uml:LiteralUnlimitedNatural" xmi:id="_16_0_90d0292_1252021595301_402008_809" value="1"/>
+      <lowerValue xmi:type="uml:LiteralInteger" xmi:id="_16_0_90d0292_1252021595301_280794_808"/>
+    </ownedEnd>
+  </ownedMember>
+  <ownedMember xmi:type="uml:Stereotype" xmi:id="_16_0_90d0292_1252021595281_289521_669" name="Persistent">
+    <ownedComment xmi:id="_16_0_90d0292_1252021595292_695857_721" body="a class or property that persists in a data store of some kind" annotatedElement="_16_0_90d0292_1252021595281_289521_669"/>
+    <ownedAttribute xmi:id="_16_0_90d0292_1252021595291_770784_715" name="base_Property" visibility="private" association="_16_0_90d0292_1252021595281_483445_671">
+      <type xmi:type="uml:Class" href="pathmap://UML2_METAMODELS/UML2.metamodel.uml2#_m9C1la86EdiEh75YJ_3n8g"/>
+    </ownedAttribute>
+    <ownedAttribute xmi:id="_16_0_90d0292_1252021595291_357251_716" name="base_Class" visibility="private" association="_16_0_90d0292_1252021595281_680994_670">
+      <type xmi:type="uml:Class" href="pathmap://UML2_METAMODELS/UML2.metamodel.uml2#_m88uxq86EdiEh75YJ_3n8g"/>
+    </ownedAttribute>
+    <ownedAttribute xmi:id="_16_0_90d0292_1252021595292_506250_717" name="name">
+      <ownedComment xmi:id="_16_0_90d0292_1252021595299_116275_779" body="the data store name for the table or column if different from the class or property name" annotatedElement="_16_0_90d0292_1252021595292_506250_717"/>
+      <type xmi:type="uml:PrimitiveType" href="pathmap://UML2_LIBRARIES/UML2PrimitiveTypes.library.uml2#_IXlH8a86EdieaYgxtVWN8Q"/>
+      <upperValue xmi:type="uml:LiteralUnlimitedNatural" xmi:id="_16_0_90d0292_1252021595299_660798_780" value="-1"/>
+      <lowerValue xmi:type="uml:LiteralInteger" xmi:id="_16_0_90d0292_1252021595299_189619_778"/>
+    </ownedAttribute>
+    <ownedAttribute xmi:id="_16_0_90d0292_1252021595292_435636_718" name="readOnly">
+      <ownedComment xmi:id="_16_0_90d0292_1252021595300_647763_783" body="whether the class or property is read only; a read-only class does not require insert-update-delete operations and strategies; a read-only property does not require a setter accessor" annotatedElement="_16_0_90d0292_1252021595292_435636_718"/>
+      <type xmi:type="uml:PrimitiveType" href="pathmap://UML2_LIBRARIES/UML2PrimitiveTypes.library.uml2#_IXfBUK86EdieaYgxtVWN8Q"/>
+      <upperValue xmi:type="uml:LiteralUnlimitedNatural" xmi:id="_16_0_90d0292_1252021595300_814973_784" value="1"/>
+      <lowerValue xmi:type="uml:LiteralInteger" xmi:id="_16_0_90d0292_1252021595300_941691_782" value="1"/>
+      <defaultValue xmi:type="uml:LiteralBoolean" xmi:id="_16_0_90d0292_1252021595299_657771_781"/>
+    </ownedAttribute>
+    <ownedAttribute xmi:id="_16_0_90d0292_1252021595292_348447_719" name="fetchSize">
+      <ownedComment xmi:id="_16_0_90d0292_1252021595300_678085_785" body="The JDBC fetch size for queries of this object or property" annotatedElement="_16_0_90d0292_1252021595292_348447_719"/>
+      <type xmi:type="uml:PrimitiveType" href="pathmap://UML2_LIBRARIES/UML2PrimitiveTypes.library.uml2#_IXlH8K86EdieaYgxtVWN8Q"/>
+    </ownedAttribute>
+    <ownedAttribute xmi:id="_16_0_90d0292_1252021595292_832882_720" name="batchSize">
+      <type xmi:type="uml:PrimitiveType" href="pathmap://UML2_LIBRARIES/UML2PrimitiveTypes.library.uml2#_IXlH8K86EdieaYgxtVWN8Q"/>
+    </ownedAttribute>
+    <ownedAttribute xmi:id="_16_9_90d0292_1297303045584_185283_1401" name="objectName">
+      <ownedComment xmi:id="_16_9_90d0292_1297303235376_931226_1762" body="the name of the object in the Java association class that corresponds to the object linked from the associated class; permits a singular name with the associationEnd name being plural and used for the collection of objects in the associating classes; also appears as a constraint name on the foreign-key constraint corresponding to the association" annotatedElement="_16_9_90d0292_1297303045584_185283_1401"/>
+      <type xmi:type="uml:PrimitiveType" href="pathmap://UML2_LIBRARIES/UML2PrimitiveTypes.library.uml2#_IXlH8a86EdieaYgxtVWN8Q"/>
+    </ownedAttribute>
+    <ownedAttribute xmi:id="_16_9_90d0292_1304620187371_798916_1401" name="expiration">
+      <ownedComment xmi:id="_16_9_90d0292_1304620311931_662873_1402" body="the expiration time, in milliseconds, for a persistent object in a target caching system that supports object expiration; default is Integer.MAX_SIZE, the maximum integer supported; 0 means expire immediately (don't cache); has no effect if the caching system does not support expiration" annotatedElement="_16_9_90d0292_1304620187371_798916_1401"/>
+      <type xmi:type="uml:PrimitiveType" href="pathmap://UML2_LIBRARIES/UML2PrimitiveTypes.library.uml2#_IXlH8K86EdieaYgxtVWN8Q"/>
+    </ownedAttribute>
+  </ownedMember>
+  <ownedMember xmi:type="uml:Extension" xmi:id="_16_0_90d0292_1252021595281_483445_671" memberEnd="_16_0_90d0292_1252021595293_846585_723 _16_0_90d0292_1252021595291_770784_715">
+    <ownedEnd xmi:type="uml:ExtensionEnd" xmi:id="_16_0_90d0292_1252021595293_846585_723" name="extension_Persistent" visibility="private" type="_16_0_90d0292_1252021595281_289521_669" association="_16_0_90d0292_1252021595281_483445_671" aggregation="composite">
+      <upperValue xmi:type="uml:LiteralUnlimitedNatural" xmi:id="_16_0_90d0292_1252021595300_842453_789" value="1"/>
+      <lowerValue xmi:type="uml:LiteralInteger" xmi:id="_16_0_90d0292_1252021595300_416563_788"/>
+    </ownedEnd>
+  </ownedMember>
+  <ownedMember xmi:type="uml:Extension" xmi:id="_16_0_90d0292_1252021595284_288050_685" memberEnd="_16_0_90d0292_1252021595297_375067_748 _16_0_90d0292_1252021595296_706784_746">
+    <ownedEnd xmi:type="uml:ExtensionEnd" xmi:id="_16_0_90d0292_1252021595297_375067_748" name="extension_CrossDatabase" visibility="private" type="_16_0_90d0292_1252021595284_46097_684" association="_16_0_90d0292_1252021595284_288050_685" aggregation="composite">
+      <upperValue xmi:type="uml:LiteralUnlimitedNatural" xmi:id="_16_0_90d0292_1252021595301_445334_811" value="1"/>
+      <lowerValue xmi:type="uml:LiteralInteger" xmi:id="_16_0_90d0292_1252021595301_450606_810"/>
+    </ownedEnd>
+  </ownedMember>
+  <ownedMember xmi:type="uml:Stereotype" xmi:id="_16_0_90d0292_1252021595283_536746_678" name="Subsystem">
+    <ownedComment xmi:id="_16_0_90d0292_1252021595295_718409_738" body="A subsystem containing one or more persistent classes and a factory that generates various components of the implementation for the persistent objects" annotatedElement="_16_0_90d0292_1252021595283_536746_678"/>
+    <ownedAttribute xmi:id="_16_0_90d0292_1252021595295_143889_736" name="base_Package" visibility="private" association="_16_0_90d0292_1252021595283_18089_679">
+      <type xmi:type="uml:Class" href="pathmap://UML2_METAMODELS/UML2.metamodel.uml2#_m82oYa86EdiEh75YJ_3n8g"/>
+    </ownedAttribute>
+    <ownedAttribute xmi:id="_16_0_90d0292_1252021595295_691732_737" name="businessPackage">
+      <type xmi:type="uml:PrimitiveType" href="pathmap://UML2_LIBRARIES/UML2PrimitiveTypes.library.uml2#_IXlH8a86EdieaYgxtVWN8Q"/>
+      <upperValue xmi:type="uml:LiteralUnlimitedNatural" xmi:id="_16_0_90d0292_1252021595301_735184_803" value="1"/>
+      <lowerValue xmi:type="uml:LiteralInteger" xmi:id="_16_0_90d0292_1252021595301_751420_802" value="1"/>
+    </ownedAttribute>
+  </ownedMember>
+  <ownedMember xmi:type="uml:Stereotype" xmi:id="_16_0_90d0292_1252021595282_703328_674" name="Lazy">
+    <ownedComment xmi:id="_16_0_90d0292_1252021595294_543242_730" body="a property that loads lazily rather than loading immediately with the other attributes; usually a property that is an association end" annotatedElement="_16_0_90d0292_1252021595282_703328_674"/>
+    <ownedAttribute xmi:id="_16_0_90d0292_1252021595294_522699_729" name="base_Property" visibility="private" association="_16_0_90d0292_1252021595282_839422_675">
+      <type xmi:type="uml:Class" href="pathmap://UML2_METAMODELS/UML2.metamodel.uml2#_m9C1la86EdiEh75YJ_3n8g"/>
+    </ownedAttribute>
+  </ownedMember>
+  <ownedMember xmi:type="uml:Stereotype" xmi:id="_16_0_90d0292_1252021595282_356341_676" name="SizedProperty">
+    <ownedComment xmi:id="_16_0_90d0292_1252021595295_67744_734" body="a property having a length (string, varchar, character, clob, blob, and so on)" annotatedElement="_16_0_90d0292_1252021595282_356341_676"/>
+    <ownedAttribute xmi:id="_16_0_90d0292_1252021595294_863054_732" name="base_Property" visibility="private" association="_16_0_90d0292_1252021595283_802267_677">
+      <type xmi:type="uml:Class" href="pathmap://UML2_METAMODELS/UML2.metamodel.uml2#_m9C1la86EdiEh75YJ_3n8g"/>
+    </ownedAttribute>
+    <ownedAttribute xmi:id="_16_0_90d0292_1252021595294_896847_733" name="length">
+      <type xmi:type="uml:PrimitiveType" href="pathmap://UML2_LIBRARIES/UML2PrimitiveTypes.library.uml2#_IXlH8K86EdieaYgxtVWN8Q"/>
+      <upperValue xmi:type="uml:LiteralUnlimitedNatural" xmi:id="_16_0_90d0292_1252021595301_340201_799" value="1"/>
+      <lowerValue xmi:type="uml:LiteralInteger" xmi:id="_16_0_90d0292_1252021595301_297025_798" value="1"/>
+    </ownedAttribute>
+  </ownedMember>
+  <ownedMember xmi:type="uml:Extension" xmi:id="_16_0_90d0292_1252021595283_18089_679" memberEnd="_16_0_90d0292_1252021595295_726860_739 _16_0_90d0292_1252021595295_143889_736">
+    <ownedEnd xmi:type="uml:ExtensionEnd" xmi:id="_16_0_90d0292_1252021595295_726860_739" name="extension_Subsystem" visibility="private" type="_16_0_90d0292_1252021595283_536746_678" association="_16_0_90d0292_1252021595283_18089_679" aggregation="composite">
+      <upperValue xmi:type="uml:LiteralUnlimitedNatural" xmi:id="_16_0_90d0292_1252021595301_323292_805" value="1"/>
+      <lowerValue xmi:type="uml:LiteralInteger" xmi:id="_16_0_90d0292_1252021595301_959205_804"/>
+    </ownedEnd>
+  </ownedMember>
+  <ownedMember xmi:type="uml:Stereotype" xmi:id="_16_0_90d0292_1252021595283_432397_680" name="Immutable">
+    <ownedComment xmi:id="_16_0_90d0292_1252021595296_307624_741" body="specifies that the class cannot change once created; the system generates no updators or setter access methods for data members and no update methods on the delegates" annotatedElement="_16_0_90d0292_1252021595283_432397_680"/>
+    <ownedAttribute xmi:id="_16_0_90d0292_1252021595296_489264_740" name="base_Class" visibility="private" association="_16_0_90d0292_1252021595283_680415_681">
+      <type xmi:type="uml:Class" href="pathmap://UML2_METAMODELS/UML2.metamodel.uml2#_m88uxq86EdiEh75YJ_3n8g"/>
+    </ownedAttribute>
+  </ownedMember>
+  <ownedMember xmi:type="uml:Extension" xmi:id="_16_6_2_90d0292_1276714027437_857278_1568" memberEnd="_16_6_2_90d0292_1276714027437_915443_1570 _16_6_2_90d0292_1276714027437_564914_1569">
+    <ownedEnd xmi:type="uml:ExtensionEnd" xmi:id="_16_6_2_90d0292_1276714027437_915443_1570" name="extension_BooleanString" visibility="private" type="_16_6_2_90d0292_1276714027433_306720_1562" association="_16_6_2_90d0292_1276714027437_857278_1568" aggregation="composite">
+      <upperValue xmi:type="uml:LiteralUnlimitedNatural" xmi:id="_16_6_2_90d0292_1276714027438_389160_1572" value="1"/>
+      <lowerValue xmi:type="uml:LiteralInteger" xmi:id="_16_6_2_90d0292_1276714027438_46822_1571"/>
+    </ownedEnd>
+  </ownedMember>
+  <ownedMember xmi:type="uml:Extension" xmi:id="_16_0_90d0292_1252021595283_680415_681" memberEnd="_16_0_90d0292_1252021595296_547982_742 _16_0_90d0292_1252021595296_489264_740">
+    <ownedEnd xmi:type="uml:ExtensionEnd" xmi:id="_16_0_90d0292_1252021595296_547982_742" name="extension_Immutable" visibility="private" type="_16_0_90d0292_1252021595283_432397_680" association="_16_0_90d0292_1252021595283_680415_681" aggregation="composite">
+      <upperValue xmi:type="uml:LiteralUnlimitedNatural" xmi:id="_16_0_90d0292_1252021595301_415998_807" value="1"/>
+      <lowerValue xmi:type="uml:LiteralInteger" xmi:id="_16_0_90d0292_1252021595301_175626_806"/>
+    </ownedEnd>
+  </ownedMember>
+  <ownedMember xmi:type="uml:Stereotype" xmi:id="_16_0_90d0292_1252021595283_793747_682" name="Unremovable">
+    <ownedComment xmi:id="_16_0_90d0292_1252021595296_973036_744" body="The application cannot remove the persistent object once created (cannot delete from the database); the system generates no delete SQL classes or delete methods on the delegates" annotatedElement="_16_0_90d0292_1252021595283_793747_682"/>
+    <ownedAttribute xmi:id="_16_0_90d0292_1252021595296_472899_743" name="base_Class" visibility="private" association="_16_0_90d0292_1252021595284_433951_683">
+      <type xmi:type="uml:Class" href="pathmap://UML2_METAMODELS/UML2.metamodel.uml2#_m88uxq86EdiEh75YJ_3n8g"/>
+    </ownedAttribute>
+  </ownedMember>
+  <ownedMember xmi:type="uml:Extension" xmi:id="_16_0_90d0292_1252021595281_680994_670" memberEnd="_16_0_90d0292_1252021595292_321141_722 _16_0_90d0292_1252021595291_357251_716">
+    <ownedEnd xmi:type="uml:ExtensionEnd" xmi:id="_16_0_90d0292_1252021595292_321141_722" name="extension_Persistent" visibility="private" type="_16_0_90d0292_1252021595281_289521_669" association="_16_0_90d0292_1252021595281_680994_670" aggregation="composite">
+      <upperValue xmi:type="uml:LiteralUnlimitedNatural" xmi:id="_16_0_90d0292_1252021595300_38723_787" value="1"/>
+      <lowerValue xmi:type="uml:LiteralInteger" xmi:id="_16_0_90d0292_1252021595300_729865_786"/>
+    </ownedEnd>
+  </ownedMember>
+  <ownedMember xmi:type="uml:Extension" xmi:id="_16_0_90d0292_1252021595282_501726_673" memberEnd="_16_0_90d0292_1252021595294_387950_728 _16_0_90d0292_1252021595293_698488_724">
+    <ownedEnd xmi:type="uml:ExtensionEnd" xmi:id="_16_0_90d0292_1252021595294_387950_728" name="extension_Number" visibility="private" type="_16_0_90d0292_1252021595282_289530_672" association="_16_0_90d0292_1252021595282_501726_673" aggregation="composite">
+      <upperValue xmi:type="uml:LiteralUnlimitedNatural" xmi:id="_16_0_90d0292_1252021595300_94007_795" value="1"/>
+      <lowerValue xmi:type="uml:LiteralInteger" xmi:id="_16_0_90d0292_1252021595300_703330_794"/>
+    </ownedEnd>
+  </ownedMember>
+  <ownedMember xmi:type="uml:Stereotype" xmi:id="_16_0_90d0292_1252021595282_289530_672" name="Number">
+    <ownedComment xmi:id="_16_0_90d0292_1252021595293_140095_727" body="a numeric property having a scale and precision" annotatedElement="_16_0_90d0292_1252021595282_289530_672"/>
+    <ownedAttribute xmi:id="_16_0_90d0292_1252021595293_698488_724" name="base_Property" visibility="private" association="_16_0_90d0292_1252021595282_501726_673">
+      <type xmi:type="uml:Class" href="pathmap://UML2_METAMODELS/UML2.metamodel.uml2#_m9C1la86EdiEh75YJ_3n8g"/>
+    </ownedAttribute>
+    <ownedAttribute xmi:id="_16_0_90d0292_1252021595293_522037_725" name="precision">
+      <type xmi:type="uml:PrimitiveType" href="pathmap://UML2_LIBRARIES/UML2PrimitiveTypes.library.uml2#_IXlH8K86EdieaYgxtVWN8Q"/>
+      <upperValue xmi:type="uml:LiteralUnlimitedNatural" xmi:id="_16_0_90d0292_1252021595300_428417_791" value="1"/>
+      <lowerValue xmi:type="uml:LiteralInteger" xmi:id="_16_0_90d0292_1252021595300_578038_790"/>
+    </ownedAttribute>
+    <ownedAttribute xmi:id="_16_0_90d0292_1252021595293_901316_726" name="scale">
+      <type xmi:type="uml:PrimitiveType" href="pathmap://UML2_LIBRARIES/UML2PrimitiveTypes.library.uml2#_IXlH8K86EdieaYgxtVWN8Q"/>
+      <upperValue xmi:type="uml:LiteralUnlimitedNatural" xmi:id="_16_0_90d0292_1252021595300_854642_793" value="1"/>
+      <lowerValue xmi:type="uml:LiteralInteger" xmi:id="_16_0_90d0292_1252021595300_774896_792"/>
+    </ownedAttribute>
+  </ownedMember>
+  <ownedMember xmi:type="uml:Extension" xmi:id="_16_0_90d0292_1252021595282_839422_675" memberEnd="_16_0_90d0292_1252021595294_556493_731 _16_0_90d0292_1252021595294_522699_729">
+    <ownedEnd xmi:type="uml:ExtensionEnd" xmi:id="_16_0_90d0292_1252021595294_556493_731" name="extension_Lazy" visibility="private" type="_16_0_90d0292_1252021595282_703328_674" association="_16_0_90d0292_1252021595282_839422_675" aggregation="composite">
+      <upperValue xmi:type="uml:LiteralUnlimitedNatural" xmi:id="_16_0_90d0292_1252021595301_121733_797" value="1"/>
+      <lowerValue xmi:type="uml:LiteralInteger" xmi:id="_16_0_90d0292_1252021595301_999269_796"/>
+    </ownedEnd>
+  </ownedMember>
+</uml:Profile>
