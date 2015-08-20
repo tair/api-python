@@ -65,7 +65,7 @@ class SubscriptionControl():
 class PaymentControl():
 
     @staticmethod
-    def tryCharge(secret_key, stripe_token, priceToCharge, chargeDescription, termId, quantity, emailAddress, firstname, lastname, institute, street, city, state, country, zip):
+    def tryCharge(secret_key, stripe_token, priceToCharge, chargeDescription, termId, quantity, emailAddress, firstname, lastname, institute, street, city, state, country, zip, hostname):
         message = {}
         message['price'] = priceToCharge
         message['termId'] = termId
@@ -83,7 +83,7 @@ class PaymentControl():
             metadata = {'Email': emailAddress, 'Institute': institute}
         )
         activationCodes = PaymentControl.postPaymentHandling(termId, quantity)
-        emailInfo = PaymentControl.getEmailInfo(activationCodes, termId, quantity, priceToCharge, charge.id, emailAddress, firstname, lastname, institute, street, city, state, country, zip)
+        emailInfo = PaymentControl.getEmailInfo(activationCodes, termId, quantity, priceToCharge, charge.id, emailAddress, firstname, lastname, institute, street, city, state, country, zip, hostname)
         PaymentControl.emailReceipt(emailInfo)
         status = True
         message['activationCodes'] = activationCodes
@@ -109,7 +109,7 @@ class PaymentControl():
         return message
 
     @staticmethod
-    def getEmailInfo(activationCodes, termId, quantity, payment, transactionId, email, firstname, lastname, institute, street, city, state, country, zip):
+    def getEmailInfo(activationCodes, termId, quantity, payment, transactionId, email, firstname, lastname, institute, street, city, state, country, zip, hostname):
         termObj = SubscriptionTerm.objects.get(subscriptionTermId=termId)
         partnerObj = termObj.partnerId
         name = firstname+" "+lastname
@@ -126,7 +126,7 @@ class PaymentControl():
             "name": name,
             "partnerName": partnerObj.name,
             "accessCodes": activationCodes,
-	    "loginUrl": "azeemui.steveatgetexp.com/pw2/dev/#/login?partnerId="+partnerObj.partnerId,
+	    "loginUrl": hostname+"/#/login?partnerId="+partnerObj.partnerId,
             "subscriptionDescription": "%s Subscription" % partnerObj.name,
             "institute": institute,
             "subscriptionTerm": termObj.description,

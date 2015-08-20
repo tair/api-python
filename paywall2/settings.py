@@ -60,6 +60,7 @@ INSTALLED_APPS = (
     'apikey',
     'common',
     'authentication',
+    'cookies',
 )
 
 REST_FRAMEWORK = {

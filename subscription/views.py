@@ -8,6 +8,7 @@ from subscription.serializers import SubscriptionSerializer, SubscriptionTransac
 
 from partner.models import Partner, SubscriptionTerm
 from party.models import Party
+from authentication.models import User
 
 from rest_framework import status
 from rest_framework.response import Response
@@ -33,6 +34,7 @@ from django.core.mail import send_mail
 class SubscriptionCRUD(GenericCRUDView):
     queryset = Subscription.objects.all()
     serializer_class = SubscriptionSerializer
+    requireApiKey = False
 
     # overrides default POST to create a subscription transaction
     def post(self, request):
@@ -106,6 +108,8 @@ class SubscriptionRenewal(generics.GenericAPIView):
 
 # /payments/
 class SubscriptionsPayment(APIView):
+    requireApiKey = False
+
     def get(self, request):
         message = {}
         if (not PaymentControl.isValidRequest(request, message)):
@@ -135,9 +139,10 @@ class SubscriptionsPayment(APIView):
 	state = request.POST['state']
 	country = request.POST['country']
 	zip = request.POST['zip']
+        hostname = request.META.get("HTTP_ORIGIN")
 	
         description = "Test charge"
-        message = PaymentControl.tryCharge(stripe_api_secret_test_key, token, price, description, termId, quantity, email, firstname, lastname, institute, street, city, state, country, zip)
+        message = PaymentControl.tryCharge(stripe_api_secret_test_key, token, price, description, termId, quantity, email, firstname, lastname, institute, street, city, state, country, zip, hostname)
         return HttpResponse(json.dumps(message), content_type="application/json")
 
 # /institutions/
@@ -206,3 +211,18 @@ class CommercialSubscription(APIView):
         recipient_list = ["steve@getexp.com", "azeem@getexp.com"]
         send_mail(subject=subject, message=message, from_email=from_email, recipient_list=recipient_list)
         return HttpResponse(json.dumps({'message':'success'}), content_type="application/json")
+
+# /<userIdentifier>/expdatebyuseridentifier/
+class EndDate(generics.GenericAPIView):
+    def get(self, request):
+        partnerId=request.GET.get("partnerId")
+        userIdentifier=request.GET.get("userIdentifier")
+        expDate = ""
+        subscribed = False
+        if User.objects.filter(userIdentifier=userIdentifier).filter(partnerId=partnerId).exists():
+            partyId = User.objects.filter(userIdentifier=userIdentifier)[0].partyId.partyId
+            sub = Subscription.getActiveById(partyId, partnerId)
+            if len(sub)>0:
+                expDate = SubscriptionSerializer(sub[0]).data['endDate']
+                subscribed = True
+        return HttpResponse(json.dumps({'expDate':expDate, 'subscribed':subscribed}), content_type="application/json")

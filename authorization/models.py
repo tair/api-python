@@ -30,6 +30,9 @@ class AccessType(models.Model):
     
     @staticmethod
     def checkHasAccessRule(url, accessTypeName, partnerId):
+        if not (url and accessTypeName and partnerId):
+            return False
+
         accessRules = AccessRule.objects.all().filter(partnerId=partnerId)
         for rule in accessRules:
             pattern = re.compile(rule.patternId.pattern)

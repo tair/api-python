@@ -27,7 +27,7 @@ class User(models.Model):
 
   class Meta:
     db_table = "User"
-    unique_together = ("username",)
+    unique_together = ("username","partnerId")
 
 class GooglePartyAffiliation(models.Model):
   gmail = models.CharField(max_length=128, db_index=True)

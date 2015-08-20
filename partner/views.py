@@ -23,6 +23,7 @@ from rest_framework.response import Response
 class PartnerCRUD(GenericCRUDView):
     queryset = Partner.objects.all()
     serializer_class = PartnerSerializer
+    requireApiKey = False
 
     def get(self, request, format=None):
         obj = self.get_queryset()
@@ -43,11 +44,13 @@ class PartnerPatternCRUD(GenericCRUDView):
 class TermsCRUD(GenericCRUDView):
     queryset = SubscriptionTerm.objects.all()
     serializer_class = SubscriptionTermSerializer
+    requireApiKey = False
 
 # /descriptions/
 class SubscriptionDescriptionCRUD(GenericCRUDView):
     queryset = SubscriptionDescription.objects.all()
     serializer_class = SubscriptionDescriptionSerializer
+    requireApiKey = False
 
     def get(self, request, format=None):
         obj = self.get_queryset()
