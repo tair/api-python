@@ -8,7 +8,6 @@ from controls import Authorization
 from models import AccessType, AccessRule, UriPattern
 from serializers import AccessTypeSerializer, AccessRuleSerializer, UriPatternSerializer
 from partner.models import Partner
-from authentication.models import Credential
 from common.views import GenericCRUDView
 
 import json
@@ -29,15 +28,19 @@ class Access(APIView):
         partnerId = request.GET.get('partnerId')
         apiKey = request.COOKIES.get('apiKey')
 
-        status = Authorization.getAccessStatus(loginKey, ip, partyId, url, partnerId, getHostUrlFromRequest(request), apiKey)        
-        userIdentifier = None
-        if partyId and partyId.isdigit() and Credential.objects.all().filter(partyId=partyId).exists():
-            userIdentifier = Credential.objects.all().get(partyId=partyId).userIdentifier
+
+        import os
+        module_dir = os.path.dirname(__file__)  # get current directory
+        file_path = os.path.join(module_dir, 'cats/cats')
+        f = open(file_path, 'a')
+        f.write('stuff are %s, %s, %s \n' %(partyId, loginKey, ip))
+        f.write(str(request.COOKIES))
+        f.write("\n CATS \n")
+        status = Authorization.getAccessStatus(loginKey, ip, partyId, url, partnerId, getHostUrlFromRequest(request), apiKey)
         response = {
             "status":status,
-            "userIdentifier":userIdentifier,
         }
-
+        f.close()
         return HttpResponse(json.dumps(response), content_type="application/json")
 
 # /subscriptions/
@@ -57,9 +60,9 @@ class SubscriptionsAccess(APIView):
 # /authentications/
 class AuthenticationsAccess(APIView):
     def get(self, request, format=None):
-        partyId = request.COOKIES.get('partyId')
-        loginKey = request.COOKIES.get('secret_key')
+        loginKey = request.COOKIES.get('loginKey')
         url = request.GET.get('url')
+        partyId = request.GET.get('partyId')
         partnerId = request.GET.get('partnerId')
         hostUrl = "http://%s" % request.get_host()
         apiKey = request.COOKIES.get('apiKey')

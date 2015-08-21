@@ -2,7 +2,7 @@
 #import Path, AccessType
 from models import Status, AccessType
 from subscription.models import Subscription
-from authentication.models import User
+from authentication.models import Credential
 
 class Authorization:
     @staticmethod
@@ -41,7 +41,7 @@ class Authorization:
         if not AccessType.checkHasAccessRule(url, "Login", partnerId):
             # does not have Login access rule to this url, allow access.
             return True
-        if User.validate(partyId, loginKey):
+        if Credential.validate(partyId, loginKey):
             # have authentication, allow access.
             return True
         return False

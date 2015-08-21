@@ -9,20 +9,20 @@ from rest_framework.views import APIView
 from rest_framework.response import Response
 from common.views import GenericCRUDView
 
-from authentication.models import User, GooglePartyAffiliation
-from authentication.serializers import UserSerializer, UserSerializerNoPassword
+from authentication.models import Credential, GooglePartyAffiliation
+from authentication.serializers import CredentialSerializer, CredentialSerializerNoPassword
 from subscription.models import Party
 from partner.models import Partner
 # Create your views here.
 
 #/authentications/
 class listcreateuser(GenericCRUDView):
-  queryset = User.objects.all()
+  queryset = Credential.objects.all()
 
   def get_serializer_class(self):
     if self.request.method == 'GET':
-      return UserSerializerNoPassword
-    return UserSerializer
+      return CredentialSerializerNoPassword
+    return CredentialSerializer
 
   def post(self, request, format=None):
         serializer_class = self.get_serializer_class()
@@ -41,7 +41,7 @@ def login(request):
   if request.method == 'GET':
     partyId = request.COOKIES.get('partyId')
     secretKey = request.COOKIES.get('secret_key')
-    if partyId and secretKey and User.validate(partyId, secretKey):
+    if partyId and secretKey and Credential.validate(partyId, secretKey):
       return HttpResponse(json.dumps({"bool": True}))
     return render(request,"authentication/login.html")
 
@@ -55,7 +55,7 @@ def login(request):
     requestUsername = request.POST.get('user')
     requestPassword = hashlib.sha1(request.POST.get('password')).hexdigest()
     requestPartner = request.GET.get('partnerId')
-    user = User.objects.filter(partnerId=requestPartner).filter(username=requestUsername)
+    user = Credential.objects.filter(partnerId=requestPartner).filter(username=requestUsername)
     
     if user: 
       user = user.first()

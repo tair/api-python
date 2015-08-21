@@ -8,7 +8,7 @@ from subscription.serializers import SubscriptionSerializer, SubscriptionTransac
 
 from partner.models import Partner, SubscriptionTerm
 from party.models import Party
-from authentication.models import User
+from authentication.models import Credential
 
 from rest_framework import status
 from rest_framework.response import Response
@@ -219,8 +219,8 @@ class EndDate(generics.GenericAPIView):
         userIdentifier=request.GET.get("userIdentifier")
         expDate = ""
         subscribed = False
-        if User.objects.filter(userIdentifier=userIdentifier).filter(partnerId=partnerId).exists():
-            partyId = User.objects.filter(userIdentifier=userIdentifier)[0].partyId.partyId
+        if Credential.objects.filter(userIdentifier=userIdentifier).filter(partnerId=partnerId).exists():
+            partyId = Credential.objects.filter(userIdentifier=userIdentifier)[0].partyId.partyId
             sub = Subscription.getActiveById(partyId, partnerId)
             if len(sub)>0:
                 expDate = SubscriptionSerializer(sub[0]).data['endDate']

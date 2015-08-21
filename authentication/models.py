@@ -5,7 +5,7 @@ import base64, hmac, hashlib
 
 # Create your models here.
 
-class User(models.Model):
+class Credential(models.Model):
   username = models.CharField(max_length=32, db_index=True)
   password = models.CharField(max_length=64)
   email = models.CharField(max_length=128, null=True)
@@ -18,15 +18,15 @@ class User(models.Model):
   def validate(partyId, secretKey):
     if partyId and secretKey and partyId.isdigit() and Party.objects.filter(partyId=partyId).exists():
       pu = Party.objects.filter(partyId=partyId)
-      if User.objects.filter(partyId_id__in=pu.values('partyId')).exists():
-        usu = User.objects.filter(partyId_id__in=pu.values('partyId')).first()
+      if Credential.objects.filter(partyId_id__in=pu.values('partyId')).exists():
+        usu = Credential.objects.filter(partyId_id__in=pu.values('partyId')).first()
         digested = base64.b64encode(hmac.new(str(partyId).encode('ascii'), usu.password.encode('ascii'), hashlib.sha1).digest())
         if digested == secretKey:
           return True
     return False
 
   class Meta:
-    db_table = "User"
+    db_table = "Credential"
     unique_together = ("username","partnerId")
 
 class GooglePartyAffiliation(models.Model):

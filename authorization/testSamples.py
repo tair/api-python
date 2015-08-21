@@ -6,7 +6,7 @@ import sys, getopt
 import requests
 from unittest import TestCase
 from authorization.models import UriPattern, AccessRule, AccessType
-from authentication.models import User
+from authentication.models import Credential
 from partner.models import Partner
 from party.models import Party
 from common.pyTests import PyTestGenerics
@@ -87,7 +87,7 @@ class AccessTypeSample():
         return genericForcePost(self.model, self.pkName, data)
 
 
-class UserSample():
+class CredentialSample():
     data = {
         'username':'steve',
         'password':hashlib.sha1('stevepass').hexdigest(),
@@ -98,7 +98,7 @@ class UserSample():
         'userIdentifier':'1234536',
     }
     pkName = 'id'
-    model = User
+    model = Credential
 
     def forcePost(self,data):
         postData = copy.deepcopy(data)
