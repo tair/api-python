@@ -12,4 +12,4 @@ class PartySerializer(serializers.ModelSerializer):
 class IpRangeSerializer(serializers.ModelSerializer):
     class Meta:
         model = IpRange
-        fields = ('ipRangeId','start','end','partyId')
+        fields = ('ipRangeId','start','end','partyId', 'label')

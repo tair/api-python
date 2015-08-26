@@ -34,6 +34,7 @@ class IpRange(models.Model):
     start = models.GenericIPAddressField()
     end = models.GenericIPAddressField()
     partyId = models.ForeignKey('Party', db_column="partyId")
+    label = models.CharField(max_length=64, null=True)
 
     @staticmethod
     def getByIp(ipAddress):

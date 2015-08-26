@@ -37,12 +37,14 @@ class IpRangeSample():
     data = {
         'start':'120.0.0.0',
         'end':'120.255.255.255',
-        'partyId':1
+        'partyId':1,
+	'label': 'testlabel',
     }
     updateData = {
         'start':'120.0.0.0',
         'end':'120.255.211.200',
-        'partyId':1
+        'partyId':1,
+	'label': 'labeltest',
     }
     pkName = 'ipRangeId'
     model = IpRange
