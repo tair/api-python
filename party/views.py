@@ -7,6 +7,8 @@ from partner.models import Partner
 
 from common.views import GenericCRUDView
 
+from authentication.models import Credential
+
 import json
 from django.http import HttpResponse
 from rest_framework.views import APIView
@@ -17,14 +19,29 @@ from rest_framework.views import APIView
 
 # /
 class PartyCRUD(GenericCRUDView):
+    requireApiKey = False
     queryset = Party.objects.all()
     serializer_class = PartySerializer
 
+    def get_queryset(self):
+        partyId = self.request.GET.get('partyId')
+        secretKey = self.request.GET.get('secret_key')
+        if partyId and secretKey and Credential.validate(partyId, secretKey):
+            return super(PartyCRUD, self).get_queryset().filter(partyId=partyId)
+        return []
+
 # /ipranges/
 class IpRangeCRUD(GenericCRUDView):
+    requireApiKey = False
     queryset = IpRange.objects.all()
     serializer_class = IpRangeSerializer
 
+    def get_queryset(self):
+        partyId = self.request.GET.get('partyId')
+        secretKey = self.request.GET.get('secret_key')
+        if partyId and secretKey and Credential.validate(partyId, secretKey):
+            return super(IpRangeCRUD, self).get_queryset().filter(partyId=partyId)
+        return []
 
 #------------------- End of Basic CRUD operations --------------
 

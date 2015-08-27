@@ -22,11 +22,6 @@ class Migration(migrations.Migration):
             },
         ),
         migrations.AddField(
-            model_name='iprange',
-            name='label',
-            field=models.CharField(max_length=64, null=True),
-        ),
-        migrations.AddField(
             model_name='party',
             name='display',
             field=models.BooleanField(default=True),
