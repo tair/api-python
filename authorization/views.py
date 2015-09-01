@@ -13,6 +13,8 @@ from common.views import GenericCRUDView
 
 import json
 
+import urllib
+
 # top level: /authorizations/
 
 
@@ -25,7 +27,7 @@ class Access(APIView):
         partyId = request.COOKIES.get('partyId')
         loginKey = request.COOKIES.get('secret_key')
         ip = request.GET.get('ip')
-        url = request.GET.get('url')
+        url = request.GET.get('url').decode('utf8')
         partnerId = request.GET.get('partnerId')
         apiKey = request.COOKIES.get('apiKey')
 
