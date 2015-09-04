@@ -45,7 +45,7 @@ class IpRange(models.Model):
         for obj in objs:
             start = IPAddress(obj.start)
             end = IPAddress(obj.end)
-            if inputIpAddress > start and inputIpAddress < end:
+            if inputIpAddress >= start and inputIpAddress <= end:
                 objList.append(obj)
         return objList
 
