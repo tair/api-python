@@ -13,6 +13,7 @@ class Credential(models.Model):
   partyId = models.ForeignKey(Party, db_column='partyId')
   partnerId = models.ForeignKey(Partner, db_column='partnerId')
   userIdentifier = models.CharField(max_length=32, null=True)
+  name = models.CharField(max_length=64, null=True)
   
   @staticmethod
   def validate(partyId, secretKey):

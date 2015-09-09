@@ -19,7 +19,7 @@ urlpatterns = patterns('',
     url(r'^authorizations/', include('authorization.urls')),
     url(r'^partners/', include('partner.urls')),
     url(r'^session-logs/', include('loggingapp.urls')),
-    url(r'^users/', include('authentication.urls', namespace="authentication")),
+    url(r'^credentials/', include('authentication.urls', namespace="authentication")),
     url(r'^apikeys/', include('apikey.urls')),
     url(r'^cookies/', include('cookies.urls')),
 )

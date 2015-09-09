@@ -35,6 +35,21 @@ class listcreateuser(GenericCRUDView):
             serializer.save()
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST) 
+  
+  def put(self, request, format=None):
+    serializer_class = self.get_serializer_class()
+    params = request.GET
+    if 'username' not in params:
+      return Response({'error': 'Put method needs username'})
+    obj = self.get_queryset().first()
+    data = request.data
+    if 'password' in data:
+      data['password'] = hashlib.sha1(data['password']).hexdigest()
+    serializer = serializer_class(obj, data=data, partial=True)
+    if serializer.is_valid():
+      serializer.save()
+      return Response(serializer.data, status=status.HTTP_201_CREATED)
+    return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 #/authentications/login/
 def login(request):
@@ -66,6 +81,7 @@ def login(request):
           "secret_key": generateSecretKey(str(user.partyId.partyId), user.password),
           "email": user.email,
           "role":"librarian",
+	  "username": user.username,
         }), status=200)
         #response.set_cookie("partyId", user.partyId.partyId, domain=".steveatgetexp.com")
         #response.set_cookie("secret_key", generateSecretKey(str(user.partyId.partyId), user.password), domain=".steveatgetexp.com")
