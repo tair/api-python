@@ -34,7 +34,7 @@ def create_signature(password):
 # Begin main program:
 
 # Step1: Open the source CSV file and load into memory.
-with open('community2csv', 'rb') as f:
+with open('community.csv', 'rb') as f:
     reader = csv.reader(f)
     data = list(reader)
 
@@ -42,40 +42,43 @@ with open('community2csv', 'rb') as f:
 (conn, cur) = connect()
 
 # Sample queries.
-newUserSql = "INSERT INTO User (username, password, email, partyId, partnerId, userIdentifier) VALUES (%s, %s, %s, %s, %s, %s)"
-updateUserSql = "UPDATE User SET password=%s, email=%s, partnerId=%s, userIdentifier=%s WHERE username=%s"
-partySql = "INSERT INTO Party (partyType, name) VALUES ('user', %s)"
-countSql = "SELECT COUNT(*) FROM User WHERE username=%s"
+newUserSql = "INSERT INTO Credential (username, password, email, partyId, partnerId, userIdentifier) VALUES (%s, %s, %s, %s, %s, %s)"
+partySql = "INSERT INTO Party (partyType, name, display, countryId) VALUES ('user', %s, %s, %s)"
 
 partnerId = 'tair'
-batchCount = 0
 totalCount = 0
+batchCount = 0
 # Step 3: Main loop
 for entry in data:
+    communityId = entry[0]
+    communityType = entry[1]
+    email = entry[2]
+    username = entry[4]
+    digestedPw = create_signature(entry[5])
+    isObsolete = entry[6]
+    if not communityId.isdigit():
+        continue
+    if not communityType == 'person':
+        continue
+    if username.rstrip() == '':
+        continue
+    if isObsolete == 'T':
+        continue
     totalCount += 1
     batchCount += 1
-    communityId = entry[0]
-    email = entry[1]
-    username = entry[2]
-    digestedPw = create_signature(entry[3])
-
-    # determine if username already existed in API service database.
-    cur.execute(countSql, (username))
-    numUsername= cur.fetchall()[0][0]
-
-    if numUsername == 0:
-        # username not exist, create new Party and User entry.
-        cur.execute(partySql, username)
+    try: 
+        cur.execute(partySql, (username, True, 10))
         partyId = conn.insert_id()
         cur.execute(newUserSql, (username, digestedPw, email, partyId, partnerId, communityId))
-    else:
-        # username already exist, only update the User entry.
-        cur.execute(updateUserSql, (digestedPw, email, partnerId, communityId, username))
+    except:
+        print username
+
 
     # Does 500 queries per transaction for performance improvement.
     if batchCount >= 500:
         print "total commit %s" % totalCount
         conn.commit()
         batchCount = 0
+
     
 conn.commit()

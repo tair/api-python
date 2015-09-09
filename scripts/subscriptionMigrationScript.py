@@ -64,6 +64,8 @@ for entry in organizationData:
     count += 1
     print count
     organizationId = entry[0]
+    if not organizationId.isdigit():
+        continue
     offset = 2
     organizationName = entry[1]
     while not entry[offset].isdigit():
@@ -81,6 +83,8 @@ for entry in organizationData:
     data = {
         'name':organizationName,
         'partyType':'organization',
+        'display':'1',
+        'country':10,
     }
     serializer = PartySerializer(data=data)
     if serializer.is_valid():
@@ -120,6 +124,8 @@ for entry in ipData:
     count +=1
     print count
     organizationId = entry[0]
+    if not organizationId.isdigit():
+        continue
     start = entry[2]
     end = entry[3]
     partyId = orgIdPartyId[organizationId]
