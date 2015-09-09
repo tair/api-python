@@ -13,6 +13,8 @@ import json
 from django.http import HttpResponse
 from rest_framework.views import APIView
 
+from django.core.mail import send_mail
+
 # top level: /parties/
 
 # Basic CRUD operation for Party and IpRange
@@ -71,3 +73,18 @@ class CountryView(APIView):
         for entry in obj:
             out.append(entry.name)
         return HttpResponse(json.dumps(out), content_type="application/json")
+
+# /usage/
+class Usage(APIView):
+    requireApiKey = False
+    def post(self, request, format=None):
+        data = request.data
+        subject = "Institution Subscription Request For %s" % (data['institution'])
+        message = "Start date: %s\n" \
+                  "End date: %s\n" \
+                  "Comments: %s\n" \
+                  % (data['startDate'], data['endDate'], data['comments'])
+        from_email = "steve@getexp.com"
+        recipient_list = ["azeem@getexp.com"]
+        send_mail(subject=subject, message=message, from_email=from_email, recipient_list=recipient_list)
+        return HttpResponse(json.dumps({'message': 'success'}), status=200)
