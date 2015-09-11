@@ -6,7 +6,7 @@ TAIR = {
         'termOfServiceUri':'https://www.arabidopsis.org/doc/about/tair_terms_of_use/417',
     },
     'PartnerPattern':[
-        {'sourceUri':'demotair.steveatgetexp.com', 'targetUri':'http://back-prod.arabidopsis.org'},
+        {'sourceUri':'demotair.arabidopsis.org', 'targetUri':'http://back-prod.arabidopsis.org'},
         {'sourceUri':'gbrowseaws.arabidopsis.org', 'targetUri':'http://back-gbrowse-prod.arabidopsis.org'},
         {'sourceUri':'seqvieweraws.arabidopsis.org', 'targetUri':'http://back-seqviewer-prod.arabidopsis.org'},
     ],

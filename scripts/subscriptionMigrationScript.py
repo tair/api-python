@@ -9,6 +9,7 @@ os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'paywall2.settings')
 django.setup()
 
 from party.serializers import PartySerializer, IpRangeSerializer
+from party.models import Country
 from subscription.serializers import SubscriptionSerializer, SubscriptionTransactionSerializer
 
 # Begin main program:
@@ -22,6 +23,10 @@ with open('organization.csv', 'rb') as f:
 with open('subscribediprange.csv', 'rb') as f:
     reader = csv.reader(f)
     ipData = list(reader)
+
+with open('organization_country.csv', 'rb') as f:
+    reader = csv.reader(f)
+    organizationCountryData = list(reader)
 
 orgIdPartyId = {}
 
@@ -59,6 +64,30 @@ def parseTime(inString):
     outString = "%s-%s-%sT%sZ" % (year, month, day, timeStr)
     return outString
 
+# Initializing organization country
+print "Initializing Organization Country Array"
+organizationCountryArray = {}
+for entry in organizationCountryData:
+    organizationId = entry[0]
+    if not organizationId.isdigit():
+        continue
+    organizationName = entry[1]
+    countryName = entry[2]
+    if countryName == 'China':
+        countryName = "People's Republic of China"
+    if countryName == 'UK':
+        countryName = 'United Kingdom'
+    if entry[3] == 'Y':
+        display = True
+    else:
+        display = False
+    if Country.objects.all().filter(name=countryName).exists():
+        countryId = int(Country.objects.all().get(name=countryName).countryId)
+    else:
+        countryId = None;
+    organizationCountryArray[organizationId] = [countryId, display]
+
+print "Processing Data"
 count = 0
 for entry in organizationData:
     count += 1
@@ -71,6 +100,13 @@ for entry in organizationData:
     while not entry[offset].isdigit():
         organizationName = "%s,%s" % (organizationName, entry[offset])
         offset += 1
+    try:
+        temp = organizationCountryArray[organizationId]
+        countryId = temp[0]
+        display = temp[1]
+    except:
+        countryId = None
+        display = False
     organizationName = organizationName.decode('utf8')
     startDate = entry[offset+1]
     endDate = entry[offset+2]
@@ -83,9 +119,10 @@ for entry in organizationData:
     data = {
         'name':organizationName,
         'partyType':'organization',
-        'display':'1',
-        'country':10,
+        'display':display,
+        'country':countryId,
     }
+
     serializer = PartySerializer(data=data)
     if serializer.is_valid():
         serializer.save()
@@ -116,7 +153,6 @@ for entry in organizationData:
     serializer = SubscriptionTransactionSerializer(data=data)
     if serializer.is_valid():
         serializer.save()
-
 print "DOING IP MIGRATION"
 
 count = 0
