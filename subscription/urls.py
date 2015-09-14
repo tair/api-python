@@ -17,6 +17,7 @@ urlpatterns = [
     url(r'^institutions/$', views.InstitutionSubscription.as_view()),
     url(r'^commercials/$', views.CommercialSubscription.as_view()),
     url(r'^enddate/$', views.EndDate.as_view()),
+    url(r'^activesubscriptions/(?P<partyId>.+)/$', views.ActiveSubscriptions.as_view()),
 
     # Templates
     url(r'^templates/block/$', TemplateView.as_view(template_name="subscription/block.html")),
