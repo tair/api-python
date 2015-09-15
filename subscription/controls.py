@@ -65,7 +65,7 @@ class SubscriptionControl():
 class PaymentControl():
 
     @staticmethod
-    def tryCharge(secret_key, stripe_token, priceToCharge, chargeDescription, termId, quantity, emailAddress, firstname, lastname, institute, street, city, state, country, zip, hostname):
+    def tryCharge(secret_key, stripe_token, priceToCharge, chargeDescription, termId, quantity, emailAddress, firstname, lastname, institute, street, city, state, country, zip, hostname, redirect):
         message = {}
         message['price'] = priceToCharge
         message['termId'] = termId
@@ -83,7 +83,7 @@ class PaymentControl():
             metadata = {'Email': emailAddress, 'Institute': institute}
         )
         activationCodes = PaymentControl.postPaymentHandling(termId, quantity)
-        emailInfo = PaymentControl.getEmailInfo(activationCodes, termId, quantity, priceToCharge, charge.id, emailAddress, firstname, lastname, institute, street, city, state, country, zip, hostname)
+        emailInfo = PaymentControl.getEmailInfo(activationCodes, termId, quantity, priceToCharge, charge.id, emailAddress, firstname, lastname, institute, street, city, state, country, zip, hostname, redirect)
         PaymentControl.emailReceipt(emailInfo)
         status = True
         message['activationCodes'] = activationCodes
@@ -109,7 +109,7 @@ class PaymentControl():
         return message
 
     @staticmethod
-    def getEmailInfo(activationCodes, termId, quantity, payment, transactionId, email, firstname, lastname, institute, street, city, state, country, zip, hostname):
+    def getEmailInfo(activationCodes, termId, quantity, payment, transactionId, email, firstname, lastname, institute, street, city, state, country, zip, hostname, redirect):
         termObj = SubscriptionTerm.objects.get(subscriptionTermId=termId)
         partnerObj = termObj.partnerId
         name = firstname+" "+lastname
@@ -119,14 +119,15 @@ class PaymentControl():
         state = state
         country = country
         zipcode = zip
-        senderEmail = "steve@getexp.com"
+        senderEmail = "info@phoenixbioinformatics.org"
+        #senderEmail = "steve@getexp.com"
         recipientEmails = [email]
         return {
             "partnerLogo": partnerObj.logoUri,
             "name": name,
             "partnerName": partnerObj.name,
             "accessCodes": activationCodes,
-	    "loginUrl": hostname+"/#/login?partnerId="+partnerObj.partnerId,
+	    "loginUrl": hostname+"/#/login?partnerId="+partnerObj.partnerId+"&redirect="+redirect,
             "subscriptionDescription": "%s Subscription" % partnerObj.name,
             "institute": institute,
             "subscriptionTerm": termObj.description,
@@ -137,7 +138,7 @@ class PaymentControl():
             "addr2": "%s, %s" % (city, state),
             "addr3": "%s - %s" % (country, zipcode),
             "recipientEmails": recipientEmails,
-            "senderEmail": "steve@getexp.com",
+            "senderEmail": senderEmail,
             "subject":"Thank You For Subscribing",
         }
 

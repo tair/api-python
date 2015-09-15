@@ -23,7 +23,7 @@ BASE_DIR = os.path.dirname(os.path.dirname(__file__))
 # See https://docs.djangoproject.com/en/1.7/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = '#-4)vm=f8fm#adsgno$d%2^df31zd@_eisul(x!yk^ygbidvf*'
+SECRET_KEY = '#-4)vm=f8fm#adsgno$d%2^df31zd@_eisul(x!yk^ygbidvf*' # ACTION: Add your secret key here
 
 STRIPE_PUBLIC_KEY = 'pk_test_VEu0r74glZkzeT8IXLmXxojP'
 
@@ -32,7 +32,7 @@ STRIPE_PRIVATE_KEY = 'sk_test_dXy85QkwH66s64bIWKbikyMt'
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-TEMPLATE_DEBUG = True
+TEMPLATE_DEBUG = False
 
 ALLOWED_HOSTS = ['*']
 
@@ -72,7 +72,7 @@ MIDDLEWARE_CLASSES = (
     'corsheaders.middleware.CorsMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
-    'django.middleware.csrf.CsrfViewMiddleware',
+#    'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.auth.middleware.SessionAuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
@@ -82,8 +82,10 @@ MIDDLEWARE_CLASSES = (
 
 # CORS Setting to allow ui sites to access the API server
 CORS_ORIGIN_WHITELIST = (
-    'testui.steveatgetexp.com',
-    'azeem.steveatgetexp.com',
+    'demoproxy.arabidopsis.org',
+    'demoui.arabidopsis.org',
+    'demoyfd.arabidopsis.org',
+    'demotair.arabidopsis.org',
 )
 
 CORS_ALLOW_CREDENTIALS = True
@@ -91,7 +93,7 @@ CORS_ALLOW_CREDENTIALS = True
 CORS_ALLOW_METHODS = (
     'GET',
     'POST',
-    'UPDATE',
+    'PUT',
 )
 
 CORS_ALLOW_HEADERS = (
@@ -107,17 +109,16 @@ ROOT_URLCONF = 'paywall2.urls'
 
 WSGI_APPLICATION = 'paywall2.wsgi.application'
 
-
 # Database
 # https://docs.djangoproject.com/en/1.7/ref/settings/#databases
 
+# ACTION: modify databse setting here
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.mysql',
-        'NAME': 'paywall2Test',
+        'NAME': 'phoenix_api',
         'USER': 'phoenix',
         'PASSWORD': 'phoenix123',
-#        'HOST': 'paywalltestmysqldb.c871k9lscygy.us-east-1.rds.amazonaws.com',
         'HOST': 'paywall2.cwyjt5kql77y.us-west-2.rds.amazonaws.com',
         'PORT': '3306',
     }
@@ -152,11 +153,11 @@ CSRF_COOKIE_SECURE = True
 # is done via http, it is off for development, but need to turn ON for
 # production.
 
-#SECURE_SSL_REDIRECT = True
+SECURE_SSL_REDIRECT = True
 
-#SECURE_HSTS_SECONDS = 1
+SECURE_HSTS_SECONDS = 1 
 
-#SECURE_HSTS_INCLUDE_SUBDOMAINS = True
+SECURE_HSTS_INCLUDE_SUBDOMAINS = True  
 
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/1.7/howto/static-files/
@@ -166,7 +167,7 @@ STATIC_URL = '/static/'
 EMAIL_USE_TLS = True
 EMAIL_HOST = 'email-smtp.us-west-2.amazonaws.com'
 EMAIL_PORT = 25
-# Fill in the username and password for emails. 
+# Fill in the username and password for emails.
 # For AWS SES, this will be the username/password of the IAM created for SES.
-EMAIL_HOST_USER = None
-EMAIL_HOST_PASSWORD = None
+EMAIL_HOST_USER = 'AKIAJRTMBPEW3PKUO2IQ'
+EMAIL_HOST_PASSWORD = 'Av8ltV1qECyvuoMgltOVfdS8WhQT8fs3bSez1m0OGpfb'

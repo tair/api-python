@@ -140,9 +140,10 @@ class SubscriptionsPayment(APIView):
 	country = request.POST['country']
 	zip = request.POST['zip']
         hostname = request.META.get("HTTP_ORIGIN")
+        redirect = request.POST['redirect']
 	
         description = "Test charge"
-        message = PaymentControl.tryCharge(stripe_api_secret_test_key, token, price, description, termId, quantity, email, firstname, lastname, institute, street, city, state, country, zip, hostname)
+        message = PaymentControl.tryCharge(stripe_api_secret_test_key, token, price, description, termId, quantity, email, firstname, lastname, institute, street, city, state, country, zip, hostname, redirect)
         return HttpResponse(json.dumps(message), content_type="application/json")
 
 # /institutions/
@@ -173,7 +174,8 @@ class InstitutionSubscription(APIView):
                   "Librarian Email: %s \n" \
                   % dataTuple
 
-        from_email = "steve@getexp.com"
+        #from_email = "steve@getexp.com"
+        from_email = "info@phoenixbioinformatics.org"
         recipient_list = ["steve@getexp.com", "azeem@getexp.com"]
         send_mail(subject=subject, message=message, from_email=from_email, recipient_list=recipient_list)
         return HttpResponse(json.dumps({'message':'success'}), content_type="application/json")
@@ -207,7 +209,8 @@ class CommercialSubscription(APIView):
         if data.get('commercialLicense'):
             message += "Commercial Licenses\n"
 
-        from_email = "steve@getexp.com"
+        #from_email = "steve@getexp.com"
+        from_email = "info@phoenixbioinformatics.org"
         recipient_list = ["steve@getexp.com", "azeem@getexp.com"]
         send_mail(subject=subject, message=message, from_email=from_email, recipient_list=recipient_list)
         return HttpResponse(json.dumps({'message':'success'}), content_type="application/json")
