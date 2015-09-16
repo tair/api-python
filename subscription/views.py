@@ -229,6 +229,7 @@ class EndDate(generics.GenericAPIView):
 
 # /activesubscriptions/<partyId>
 class ActiveSubscriptions(generics.GenericAPIView):
+    requireApiKey = False
     def get(self, request, partyId):
 	now = datetime.datetime.now()
         activeSubscriptions = Subscription.objects.all().filter(partyId=partyId).filter(endDate__gt=now).filter(startDate__lt=now)
@@ -239,3 +240,54 @@ class ActiveSubscriptions(generics.GenericAPIView):
             ret[s['partnerId']] = dict(s)
         return HttpResponse(json.dumps(ret), status=200)
 
+# /renew/
+class RenewSubscription(generics.GenericAPIView):
+    requireApiKey = False
+    def post(self, request):
+        data = request.data
+        dataTuple = (
+            data.get('name'),
+            data.get('email'),
+            data.get('institution'),
+	    data.get('comments'),
+        )
+        subject = "%s Subscription Renewal Request For %s" % (data.get('partnerName'), data.get('institution'))
+        message = "\n" \
+                  "\n" \
+                  "Please contact me about a subscription renewal. My information is below.\n" \
+                  "Name: %s\n" \
+                  "Email: %s \n" \
+                  "Institution Name: %s \n" \
+		  "Comments: %s \n" \
+                  "\n" \
+                  % dataTuple
+        from_email = "steve@getexp.com"
+        recipient_list = ["azeem@getexp.com"]
+        send_mail(subject=subject, message=message, from_email=from_email, recipient_list=recipient_list)
+        return HttpResponse(json.dumps({'message':'success'}), content_type="application/json")
+
+# /request/
+class RequestSubscription(generics.GenericAPIView):
+    requireApiKey = False
+    def post(self, request):
+        data = request.data
+        dataTuple = (
+            data.get('name'),
+            data.get('email'),
+            data.get('institution'),
+	    data.get('comments'),
+        )
+        subject = "%s Subscription Request For %s" % (data.get('partnerName'), data.get('institution'))
+        message = "\n" \
+                  "\n" \
+                  "Please contact me about a subscription renewal. My information is below.\n" \
+                  "Name: %s\n" \
+                  "Email: %s \n" \
+                  "Institution Name: %s \n" \
+		  "Comments: %s \n" \
+                  "\n" \
+                  % dataTuple
+        from_email = "steve@getexp.com"
+        recipient_list = ["azeem@getexp.com"]
+        send_mail(subject=subject, message=message, from_email=from_email, recipient_list=recipient_list)
+        return HttpResponse(json.dumps({'message':'success'}), content_type="application/json")

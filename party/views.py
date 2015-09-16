@@ -79,7 +79,7 @@ class Usage(APIView):
     requireApiKey = False
     def post(self, request, format=None):
         data = request.data
-        subject = "Institution Subscription Request For %s" % (data['institution'])
+        subject = "Institution Usage Request For %s" % (data['institution'])
         message = "Start date: %s\n" \
                   "End date: %s\n" \
                   "Comments: %s\n" \
