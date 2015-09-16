@@ -122,6 +122,7 @@ class PaymentControl():
         senderEmail = "info@phoenixbioinformatics.org"
         #senderEmail = "steve@getexp.com"
         recipientEmails = [email]
+        payment = "%.2f" % float(payment)
         return {
             "partnerLogo": partnerObj.logoUri,
             "name": name,
