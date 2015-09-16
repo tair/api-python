@@ -226,3 +226,16 @@ class EndDate(generics.GenericAPIView):
                 expDate = SubscriptionSerializer(sub[0]).data['endDate']
                 subscribed = True
         return HttpResponse(json.dumps({'expDate':expDate, 'subscribed':subscribed}), content_type="application/json")
+
+# /activesubscriptions/<partyId>
+class ActiveSubscriptions(generics.GenericAPIView):
+    def get(self, request, partyId):
+	now = datetime.datetime.now()
+        activeSubscriptions = Subscription.objects.all().filter(partyId=partyId).filter(endDate__gt=now).filter(startDate__lt=now)
+	serializer = SubscriptionSerializer(activeSubscriptions, many=True)
+	#return HttpResponse(json.dumps(dict(serializer.data)))
+        ret = {}
+        for s in serializer.data:
+            ret[s['partnerId']] = dict(s)
+        return HttpResponse(json.dumps(ret), status=200)
+
