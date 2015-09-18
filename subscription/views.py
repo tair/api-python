@@ -26,6 +26,8 @@ from django.conf import settings
 
 from django.core.mail import send_mail
 
+import logging
+
 # top level: /subscriptions/
 
 # Basic CRUD operation for Subscriptions, and SubscriptionTransactions
@@ -148,6 +150,7 @@ class SubscriptionsPayment(APIView):
 
 # /institutions/
 class InstitutionSubscription(APIView):
+    requireApiKey = False
     def post (self, request):
         data = request.data
         dataTuple = (
@@ -174,14 +177,23 @@ class InstitutionSubscription(APIView):
                   "Librarian Email: %s \n" \
                   % dataTuple
 
+        logging.basicConfig(filename="/home/ubuntu/logs/debug.log",
+                            format='%(asctime)s %(message)s'
+        )
+        logging.error("------Sending institution subscription email------")
+        logging.error("%s" % subject)
+        logging.error("%s" % message)
         #from_email = "steve@getexp.com"
         from_email = "info@phoenixbioinformatics.org"
-        recipient_list = ["steve@getexp.com", "azeem@getexp.com"]
+        recipient_list = ["steve@getexp.com", "info@phoenixbioinformatics.org"]
         send_mail(subject=subject, message=message, from_email=from_email, recipient_list=recipient_list)
+        logging.error("------Done sending institution subscription email------")
+
         return HttpResponse(json.dumps({'message':'success'}), content_type="application/json")
 
 # /commercials/
 class CommercialSubscription(APIView):
+    requireApiKey = False
     def post (self, request):
         data = request.data
         dataTuple = (
@@ -209,10 +221,18 @@ class CommercialSubscription(APIView):
         if data.get('commercialLicense'):
             message += "Commercial Licenses\n"
 
+        logging.basicConfig(filename="/home/ubuntu/logs/debug.log",
+                            format='%(asctime)s %(message)s'
+        )
+        logging.error("------Sending commercial subscription email------")
+        logging.error("%s" % subject)
+        logging.error("%s" % message)
+
         #from_email = "steve@getexp.com"
         from_email = "info@phoenixbioinformatics.org"
-        recipient_list = ["steve@getexp.com", "azeem@getexp.com"]
+        recipient_list = ["steve@getexp.com", "info@phoenixbioinformatics.org"]
         send_mail(subject=subject, message=message, from_email=from_email, recipient_list=recipient_list)
+        logging.error("------Done sending commercial email------")
         return HttpResponse(json.dumps({'message':'success'}), content_type="application/json")
 
 # /<userIdentifier>/expdatebyuseridentifier/

@@ -13,6 +13,7 @@ from django.utils import timezone
 import uuid
 
 from django.core.mail import send_mail
+import logging
 
 class SubscriptionControl():
 
@@ -135,9 +136,9 @@ class PaymentControl():
             "subscriptionQuantity": quantity,
             "payment": payment,
             "transactionId": transactionId,
-            "addr1": address,
-            "addr2": "%s, %s" % (city, state),
-            "addr3": "%s - %s" % (country, zipcode),
+            "addr1": "Phoenix Bioinformatics Corporation",
+            "addr2": "643 Bair Island Road Suite 403",
+            "addr3": "Redwood City, CA 94063",
             "recipientEmails": recipientEmails,
             "senderEmail": senderEmail,
             "subject":"Thank You For Subscribing",
@@ -175,8 +176,14 @@ class PaymentControl():
         subject = kwargs['subject']
         from_email = kwargs['senderEmail']
         recipient_list = kwargs['recipientEmails']
+        logging.basicConfig(filename="/home/ubuntu/logs/debug.log",
+                            format='%(asctime)s %(message)s'
+        )
+        logging.error("------Sending individual email------")
+        logging.error("%s" % recipient_list[0])
         send_mail(subject=subject, from_email=from_email, recipient_list=recipient_list, html_message=html_message, message=None)
-
+        logging.error("------Done sending individual email------")
+        
     @staticmethod
     def isValidRequest(request, message):
         ret = True
