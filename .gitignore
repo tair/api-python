@@ -13,3 +13,7 @@
 ####################
 .project
 .pydevproject
+
+# Setting File #
+################
+settings.py
