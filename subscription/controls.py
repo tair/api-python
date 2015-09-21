@@ -13,6 +13,7 @@ from django.utils import timezone
 import uuid
 
 from django.core.mail import send_mail
+import logging
 
 class SubscriptionControl():
 
@@ -65,7 +66,7 @@ class SubscriptionControl():
 class PaymentControl():
 
     @staticmethod
-    def tryCharge(secret_key, stripe_token, priceToCharge, chargeDescription, termId, quantity, emailAddress, firstname, lastname, institute, street, city, state, country, zip, hostname):
+    def tryCharge(secret_key, stripe_token, priceToCharge, chargeDescription, termId, quantity, emailAddress, firstname, lastname, institute, street, city, state, country, zip, hostname, redirect):
         message = {}
         message['price'] = priceToCharge
         message['termId'] = termId
@@ -83,7 +84,7 @@ class PaymentControl():
             metadata = {'Email': emailAddress, 'Institute': institute}
         )
         activationCodes = PaymentControl.postPaymentHandling(termId, quantity)
-        emailInfo = PaymentControl.getEmailInfo(activationCodes, termId, quantity, priceToCharge, charge.id, emailAddress, firstname, lastname, institute, street, city, state, country, zip, hostname)
+        emailInfo = PaymentControl.getEmailInfo(activationCodes, termId, quantity, priceToCharge, charge.id, emailAddress, firstname, lastname, institute, street, city, state, country, zip, hostname, redirect)
         PaymentControl.emailReceipt(emailInfo)
         status = True
         message['activationCodes'] = activationCodes
@@ -109,7 +110,7 @@ class PaymentControl():
         return message
 
     @staticmethod
-    def getEmailInfo(activationCodes, termId, quantity, payment, transactionId, email, firstname, lastname, institute, street, city, state, country, zip, hostname):
+    def getEmailInfo(activationCodes, termId, quantity, payment, transactionId, email, firstname, lastname, institute, street, city, state, country, zip, hostname, redirect):
         termObj = SubscriptionTerm.objects.get(subscriptionTermId=termId)
         partnerObj = termObj.partnerId
         name = firstname+" "+lastname
@@ -119,25 +120,27 @@ class PaymentControl():
         state = state
         country = country
         zipcode = zip
-        senderEmail = "steve@getexp.com"
+        senderEmail = "info@phoenixbioinformatics.org"
+        #senderEmail = "steve@getexp.com"
         recipientEmails = [email]
+        payment = "%.2f" % float(payment)
         return {
             "partnerLogo": partnerObj.logoUri,
             "name": name,
             "partnerName": partnerObj.name,
             "accessCodes": activationCodes,
-	    "loginUrl": hostname+"/#/login?partnerId="+partnerObj.partnerId,
+	    "loginUrl": hostname+"/#/login?partnerId="+partnerObj.partnerId+"&redirect="+redirect,
             "subscriptionDescription": "%s Subscription" % partnerObj.name,
             "institute": institute,
             "subscriptionTerm": termObj.description,
             "subscriptionQuantity": quantity,
             "payment": payment,
             "transactionId": transactionId,
-            "addr1": address,
-            "addr2": "%s, %s" % (city, state),
-            "addr3": "%s - %s" % (country, zipcode),
+            "addr1": "Phoenix Bioinformatics Corporation",
+            "addr2": "643 Bair Island Road Suite 403",
+            "addr3": "Redwood City, CA 94063",
             "recipientEmails": recipientEmails,
-            "senderEmail": "steve@getexp.com",
+            "senderEmail": senderEmail,
             "subject":"Thank You For Subscribing",
         }
 
@@ -173,8 +176,14 @@ class PaymentControl():
         subject = kwargs['subject']
         from_email = kwargs['senderEmail']
         recipient_list = kwargs['recipientEmails']
+        logging.basicConfig(filename="/home/ubuntu/logs/debug.log",
+                            format='%(asctime)s %(message)s'
+        )
+        logging.error("------Sending individual email------")
+        logging.error("%s" % recipient_list[0])
         send_mail(subject=subject, from_email=from_email, recipient_list=recipient_list, html_message=html_message, message=None)
-
+        logging.error("------Done sending individual email------")
+        
     @staticmethod
     def isValidRequest(request, message):
         ret = True

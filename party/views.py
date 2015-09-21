@@ -59,7 +59,8 @@ class OrganizationView(APIView):
         for entry in objs:
             partyList.append(entry['partyId'])
         obj = Party.objects.all().filter(partyId__in=partyList) \
-                                 .filter(shouldDisplay=True)
+                                 .filter(display=True) \
+                                 .filter(partyType="organization")
         out = []
         for entry in obj:
             out.append((entry.name, entry.country.name))
