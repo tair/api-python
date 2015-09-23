@@ -5,7 +5,7 @@ class GenericCRUDView(generics.GenericAPIView):
 
     requireApiKey = True
     def get_queryset(self):
-        queryset = self.queryset
+        queryset = super(GenericCRUDView, self).get_queryset()
         params = self.request.GET
         for key in params:
             if key in queryset.model._meta.get_all_field_names():
