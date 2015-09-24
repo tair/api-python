@@ -89,3 +89,16 @@ class Usage(APIView):
         recipient_list = ["azeem@getexp.com"]
         send_mail(subject=subject, message=message, from_email=from_email, recipient_list=recipient_list)
         return HttpResponse(json.dumps({'message': 'success'}), status=200)
+
+class ConsortiumInstitutions(APIView):
+    requireApiKey = False
+    def get(self, request, consortiumId, format=None):
+	institutions = Party.objects.get(partyId=consortiumId).party_set.all()
+        serializer = PartySerializer(institutions, many=True)
+        ret = [dict(s) for s in serializer.data]
+	#for s in serializer.data:
+        #    ret_tmp = dict(s)
+        #    ret_tmp['id'] = ret_tmp['partyId']
+        #    ret_tmp['state'] = None
+        #    ret.append(ret_tmp)
+        return HttpResponse(json.dumps(ret), status=200)

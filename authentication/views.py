@@ -28,8 +28,9 @@ class listcreateuser(GenericCRUDView):
         serializer_class = self.get_serializer_class()
         data = request.data
         data['password'] = hashlib.sha1(data['password']).hexdigest()
-        pu = Party(); pu.save()
-        data['partyId'] = pu.partyId
+	if 'partyId' not in data:
+            pu = Party(); pu.save()
+            data['partyId'] = pu.partyId
         serializer = serializer_class(data=data)
         if serializer.is_valid():
             serializer.save()

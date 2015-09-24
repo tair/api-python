@@ -13,5 +13,6 @@ urlpatterns = [
 
     # Specific queries
     url(r'^usage/$', views.Usage.as_view()),
+    url(r'^consortiuminstitutions/(?P<consortiumId>[0-9]+)/$', views.ConsortiumInstitutions.as_view()),
 ]
 urlpatterns = format_suffix_patterns(urlpatterns)
