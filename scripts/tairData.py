@@ -42,6 +42,9 @@ TAIR = {
         'Subscription options for entire companies or individual commercial uses',
         'License terms appropriate for commercial uses',
     ],
+    'LoginPattern':[
+        '/jsp/community/welcome.jsp',
+    ],
     'PaidPattern':[
         '/servlets/TairObject\?((id=\d+\&type=assignment)|(type=assignment\&id=\d+))',
         '/servlets/TairObject\?((id=\d+\&type=gene)|(type=gene\&id=\d+))',

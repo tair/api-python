@@ -49,8 +49,8 @@ def loadSubscriptionDescriptionAndItem(stuff, partnerId):
         itemDataset = stuff[item['descriptionType']]
         loadSubscriptionItem(itemDataset, partnerId, subscriptionDescriptionId) 
 
-def loadAccessRule(paidPattern, partnerId, paidAccessTypeId):
-    for item in paidPattern:
+def loadAccessRule(patterns, partnerId, accessTypeId):
+    for item in patterns:
         serializer = UriPatternSerializer(data={'pattern':item})
         if serializer.is_valid():
             serializer.save()
@@ -59,13 +59,19 @@ def loadAccessRule(paidPattern, partnerId, paidAccessTypeId):
         serializer = AccessRuleSerializer(data={
             'patternId':patternId,
             'partnerId':partnerId,
-            'accessTypeId':paidAccessTypeId,
+            'accessTypeId':accessTypeId,
         })
         if serializer.is_valid():
             serializer.save()
 
 def createPaidType():
     serializer = AccessTypeSerializer(data={'name':'Paid'})
+    if serializer.is_valid():
+        serializer.save()
+    return serializer.data['accessTypeId']
+
+def createLoginType():
+    serializer = AccessTypeSerializer(data={'name':'Login'})
     if serializer.is_valid():
         serializer.save()
     return serializer.data['accessTypeId']
@@ -97,7 +103,7 @@ def loadTestUser(testUsers, partnerId):
         if serializer.is_valid():
             serializer.save()
 
-def loadPartner(partner, paidAccessTypeId):
+def loadPartner(partner, paidAccessTypeId, loginAccessTypeId):
     partnerId = partner['Partner']['partnerId']
     serializer = PartnerSerializer(data=partner['Partner'])
     if serializer.is_valid():
@@ -110,6 +116,7 @@ def loadPartner(partner, paidAccessTypeId):
     loadItem(SubscriptionTermSerializer, partner['SubscriptionTerm'], partnerId)
     loadSubscriptionDescriptionAndItem(partner, partnerId)
     loadAccessRule(partner['PaidPattern'], partnerId, paidAccessTypeId)
+    loadAccessRule(partner['LoginPattern'], partnerId, loginAccessTypeId)
     loadMeteringLimit(partner['LimitValue'], partnerId)
     loadTestUser(partner['TestUser'], partnerId)
 
@@ -121,4 +128,5 @@ def loadApiKey(apiKeys):
 
 loadApiKey(APIKEY)
 paidAccessTypeId = createPaidType()
-loadPartner(TAIR, paidAccessTypeId)
+loginAccessTypeId = createLoginType()
+loadPartner(TAIR, paidAccessTypeId, loginAccessTypeId)
