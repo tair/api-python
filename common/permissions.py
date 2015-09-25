@@ -17,3 +17,19 @@ class ApiKeyPermission():
 
     def has_object_permission(self, request, view, obj):
         return True
+
+def isPhoenix(request):
+    from authentication.models import Credential
+    partyId = request.GET.get('partyId')
+    secretKey = request.GET.get('secret_key')
+    if partyId and secretKey and Credential.validate(partyId, secretKey) and Credential.objects.get(partyId=partyId).partnerId.partnerId=='phoenix':
+        return True
+    return False
+
+def isLoggedIn(request):
+    from authentication.models import Credential
+    partyId = request.GET.get('partyId')
+    secretKey = request.GET.get('secret_key')
+    if partyId and secretKey and Credential.validate(partyId, secretKey):# and Credential.objects.get(partyId=partyId).partyId.partyType=='phoenix':
+        return True
+    return False

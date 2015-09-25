@@ -15,6 +15,7 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework import generics
 from common.views import GenericCRUDView
+from common.permissions import isPhoenix
 
 from django.shortcuts import render
 import stripe
@@ -37,6 +38,13 @@ class SubscriptionCRUD(GenericCRUDView):
     queryset = Subscription.objects.all()
     serializer_class = SubscriptionSerializer
     requireApiKey = False
+
+    def get_queryset(self):
+        from common.permissions import isPhoenix
+        if isPhoenix(self.request):
+            partyId = self.request.GET.get('partyId')
+            return super(IpRangeCRUD, self).get_queryset().filter(partyId=partyId)
+        return []
 
     # overrides default POST to create a subscription transaction
     def post(self, request):
@@ -68,6 +76,9 @@ class SubscriptionCRUD(GenericCRUDView):
             return Response(returnData, status=status.HTTP_201_CREATED)
         else:
             # basic subscription creation
+            if not isPhoenix(self.request):
+                return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
             serializer = self.serializer_class(data=request.data)
             if serializer.is_valid():
                 subscription = serializer.save()
@@ -228,7 +239,6 @@ class CommercialSubscription(APIView):
         logging.error("%s" % subject)
         logging.error("%s" % message)
 
-        #from_email = "steve@getexp.com"
         from_email = "info@phoenixbioinformatics.org"
         recipient_list = ["steve@getexp.com", "info@phoenixbioinformatics.org"]
         send_mail(subject=subject, message=message, from_email=from_email, recipient_list=recipient_list)
@@ -267,6 +277,8 @@ class ActiveSubscriptions(generics.GenericAPIView):
 class RenewSubscription(generics.GenericAPIView):
     requireApiKey = False
     def post(self, request):
+        if not isPhoenix(request):
+            return HttpResponse(status=400)
         data = request.data
         dataTuple = (
             data.get('name'),
@@ -293,6 +305,8 @@ class RenewSubscription(generics.GenericAPIView):
 class RequestSubscription(generics.GenericAPIView):
     requireApiKey = False
     def post(self, request):
+        if not isPhoenix(request):
+            return HttpResponse(status=400)
         data = request.data
         dataTuple = (
             data.get('name'),

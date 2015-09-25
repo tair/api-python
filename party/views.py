@@ -26,11 +26,12 @@ class PartyCRUD(GenericCRUDView):
     serializer_class = PartySerializer
 
     def get_queryset(self):
-        partyId = self.request.GET.get('partyId')
-        secretKey = self.request.GET.get('secret_key')
-        if partyId and secretKey and Credential.validate(partyId, secretKey):
+        from common.permissions import isPhoenix
+        if isPhoenix(self.request):
+            partyId = self.request.GET.get('partyId')
             return super(PartyCRUD, self).get_queryset().filter(partyId=partyId)
         return []
+# TODO: "post" is still a security vulnerability -SC
 
 # /ipranges/
 class IpRangeCRUD(GenericCRUDView):
@@ -39,11 +40,12 @@ class IpRangeCRUD(GenericCRUDView):
     serializer_class = IpRangeSerializer
 
     def get_queryset(self):
-        partyId = self.request.GET.get('partyId')
-        secretKey = self.request.GET.get('secret_key')
-        if partyId and secretKey and Credential.validate(partyId, secretKey):
+        from common.permissions import isPhoenix
+        if isPhoenix(self.request):
+            partyId = self.request.GET.get('partyId')
             return super(IpRangeCRUD, self).get_queryset().filter(partyId=partyId)
         return []
+# TODO: "post" is still a security vulnerability -SC
 
 #------------------- End of Basic CRUD operations --------------
 
@@ -79,20 +81,24 @@ class CountryView(APIView):
 class Usage(APIView):
     requireApiKey = False
     def post(self, request, format=None):
+        if not isPhoenix(request):
+            return HttpResponse(status=400)
         data = request.data
         subject = "Institution Usage Request For %s" % (data['institution'])
         message = "Start date: %s\n" \
                   "End date: %s\n" \
                   "Comments: %s\n" \
                   % (data['startDate'], data['endDate'], data['comments'])
-        from_email = "steve@getexp.com"
-        recipient_list = ["azeem@getexp.com"]
+        from_email = "info@arabidopsis.org"
+        recipient_list = ["info@arabidopsis.org"]
         send_mail(subject=subject, message=message, from_email=from_email, recipient_list=recipient_list)
         return HttpResponse(json.dumps({'message': 'success'}), status=200)
 
 class ConsortiumInstitutions(APIView):
     requireApiKey = False
     def get(self, request, consortiumId, format=None):
+        if not isPhoenix(request):
+            return HttpResponse(status=400)
 	institutions = Party.objects.get(partyId=consortiumId).party_set.all()
         serializer = PartySerializer(institutions, many=True)
         ret = [dict(s) for s in serializer.data]

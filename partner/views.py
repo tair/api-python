@@ -35,6 +35,15 @@ class PartnerCRUD(GenericCRUDView):
         serializer = self.serializer_class(obj, many=True)
         return Response(serializer.data)
 
+    def post(self, request):
+        return Response({'msg':'cannot create'}, status=status.HTTP_400_BAD_REQUEST)
+
+    def put(self, request):
+        return Response({'msg':'cannot update'}, status=status.HTTP_400_BAD_REQUEST)
+
+    def delete(self, request):
+        return Response({'msg':'cannot delete'}, status=status.HTTP_400_BAD_REQUEST)
+
 # /patterns
 class PartnerPatternCRUD(GenericCRUDView):
     queryset = PartnerPattern.objects.all()
@@ -45,6 +54,15 @@ class TermsCRUD(GenericCRUDView):
     queryset = SubscriptionTerm.objects.all()
     serializer_class = SubscriptionTermSerializer
     requireApiKey = False
+
+    def post(self, request):
+        return Response({'msg':'cannot create'}, status=status.HTTP_400_BAD_REQUEST)
+
+    def put(self, request):
+        return Response({'msg':'cannot update'}, status=status.HTTP_400_BAD_REQUEST)
+
+    def delete(self, request):
+        return Response({'msg':'cannot delete'}, status=status.HTTP_400_BAD_REQUEST)
 
 # /descriptions/
 class SubscriptionDescriptionCRUD(GenericCRUDView):
@@ -70,6 +88,15 @@ class SubscriptionDescriptionCRUD(GenericCRUDView):
             return Response(out)
         serializer = self.serializer_class(obj, many=True)
         return Response(serializer.data)
+
+    def post(self, request):
+        return Response({'msg':'cannot create'}, status=status.HTTP_400_BAD_REQUEST)
+
+    def put(self, request):
+        return Response({'msg':'cannot update'}, status=status.HTTP_400_BAD_REQUEST)
+
+    def delete(self, request):
+        return Response({'msg':'cannot delete'}, status=status.HTTP_400_BAD_REQUEST)
 
 # /descriptionItems/
 class SubscriptionDescriptionItemCRUD(GenericCRUDView):

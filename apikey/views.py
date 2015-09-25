@@ -22,4 +22,3 @@ from rest_framework.response import Response
 class ApiKeyCRUD(GenericCRUDView):
     queryset = ApiKey.objects.all()
     serializer_class = ApiKeySerializer
-    requireApiKey = False
