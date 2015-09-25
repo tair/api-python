@@ -8,7 +8,7 @@ from rest_framework import generics, status
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from common.views import GenericCRUDView
-from common.permissions.ApiKeyPermission import has_permission
+from common.permissions import ApiKeyPermission 
 
 from authentication.models import Credential, GooglePartyAffiliation
 from authentication.serializers import CredentialSerializer, CredentialSerializerNoPassword
@@ -28,7 +28,7 @@ class listcreateuser(GenericCRUDView):
     return CredentialSerializer
 
   def post(self, request, format=None):
-    if has_permission():
+    if ApiKeyPermission.has_permission():
       serializer_class = self.get_serializer_class()
       data = request.data
       data['password'] = hashlib.sha1(data['password']).hexdigest()
