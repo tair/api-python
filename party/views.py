@@ -14,6 +14,7 @@ from django.http import HttpResponse
 from rest_framework.views import APIView
 
 from django.core.mail import send_mail
+from common.permissions import isPhoenix
 
 # top level: /parties/
 
@@ -26,7 +27,6 @@ class PartyCRUD(GenericCRUDView):
     serializer_class = PartySerializer
 
     def get_queryset(self):
-        from common.permissions import isPhoenix
         if isPhoenix(self.request):
             partyId = self.request.GET.get('partyId')
             return super(PartyCRUD, self).get_queryset().filter(partyId=partyId)
@@ -40,7 +40,6 @@ class IpRangeCRUD(GenericCRUDView):
     serializer_class = IpRangeSerializer
 
     def get_queryset(self):
-        from common.permissions import isPhoenix
         if isPhoenix(self.request):
             partyId = self.request.GET.get('partyId')
             return super(IpRangeCRUD, self).get_queryset().filter(partyId=partyId)
@@ -81,6 +80,7 @@ class CountryView(APIView):
 class Usage(APIView):
     requireApiKey = False
     def post(self, request, format=None):
+        # security vulnerability: consortiumId should come from partyId in cookie that's been validated via isPhoenix -SC
         if not isPhoenix(request):
             return HttpResponse(status=400)
         data = request.data
@@ -97,6 +97,7 @@ class Usage(APIView):
 class ConsortiumInstitutions(APIView):
     requireApiKey = False
     def get(self, request, consortiumId, format=None):
+        # security vulnerability: consortiumId should come from partyId in cookie that's been validated via isPhoenix -SC
         if not isPhoenix(request):
             return HttpResponse(status=400)
 	institutions = Party.objects.get(partyId=consortiumId).party_set.all()

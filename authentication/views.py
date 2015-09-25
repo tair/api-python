@@ -15,6 +15,8 @@ from authentication.serializers import CredentialSerializer, CredentialSerialize
 from subscription.models import Party
 from partner.models import Partner
 
+from common.permissions import isPhoenix
+
 # Create your views here.
 
 #/credentials/
@@ -42,7 +44,10 @@ class listcreateuser(GenericCRUDView):
     return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST) 
 
   def put(self, request, format=None):
-    # TODO: security risk here, anyone can update anyone's username/password -SC
+    # TODO: security risk here, get username based on the partyId verified in isPhoenix -SC
+    if not isPhoenix(self.request):
+      return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
     serializer_class = self.get_serializer_class()
     params = request.GET
     if 'username' not in params:

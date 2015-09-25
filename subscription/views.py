@@ -40,7 +40,6 @@ class SubscriptionCRUD(GenericCRUDView):
     requireApiKey = False
 
     def get_queryset(self):
-        from common.permissions import isPhoenix
         if isPhoenix(self.request):
             partyId = self.request.GET.get('partyId')
             return super(IpRangeCRUD, self).get_queryset().filter(partyId=partyId)
