@@ -130,6 +130,7 @@ class PaymentControl():
             "partnerName": partnerObj.name,
             "accessCodes": activationCodes,
 	    "loginUrl": hostname+"/#/login?partnerId="+partnerObj.partnerId+"&redirect="+redirect,
+            "partnerId": partnerObj.partnerId,
             "subscriptionDescription": "%s Subscription" % partnerObj.name,
             "institute": institute,
             "subscriptionTerm": termObj.description,
@@ -162,6 +163,8 @@ class PaymentControl():
                 kwargs['partnerName'],
                 listr,
                 kwargs['loginUrl'],
+                kwargs['partnerId'],
+                kwargs['partnerId'],
                 kwargs['subscriptionDescription'],
                 kwargs['institute'],
                 kwargs['subscriptionTerm'],
@@ -176,13 +179,13 @@ class PaymentControl():
         subject = kwargs['subject']
         from_email = kwargs['senderEmail']
         recipient_list = kwargs['recipientEmails']
-        logging.basicConfig(filename="/home/ubuntu/logs/debug.log",
-                            format='%(asctime)s %(message)s'
-        )
-        logging.error("------Sending individual email------")
-        logging.error("%s" % recipient_list[0])
+#        logging.basicConfig(filename="/home/ec2-user/logs/debug.log",
+#                            format='%(asctime)s %(message)s'
+#        )
+#        logging.error("------Sending individual email------")
+#        logging.error("%s" % recipient_list[0])
         send_mail(subject=subject, from_email=from_email, recipient_list=recipient_list, html_message=html_message, message=None)
-        logging.error("------Done sending individual email------")
+#        logging.error("------Done sending individual email------")
         
     @staticmethod
     def isValidRequest(request, message):
