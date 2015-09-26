@@ -46,7 +46,7 @@ class listcreateuser(GenericCRUDView):
   def put(self, request, format=None):
     # TODO: security risk here, get username based on the partyId verified in isPhoenix -SC
     if not isPhoenix(self.request):
-      return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+      return Response(status=status.HTTP_400_BAD_REQUEST)
 
     serializer_class = self.get_serializer_class()
     params = request.GET

@@ -5,7 +5,7 @@ def connect():
     host = 'paywall2.cwyjt5kql77y.us-west-2.rds.amazonaws.com'
     user="phoenix"
     password="phoenix123"
-    dbName="demo2"
+    dbName="demo1"
     
     conn = MySQLdb.connect(host=host,
                          user=user,
