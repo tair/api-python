@@ -22,7 +22,7 @@ def isPhoenix(request):
     from authentication.models import Credential
     partyId = request.GET.get('partyId')
     secretKey = request.GET.get('secret_key')
-    if partyId and secretKey and Credential.validate(partyId, secretKey) and Credential.objects.get(partyId=partyId).partnerId.partnerId=='phoenix':
+    if partyId and secretKey and Credential.validate(partyId, secretKey):
         return True
     return False
 
