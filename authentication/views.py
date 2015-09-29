@@ -29,8 +29,14 @@ class listcreateuser(GenericCRUDView):
       return CredentialSerializerNoPassword
     return CredentialSerializer
 
+  def get(self, request):
+    return Response()
+
+  def delete(self, request):
+    return Response()
+
   def post(self, request, format=None):
-    if ApiKeyPermission.has_permission():
+    if ApiKeyPermission.has_permission(request, self):
       serializer_class = self.get_serializer_class()
       data = request.data
       data['password'] = hashlib.sha1(data['password']).hexdigest()

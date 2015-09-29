@@ -1,7 +1,8 @@
 from apikey.models import ApiKey
 
 class ApiKeyPermission():
-    def has_permission(self, request, view):
+    @staticmethod
+    def has_permission(request, view):
         if hasattr(view, 'requireApiKey') and view.requireApiKey == False:
             # view specifically declared not require ApiKey
             return True
