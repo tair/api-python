@@ -29,9 +29,6 @@ class listcreateuser(GenericCRUDView):
       return CredentialSerializerNoPassword
     return CredentialSerializer
 
-  def get(self, request):
-    return Response()
-
   def delete(self, request):
     return Response()
 
