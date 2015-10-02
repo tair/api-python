@@ -42,7 +42,7 @@ class SubscriptionCRUD(GenericCRUDView):
     def get_queryset(self):
         if isPhoenix(self.request):
             partyId = self.request.GET.get('partyId')
-            return super(IpRangeCRUD, self).get_queryset().filter(partyId=partyId)
+            return super(SubscriptionCRUD, self).get_queryset().filter(partyId=partyId)
         return []
 
     # overrides default POST to create a subscription transaction
