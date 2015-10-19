@@ -39,13 +39,13 @@ for entry in organizationCountryData:
     else:
         display = False
     if Party.objects.all().filter(name=organizationName).exists():
-        countryId = int(Party.objects.all().filter(name=organizationName)[0].country.countryId)
+        countryId = Party.objects.all().filter(name=organizationName)[0].country.countryId
         print organizationName + ", " + countryId + "\n"
         if Party.objects.all().filter(name=organizationName)[1].exists():
-            countryId = int(Party.objects.all().filter(name=organizationName)[1].country.countryId)
+            countryId = Party.objects.all().filter(name=organizationName)[1].country.countryId
             print organizationName + ", " + countryId + "\n"
             if Party.objects.all().filter(name=organizationName)[2].exists():
-                countryId = int(Party.objects.all().filter(name=organizationName)[2].country.countryId)
+                countryId = Party.objects.all().filter(name=organizationName)[2].country.countryId
                 print organizationName + ", " + countryId + "\n"
             
     else:
