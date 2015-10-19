@@ -8,15 +8,39 @@ os.sys.path.append('../')
 os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'paywall2.settings')
 django.setup()
 
-from party.serializers import PartySerializer
 from party.models import Country, Party
 
 # Begin main program:
 
-for entry in Party.objects.all():
-    print entry.country
-    print '\n'
+# Step1: Open the source CSV file and load into memory.
+with open('organization.csv', 'rb') as f:
+    reader = csv.reader(f)
+    organizationData = list(reader)
 
-#for entry in Country.objects.all():
-#    print entry.countryId + " " + entry.name
-#    print '\n'
+with open('organization_country.csv', 'rb') as f:
+    reader = csv.reader(f)
+    organizationCountryData = list(reader)
+
+# Initializing organization country
+print "Initializing Organization Country Array"
+organizationCountryArray = {}
+for entry in organizationCountryData:
+    organizationId = entry[0]
+    if not organizationId.isdigit():
+        continue
+    organizationName = entry[1]
+    countryName = entry[2]
+    if countryName == 'China':
+        countryName = "People's Republic of China"
+    if countryName == 'UK':
+        countryName = 'United Kingdom'
+    if entry[3] == 'Y':
+        display = True
+    else:
+        display = False
+    if Party.objects.all().filter(name=organizationName).exists():
+        countryId = int(Party.objects.all().get(name=organizationName).countryId)
+    else:
+        countryId = None;
+    print organizationName + ", " + countryId + "\n"
+    organizationCountryArray[organizationId] = [countryId, display]
