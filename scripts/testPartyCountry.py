@@ -14,7 +14,9 @@ from party.models import Country, Party
 # Begin main program:
 
 for entry in Party.objects.all():
-    print entry + '\n'
+    print entry
+    print '\n'
 
 for entry in Country.objects.all():
-    print entry + '\n'
+    print entry
+    print '\n'
