@@ -77,3 +77,6 @@ for entry in organizationData:
     serializer = PartySerializer(data=data)
     if serializer.is_valid():
         serializer.save()
+    else:
+        print "CANNOT SAVE PARTY"
+        print data
