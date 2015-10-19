@@ -1,0 +1,79 @@
+#!/usr/bin/python
+
+import django
+import os
+import csv
+
+os.sys.path.append('../')
+os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'paywall2.settings')
+django.setup()
+
+from party.serializers import PartySerializer
+from party.models import Country
+
+# Begin main program:
+
+# Step1: Open the source CSV file and load into memory.
+with open('organization.csv', 'rb') as f:
+    reader = csv.reader(f)
+    organizationData = list(reader)
+
+with open('organization_country.csv', 'rb') as f:
+    reader = csv.reader(f)
+    organizationCountryData = list(reader)
+
+# Initializing organization country
+print "Initializing Organization Country Array"
+organizationCountryArray = {}
+for entry in organizationCountryData:
+    organizationId = entry[0]
+    if not organizationId.isdigit():
+        continue
+    organizationName = entry[1]
+    countryName = entry[2]
+    if countryName == 'China':
+        countryName = "People's Republic of China"
+    if countryName == 'UK':
+        countryName = 'United Kingdom'
+    if entry[3] == 'Y':
+        display = True
+    else:
+        display = False
+    if Country.objects.all().filter(name=countryName).exists():
+        countryId = int(Country.objects.all().get(name=countryName).countryId)
+    else:
+        countryId = None;
+    organizationCountryArray[organizationId] = [countryId, display]
+
+print "Processing Data"
+count = 0
+for entry in organizationData:
+    count += 1
+    print count
+    organizationId = entry[0]
+    if not organizationId.isdigit():
+        continue
+    offset = 2
+    organizationName = entry[1]
+    while not entry[offset].isdigit():
+        organizationName = "%s,%s" % (organizationName, entry[offset])
+        offset += 1
+    try:
+        temp = organizationCountryArray[organizationId]
+        countryId = temp[0]
+        display = temp[1]
+    except:
+        countryId = None
+        display = False
+    organizationName = organizationName.decode('utf8')
+
+    data = {
+        'name':organizationName,
+        'partyType':'organization',
+        'display':display,
+        'country':countryId,
+    }
+
+    serializer = PartySerializer(data=data)
+    if serializer.is_valid():
+        serializer.save()
