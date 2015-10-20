@@ -9,7 +9,7 @@ os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'paywall2.settings')
 django.setup()
 
 from party.serializers import PartySerializer
-from party.models import Country
+from party.models import Country, Party
 
 # Begin main program:
 
