@@ -14,7 +14,7 @@ from party.models import Country, Party
 # Begin main program:
 
 # Step1: Open the source CSV file and load into memory.
-with open('organization.csv', 'rb') as f:
+with open('organization_nospec.csv', 'rb') as f:
     reader = csv.reader(f)
     organizationData = list(reader)
 
