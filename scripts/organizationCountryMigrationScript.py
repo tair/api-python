@@ -66,8 +66,8 @@ for entry in organizationData:
         countryId = None
         display = False
 
-    organizationName = organizationName.decode('utf8')
-    organizationName = organizationName.encode('utf8')
+    # organizationName = organizationName.decode('utf8')
+    # organizationName = organizationName.encode('utf8')
 
     data = {
         'name':organizationName,
