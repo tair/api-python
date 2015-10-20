@@ -74,9 +74,11 @@ for entry in organizationData:
         'country':countryId,
     }
 
-    serializer = PartySerializer(data=data)
-    if serializer.is_valid():
-        serializer.save()
-    else:
-        print "CANNOT SAVE PARTY"
-        print data
+    for partyInstance in Party.objects.all().filter(name=organizationName):
+
+        serializer = PartySerializer(partyInstance, data=data)
+        if serializer.is_valid():
+            serializer.save()
+        else:
+            print "CANNOT SAVE PARTY"
+            print data
