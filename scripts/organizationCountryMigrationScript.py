@@ -9,7 +9,7 @@ os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'paywall2.settings')
 django.setup()
 
 from party.serializers import PartySerializer
-from party.models import Country, Party
+from party.models import Country
 
 # Begin main program:
 
@@ -65,16 +65,16 @@ for entry in organizationData:
     except:
         countryId = None
         display = False
-    organizationName = organizationName.decode('utf8')
-
-    data = {
-        'name':organizationName,
-        'partyType':'organization',
-        'display':display,
-        'country':countryId,
-    }
 
     for partyInstance in Party.objects.all().filter(name=organizationName):
+        organizationName = organizationName.decode('utf8')
+
+        data = {
+            'name':organizationName,
+            'partyType':'organization',
+            'display':display,
+            'country':countryId,
+        }
 
         serializer = PartySerializer(partyInstance, data=data)
         if serializer.is_valid():
