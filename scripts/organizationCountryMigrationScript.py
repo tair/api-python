@@ -68,6 +68,7 @@ for entry in organizationData:
 
     # organizationName = organizationName.decode('utf8')
     # organizationName = organizationName.encode('utf8')
+    organizationName = unicode(organizationName);
 
     data = {
         'name':organizationName,
