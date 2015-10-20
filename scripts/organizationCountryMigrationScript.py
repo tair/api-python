@@ -67,6 +67,7 @@ for entry in organizationData:
         display = False
 
     organizationName = organizationName.decode('utf8')
+    organizationName = organizationName.encode('utf8')
 
     data = {
         'name':organizationName,
@@ -84,3 +85,5 @@ for entry in organizationData:
             else:
                 print "CANNOT SAVE PARTY"
                 print data
+    else:
+        print "organizationName NOT FOUND"
