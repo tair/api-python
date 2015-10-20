@@ -66,7 +66,7 @@ for entry in organizationData:
         countryId = None
         display = False
 
-    organizationName = unicode(organizationName,'utf8')
+    organizationName = organizationName.decode('utf8')
 
     data = {
         'name':organizationName,
@@ -74,12 +74,13 @@ for entry in organizationData:
         'display':display,
         'country':countryId,
     }
-        
-    for partyInstance in Party.objects.all().filter(name=organizationName):
-
-        serializer = PartySerializer(partyInstance, data=data)
-        if serializer.is_valid():
-            serializer.save()
-        else:
-            print "CANNOT SAVE PARTY"
-            print data
+    
+    if Party.objects.all().filter(name=organizationName).exists:    
+        for partyInstance in Party.objects.all().filter(name=organizationName):
+    
+            serializer = PartySerializer(partyInstance, data=data)
+            if serializer.is_valid():
+                serializer.save()
+            else:
+                print "CANNOT SAVE PARTY"
+                print data
