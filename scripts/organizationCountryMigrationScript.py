@@ -66,15 +66,16 @@ for entry in organizationData:
         countryId = None
         display = False
 
-    for partyInstance in Party.objects.all().filter(name=organizationName):
-        organizationName = organizationName.decode('utf8')
+    organizationName = unicode(organizationName,'utf8')
 
-        data = {
-            'name':organizationName,
-            'partyType':'organization',
-            'display':display,
-            'country':countryId,
-        }
+    data = {
+        'name':organizationName,
+        'partyType':'organization',
+        'display':display,
+        'country':countryId,
+    }
+        
+    for partyInstance in Party.objects.all().filter(name=organizationName):
 
         serializer = PartySerializer(partyInstance, data=data)
         if serializer.is_valid():
