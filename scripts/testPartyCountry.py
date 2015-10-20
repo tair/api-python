@@ -12,7 +12,7 @@ from party.models import Country, Party
 
 # Begin main program:
 
-instance = Party(partyType = 'organization', name = 'testPartybyQian', display=True, country='100')
+instance = Party(partyType = 'organization', name = 'testPartybyQian', display=True, country=100)
 instance.save()
 
 # Step1: Open the source CSV file and load into memory.
