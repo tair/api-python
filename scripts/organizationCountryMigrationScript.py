@@ -77,7 +77,7 @@ for entry in organizationData:
         'country':countryId,
     }
     
-    if Party.objects.all().filter(name=organizationName).exists:    
+    if Party.objects.all().filter(name=organizationName).exists():
         for partyInstance in Party.objects.all().filter(name=organizationName):
     
             serializer = PartySerializer(partyInstance, data=data)
