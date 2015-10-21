@@ -21,6 +21,6 @@ with open(partyListFilename, 'rb') as f:
 for entry in partyListData:
 
     if Party.objects.all().filter(name=entry[0]).exists():
-        Party.objects.all().filter(name=entry[0]).delete():
+        Party.objects.all().filter(name=entry[0]).delete()
         print 'deleted: '+ entry[0]
 
