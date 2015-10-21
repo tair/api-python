@@ -87,4 +87,4 @@ for entry in organizationData:
                 print "CANNOT SAVE PARTY"
                 print data
     else:
-        print "organizationName NOT FOUND"
+        print "organizationName NOT FOUND: "+organizationName

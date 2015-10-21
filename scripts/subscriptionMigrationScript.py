@@ -9,7 +9,7 @@ os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'paywall2.settings')
 django.setup()
 
 from party.serializers import PartySerializer, IpRangeSerializer
-from party.models import Country
+from party.models import Country, Party
 from subscription.serializers import SubscriptionSerializer, SubscriptionTransactionSerializer
 
 # Begin main program:
@@ -84,7 +84,7 @@ for entry in organizationCountryData:
     if Country.objects.all().filter(name=countryName).exists():
         countryId = int(Country.objects.all().get(name=countryName).countryId)
     else:
-        countryId = None;
+        countryId = None
     organizationCountryArray[organizationId] = [countryId, display]
 
 print "Processing Data"
@@ -97,6 +97,9 @@ for entry in organizationData:
         continue
     offset = 2
     organizationName = entry[1]
+    if Party.objects.all().filter(name=organizationName).exists():
+        print 'organization already exists: '+'('+organizationId+')'+organizationName
+        continue
     while not entry[offset].isdigit():
         organizationName = "%s,%s" % (organizationName, entry[offset])
         offset += 1
@@ -164,7 +167,12 @@ for entry in ipData:
         continue
     start = entry[2]
     end = entry[3]
-    partyId = orgIdPartyId[organizationId]
+    if organizationId in orgIdPartyId:
+        partyId = orgIdPartyId[organizationId]
+    else:
+        print 'organization already exists: '+ organizationId
+        continue
+
     data = {
         'partyId':partyId,
         'start':start,
