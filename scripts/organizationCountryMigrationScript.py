@@ -16,7 +16,7 @@ from party.models import Country, Party
 # Step1: Open the source CSV file and load into memory.
 organizationFilename = input("Please enter a file name(*.csv) for organization list(not organization_country):\n")
 
-with open(organizationFilename, 'rb') as f:
+with open(str(organizationFilename), 'rb') as f:
     reader = csv.reader(f)
     organizationData = list(reader)
 
