@@ -2,6 +2,7 @@
 
 import django
 import os
+import csv
 
 os.sys.path.append('../')
 os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'paywall2.settings')
