@@ -74,7 +74,7 @@ for entry in organizationCountryData:
     organizationName = entry[1]
     countryName = entry[2]
     if countryName == 'China':
-        countryName = "People's Republic of China"
+        countryName = "China, PR"
     if countryName == 'UK':
         countryName = 'United Kingdom'
     if entry[3] == 'Y':
