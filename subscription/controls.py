@@ -76,20 +76,20 @@ class PaymentControl():
             return message
         stripe.api_key = secret_key
  
-        charge = stripe.Charge.create(
-            amount=int(priceToCharge*100), # stripe takes in cents; UI passes in dollars. multiply by 100 to convert.
-            currency="usd",
-            source=stripe_token,
-            description=chargeDescription,
-            metadata = {'Email': emailAddress, 'Institute': institute}
-        )
-        activationCodes = PaymentControl.postPaymentHandling(termId, quantity)
-        emailInfo = PaymentControl.getEmailInfo(activationCodes, termId, quantity, priceToCharge, charge.id, emailAddress, firstname, lastname, institute, street, city, state, country, zip, hostname, redirect)
-        PaymentControl.emailReceipt(emailInfo)
-        status = True
-        message['activationCodes'] = activationCodes
         try:
-            pass
+            charge = stripe.Charge.create(
+                amount=int(priceToCharge*100), # stripe takes in cents; UI passes in dollars. multiply by 100 to convert.
+                currency="usd",
+                source=stripe_token,
+                description=chargeDescription,
+                metadata = {'Email': emailAddress, 'Institute': institute}
+            )
+            activationCodes = PaymentControl.postPaymentHandling(termId, quantity)
+            emailInfo = PaymentControl.getEmailInfo(activationCodes, termId, quantity, priceToCharge, charge.id, emailAddress, firstname, lastname, institute, street, city, state, country, zip, hostname, redirect)
+            PaymentControl.emailReceipt(emailInfo)
+            status = True
+            message['activationCodes'] = activationCodes
+            #pass
         except stripe.error.InvalidRequestError, e:
             status = False
             message['message'] = e.json_body['error']['message']
