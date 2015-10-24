@@ -71,9 +71,9 @@ class PaymentControl():
         message['price'] = priceToCharge
         message['termId'] = termId
         message['quantity'] = quantity
-	if not PaymentControl.validateCharge(priceToCharge, termId, quantity):
-	 	message['message'] = "Charge validation error"
-		return message
+        if not PaymentControl.validateCharge(priceToCharge, termId, quantity):
+            message['message'] = "Charge validation error"
+            return message
         stripe.api_key = secret_key
  
         charge = stripe.Charge.create(
@@ -129,7 +129,7 @@ class PaymentControl():
             "name": name,
             "partnerName": partnerObj.name,
             "accessCodes": activationCodes,
-	    "loginUrl": hostname+"/#/login?partnerId="+partnerObj.partnerId+"&redirect="+redirect,
+            "loginUrl": hostname+"/#/login?partnerId="+partnerObj.partnerId+"&redirect="+redirect,
             "partnerId": partnerObj.partnerId,
             "subscriptionDescription": "%s Subscription" % partnerObj.name,
             "institute": institute,
@@ -245,4 +245,4 @@ class PaymentControl():
         if so.groupDiscountPercentage > 0 and quantity > 2:
             calcprice = so.price*quantity*(1-(so.groupDiscountPercentage/100))
         calcprice = round(calcprice*100)/100
-	return (price == calcprice)
+        return (price == calcprice)
