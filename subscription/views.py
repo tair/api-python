@@ -137,7 +137,6 @@ class SubscriptionsPayment(APIView):
         return render(request, "subscription/paymentIndex.html", message)
 
     def post(self, request):
-        import pdb; pdb.set_trace()
         stripe_api_secret_test_key = settings.STRIPE_PRIVATE_KEY
         stripe.api_key = stripe_api_secret_test_key 
         token = request.POST['stripeToken']
