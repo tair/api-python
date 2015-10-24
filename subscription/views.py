@@ -143,17 +143,17 @@ class SubscriptionsPayment(APIView):
         termId = request.POST['termId']
         quantity = int(request.POST['quantity'])
         email = request.POST['email']
-	firstname = request.POST['firstName']
-	lastname = request.POST['lastName']
-	institute = request.POST['institute']
-	street = request.POST['street']
-	city = request.POST['city']
-	state = request.POST['state']
-	country = request.POST['country']
-	zip = request.POST['zip']
+        firstname = request.POST['firstName']
+        lastname = request.POST['lastName']
+        institute = request.POST['institute']
+        street = request.POST['street']
+        city = request.POST['city']
+        state = request.POST['state']
+        country = request.POST['country']
+        zip = request.POST['zip']
         hostname = request.META.get("HTTP_ORIGIN")
         redirect = request.POST['redirect']
-	
+    
         description = "Test charge"
         message = PaymentControl.tryCharge(stripe_api_secret_test_key, token, price, description, termId, quantity, email, firstname, lastname, institute, street, city, state, country, zip, hostname, redirect)
         return HttpResponse(json.dumps(message), content_type="application/json")
@@ -263,10 +263,10 @@ class EndDate(generics.GenericAPIView):
 class ActiveSubscriptions(generics.GenericAPIView):
     requireApiKey = False
     def get(self, request, partyId):
-	now = datetime.datetime.now()
+        now = datetime.datetime.now()
         activeSubscriptions = Subscription.objects.all().filter(partyId=partyId).filter(endDate__gt=now).filter(startDate__lt=now)
-	serializer = SubscriptionSerializer(activeSubscriptions, many=True)
-	#return HttpResponse(json.dumps(dict(serializer.data)))
+        serializer = SubscriptionSerializer(activeSubscriptions, many=True)
+        #return HttpResponse(json.dumps(dict(serializer.data)))
         ret = {}
         for s in serializer.data:
             ret[s['partnerId']] = dict(s)
@@ -283,7 +283,7 @@ class RenewSubscription(generics.GenericAPIView):
             data.get('name'),
             data.get('email'),
             data.get('institution'),
-	    data.get('comments'),
+        data.get('comments'),
         )
         subject = "%s Subscription Renewal Request For %s" % (data.get('partnerName'), data.get('institution'))
         message = "\n" \
@@ -292,7 +292,7 @@ class RenewSubscription(generics.GenericAPIView):
                   "Name: %s\n" \
                   "Email: %s \n" \
                   "Institution Name: %s \n" \
-		  "Comments: %s \n" \
+          "Comments: %s \n" \
                   "\n" \
                   % dataTuple
         from_email = "info@phoenixbioinformatics.org"
@@ -311,7 +311,7 @@ class RequestSubscription(generics.GenericAPIView):
             data.get('name'),
             data.get('email'),
             data.get('institution'),
-	    data.get('comments'),
+        data.get('comments'),
         )
         subject = "%s Subscription Request For %s" % (data.get('partnerName'), data.get('institution'))
         message = "\n" \
@@ -320,7 +320,7 @@ class RequestSubscription(generics.GenericAPIView):
                   "Name: %s\n" \
                   "Email: %s \n" \
                   "Institution Name: %s \n" \
-		  "Comments: %s \n" \
+          "Comments: %s \n" \
                   "\n" \
                   % dataTuple
         from_email = "info@phoenixbioinformatics.org"
