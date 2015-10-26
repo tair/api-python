@@ -261,7 +261,7 @@ class ForgotPassword(APIView):
                   % dataTuple
 
         from_email = "info@phoenixbioinformatics.org"
-        recipient_list = ["andrey@arabidopsis.org", "info@phoenixbioinformatics.org"]
+        recipient_list = ["bob@poesys.com", "info@phoenixbioinformatics.org"]
         send_mail(subject=subject, message=message, from_email=from_email, recipient_list=recipient_list)
         return HttpResponse(json.dumps({'message':'success'}), content_type="application/json")
 
