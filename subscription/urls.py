@@ -20,6 +20,9 @@ urlpatterns = [
     url(r'^activesubscriptions/(?P<partyId>.+)/$', views.ActiveSubscriptions.as_view()),
     url(r'^request/$', views.RequestSubscription.as_view()),
     url(r'^renew/$', views.RenewSubscription.as_view()),
+    # vet PW-123
+    url(r'^forgot/$', views.ForgotPassword.as_view()),
+    
 
     # Templates
     url(r'^templates/block/$', TemplateView.as_view(template_name="subscription/block.html")),
