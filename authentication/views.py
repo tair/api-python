@@ -95,7 +95,36 @@ def login(request):
         return HttpResponse(json.dumps({"message":"Incorrect password %s" % (requestPassword)}), status=401)
     else:
       return HttpResponse(json.dumps({"message":"No such user"}), status=401)
-
+# PW-123
+#/credentials/forgot/
+#user,partnerId
+def ForgotPassword(request):
+  if request.method == 'POST':
+    if not 'user' in request.POST:
+        return HttpResponse(json.dumps({"message": "No username provided"}), status=400)
+    if not 'partnerId' in request.GET:
+        return HttpResponse(json.dumps({"message": "No partnerId provided"}), status=400)
+    requestUsername = request.POST.get('user')
+    requestPassword = hashlib.sha1(request.POST.get('password')).hexdigest()
+    requestPartner = request.GET.get('partnerId')
+    user = Credential.objects.filter(partnerId=requestPartner).filter(username=requestUsername)
+    
+    if user: 
+      user = user.first()
+      #if ( user.password == requestPassword ):
+      response = HttpResponse(json.dumps({
+          "message": "Correct password", 
+          "partyId": user.partyId.partyId, 
+          "secret_key": generateSecretKey(str(user.partyId.partyId), user.password),
+          "email": user.email,
+          "role":"librarian",
+      "username": user.username,
+        }), status=200)
+      return response
+      #else:
+      #  return HttpResponse(json.dumps({"message":"Incorrect password %s" % (requestPassword)}), status=401)
+    else:
+      return HttpResponse(json.dumps({"message":"No such user"}), status=401)
 
 #/credentials/register/
 def registerUser(request):

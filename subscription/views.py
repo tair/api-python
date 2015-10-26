@@ -245,7 +245,7 @@ class CommercialSubscription(APIView):
         return HttpResponse(json.dumps({'message':'success'}), content_type="application/json")
 
 
-#vet PW-123
+#vet PW-123 TODO move from here
 class ForgotPassword(APIView):
     requireApiKey = False
     def post (self, request):
