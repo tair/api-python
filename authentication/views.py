@@ -102,8 +102,6 @@ def ForgotPassword(request):
   if request.method == 'POST':
     if not 'user' in request.POST:
         return HttpResponse(json.dumps({"message": "No username provided"}), status=400)
-    if not 'partnerId' in request.GET:
-        return HttpResponse(json.dumps({"message": "No partnerId provided"}), status=400)
     requestUsername = request.POST.get('user')
     requestPassword = hashlib.sha1(request.POST.get('password')).hexdigest()
     requestPartner = request.GET.get('partnerId')
