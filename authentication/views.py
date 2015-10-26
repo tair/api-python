@@ -108,19 +108,16 @@ def ForgotPassword(request):
     user = Credential.objects.filter(partnerId=requestPartner).filter(username=requestUsername)
     
     if user: 
-      user = user.first()
-      #if ( user.password == requestPassword ):
-      response = HttpResponse(json.dumps({
+        user = user.first()
+        response = HttpResponse(json.dumps({
           "message": "Correct password", 
           "partyId": user.partyId.partyId, 
           "secret_key": generateSecretKey(str(user.partyId.partyId), user.password),
           "email": user.email,
           "role":"librarian",
-      "username": user.username,
+          "username": user.username,
         }), status=200)
-      return response
-      #else:
-      #  return HttpResponse(json.dumps({"message":"Incorrect password %s" % (requestPassword)}), status=401)
+        return response
     else:
       return HttpResponse(json.dumps({"message":"No such user"}), status=401)
 
