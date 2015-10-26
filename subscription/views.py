@@ -257,11 +257,11 @@ class ForgotPassword(APIView):
         subject = "%s Reset Password For %s" % (data.get('partnerName'), data.get('user'))
         message = "%s\n" \
                   "\n" \
-                  "Your temp password is\n" \
+                  "Your temp password is XXX \n" \
                   % dataTuple
 
         from_email = "info@phoenixbioinformatics.org"
-        recipient_list = ["steve@getexp.com", "info@phoenixbioinformatics.org"]
+        recipient_list = ["andrey@arabidopsis.org", "info@phoenixbioinformatics.org"]
         send_mail(subject=subject, message=message, from_email=from_email, recipient_list=recipient_list)
         return HttpResponse(json.dumps({'message':'success'}), content_type="application/json")
 

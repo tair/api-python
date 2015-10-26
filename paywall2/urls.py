@@ -20,6 +20,8 @@ urlpatterns = patterns('',
     url(r'^partners/', include('partner.urls')),
     url(r'^session-logs/', include('loggingapp.urls')),
     url(r'^credentials/', include('authentication.urls', namespace="authentication")),
+    #vet PW-123
+    #url(r'^forgot/', include('authentication.urls', namespace="authentication")),
     url(r'^apikeys/', include('apikey.urls')),
     url(r'^cookies/', include('cookies.urls')),
 )
