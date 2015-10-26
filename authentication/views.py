@@ -103,7 +103,7 @@ def ForgotPassword(request):
     if not 'user' in request.POST:
         return HttpResponse(json.dumps({"message": "No username provided"}), status=400)
     requestUsername = request.POST.get('user')
-    requestPassword = hashlib.sha1(request.POST.get('password')).hexdigest()
+    #requestPassword = hashlib.sha1(request.POST.get('password')).hexdigest()
     requestPartner = request.GET.get('partnerId')
     user = Credential.objects.filter(partnerId=requestPartner).filter(username=requestUsername)
     
