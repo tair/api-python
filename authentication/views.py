@@ -109,15 +109,27 @@ def ForgotPassword(request):
     
     if user: 
         user = user.first()
-        response = HttpResponse(json.dumps({
-          "message": "Correct password", 
-          "partyId": user.partyId.partyId, 
-          "secret_key": generateSecretKey(str(user.partyId.partyId), user.password),
-          "email": user.email,
-          "role":"librarian",
-          "username": user.username,
-        }), status=200)
-        return response
+        #response = HttpResponse(json.dumps({
+        #  "message": "Correct password", 
+        #  "partyId": user.partyId.partyId, 
+        #  "secret_key": generateSecretKey(str(user.partyId.partyId), user.password),
+        #  "email": user.email,
+        #  "role":"librarian",
+        #  "username": user.username,
+        #}), status=200)
+        
+        subject = "%s Reset Password For %s" % (user.username, user.email)
+        message = "%s (%s)\n" \
+                  "\n" \
+                  "Your temp password is XXX \n" \
+                  % (user.username, user.email)
+
+        from_email = "info@phoenixbioinformatics.org"
+        recipient_list = ["andrey@arabidopsis.org", "info@phoenixbioinformatics.org"]
+        send_mail(subject=subject, message=message, from_email=from_email, recipient_list=recipient_list)
+        return HttpResponse(json.dumps({'message':'success'}), content_type="application/json")
+        
+        #return response
     else:
       return HttpResponse(json.dumps({"message":"No such user"}), status=401)
 
