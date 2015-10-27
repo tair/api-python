@@ -117,12 +117,12 @@ def ForgotPassword(request):
         subject = "%s Reset Password For %s" % (user.username, user.email)
         message = "%s (%s)\n" \
                   "\n" \
-                  "Your temp password is XXX \n" \
+                  "Your temp password is 777 \n" \
                   % (user.username, user.email)
         from_email = "info@phoenixbioinformatics.org"
         recipient_list = [user.email, "info@phoenixbioinformatics.org"]
         send_mail(subject=subject, message=message, from_email=from_email, recipient_list=recipient_list)
-        return HttpResponse(json.dumps({'message':'success', 'username':user.username, 'useremail':user.email}), content_type="application/json")
+        return HttpResponse(json.dumps({'reset pwd email message':'success', 'username':user.username, 'useremail':user.email}), content_type="application/json")
     else:
       return HttpResponse(json.dumps({"message":"No such user"}), status=401)
 
