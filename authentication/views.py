@@ -105,10 +105,9 @@ def ForgotPassword(request):
     if not 'user' in request.POST:
         return HttpResponse(json.dumps({"message": "No username provided"}), status=400)
     requestUsername = request.POST.get('user')
-    #requestPassword = hashlib.sha1(request.POST.get('password')).hexdigest()
     requestPartner = request.GET.get('partnerId')
     user = Credential.objects.filter(partnerId=requestPartner).filter(username=requestUsername)
-    
+    # https://demoapi.arabidopsis.org/credentials/register
     if user: 
         user = user.first()
         subject = "%s Reset Password For %s" % (user.username, user.email)
@@ -117,13 +116,14 @@ def ForgotPassword(request):
                   "Your temp password is XXX \n" \
                   % (user.username, user.email)
         from_email = "info@phoenixbioinformatics.org"
-        recipient_list = ["andrey@arabidopsis.org", "info@phoenixbioinformatics.org"]
+        recipient_list = [user.email, "info@phoenixbioinformatics.org"]
         send_mail(subject=subject, message=message, from_email=from_email, recipient_list=recipient_list)
         return HttpResponse(json.dumps({'message':'success', 'username':user.username, 'useremail':user.email}), content_type="application/json")
     else:
       return HttpResponse(json.dumps({"message":"No such user"}), status=401)
 
 #/credentials/register/
+#https://demoapi.arabidopsis.org/credentials/register
 def registerUser(request):
   context = {'partnerId': request.GET.get('partnerId', "")}
   return render(request, "authentication/register.html", context)
