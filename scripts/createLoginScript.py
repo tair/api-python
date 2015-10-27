@@ -21,8 +21,7 @@ serializer_class = get_serializer_class()
 params = {'username':'tair2468','password':'234','email':'tair2468_1@test.cn','institution':'QL ins','partnerId':'tair','userIdentifier':'1501492704'}
 if 'username' not in params:
     print 'error: Put method needs username'
-generic_crud = GenericCRUDView(generics.GenericAPIView)
-obj = generic_crud.get_queryset().first()
+obj = Credential.objects.all().get(userIdentifier='1501492704')
 data = {'username':'tair2468','password':'234','email':'tair2468_1@test.cn','institution':'QL ins','partnerId':'tair','userIdentifier':'1501492704'}
 if 'password' in data:
     data['password'] = hashlib.sha1(data['password']).hexdigest()
