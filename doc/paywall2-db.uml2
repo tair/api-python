@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<uml:Model xmi:version="2.0" xmlns:xmi="http://www.omg.org/XMI" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:MagicDrawProfile_0="http:///MagicDrawProfile_0_bi2UAEbUEeWY2qcg87dWeg.profile.uml2" xmlns:key_0="http:///key_0_bjAFAEbUEeWY2qcg87dWeg.profile.uml2" xmlns:persistence_0="http:///persistence_0_bizQsEbUEeWY2qcg87dWeg.profile.uml2" xmlns:uml="http://www.eclipse.org/uml2/1.0.0/UML" xsi:schemaLocation="http:///MagicDrawProfile_0_bi2UAEbUEeWY2qcg87dWeg.profile.uml2 UML_Standard_Profile.MagicDraw_Profile.profile.uml2#_btiiJEbUEeWY2qcg87dWeg http:///key_0_bjAFAEbUEeWY2qcg87dWeg.profile.uml2 com.poesys.profile.key.profile.uml2#_btjvs0bUEeWY2qcg87dWeg http:///persistence_0_bizQsEbUEeWY2qcg87dWeg.profile.uml2 com.poesys.profile.persistence.profile.uml2#_bthTLEbUEeWY2qcg87dWeg" xmi:id="eee_1045467100313_135436_1" name="Data" appliedProfile="_16_6_8f90291_1254846042821_86742_517profileApplicationData _16_9_90d0292_1302892256785_123121_1401profileApplicationData _16_0_90d0292_1252021595271_318891_652profileApplicationData _11_5_f720368_1159529670215_231387_1profileApplicationData _be00301_1073394351331_445580_2profileApplicationData _9_0_be00301_1108050582343_527400_10847profileApplicationData _11_5_be00301_1153310565718_226811_161profileApplicationData _17_0_4beta_8ca0285_1361349406965_180847_3086profileApplicationData _16_0_90d0292_1252021595271_831435_651profileApplicationData">
+<uml:Model xmi:version="2.0" xmlns:xmi="http://www.omg.org/XMI" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:MagicDrawProfile_0="http:///MagicDrawProfile_0_RnrbYEeEEeWlKfVTs-HO8g.profile.uml2" xmlns:key_0="http:///key_0_Rnmi4EeEEeWlKfVTs-HO8g.profile.uml2" xmlns:persistence_0="http:///persistence_0_Rn7TAUeEEeWlKfVTs-HO8g.profile.uml2" xmlns:uml="http://www.eclipse.org/uml2/1.0.0/UML" xsi:schemaLocation="http:///MagicDrawProfile_0_RnrbYEeEEeWlKfVTs-HO8g.profile.uml2 UML_Standard_Profile.MagicDraw_Profile.profile.uml2#_SNh70UeEEeWlKfVTs-HO8g http:///key_0_Rnmi4EeEEeWlKfVTs-HO8g.profile.uml2 com.poesys.profile.key.profile.uml2#_SNh7TEeEEeWlKfVTs-HO8g http:///persistence_0_Rn7TAUeEEeWlKfVTs-HO8g.profile.uml2 com.poesys.profile.persistence.profile.uml2#_SNbz1EeEEeWlKfVTs-HO8g" xmi:id="eee_1045467100313_135436_1" name="Data" appliedProfile="_16_9_90d0292_1302892256785_123121_1401profileApplicationData _16_0_90d0292_1252021595271_831435_651profileApplicationData _11_5_f720368_1159529670215_231387_1profileApplicationData _16_6_8f90291_1254846042821_86742_517profileApplicationData _be00301_1073394351331_445580_2profileApplicationData _11_5_be00301_1153310565718_226811_161profileApplicationData _17_0_4beta_8ca0285_1361349406965_180847_3086profileApplicationData _9_0_be00301_1108050582343_527400_10847profileApplicationData _16_0_90d0292_1252021595271_318891_652profileApplicationData">
   <ownedComment xmi:id="_16_0_90d0292_1233349778166_657703_230" body="Author:muller.&#xA;Created:1/30/09 1:09 PM.&#xA;Title:.&#xA;Comment:.&#xA;" annotatedElement="eee_1045467100313_135436_1"/>
   <packageImport xmi:id="_EfRZoK86EdieaYgxtVWN8QprimitiveTypeData">
     <importedPackage xmi:type="uml:Model" href="pathmap://UML2_LIBRARIES/UML2PrimitiveTypes.library.uml2#_EfRZoK86EdieaYgxtVWN8Q"/>
@@ -7,68 +7,68 @@
   <packageImport xmi:id="_RjmyoK86EdieaYgxtVWN8QjavaPrimitiveTypeData">
     <importedPackage xmi:type="uml:Model" href="pathmap://UML2_LIBRARIES/JavaPrimitiveTypes.library.uml2#_RjmyoK86EdieaYgxtVWN8Q"/>
   </packageImport>
-  <packageImport xmi:type="uml:ProfileApplication" xmi:id="_16_6_8f90291_1254846042821_86742_517profileApplicationData">
-    <eAnnotations xmi:id="_btkYNkbUEeWY2qcg87dWeg" source="attributes">
-      <details xmi:id="_btkYN0bUEeWY2qcg87dWeg" key="version" value="0"/>
-    </eAnnotations>
-    <importedPackage xmi:type="uml:Profile" href="UML_Standard_Profile.MagicDraw_Profile.Traceability_customization.profile.uml2#_16_6_8f90291_1254846042821_86742_517"/>
-    <importedProfile href="UML_Standard_Profile.MagicDraw_Profile.Traceability_customization.profile.uml2#_16_6_8f90291_1254846042821_86742_517"/>
-  </packageImport>
   <packageImport xmi:type="uml:ProfileApplication" xmi:id="_16_9_90d0292_1302892256785_123121_1401profileApplicationData">
-    <eAnnotations xmi:id="_btk9UUbUEeWY2qcg87dWeg" source="attributes">
-      <details xmi:id="_btk9UkbUEeWY2qcg87dWeg" key="version" value="0"/>
+    <eAnnotations xmi:id="_SNna0UeEEeWlKfVTs-HO8g" source="attributes">
+      <details xmi:id="_SNna0keEEeWlKfVTs-HO8g" key="version" value="0"/>
     </eAnnotations>
     <importedPackage xmi:type="uml:Profile" href="com.poesys.profile.memory.profile.uml2#_16_9_90d0292_1302892256785_123121_1401"/>
     <importedProfile href="com.poesys.profile.memory.profile.uml2#_16_9_90d0292_1302892256785_123121_1401"/>
   </packageImport>
-  <packageImport xmi:type="uml:ProfileApplication" xmi:id="_16_0_90d0292_1252021595271_318891_652profileApplicationData">
-    <eAnnotations xmi:id="_btk9VEbUEeWY2qcg87dWeg" source="attributes">
-      <details xmi:id="_btk9VUbUEeWY2qcg87dWeg" key="version" value="0"/>
+  <packageImport xmi:type="uml:ProfileApplication" xmi:id="_16_0_90d0292_1252021595271_831435_651profileApplicationData">
+    <eAnnotations xmi:id="_SNna1EeEEeWlKfVTs-HO8g" source="attributes">
+      <details xmi:id="_SNna1UeEEeWlKfVTs-HO8g" key="version" value="0"/>
     </eAnnotations>
-    <importedPackage xmi:type="uml:Profile" href="com.poesys.profile.persistence.profile.uml2#_16_0_90d0292_1252021595271_318891_652"/>
-    <importedProfile href="com.poesys.profile.persistence.profile.uml2#_16_0_90d0292_1252021595271_318891_652"/>
+    <importedPackage xmi:type="uml:Profile" href="com.poesys.profile.key.profile.uml2#_16_0_90d0292_1252021595271_831435_651"/>
+    <importedProfile href="com.poesys.profile.key.profile.uml2#_16_0_90d0292_1252021595271_831435_651"/>
   </packageImport>
   <packageImport xmi:type="uml:ProfileApplication" xmi:id="_11_5_f720368_1159529670215_231387_1profileApplicationData">
-    <eAnnotations xmi:id="_btk9V0bUEeWY2qcg87dWeg" source="attributes">
-      <details xmi:id="_btk9WEbUEeWY2qcg87dWeg" key="version" value="0"/>
+    <eAnnotations xmi:id="_SNoBEEeEEeWlKfVTs-HO8g" source="attributes">
+      <details xmi:id="_SNoBEUeEEeWlKfVTs-HO8g" key="version" value="0"/>
     </eAnnotations>
     <importedPackage xmi:type="uml:Profile" href="UML_Standard_Profile.Validation_Profile.profile.uml2#_11_5_f720368_1159529670215_231387_1"/>
     <importedProfile href="UML_Standard_Profile.Validation_Profile.profile.uml2#_11_5_f720368_1159529670215_231387_1"/>
   </packageImport>
+  <packageImport xmi:type="uml:ProfileApplication" xmi:id="_16_6_8f90291_1254846042821_86742_517profileApplicationData">
+    <eAnnotations xmi:id="_SNoBE0eEEeWlKfVTs-HO8g" source="attributes">
+      <details xmi:id="_SNoBFEeEEeWlKfVTs-HO8g" key="version" value="0"/>
+    </eAnnotations>
+    <importedPackage xmi:type="uml:Profile" href="UML_Standard_Profile.MagicDraw_Profile.Traceability_customization.profile.uml2#_16_6_8f90291_1254846042821_86742_517"/>
+    <importedProfile href="UML_Standard_Profile.MagicDraw_Profile.Traceability_customization.profile.uml2#_16_6_8f90291_1254846042821_86742_517"/>
+  </packageImport>
   <packageImport xmi:type="uml:ProfileApplication" xmi:id="_be00301_1073394351331_445580_2profileApplicationData">
-    <eAnnotations xmi:id="_btk9WkbUEeWY2qcg87dWeg" source="attributes">
-      <details xmi:id="_btk9W0bUEeWY2qcg87dWeg" key="version" value="0"/>
+    <eAnnotations xmi:id="_SNoBFkeEEeWlKfVTs-HO8g" source="attributes">
+      <details xmi:id="_SNoBF0eEEeWlKfVTs-HO8g" key="version" value="0"/>
     </eAnnotations>
     <importedPackage xmi:type="uml:Profile" href="UML_Standard_Profile.MagicDraw_Profile.profile.uml2#_be00301_1073394351331_445580_2"/>
     <importedProfile href="UML_Standard_Profile.MagicDraw_Profile.profile.uml2#_be00301_1073394351331_445580_2"/>
   </packageImport>
-  <packageImport xmi:type="uml:ProfileApplication" xmi:id="_9_0_be00301_1108050582343_527400_10847profileApplicationData">
-    <eAnnotations xmi:id="_btk9XUbUEeWY2qcg87dWeg" source="attributes">
-      <details xmi:id="_btk9XkbUEeWY2qcg87dWeg" key="version" value="0"/>
-    </eAnnotations>
-    <importedPackage xmi:type="uml:Profile" href="UML_Standard_Profile.StandardProfile.profile.uml2#_9_0_be00301_1108050582343_527400_10847"/>
-    <importedProfile href="UML_Standard_Profile.StandardProfile.profile.uml2#_9_0_be00301_1108050582343_527400_10847"/>
-  </packageImport>
   <packageImport xmi:type="uml:ProfileApplication" xmi:id="_11_5_be00301_1153310565718_226811_161profileApplicationData">
-    <eAnnotations xmi:id="_btk9YEbUEeWY2qcg87dWeg" source="attributes">
-      <details xmi:id="_btk9YUbUEeWY2qcg87dWeg" key="version" value="0"/>
+    <eAnnotations xmi:id="_SNoBGUeEEeWlKfVTs-HO8g" source="attributes">
+      <details xmi:id="_SNoBGkeEEeWlKfVTs-HO8g" key="version" value="0"/>
     </eAnnotations>
     <importedPackage xmi:type="uml:Profile" href="UML_Standard_Profile.MagicDraw_Profile.DSL_Customization.profile.uml2#_11_5_be00301_1153310565718_226811_161"/>
     <importedProfile href="UML_Standard_Profile.MagicDraw_Profile.DSL_Customization.profile.uml2#_11_5_be00301_1153310565718_226811_161"/>
   </packageImport>
   <packageImport xmi:type="uml:ProfileApplication" xmi:id="_17_0_4beta_8ca0285_1361349406965_180847_3086profileApplicationData">
-    <eAnnotations xmi:id="_btk9Y0bUEeWY2qcg87dWeg" source="attributes">
-      <details xmi:id="_btk9ZEbUEeWY2qcg87dWeg" key="version" value="0"/>
+    <eAnnotations xmi:id="_SNoBHEeEEeWlKfVTs-HO8g" source="attributes">
+      <details xmi:id="_SNoBHUeEEeWlKfVTs-HO8g" key="version" value="0"/>
     </eAnnotations>
     <importedPackage xmi:type="uml:Profile" href="UML_Standard_Profile.Dependency_Matrix_Profile.profile.uml2#_17_0_4beta_8ca0285_1361349406965_180847_3086"/>
     <importedProfile href="UML_Standard_Profile.Dependency_Matrix_Profile.profile.uml2#_17_0_4beta_8ca0285_1361349406965_180847_3086"/>
   </packageImport>
-  <packageImport xmi:type="uml:ProfileApplication" xmi:id="_16_0_90d0292_1252021595271_831435_651profileApplicationData">
-    <eAnnotations xmi:id="_btk9ZkbUEeWY2qcg87dWeg" source="attributes">
-      <details xmi:id="_btk9Z0bUEeWY2qcg87dWeg" key="version" value="0"/>
+  <packageImport xmi:type="uml:ProfileApplication" xmi:id="_9_0_be00301_1108050582343_527400_10847profileApplicationData">
+    <eAnnotations xmi:id="_SNoBH0eEEeWlKfVTs-HO8g" source="attributes">
+      <details xmi:id="_SNoBIEeEEeWlKfVTs-HO8g" key="version" value="0"/>
     </eAnnotations>
-    <importedPackage xmi:type="uml:Profile" href="com.poesys.profile.key.profile.uml2#_16_0_90d0292_1252021595271_831435_651"/>
-    <importedProfile href="com.poesys.profile.key.profile.uml2#_16_0_90d0292_1252021595271_831435_651"/>
+    <importedPackage xmi:type="uml:Profile" href="UML_Standard_Profile.StandardProfile.profile.uml2#_9_0_be00301_1108050582343_527400_10847"/>
+    <importedProfile href="UML_Standard_Profile.StandardProfile.profile.uml2#_9_0_be00301_1108050582343_527400_10847"/>
+  </packageImport>
+  <packageImport xmi:type="uml:ProfileApplication" xmi:id="_16_0_90d0292_1252021595271_318891_652profileApplicationData">
+    <eAnnotations xmi:id="_SNoBIkeEEeWlKfVTs-HO8g" source="attributes">
+      <details xmi:id="_SNoBI0eEEeWlKfVTs-HO8g" key="version" value="0"/>
+    </eAnnotations>
+    <importedPackage xmi:type="uml:Profile" href="com.poesys.profile.persistence.profile.uml2#_16_0_90d0292_1252021595271_318891_652"/>
+    <importedProfile href="com.poesys.profile.persistence.profile.uml2#_16_0_90d0292_1252021595271_318891_652"/>
   </packageImport>
   <ownedMember xmi:type="uml:Package" xmi:id="_16_0_90d0292_1244226122325_573118_432" name="java">
     <ownedMember xmi:type="uml:Package" xmi:id="_16_0_90d0292_1244226137576_146418_433" name="math">
@@ -81,60 +81,60 @@
       <ownedMember xmi:type="uml:Package" xmi:id="_17_0_4_1_90d0292_1389396826607_907161_3473" name="api">
         <ownedMember xmi:type="uml:Package" xmi:id="_17_0_4_1_90d0292_1389396877764_798368_3474" name="db">
           <ownedMember xmi:type="uml:Package" xmi:id="_17_0_5_1_90d0292_1423932247458_749233_3929" name="party">
-            <eAnnotations xmi:id="_buBCMEbUEeWY2qcg87dWeg" source="appliedStereotypes">
-              <contents xmi:type="persistence_0:persistence__Subsystem" xmi:id="_buBCMUbUEeWY2qcg87dWeg" businessPackage="org.phoenixbioinformatics.api.bs.party"/>
+            <eAnnotations xmi:id="_SPCWVEeEEeWlKfVTs-HO8g" source="appliedStereotypes">
+              <contents xmi:type="persistence_0:persistence__Subsystem" xmi:id="_SPCWVUeEEeWlKfVTs-HO8g" businessPackage="org.phoenixbioinformatics.api.bs.party"/>
             </eAnnotations>
             <ownedComment xmi:id="_17_0_5_1_90d0292_1430665493302_40935_4320" body="the API containing participants in the subscription management system and their details" annotatedElement="_17_0_5_1_90d0292_1423932247458_749233_3929"/>
             <ownedMember xmi:type="uml:Class" xmi:id="_17_0_5_1_90d0292_1423933035402_953579_4214" name="Party">
-              <eAnnotations xmi:id="_bt-l9kbUEeWY2qcg87dWeg" source="appliedStereotypes">
-                <contents xmi:type="persistence_0:persistence__Persistent" xmi:id="_bt-l90bUEeWY2qcg87dWeg"/>
-                <contents xmi:type="key_0:key__SequenceKey" xmi:id="_butlwEbUEeWY2qcg87dWeg"/>
+              <eAnnotations xmi:id="_SN68AUeEEeWlKfVTs-HO8g" source="appliedStereotypes">
+                <contents xmi:type="key_0:key__SequenceKey" xmi:id="_SN68AkeEEeWlKfVTs-HO8g"/>
+                <contents xmi:type="persistence_0:persistence__Persistent" xmi:id="_SO2JFEeEEeWlKfVTs-HO8g"/>
               </eAnnotations>
               <ownedComment xmi:id="_17_0_5_1_90d0292_1423936013493_383868_4610" body="An abstract entity that is either a person or an organization" annotatedElement="_17_0_5_1_90d0292_1423933035402_953579_4214"/>
               <ownedAttribute xmi:id="_17_0_5_1_90d0292_1424100044515_977937_4987" name="partners" type="_17_0_5_1_90d0292_1423933884151_521948_4451" association="_17_0_5_1_90d0292_1424100044514_99059_4986">
-                <eAnnotations xmi:id="_bt8wwkbUEeWY2qcg87dWeg" source="appliedStereotypes">
-                  <contents xmi:type="persistence_0:persistence__Persistent" xmi:id="_bt8ww0bUEeWY2qcg87dWeg" objectName="partner"/>
-                  <contents xmi:type="persistence_0:persistence__Lazy" xmi:id="_buBCMkbUEeWY2qcg87dWeg"/>
+                <eAnnotations xmi:id="_SO6agUeEEeWlKfVTs-HO8g" source="appliedStereotypes">
+                  <contents xmi:type="persistence_0:persistence__Persistent" xmi:id="_SO6agkeEEeWlKfVTs-HO8g" objectName="partner"/>
+                  <contents xmi:type="persistence_0:persistence__Lazy" xmi:id="_SPC9YkeEEeWlKfVTs-HO8g"/>
                 </eAnnotations>
                 <ownedComment xmi:id="_17_0_5_1_90d0292_1424100820350_310728_5180" body="the system to which the organization subscribes" annotatedElement="_17_0_5_1_90d0292_1424100044515_977937_4987"/>
                 <upperValue xmi:type="uml:LiteralUnlimitedNatural" xmi:id="_17_0_5_1_90d0292_1424100190437_307317_5094" value="-1"/>
                 <lowerValue xmi:type="uml:LiteralInteger" xmi:id="_17_0_5_1_90d0292_1424100190437_690784_5093"/>
               </ownedAttribute>
               <ownedAttribute xmi:id="_17_0_5_1_90d0292_1437756670747_811343_4636" name="name" type="_9_0_1fe00f9_1119336925531_364079_66">
-                <eAnnotations xmi:id="_buDecEbUEeWY2qcg87dWeg" source="appliedStereotypes">
-                  <contents xmi:type="persistence_0:persistence__SizedProperty" xmi:id="_buDecUbUEeWY2qcg87dWeg" length="200"/>
+                <eAnnotations xmi:id="_SPH14EeEEeWlKfVTs-HO8g" source="appliedStereotypes">
+                  <contents xmi:type="persistence_0:persistence__SizedProperty" xmi:id="_SPH14UeEEeWlKfVTs-HO8g" length="200"/>
                 </eAnnotations>
                 <ownedComment xmi:id="_17_0_5_1_90d0292_1437756718214_655132_4638" body="the name by which the party is known" annotatedElement="_17_0_5_1_90d0292_1437756670747_811343_4636"/>
                 <upperValue xmi:type="uml:LiteralUnlimitedNatural" xmi:id="_17_0_5_1_90d0292_1437768476006_756190_4869" value="1"/>
                 <lowerValue xmi:type="uml:LiteralInteger" xmi:id="_17_0_5_1_90d0292_1437768476006_997044_4868" value="1"/>
               </ownedAttribute>
               <ownedAttribute xmi:id="_17_0_5_1_90d0292_1430668479682_125871_4567" name="ranges" type="_17_0_5_1_90d0292_1430668405595_57888_4537" association="_17_0_5_1_90d0292_1430668479681_610533_4565">
-                <eAnnotations xmi:id="_bttgMkbUEeWY2qcg87dWeg" source="appliedStereotypes">
-                  <contents xmi:type="persistence_0:persistence__Persistent" xmi:id="_bttgM0bUEeWY2qcg87dWeg"/>
+                <eAnnotations xmi:id="_SO-r8keEEeWlKfVTs-HO8g" source="appliedStereotypes">
+                  <contents xmi:type="persistence_0:persistence__Persistent" xmi:id="_SO-r80eEEeWlKfVTs-HO8g"/>
                 </eAnnotations>
                 <ownedComment xmi:id="_17_0_5_1_90d0292_1430669848813_197183_4672" body="the set of IP-address ranges specified by the party" annotatedElement="_17_0_5_1_90d0292_1430668479682_125871_4567"/>
                 <upperValue xmi:type="uml:LiteralUnlimitedNatural" xmi:id="_17_0_5_1_90d0292_1430669665987_60632_4656" value="-1"/>
                 <lowerValue xmi:type="uml:LiteralInteger" xmi:id="_17_0_5_1_90d0292_1430669665986_177259_4655"/>
               </ownedAttribute>
               <ownedAttribute xmi:id="_17_0_5_1_90d0292_1430856292870_311646_4652" name="sessions" type="_17_0_5_1_90d0292_1430855505312_989190_4568" association="_17_0_5_1_90d0292_1430856292870_950576_4651">
-                <eAnnotations xmi:id="_bt5tckbUEeWY2qcg87dWeg" source="appliedStereotypes">
-                  <contents xmi:type="persistence_0:persistence__Persistent" xmi:id="_bt5tc0bUEeWY2qcg87dWeg"/>
+                <eAnnotations xmi:id="_SO_6EkeEEeWlKfVTs-HO8g" source="appliedStereotypes">
+                  <contents xmi:type="persistence_0:persistence__Persistent" xmi:id="_SO_6E0eEEeWlKfVTs-HO8g"/>
                 </eAnnotations>
                 <ownedComment xmi:id="_17_0_5_1_90d0292_1431099305684_947902_4065" body="the set of sessions initiated by the party" annotatedElement="_17_0_5_1_90d0292_1430856292870_311646_4652"/>
                 <upperValue xmi:type="uml:LiteralUnlimitedNatural" xmi:id="_17_0_5_1_90d0292_1430856472399_760499_4745" value="-1"/>
                 <lowerValue xmi:type="uml:LiteralInteger" xmi:id="_17_0_5_1_90d0292_1430856472399_535268_4744"/>
               </ownedAttribute>
               <ownedAttribute xmi:id="_17_0_5_1_90d0292_1432082880540_310066_4285" name="user" type="_17_0_5_1_90d0292_1432082456288_738950_4209" association="_17_0_5_1_90d0292_1432082880540_684880_4284">
-                <eAnnotations xmi:id="_bt-l8EbUEeWY2qcg87dWeg" source="appliedStereotypes">
-                  <contents xmi:type="persistence_0:persistence__Persistent" xmi:id="_bt-l8UbUEeWY2qcg87dWeg"/>
+                <eAnnotations xmi:id="_SO7BkUeEEeWlKfVTs-HO8g" source="appliedStereotypes">
+                  <contents xmi:type="persistence_0:persistence__Persistent" xmi:id="_SO7BkkeEEeWlKfVTs-HO8g"/>
                 </eAnnotations>
                 <ownedComment xmi:id="_17_0_5_1_90d0292_1432083007407_116854_4347" body="the user, with a unique username and a password, corresponding to the party" annotatedElement="_17_0_5_1_90d0292_1432082880540_310066_4285"/>
                 <upperValue xmi:type="uml:LiteralUnlimitedNatural" xmi:id="_17_0_5_1_90d0292_1432082933828_597899_4334" value="-1"/>
                 <lowerValue xmi:type="uml:LiteralInteger" xmi:id="_17_0_5_1_90d0292_1432082933828_246611_4333"/>
               </ownedAttribute>
               <ownedAttribute xmi:id="_17_0_5_1_90d0292_1430664515516_605958_4311" name="partyType" type="_9_0_1fe00f9_1119336925531_364079_66">
-                <eAnnotations xmi:id="_buBpQUbUEeWY2qcg87dWeg" source="appliedStereotypes">
-                  <contents xmi:type="persistence_0:persistence__SizedProperty" xmi:id="_buBpQkbUEeWY2qcg87dWeg" length="200"/>
+                <eAnnotations xmi:id="_SPJEBEeEEeWlKfVTs-HO8g" source="appliedStereotypes">
+                  <contents xmi:type="persistence_0:persistence__SizedProperty" xmi:id="_SPJEBUeEEeWlKfVTs-HO8g" length="200"/>
                 </eAnnotations>
                 <ownedComment xmi:id="_17_0_5_1_90d0292_1430664689153_455111_4315" body="the name of the immediate subclass in the concrete instance of the class" annotatedElement="_17_0_5_1_90d0292_1430664515516_605958_4311"/>
                 <upperValue xmi:type="uml:LiteralUnlimitedNatural" xmi:id="_17_0_5_1_90d0292_1430664541992_216754_4314" value="1"/>
@@ -142,208 +142,209 @@
                 <defaultValue xmi:type="uml:LiteralString" xmi:id="_17_0_5_1_90d0292_1430664912231_655322_4316" value="user"/>
               </ownedAttribute>
               <ownedAttribute xmi:id="_17_0_5_1_90d0292_1437758870012_362640_4746" name="activationCodes" type="_17_0_5_1_90d0292_1437758772287_102459_4694" association="_17_0_5_1_90d0292_1437758870012_604783_4744">
-                <eAnnotations xmi:id="_bt7ioEbUEeWY2qcg87dWeg" source="appliedStereotypes">
-                  <contents xmi:type="persistence_0:persistence__Persistent" xmi:id="_bt7ioUbUEeWY2qcg87dWeg"/>
+                <eAnnotations xmi:id="_SO3XMEeEEeWlKfVTs-HO8g" source="appliedStereotypes">
+                  <contents xmi:type="persistence_0:persistence__Persistent" xmi:id="_SO3XMUeEEeWlKfVTs-HO8g"/>
                 </eAnnotations>
                 <upperValue xmi:type="uml:LiteralUnlimitedNatural" xmi:id="_17_0_5_1_90d0292_1437767951323_804243_4826" value="-1"/>
                 <lowerValue xmi:type="uml:LiteralInteger" xmi:id="_17_0_5_1_90d0292_1437767951323_188634_4825"/>
               </ownedAttribute>
-              <ownedAttribute xmi:id="_18_1_90d0292_1440026603152_342904_5282" visibility="private" type="_18_1_90d0292_1440026560388_908672_5254" association="_18_1_90d0292_1440026603151_702298_5280">
-                <upperValue xmi:type="uml:LiteralUnlimitedNatural" xmi:id="_18_1_90d0292_1440026628126_152962_5304" value="1"/>
-                <lowerValue xmi:type="uml:LiteralInteger" xmi:id="_18_1_90d0292_1440026628126_209062_5303"/>
+              <ownedAttribute xmi:id="_18_1_90d0292_1440106738295_925896_5173" name="consortium" type="_17_0_5_1_90d0292_1423933035402_953579_4214" association="_18_1_90d0292_1440106738295_437969_5172">
+                <eAnnotations xmi:id="_SOwpgEeEEeWlKfVTs-HO8g" source="appliedStereotypes">
+                  <contents xmi:type="persistence_0:persistence__Persistent" xmi:id="_SOwpgUeEEeWlKfVTs-HO8g"/>
+                </eAnnotations>
+                <ownedComment xmi:id="_18_1_90d0292_1440106878646_926070_5229" body="the party that is a consortium that includes the associated party" annotatedElement="_18_1_90d0292_1440106738295_925896_5173"/>
+                <upperValue xmi:type="uml:LiteralUnlimitedNatural" xmi:id="_18_1_90d0292_1440106817301_146607_5218" value="1"/>
+                <lowerValue xmi:type="uml:LiteralInteger" xmi:id="_18_1_90d0292_1440106817301_831164_5217"/>
+              </ownedAttribute>
+              <ownedAttribute xmi:id="_18_1_90d0292_1440106738295_225827_5174" name="members" type="_17_0_5_1_90d0292_1423933035402_953579_4214" association="_18_1_90d0292_1440106738295_437969_5172">
+                <eAnnotations xmi:id="_SOxQkEeEEeWlKfVTs-HO8g" source="appliedStereotypes">
+                  <contents xmi:type="persistence_0:persistence__Persistent" xmi:id="_SOxQkUeEEeWlKfVTs-HO8g"/>
+                </eAnnotations>
+                <ownedComment xmi:id="_18_1_90d0292_1440106900357_951885_5230" body="the set of members of the consortium" annotatedElement="_18_1_90d0292_1440106738295_225827_5174"/>
+                <upperValue xmi:type="uml:LiteralUnlimitedNatural" xmi:id="_18_1_90d0292_1440106782002_769228_5190" value="-1"/>
+                <lowerValue xmi:type="uml:LiteralInteger" xmi:id="_18_1_90d0292_1440106782002_375435_5189"/>
               </ownedAttribute>
             </ownedMember>
             <ownedMember xmi:type="uml:Class" xmi:id="_17_0_5_1_90d0292_1430668405595_57888_4537" name="IpRange">
-              <eAnnotations xmi:id="_bt8wxEbUEeWY2qcg87dWeg" source="appliedStereotypes">
-                <contents xmi:type="persistence_0:persistence__Persistent" xmi:id="_bt8wxUbUEeWY2qcg87dWeg"/>
-                <contents xmi:type="key_0:key__SequenceKey" xmi:id="_busXokbUEeWY2qcg87dWeg"/>
+              <eAnnotations xmi:id="_SN9YQkeEEeWlKfVTs-HO8g" source="appliedStereotypes">
+                <contents xmi:type="key_0:key__SequenceKey" xmi:id="_SN9YQ0eEEeWlKfVTs-HO8g"/>
+                <contents xmi:type="persistence_0:persistence__Persistent" xmi:id="_SO7ooUeEEeWlKfVTs-HO8g"/>
               </eAnnotations>
               <ownedComment xmi:id="_17_0_5_1_90d0292_1430668466133_727875_4560" body="A range of IP addresses for a subscription; ranges must not overlap for a subscription, they must be mutually exclusive" annotatedElement="_17_0_5_1_90d0292_1430668405595_57888_4537"/>
               <ownedAttribute xmi:id="_17_0_5_1_90d0292_1430668479681_142219_4566" name="party" type="_17_0_5_1_90d0292_1423933035402_953579_4214" association="_17_0_5_1_90d0292_1430668479681_610533_4565">
-                <eAnnotations xmi:id="_bt5GYEbUEeWY2qcg87dWeg" source="appliedStereotypes">
-                  <contents xmi:type="persistence_0:persistence__Persistent" xmi:id="_bt5GYUbUEeWY2qcg87dWeg"/>
+                <eAnnotations xmi:id="_SO0T4UeEEeWlKfVTs-HO8g" source="appliedStereotypes">
+                  <contents xmi:type="persistence_0:persistence__Persistent" xmi:id="_SO0T4keEEeWlKfVTs-HO8g"/>
                 </eAnnotations>
                 <ownedComment xmi:id="_17_0_5_1_90d0292_1430669826767_886501_4671" body="the party that has specified the IP range" annotatedElement="_17_0_5_1_90d0292_1430668479681_142219_4566"/>
                 <upperValue xmi:type="uml:LiteralUnlimitedNatural" xmi:id="_17_0_5_1_90d0292_1430669635441_119299_4634" value="1"/>
                 <lowerValue xmi:type="uml:LiteralInteger" xmi:id="_17_0_5_1_90d0292_1430669635441_927024_4633" value="1"/>
               </ownedAttribute>
               <ownedAttribute xmi:id="_17_0_5_1_90d0292_1430668489696_216132_4582" name="start" type="_9_0_1fe00f9_1119336925531_364079_66">
-                <eAnnotations xmi:id="_buFToEbUEeWY2qcg87dWeg" source="appliedStereotypes">
-                  <contents xmi:type="persistence_0:persistence__SizedProperty" xmi:id="_buFToUbUEeWY2qcg87dWeg" length="200"/>
+                <eAnnotations xmi:id="_SPH14keEEeWlKfVTs-HO8g" source="appliedStereotypes">
+                  <contents xmi:type="persistence_0:persistence__SizedProperty" xmi:id="_SPH140eEEeWlKfVTs-HO8g" length="200"/>
                 </eAnnotations>
                 <ownedComment xmi:id="_17_0_5_1_90d0292_1430668724778_321427_4591" body="the IP address that is the first address in the range; must not be part of any other range for the subscription" annotatedElement="_17_0_5_1_90d0292_1430668489696_216132_4582"/>
                 <upperValue xmi:type="uml:LiteralUnlimitedNatural" xmi:id="_17_0_5_1_90d0292_1430668623078_255564_4587" value="1"/>
                 <lowerValue xmi:type="uml:LiteralInteger" xmi:id="_17_0_5_1_90d0292_1430668623077_751219_4586" value="1"/>
               </ownedAttribute>
               <ownedAttribute xmi:id="_17_0_5_1_90d0292_1430668527318_680968_4584" name="end" type="_9_0_1fe00f9_1119336925531_364079_66">
-                <eAnnotations xmi:id="_buDeckbUEeWY2qcg87dWeg" source="appliedStereotypes">
-                  <contents xmi:type="persistence_0:persistence__SizedProperty" xmi:id="_buDec0bUEeWY2qcg87dWeg" length="200"/>
+                <eAnnotations xmi:id="_SPJrEkeEEeWlKfVTs-HO8g" source="appliedStereotypes">
+                  <contents xmi:type="persistence_0:persistence__SizedProperty" xmi:id="_SPJrE0eEEeWlKfVTs-HO8g" length="200"/>
                 </eAnnotations>
                 <ownedComment xmi:id="_17_0_5_1_90d0292_1430668691211_295297_4590" body="the IP address that is the last address in the range; must be greater than the start and must be a &quot;reasonable&quot; end to the range (TBD)" annotatedElement="_17_0_5_1_90d0292_1430668527318_680968_4584"/>
                 <upperValue xmi:type="uml:LiteralUnlimitedNatural" xmi:id="_17_0_5_1_90d0292_1430668631254_713035_4589" value="1"/>
                 <lowerValue xmi:type="uml:LiteralInteger" xmi:id="_17_0_5_1_90d0292_1430668631254_212841_4588" value="1"/>
+              </ownedAttribute>
+              <ownedAttribute xmi:id="_18_1_90d0292_1440031571767_413893_5623" name="label" type="_9_0_1fe00f9_1119336925531_364079_66">
+                <ownedComment xmi:id="_18_1_90d0292_1440031642392_751820_5625" body="a label that you can use to group the IP ranges (for example, into Departments)" annotatedElement="_18_1_90d0292_1440031571767_413893_5623"/>
               </ownedAttribute>
             </ownedMember>
             <ownedMember xmi:type="uml:Association" xmi:id="_17_0_5_1_90d0292_1430668479681_610533_4565" memberEnd="_17_0_5_1_90d0292_1430668479681_142219_4566 _17_0_5_1_90d0292_1430668479682_125871_4567"/>
             <ownedMember xmi:type="uml:Association" xmi:id="_17_0_5_1_90d0292_1430856292870_950576_4651" memberEnd="_17_0_5_1_90d0292_1430856292870_311646_4652 _17_0_5_1_90d0292_1430856292870_464012_4653"/>
             <ownedMember xmi:type="uml:Association" xmi:id="_17_0_5_1_90d0292_1432082880540_684880_4284" memberEnd="_17_0_5_1_90d0292_1432082880540_310066_4285 _17_0_5_1_90d0292_1432082880540_855096_4286"/>
             <ownedMember xmi:type="uml:Class" xmi:id="_17_0_5_1_90d0292_1437756858325_862062_4643" name="Country">
-              <eAnnotations xmi:id="_bt8wxkbUEeWY2qcg87dWeg" source="appliedStereotypes">
-                <contents xmi:type="persistence_0:persistence__Persistent" xmi:id="_bt8wx0bUEeWY2qcg87dWeg"/>
-                <contents xmi:type="key_0:key__SequenceKey" xmi:id="_bus-sEbUEeWY2qcg87dWeg"/>
+              <eAnnotations xmi:id="_SN1ccEeEEeWlKfVTs-HO8g" source="appliedStereotypes">
+                <contents xmi:type="key_0:key__SequenceKey" xmi:id="_SN1ccUeEEeWlKfVTs-HO8g"/>
+                <contents xmi:type="persistence_0:persistence__Persistent" xmi:id="_SOx3okeEEeWlKfVTs-HO8g"/>
               </eAnnotations>
               <ownedComment xmi:id="_17_0_5_1_90d0292_1437757034233_905211_4671" body="a country with a unique name" annotatedElement="_17_0_5_1_90d0292_1437756858325_862062_4643"/>
               <ownedAttribute xmi:id="_17_0_5_1_90d0292_1437756883186_975550_4666" name="name" type="_9_0_1fe00f9_1119336925531_364079_66">
-                <eAnnotations xmi:id="_buF6tEbUEeWY2qcg87dWeg" source="appliedStereotypes">
-                  <contents xmi:type="persistence_0:persistence__SizedProperty" xmi:id="_buF6tUbUEeWY2qcg87dWeg" length="200"/>
+                <eAnnotations xmi:id="_SPGnwkeEEeWlKfVTs-HO8g" source="appliedStereotypes">
+                  <contents xmi:type="persistence_0:persistence__SizedProperty" xmi:id="_SPGnw0eEEeWlKfVTs-HO8g" length="200"/>
                 </eAnnotations>
                 <ownedComment xmi:id="_17_0_5_1_90d0292_1437757053815_461661_4672" body="the unique name of the country" annotatedElement="_17_0_5_1_90d0292_1437756883186_975550_4666"/>
                 <upperValue xmi:type="uml:LiteralUnlimitedNatural" xmi:id="_17_0_5_1_90d0292_1437768487754_372594_4871" value="1"/>
                 <lowerValue xmi:type="uml:LiteralInteger" xmi:id="_17_0_5_1_90d0292_1437768487754_730705_4870" value="1"/>
               </ownedAttribute>
             </ownedMember>
-            <ownedMember xmi:type="uml:Class" xmi:id="_18_1_90d0292_1440026560388_908672_5254" name="Group">
-              <eAnnotations xmi:id="_btsSEEbUEeWY2qcg87dWeg" source="appliedStereotypes">
-                <contents xmi:type="persistence_0:persistence__Persistent" xmi:id="_btsSEUbUEeWY2qcg87dWeg"/>
-                <contents xmi:type="key_0:key__SequenceKey" xmi:id="_bupUUkbUEeWY2qcg87dWeg"/>
-              </eAnnotations>
-              <ownedAttribute xmi:id="_18_1_90d0292_1440026603151_379389_5281" visibility="private" type="_17_0_5_1_90d0292_1423933035402_953579_4214" association="_18_1_90d0292_1440026603151_702298_5280">
-                <upperValue xmi:type="uml:LiteralUnlimitedNatural" xmi:id="_18_1_90d0292_1440026616552_91229_5298" value="-1"/>
-                <lowerValue xmi:type="uml:LiteralInteger" xmi:id="_18_1_90d0292_1440026616551_946168_5297" value="1"/>
-              </ownedAttribute>
-              <ownedAttribute xmi:id="_18_1_90d0292_1440026683540_247284_5314" name="name" type="_9_0_1fe00f9_1119336925531_364079_66">
-                <upperValue xmi:type="uml:LiteralUnlimitedNatural" xmi:id="_18_1_90d0292_1440026746780_657309_5318" value="1"/>
-                <lowerValue xmi:type="uml:LiteralInteger" xmi:id="_18_1_90d0292_1440026746780_452863_5317" value="1"/>
-              </ownedAttribute>
-            </ownedMember>
-            <ownedMember xmi:type="uml:Association" xmi:id="_18_1_90d0292_1440026603151_702298_5280" memberEnd="_18_1_90d0292_1440026603151_379389_5281 _18_1_90d0292_1440026603152_342904_5282"/>
             <ownedMember xmi:type="uml:Class" xmi:id="_18_1_90d0292_1440026706169_951204_5316" name="Str"/>
+            <ownedMember xmi:type="uml:Association" xmi:id="_18_1_90d0292_1440106738295_437969_5172" memberEnd="_18_1_90d0292_1440106738295_925896_5173 _18_1_90d0292_1440106738295_225827_5174"/>
           </ownedMember>
           <ownedMember xmi:type="uml:Package" xmi:id="_17_0_5_1_90d0292_1423933839689_193970_4406" name="partner">
-            <eAnnotations xmi:id="_buAbIEbUEeWY2qcg87dWeg" source="appliedStereotypes">
-              <contents xmi:type="persistence_0:persistence__Subsystem" xmi:id="_buAbIUbUEeWY2qcg87dWeg" businessPackage="org.phoenixbioinformatics.api.bs.partner"/>
+            <eAnnotations xmi:id="_SPCWUkeEEeWlKfVTs-HO8g" source="appliedStereotypes">
+              <contents xmi:type="persistence_0:persistence__Subsystem" xmi:id="_SPCWU0eEEeWlKfVTs-HO8g" businessPackage="org.phoenixbioinformatics.api.bs.partner"/>
             </eAnnotations>
             <ownedComment xmi:id="_17_0_5_1_90d0292_1432082309677_497915_4202" body="the API relating to the software systems presented to parties as a single unit for subscription" annotatedElement="_17_0_5_1_90d0292_1423933839689_193970_4406"/>
             <ownedMember xmi:type="uml:Class" xmi:id="_17_0_5_1_90d0292_1423933884151_521948_4451" name="Partner">
-              <eAnnotations xmi:id="_bt5tdEbUEeWY2qcg87dWeg" source="appliedStereotypes">
-                <contents xmi:type="persistence_0:persistence__Persistent" xmi:id="_bt5tdUbUEeWY2qcg87dWeg"/>
-                <contents xmi:type="key_0:key__SequenceKey" xmi:id="_burJgUbUEeWY2qcg87dWeg"/>
+              <eAnnotations xmi:id="_SN9_UEeEEeWlKfVTs-HO8g" source="appliedStereotypes">
+                <contents xmi:type="key_0:key__SequenceKey" xmi:id="_SN9_UUeEEeWlKfVTs-HO8g"/>
+                <contents xmi:type="persistence_0:persistence__Persistent" xmi:id="_SO8Ps0eEEeWlKfVTs-HO8g"/>
               </eAnnotations>
               <ownedComment xmi:id="_17_0_5_1_90d0292_1423936095585_294931_4611" body="a system that comprises a unit for subscription, authentication, and authorization" annotatedElement="_17_0_5_1_90d0292_1423933884151_521948_4451"/>
               <ownedAttribute xmi:id="_17_0_5_1_90d0292_1423933912629_224096_4474" name="name" type="_9_0_1fe00f9_1119336925531_364079_66">
-                <eAnnotations xmi:id="_buC3YEbUEeWY2qcg87dWeg" source="appliedStereotypes">
-                  <contents xmi:type="persistence_0:persistence__SizedProperty" xmi:id="_buC3YUbUEeWY2qcg87dWeg" length="500"/>
+                <eAnnotations xmi:id="_SPIc8keEEeWlKfVTs-HO8g" source="appliedStereotypes">
+                  <contents xmi:type="persistence_0:persistence__SizedProperty" xmi:id="_SPIc80eEEeWlKfVTs-HO8g" length="500"/>
                 </eAnnotations>
                 <ownedComment xmi:id="_17_0_5_1_90d0292_1423934017773_859118_4479" body="the name of the partner system" annotatedElement="_17_0_5_1_90d0292_1423933912629_224096_4474"/>
                 <upperValue xmi:type="uml:LiteralUnlimitedNatural" xmi:id="_17_0_5_1_90d0292_1437768522003_565092_4873" value="1"/>
                 <lowerValue xmi:type="uml:LiteralInteger" xmi:id="_17_0_5_1_90d0292_1437768522003_626249_4872" value="1"/>
               </ownedAttribute>
               <ownedAttribute xmi:id="_17_0_5_1_90d0292_1424100044515_34532_4988" name="subscribers" type="_17_0_5_1_90d0292_1423933035402_953579_4214" association="_17_0_5_1_90d0292_1424100044514_99059_4986">
-                <eAnnotations xmi:id="_bt9-4EbUEeWY2qcg87dWeg" source="appliedStereotypes">
-                  <contents xmi:type="persistence_0:persistence__Persistent" xmi:id="_bt9-4UbUEeWY2qcg87dWeg" objectName="subscriber"/>
-                  <contents xmi:type="persistence_0:persistence__Lazy" xmi:id="_buBpQEbUEeWY2qcg87dWeg"/>
+                <eAnnotations xmi:id="_SPAhI0eEEeWlKfVTs-HO8g" source="appliedStereotypes">
+                  <contents xmi:type="persistence_0:persistence__Persistent" xmi:id="_SPAhJEeEEeWlKfVTs-HO8g" objectName="subscriber"/>
+                  <contents xmi:type="persistence_0:persistence__Lazy" xmi:id="_SPDkcEeEEeWlKfVTs-HO8g"/>
                 </eAnnotations>
                 <ownedComment xmi:id="_17_0_5_1_90d0292_1424100862483_925180_5181" body="the member that subscribes to the system" annotatedElement="_17_0_5_1_90d0292_1424100044515_34532_4988"/>
                 <upperValue xmi:type="uml:LiteralUnlimitedNatural" xmi:id="_17_0_5_1_90d0292_1424100227010_835139_5126" value="-1"/>
                 <lowerValue xmi:type="uml:LiteralInteger" xmi:id="_17_0_5_1_90d0292_1424100227010_72786_5125"/>
               </ownedAttribute>
               <ownedAttribute xmi:id="_17_0_5_1_90d0292_1430666018501_985519_4347" name="ipCounts" type="_17_0_4_1_90d0292_1391726541087_202721_3626" association="_17_0_5_1_90d0292_1430666018501_317218_4345">
-                <eAnnotations xmi:id="_bt3RMkbUEeWY2qcg87dWeg" source="appliedStereotypes">
-                  <contents xmi:type="persistence_0:persistence__Persistent" xmi:id="_bt3RM0bUEeWY2qcg87dWeg"/>
+                <eAnnotations xmi:id="_SO_6EEeEEeWlKfVTs-HO8g" source="appliedStereotypes">
+                  <contents xmi:type="persistence_0:persistence__Persistent" xmi:id="_SO_6EUeEEeWlKfVTs-HO8g"/>
                 </eAnnotations>
                 <ownedComment xmi:id="_17_0_5_1_90d0292_1431176891601_185619_4176" body="the count of accesses of a partner by an IP address" annotatedElement="_17_0_5_1_90d0292_1430666018501_985519_4347"/>
                 <upperValue xmi:type="uml:LiteralUnlimitedNatural" xmi:id="_17_0_5_1_90d0292_1430666132489_451439_4426" value="-1"/>
                 <lowerValue xmi:type="uml:LiteralInteger" xmi:id="_17_0_5_1_90d0292_1430666132489_832472_4425"/>
               </ownedAttribute>
               <ownedAttribute xmi:id="_17_0_5_1_90d0292_1430666023426_830509_4368" name="limitValues" type="_17_0_5_1_90d0292_1430663498551_144370_4274" association="_17_0_5_1_90d0292_1430666023425_425417_4366">
-                <eAnnotations xmi:id="_bt2qIkbUEeWY2qcg87dWeg" source="appliedStereotypes">
-                  <contents xmi:type="persistence_0:persistence__Persistent" xmi:id="_bt2qI0bUEeWY2qcg87dWeg"/>
+                <eAnnotations xmi:id="_SO068keEEeWlKfVTs-HO8g" source="appliedStereotypes">
+                  <contents xmi:type="persistence_0:persistence__Persistent" xmi:id="_SO0680eEEeWlKfVTs-HO8g"/>
                 </eAnnotations>
                 <ownedComment xmi:id="_17_0_5_1_90d0292_1430666182935_644387_4431" body="the set of limit values for a partner" annotatedElement="_17_0_5_1_90d0292_1430666023426_830509_4368"/>
                 <upperValue xmi:type="uml:LiteralUnlimitedNatural" xmi:id="_17_0_5_1_90d0292_1430666093205_554418_4396" value="-1"/>
                 <lowerValue xmi:type="uml:LiteralInteger" xmi:id="_17_0_5_1_90d0292_1430666093204_391932_4395"/>
               </ownedAttribute>
               <ownedAttribute xmi:id="_17_0_5_1_90d0292_1430845840847_951866_4231" name="terms" type="_17_0_5_1_90d0292_1423777324324_483203_3909" association="_17_0_5_1_90d0292_1430845840846_137834_4229">
-                <eAnnotations xmi:id="_bt-l9EbUEeWY2qcg87dWeg" source="appliedStereotypes">
-                  <contents xmi:type="persistence_0:persistence__Persistent" xmi:id="_bt-l9UbUEeWY2qcg87dWeg"/>
+                <eAnnotations xmi:id="_SOyesEeEEeWlKfVTs-HO8g" source="appliedStereotypes">
+                  <contents xmi:type="persistence_0:persistence__Persistent" xmi:id="_SOyesUeEEeWlKfVTs-HO8g"/>
                 </eAnnotations>
                 <upperValue xmi:type="uml:LiteralUnlimitedNatural" xmi:id="_17_0_5_1_90d0292_1430845913059_576404_4275" value="-1"/>
                 <lowerValue xmi:type="uml:LiteralInteger" xmi:id="_17_0_5_1_90d0292_1430845913058_439364_4274"/>
               </ownedAttribute>
               <ownedAttribute xmi:id="_17_0_5_1_90d0292_1431032419122_230231_4093" name="rules" type="_17_0_5_1_90d0292_1430670743673_143572_4769" association="_17_0_5_1_90d0292_1431032419122_137138_4092">
-                <eAnnotations xmi:id="_bt5GYkbUEeWY2qcg87dWeg" source="appliedStereotypes">
-                  <contents xmi:type="persistence_0:persistence__Persistent" xmi:id="_bt5GY0bUEeWY2qcg87dWeg"/>
+                <eAnnotations xmi:id="_SO_TAEeEEeWlKfVTs-HO8g" source="appliedStereotypes">
+                  <contents xmi:type="persistence_0:persistence__Persistent" xmi:id="_SO_TAUeEEeWlKfVTs-HO8g"/>
                 </eAnnotations>
                 <ownedComment xmi:id="_17_0_5_1_90d0292_1431032524128_335282_4155" body="the set of access rules for a partner" annotatedElement="_17_0_5_1_90d0292_1431032419122_230231_4093"/>
                 <upperValue xmi:type="uml:LiteralUnlimitedNatural" xmi:id="_17_0_5_1_90d0292_1431032467365_576566_4136" value="-1"/>
                 <lowerValue xmi:type="uml:LiteralInteger" xmi:id="_17_0_5_1_90d0292_1431032467365_308603_4135"/>
               </ownedAttribute>
               <ownedAttribute xmi:id="_17_0_5_1_90d0292_1434671875730_203224_4565" name="subscriptionDescriptions" type="_17_0_5_1_90d0292_1434671753378_482867_4533" association="_17_0_5_1_90d0292_1434671875730_71714_4564">
-                <eAnnotations xmi:id="_bt4fUEbUEeWY2qcg87dWeg" source="appliedStereotypes">
-                  <contents xmi:type="persistence_0:persistence__Persistent" xmi:id="_bt4fUUbUEeWY2qcg87dWeg"/>
+                <eAnnotations xmi:id="_SO-E4keEEeWlKfVTs-HO8g" source="appliedStereotypes">
+                  <contents xmi:type="persistence_0:persistence__Persistent" xmi:id="_SO-E40eEEeWlKfVTs-HO8g"/>
                 </eAnnotations>
                 <upperValue xmi:type="uml:LiteralUnlimitedNatural" xmi:id="_17_0_5_1_90d0292_1434671983725_946793_4620" value="-1"/>
                 <lowerValue xmi:type="uml:LiteralInteger" xmi:id="_17_0_5_1_90d0292_1434671983724_730357_4619"/>
               </ownedAttribute>
               <ownedAttribute xmi:id="_17_0_5_1_90d0292_1437755326110_973239_4430" name="logoUri" type="_9_0_1fe00f9_1119336925531_364079_66">
-                <eAnnotations xmi:id="_buGhwEbUEeWY2qcg87dWeg" source="appliedStereotypes">
-                  <contents xmi:type="persistence_0:persistence__SizedProperty" xmi:id="_buGhwUbUEeWY2qcg87dWeg" length="200"/>
+                <eAnnotations xmi:id="_SPIc8EeEEeWlKfVTs-HO8g" source="appliedStereotypes">
+                  <contents xmi:type="persistence_0:persistence__SizedProperty" xmi:id="_SPIc8UeEEeWlKfVTs-HO8g" length="200"/>
                 </eAnnotations>
                 <ownedComment xmi:id="_17_0_5_1_90d0292_1437755462322_59905_4441" body="a URI that returns a logo for the partner" annotatedElement="_17_0_5_1_90d0292_1437755326110_973239_4430"/>
               </ownedAttribute>
               <ownedAttribute xmi:id="_17_0_5_1_90d0292_1437755356451_562826_4432" name="termOfServiceUri" type="_9_0_1fe00f9_1119336925531_364079_66">
-                <eAnnotations xmi:id="_buEslkbUEeWY2qcg87dWeg" source="appliedStereotypes">
-                  <contents xmi:type="persistence_0:persistence__SizedProperty" xmi:id="_buEsl0bUEeWY2qcg87dWeg" length="200"/>
+                <eAnnotations xmi:id="_SPKSIkeEEeWlKfVTs-HO8g" source="appliedStereotypes">
+                  <contents xmi:type="persistence_0:persistence__SizedProperty" xmi:id="_SPKSI0eEEeWlKfVTs-HO8g" length="200"/>
                 </eAnnotations>
                 <ownedComment xmi:id="_17_0_5_1_90d0292_1437755487648_722240_4442" body="a URI that returns an array of subscription terms for the partner" annotatedElement="_17_0_5_1_90d0292_1437755356451_562826_4432"/>
               </ownedAttribute>
               <ownedAttribute xmi:id="_17_0_5_1_90d0292_1437756018093_120541_4561" name="partnerPatterns" type="_17_0_5_1_90d0292_1430864216377_4528_4778" association="_17_0_5_1_90d0292_1437756018093_569380_4560">
-                <eAnnotations xmi:id="_bt9-5EbUEeWY2qcg87dWeg" source="appliedStereotypes">
-                  <contents xmi:type="persistence_0:persistence__Persistent" xmi:id="_bt9-5UbUEeWY2qcg87dWeg"/>
+                <eAnnotations xmi:id="_SOyeskeEEeWlKfVTs-HO8g" source="appliedStereotypes">
+                  <contents xmi:type="persistence_0:persistence__Persistent" xmi:id="_SOyes0eEEeWlKfVTs-HO8g"/>
                 </eAnnotations>
                 <upperValue xmi:type="uml:LiteralUnlimitedNatural" xmi:id="_17_0_5_1_90d0292_1437756055785_539735_4598" value="-1"/>
                 <lowerValue xmi:type="uml:LiteralInteger" xmi:id="_17_0_5_1_90d0292_1437756055785_917642_4597" value="1"/>
               </ownedAttribute>
               <ownedAttribute xmi:id="_17_0_5_1_90d0292_1437758864741_602507_4725" name="activationCodes" type="_17_0_5_1_90d0292_1437758772287_102459_4694" association="_17_0_5_1_90d0292_1437758864740_479112_4723">
-                <eAnnotations xmi:id="_bt_0EEbUEeWY2qcg87dWeg" source="appliedStereotypes">
-                  <contents xmi:type="persistence_0:persistence__Persistent" xmi:id="_bt_0EUbUEeWY2qcg87dWeg"/>
+                <eAnnotations xmi:id="_SO4lUkeEEeWlKfVTs-HO8g" source="appliedStereotypes">
+                  <contents xmi:type="persistence_0:persistence__Persistent" xmi:id="_SO4lU0eEEeWlKfVTs-HO8g"/>
                 </eAnnotations>
                 <upperValue xmi:type="uml:LiteralUnlimitedNatural" xmi:id="_17_0_5_1_90d0292_1437767927252_498722_4808" value="-1"/>
                 <lowerValue xmi:type="uml:LiteralInteger" xmi:id="_17_0_5_1_90d0292_1437767927252_85717_4807"/>
               </ownedAttribute>
               <ownedAttribute xmi:id="_17_0_5_1_90d0292_1437774928407_682826_4912" name="user" type="_17_0_5_1_90d0292_1432082456288_738950_4209" association="_17_0_5_1_90d0292_1437774928407_412149_4910">
-                <eAnnotations xmi:id="_bt34QEbUEeWY2qcg87dWeg" source="appliedStereotypes">
-                  <contents xmi:type="persistence_0:persistence__Persistent" xmi:id="_bt34QUbUEeWY2qcg87dWeg"/>
+                <eAnnotations xmi:id="_SOyetEeEEeWlKfVTs-HO8g" source="appliedStereotypes">
+                  <contents xmi:type="persistence_0:persistence__Persistent" xmi:id="_SOyetUeEEeWlKfVTs-HO8g"/>
                 </eAnnotations>
                 <upperValue xmi:type="uml:LiteralUnlimitedNatural" xmi:id="_17_0_5_1_90d0292_1437774969497_725312_4948" value="-1"/>
                 <lowerValue xmi:type="uml:LiteralInteger" xmi:id="_17_0_5_1_90d0292_1437774969496_802396_4947"/>
               </ownedAttribute>
             </ownedMember>
             <ownedMember xmi:type="uml:Class" xmi:id="_17_0_5_1_90d0292_1423777324324_483203_3909" name="SubscriptionTerm">
-              <eAnnotations xmi:id="_bt_NAkbUEeWY2qcg87dWeg" source="appliedStereotypes">
-                <contents xmi:type="persistence_0:persistence__Persistent" xmi:id="_bt_NA0bUEeWY2qcg87dWeg"/>
-                <contents xmi:type="key_0:key__SequenceKey" xmi:id="_butlwUbUEeWY2qcg87dWeg"/>
+              <eAnnotations xmi:id="_SN_NckeEEeWlKfVTs-HO8g" source="appliedStereotypes">
+                <contents xmi:type="key_0:key__SequenceKey" xmi:id="_SN_Nc0eEEeWlKfVTs-HO8g"/>
+                <contents xmi:type="persistence_0:persistence__Persistent" xmi:id="_SO_TA0eEEeWlKfVTs-HO8g"/>
               </eAnnotations>
               <ownedComment xmi:id="_17_0_5_1_90d0292_1423777966213_254822_3940" body="A standardized period of time and price for access during that period" annotatedElement="_17_0_5_1_90d0292_1423777324324_483203_3909"/>
               <ownedAttribute xmi:id="_17_0_5_1_90d0292_1430669216027_313594_4617" name="period" type="_9_0_1fe00f9_1119336925531_364079_66">
-                <eAnnotations xmi:id="_buEFgkbUEeWY2qcg87dWeg" source="appliedStereotypes">
-                  <contents xmi:type="persistence_0:persistence__SizedProperty" xmi:id="_buEFg0bUEeWY2qcg87dWeg" length="200"/>
+                <eAnnotations xmi:id="_SPGnwEeEEeWlKfVTs-HO8g" source="appliedStereotypes">
+                  <contents xmi:type="persistence_0:persistence__SizedProperty" xmi:id="_SPGnwUeEEeWlKfVTs-HO8g" length="200"/>
                 </eAnnotations>
                 <ownedComment xmi:id="_17_0_5_1_90d0292_1430669271652_516838_4622" body="the period of time for which a subscription allows access to a partner system" annotatedElement="_17_0_5_1_90d0292_1430669216027_313594_4617"/>
                 <upperValue xmi:type="uml:LiteralUnlimitedNatural" xmi:id="_17_0_5_1_90d0292_1430669298228_363117_4624" value="1"/>
                 <lowerValue xmi:type="uml:LiteralInteger" xmi:id="_17_0_5_1_90d0292_1430669298228_326543_4623" value="1"/>
               </ownedAttribute>
               <ownedAttribute xmi:id="_17_0_5_1_90d0292_1423777369932_118071_3932" name="price" type="_9_0_1fe00f9_1119336925531_221770_56">
-                <eAnnotations xmi:id="_buIW8EbUEeWY2qcg87dWeg" source="appliedStereotypes">
-                  <contents xmi:type="persistence_0:persistence__Number" xmi:id="_buIW8UbUEeWY2qcg87dWeg" precision="6" scale="2"/>
+                <eAnnotations xmi:id="_SPLgQEeEEeWlKfVTs-HO8g" source="appliedStereotypes">
+                  <contents xmi:type="persistence_0:persistence__Number" xmi:id="_SPLgQUeEEeWlKfVTs-HO8g" precision="6" scale="2"/>
                 </eAnnotations>
                 <ownedComment xmi:id="_17_0_5_1_90d0292_1423778024733_185266_3942" body="the price for a subscription for this term" annotatedElement="_17_0_5_1_90d0292_1423777369932_118071_3932"/>
                 <upperValue xmi:type="uml:LiteralUnlimitedNatural" xmi:id="_17_0_5_1_90d0292_1424101244487_769200_5201" value="1"/>
                 <lowerValue xmi:type="uml:LiteralInteger" xmi:id="_17_0_5_1_90d0292_1424101244487_211591_5200" value="1"/>
               </ownedAttribute>
               <ownedAttribute xmi:id="_17_0_5_1_90d0292_1423777698947_955684_3936" name="groupDiscountPercentage" type="_9_0_1fe00f9_1119336925531_221770_56">
-                <eAnnotations xmi:id="_buIW8kbUEeWY2qcg87dWeg" source="appliedStereotypes">
-                  <contents xmi:type="persistence_0:persistence__Number" xmi:id="_buIW80bUEeWY2qcg87dWeg" precision="6" scale="2"/>
+                <eAnnotations xmi:id="_SPK5MkeEEeWlKfVTs-HO8g" source="appliedStereotypes">
+                  <contents xmi:type="persistence_0:persistence__Number" xmi:id="_SPK5M0eEEeWlKfVTs-HO8g" precision="6" scale="2"/>
                 </eAnnotations>
                 <ownedComment xmi:id="_17_0_5_1_90d0292_1423778004390_193115_3941" body="the discount for this term for a group subscription expressed as a decimal number with 2 significant digits" annotatedElement="_17_0_5_1_90d0292_1423777698947_955684_3936"/>
                 <upperValue xmi:type="uml:LiteralUnlimitedNatural" xmi:id="_17_0_5_1_90d0292_1424101252405_327557_5203" value="1"/>
@@ -351,15 +352,15 @@
                 <defaultValue xmi:type="uml:LiteralString" xmi:id="_17_0_5_1_90d0292_1424101264042_463517_5204" value="0.1"/>
               </ownedAttribute>
               <ownedAttribute xmi:id="_17_0_5_1_90d0292_1430845840846_778049_4230" name="partner" type="_17_0_5_1_90d0292_1423933884151_521948_4451" association="_17_0_5_1_90d0292_1430845840846_137834_4229">
-                <eAnnotations xmi:id="_bt_NAEbUEeWY2qcg87dWeg" source="appliedStereotypes">
-                  <contents xmi:type="persistence_0:persistence__Persistent" xmi:id="_bt_NAUbUEeWY2qcg87dWeg"/>
+                <eAnnotations xmi:id="_SO4lUEeEEeWlKfVTs-HO8g" source="appliedStereotypes">
+                  <contents xmi:type="persistence_0:persistence__Persistent" xmi:id="_SO4lUUeEEeWlKfVTs-HO8g"/>
                 </eAnnotations>
                 <upperValue xmi:type="uml:LiteralUnlimitedNatural" xmi:id="_17_0_5_1_90d0292_1431032738984_915015_4214" value="1"/>
                 <lowerValue xmi:type="uml:LiteralInteger" xmi:id="_17_0_5_1_90d0292_1431032738984_773430_4213" value="1"/>
               </ownedAttribute>
               <ownedAttribute xmi:id="_17_0_5_1_90d0292_1435183425804_506456_4676" name="description" type="_9_0_1fe00f9_1119336925531_364079_66">
-                <eAnnotations xmi:id="_buFTokbUEeWY2qcg87dWeg" source="appliedStereotypes">
-                  <contents xmi:type="persistence_0:persistence__SizedProperty" xmi:id="_buFTo0bUEeWY2qcg87dWeg" length="200"/>
+                <eAnnotations xmi:id="_SPJEAkeEEeWlKfVTs-HO8g" source="appliedStereotypes">
+                  <contents xmi:type="persistence_0:persistence__SizedProperty" xmi:id="_SPJEA0eEEeWlKfVTs-HO8g" length="200"/>
                 </eAnnotations>
                 <ownedComment xmi:id="_17_0_5_1_90d0292_1435183584125_362807_4684" body="text describing the term suitable for display in the user interface, such as &quot;Annual ($199 USD)&quot; for a 365-day term priced at $199" annotatedElement="_17_0_5_1_90d0292_1435183425804_506456_4676"/>
                 <upperValue xmi:type="uml:LiteralUnlimitedNatural" xmi:id="_17_0_5_1_90d0292_1435183476269_563794_4681" value="1"/>
@@ -368,30 +369,30 @@
             </ownedMember>
             <ownedMember xmi:type="uml:Association" xmi:id="_17_0_5_1_90d0292_1430845840846_137834_4229" memberEnd="_17_0_5_1_90d0292_1430845840846_778049_4230 _17_0_5_1_90d0292_1430845840847_951866_4231"/>
             <ownedMember xmi:type="uml:Class" xmi:id="_17_0_5_1_90d0292_1430864216377_4528_4778" name="PartnerPattern">
-              <eAnnotations xmi:id="_bt34REbUEeWY2qcg87dWeg" source="appliedStereotypes">
-                <contents xmi:type="persistence_0:persistence__Persistent" xmi:id="_bt34RUbUEeWY2qcg87dWeg"/>
-                <contents xmi:type="key_0:key__SequenceKey" xmi:id="_buqicEbUEeWY2qcg87dWeg"/>
+              <eAnnotations xmi:id="_SN34sEeEEeWlKfVTs-HO8g" source="appliedStereotypes">
+                <contents xmi:type="key_0:key__SequenceKey" xmi:id="_SN34sUeEEeWlKfVTs-HO8g"/>
+                <contents xmi:type="persistence_0:persistence__Persistent" xmi:id="_SOzs0keEEeWlKfVTs-HO8g"/>
               </eAnnotations>
               <ownedComment xmi:id="_17_0_5_1_90d0292_1430864553270_245802_4863" body="A regular expression pattern that identifies a set of URIs for the partner system; the complete set of patterns for the partner defines the complete set of URIs for the partner system" annotatedElement="_17_0_5_1_90d0292_1430864216377_4528_4778"/>
               <ownedAttribute xmi:id="_17_0_5_1_90d0292_1430865468306_984053_4866" name="sourceUri" type="_9_0_1fe00f9_1119336925531_364079_66">
-                <eAnnotations xmi:id="_buHI0kbUEeWY2qcg87dWeg" source="appliedStereotypes">
-                  <contents xmi:type="persistence_0:persistence__SizedProperty" xmi:id="_buHI00bUEeWY2qcg87dWeg" length="200"/>
+                <eAnnotations xmi:id="_SPDkcUeEEeWlKfVTs-HO8g" source="appliedStereotypes">
+                  <contents xmi:type="persistence_0:persistence__SizedProperty" xmi:id="_SPDkckeEEeWlKfVTs-HO8g" length="200"/>
                 </eAnnotations>
                 <ownedComment xmi:id="_17_0_5_1_90d0292_1430865468309_846463_4868" body="the source URI that the user requests; this is a regular expression that identifies a set of potential URIs in a complete match scenario; this is the original URI that comes into the proxy server" annotatedElement="_17_0_5_1_90d0292_1430865468306_984053_4866"/>
                 <upperValue xmi:type="uml:LiteralUnlimitedNatural" xmi:id="_17_0_5_1_90d0292_1430865468308_298079_4867" value="1"/>
                 <lowerValue xmi:type="uml:LiteralInteger" xmi:id="_17_0_5_1_90d0292_1430865468309_300593_4869" value="1"/>
               </ownedAttribute>
               <ownedAttribute xmi:id="_17_0_5_1_90d0292_1434582203484_481492_4420" name="targetUri" type="_9_0_1fe00f9_1119336925531_364079_66">
-                <eAnnotations xmi:id="_buHI0EbUEeWY2qcg87dWeg" source="appliedStereotypes">
-                  <contents xmi:type="persistence_0:persistence__SizedProperty" xmi:id="_buHI0UbUEeWY2qcg87dWeg" length="200"/>
+                <eAnnotations xmi:id="_SPELgkeEEeWlKfVTs-HO8g" source="appliedStereotypes">
+                  <contents xmi:type="persistence_0:persistence__SizedProperty" xmi:id="_SPELg0eEEeWlKfVTs-HO8g" length="200"/>
                 </eAnnotations>
                 <ownedComment xmi:id="_17_0_5_1_90d0292_1434582330552_350260_4428" body="the URI that replaces the complete match on the source URI; this is the URI that identifies the partner server (the proxied URI for the proxy server)" annotatedElement="_17_0_5_1_90d0292_1434582203484_481492_4420"/>
                 <upperValue xmi:type="uml:LiteralUnlimitedNatural" xmi:id="_17_0_5_1_90d0292_1434582225257_295919_4423" value="1"/>
                 <lowerValue xmi:type="uml:LiteralInteger" xmi:id="_17_0_5_1_90d0292_1434582225256_207887_4422" value="1"/>
               </ownedAttribute>
               <ownedAttribute xmi:id="_17_0_5_1_90d0292_1437756018093_851444_4562" name="partner" type="_17_0_5_1_90d0292_1423933884151_521948_4451" association="_17_0_5_1_90d0292_1437756018093_569380_4560">
-                <eAnnotations xmi:id="_bt8JtEbUEeWY2qcg87dWeg" source="appliedStereotypes">
-                  <contents xmi:type="persistence_0:persistence__Persistent" xmi:id="_bt8JtUbUEeWY2qcg87dWeg"/>
+                <eAnnotations xmi:id="_SOzs0EeEEeWlKfVTs-HO8g" source="appliedStereotypes">
+                  <contents xmi:type="persistence_0:persistence__Persistent" xmi:id="_SOzs0UeEEeWlKfVTs-HO8g"/>
                 </eAnnotations>
                 <upperValue xmi:type="uml:LiteralUnlimitedNatural" xmi:id="_17_0_5_1_90d0292_1437756068089_216717_4604" value="1"/>
                 <lowerValue xmi:type="uml:LiteralInteger" xmi:id="_17_0_5_1_90d0292_1437756068089_400076_4603" value="1"/>
@@ -399,37 +400,37 @@
             </ownedMember>
             <ownedMember xmi:type="uml:Association" xmi:id="_17_0_5_1_90d0292_1431032419122_137138_4092" memberEnd="_17_0_5_1_90d0292_1431032419122_230231_4093 _17_0_5_1_90d0292_1431032419122_435632_4094"/>
             <ownedMember xmi:type="uml:Class" xmi:id="_17_0_5_1_90d0292_1434671753378_482867_4533" name="SubscriptionDescription">
-              <eAnnotations xmi:id="_bt6UgEbUEeWY2qcg87dWeg" source="appliedStereotypes">
-                <contents xmi:type="persistence_0:persistence__Persistent" xmi:id="_bt6UgUbUEeWY2qcg87dWeg"/>
-                <contents xmi:type="key_0:key__SequenceKey" xmi:id="_burwkEbUEeWY2qcg87dWeg"/>
+              <eAnnotations xmi:id="_SN4fwEeEEeWlKfVTs-HO8g" source="appliedStereotypes">
+                <contents xmi:type="key_0:key__SequenceKey" xmi:id="_SN4fwUeEEeWlKfVTs-HO8g"/>
+                <contents xmi:type="persistence_0:persistence__Persistent" xmi:id="_SO0T4EeEEeWlKfVTs-HO8g"/>
               </eAnnotations>
               <ownedComment xmi:id="_17_0_5_1_90d0292_1434672144726_707085_4655" body="A collection of descriptive texts to display for a particular kind of subscription; a partner may have any number of such texts to display in different named contexts" annotatedElement="_17_0_5_1_90d0292_1434671753378_482867_4533"/>
               <ownedAttribute xmi:id="_17_0_5_1_90d0292_1434671786573_882991_4553" name="header" type="_9_0_1fe00f9_1119336925531_364079_66">
-                <eAnnotations xmi:id="_buEFhEbUEeWY2qcg87dWeg" source="appliedStereotypes">
-                  <contents xmi:type="persistence_0:persistence__SizedProperty" xmi:id="_buEFhUbUEeWY2qcg87dWeg" length="200"/>
+                <eAnnotations xmi:id="_SPEykEeEEeWlKfVTs-HO8g" source="appliedStereotypes">
+                  <contents xmi:type="persistence_0:persistence__SizedProperty" xmi:id="_SPEykUeEEeWlKfVTs-HO8g" length="200"/>
                 </eAnnotations>
                 <ownedComment xmi:id="_17_0_5_1_90d0292_1434672163621_692668_4656" body="the header text for the section display" annotatedElement="_17_0_5_1_90d0292_1434671786573_882991_4553"/>
                 <upperValue xmi:type="uml:LiteralUnlimitedNatural" xmi:id="_17_0_5_1_90d0292_1434672387434_138476_4662" value="1"/>
                 <lowerValue xmi:type="uml:LiteralInteger" xmi:id="_17_0_5_1_90d0292_1434672387434_599176_4661" value="1"/>
               </ownedAttribute>
               <ownedAttribute xmi:id="_17_0_5_1_90d0292_1434671831730_857395_4555" name="descriptionType" type="_9_0_1fe00f9_1119336925531_364079_66">
-                <eAnnotations xmi:id="_buEslEbUEeWY2qcg87dWeg" source="appliedStereotypes">
-                  <contents xmi:type="persistence_0:persistence__SizedProperty" xmi:id="_buEslUbUEeWY2qcg87dWeg" length="200"/>
+                <eAnnotations xmi:id="_SPGAsEeEEeWlKfVTs-HO8g" source="appliedStereotypes">
+                  <contents xmi:type="persistence_0:persistence__SizedProperty" xmi:id="_SPGAsUeEEeWlKfVTs-HO8g" length="200"/>
                 </eAnnotations>
                 <ownedComment xmi:id="_17_0_5_1_90d0292_1434672288147_35770_4657" body="the type of description: &#xA;&#xA;Default&#xA;Individual&#xA;Institution&#xA;Commercial" annotatedElement="_17_0_5_1_90d0292_1434671831730_857395_4555"/>
                 <upperValue xmi:type="uml:LiteralUnlimitedNatural" xmi:id="_17_0_5_1_90d0292_1434672397770_951942_4664" value="1"/>
                 <lowerValue xmi:type="uml:LiteralInteger" xmi:id="_17_0_5_1_90d0292_1434672397770_619821_4663" value="1"/>
               </ownedAttribute>
               <ownedAttribute xmi:id="_17_0_5_1_90d0292_1434671875731_899300_4566" name="partner" type="_17_0_5_1_90d0292_1423933884151_521948_4451" association="_17_0_5_1_90d0292_1434671875730_71714_4564">
-                <eAnnotations xmi:id="_bts5IEbUEeWY2qcg87dWeg" source="appliedStereotypes">
-                  <contents xmi:type="persistence_0:persistence__Persistent" xmi:id="_bts5IUbUEeWY2qcg87dWeg"/>
+                <eAnnotations xmi:id="_SO3-QEeEEeWlKfVTs-HO8g" source="appliedStereotypes">
+                  <contents xmi:type="persistence_0:persistence__Persistent" xmi:id="_SO3-QUeEEeWlKfVTs-HO8g"/>
                 </eAnnotations>
                 <upperValue xmi:type="uml:LiteralUnlimitedNatural" xmi:id="_17_0_5_1_90d0292_1434671949676_541912_4608" value="1"/>
                 <lowerValue xmi:type="uml:LiteralInteger" xmi:id="_17_0_5_1_90d0292_1434671949675_493774_4607" value="1"/>
               </ownedAttribute>
               <ownedAttribute xmi:id="_17_0_5_1_90d0292_1434672441899_234568_4671" name="items" type="_17_0_5_1_90d0292_1434672001705_369564_4626" association="_17_0_5_1_90d0292_1434672441899_165818_4670">
-                <eAnnotations xmi:id="_bt2DFEbUEeWY2qcg87dWeg" source="appliedStereotypes">
-                  <contents xmi:type="persistence_0:persistence__Persistent" xmi:id="_bt2DFUbUEeWY2qcg87dWeg"/>
+                <eAnnotations xmi:id="_SO3XMkeEEeWlKfVTs-HO8g" source="appliedStereotypes">
+                  <contents xmi:type="persistence_0:persistence__Persistent" xmi:id="_SO3XM0eEEeWlKfVTs-HO8g"/>
                 </eAnnotations>
                 <upperValue xmi:type="uml:LiteralUnlimitedNatural" xmi:id="_17_0_5_1_90d0292_1434672498275_956250_4720" value="-1"/>
                 <lowerValue xmi:type="uml:LiteralInteger" xmi:id="_17_0_5_1_90d0292_1434672498275_813217_4719" value="1"/>
@@ -437,22 +438,22 @@
             </ownedMember>
             <ownedMember xmi:type="uml:Association" xmi:id="_17_0_5_1_90d0292_1434671875730_71714_4564" memberEnd="_17_0_5_1_90d0292_1434671875730_203224_4565 _17_0_5_1_90d0292_1434671875731_899300_4566"/>
             <ownedMember xmi:type="uml:Class" xmi:id="_17_0_5_1_90d0292_1434672001705_369564_4626" name="SubscriptionDescriptionItem">
-              <eAnnotations xmi:id="_bt5tcEbUEeWY2qcg87dWeg" source="appliedStereotypes">
-                <contents xmi:type="persistence_0:persistence__Persistent" xmi:id="_bt5tcUbUEeWY2qcg87dWeg"/>
-                <contents xmi:type="key_0:key__SequenceKey" xmi:id="_burJgEbUEeWY2qcg87dWeg"/>
+              <eAnnotations xmi:id="_SN8KIEeEEeWlKfVTs-HO8g" source="appliedStereotypes">
+                <contents xmi:type="key_0:key__SequenceKey" xmi:id="_SN8KIUeEEeWlKfVTs-HO8g"/>
+                <contents xmi:type="persistence_0:persistence__Persistent" xmi:id="_SO2wIUeEEeWlKfVTs-HO8g"/>
               </eAnnotations>
               <ownedComment xmi:id="_17_0_5_1_90d0292_1434674396756_79608_4736" body="A specific item of descriptive text" annotatedElement="_17_0_5_1_90d0292_1434672001705_369564_4626"/>
               <ownedAttribute xmi:id="_17_0_5_1_90d0292_1434672347333_956322_4658" name="text" type="_9_0_1fe00f9_1119336925531_364079_66">
-                <eAnnotations xmi:id="_buF6skbUEeWY2qcg87dWeg" source="appliedStereotypes">
-                  <contents xmi:type="persistence_0:persistence__SizedProperty" xmi:id="_buF6s0bUEeWY2qcg87dWeg" length="2048"/>
+                <eAnnotations xmi:id="_SPGAskeEEeWlKfVTs-HO8g" source="appliedStereotypes">
+                  <contents xmi:type="persistence_0:persistence__SizedProperty" xmi:id="_SPGAs0eEEeWlKfVTs-HO8g" length="2048"/>
                 </eAnnotations>
                 <ownedComment xmi:id="_17_0_5_1_90d0292_1434672432189_456642_4665" body="the text to display for the type of context" annotatedElement="_17_0_5_1_90d0292_1434672347333_956322_4658"/>
                 <upperValue xmi:type="uml:LiteralUnlimitedNatural" xmi:id="_17_0_5_1_90d0292_1434672508858_428310_4726" value="1"/>
                 <lowerValue xmi:type="uml:LiteralInteger" xmi:id="_17_0_5_1_90d0292_1434672508858_502478_4725" value="1"/>
               </ownedAttribute>
               <ownedAttribute xmi:id="_17_0_5_1_90d0292_1434672441900_220013_4672" name="description" type="_17_0_5_1_90d0292_1434671753378_482867_4533" association="_17_0_5_1_90d0292_1434672441899_165818_4670">
-                <eAnnotations xmi:id="_btsSEkbUEeWY2qcg87dWeg" source="appliedStereotypes">
-                  <contents xmi:type="persistence_0:persistence__Persistent" xmi:id="_btsSE0bUEeWY2qcg87dWeg"/>
+                <eAnnotations xmi:id="_SO-r8EeEEeWlKfVTs-HO8g" source="appliedStereotypes">
+                  <contents xmi:type="persistence_0:persistence__Persistent" xmi:id="_SO-r8UeEEeWlKfVTs-HO8g"/>
                 </eAnnotations>
                 <upperValue xmi:type="uml:LiteralUnlimitedNatural" xmi:id="_17_0_5_1_90d0292_1434672483299_902973_4714" value="1"/>
                 <lowerValue xmi:type="uml:LiteralInteger" xmi:id="_17_0_5_1_90d0292_1434672483299_709910_4713" value="1"/>
@@ -462,19 +463,19 @@
             <ownedMember xmi:type="uml:Association" xmi:id="_17_0_5_1_90d0292_1437756018093_569380_4560" memberEnd="_17_0_5_1_90d0292_1437756018093_120541_4561 _17_0_5_1_90d0292_1437756018093_851444_4562"/>
           </ownedMember>
           <ownedMember xmi:type="uml:Package" xmi:id="_17_0_5_1_90d0292_1423934130774_948958_4486" name="subscription">
-            <eAnnotations xmi:id="_buAbJEbUEeWY2qcg87dWeg" source="appliedStereotypes">
-              <contents xmi:type="persistence_0:persistence__Subsystem" xmi:id="_buAbJUbUEeWY2qcg87dWeg" businessPackage="org.phoenixbioinformatics.api.bs.subscription"/>
+            <eAnnotations xmi:id="_SPBIMUeEEeWlKfVTs-HO8g" source="appliedStereotypes">
+              <contents xmi:type="persistence_0:persistence__Subsystem" xmi:id="_SPBIMkeEEeWlKfVTs-HO8g" businessPackage="org.phoenixbioinformatics.api.bs.subscription"/>
             </eAnnotations>
             <ownedComment xmi:id="_17_0_5_1_90d0292_1432082369460_152169_4203" body="the API relating to the process of paying for access to partner systems by a party" annotatedElement="_17_0_5_1_90d0292_1423934130774_948958_4486"/>
             <ownedMember xmi:type="uml:Class" xmi:id="_17_0_5_1_90d0292_1424102324779_820802_5255" name="SubscriptionTransaction">
-              <eAnnotations xmi:id="_bt9X0EbUEeWY2qcg87dWeg" source="appliedStereotypes">
-                <contents xmi:type="persistence_0:persistence__Persistent" xmi:id="_bt9X0UbUEeWY2qcg87dWeg"/>
-                <contents xmi:type="key_0:key__SequenceKey" xmi:id="_bus-sUbUEeWY2qcg87dWeg"/>
+              <eAnnotations xmi:id="_SN0OUEeEEeWlKfVTs-HO8g" source="appliedStereotypes">
+                <contents xmi:type="key_0:key__SequenceKey" xmi:id="_SN0OUUeEEeWlKfVTs-HO8g"/>
+                <contents xmi:type="persistence_0:persistence__Persistent" xmi:id="_SOxQlEeEEeWlKfVTs-HO8g"/>
               </eAnnotations>
               <ownedComment xmi:id="_17_0_5_1_90d0292_1424102324784_562586_5261" body="A specific transaction related to the subscription; provides the transactional history for the subscription" annotatedElement="_17_0_5_1_90d0292_1424102324779_820802_5255"/>
               <ownedAttribute xmi:id="_17_0_5_1_90d0292_1430667075674_991332_4490" name="subscription" type="_17_0_5_1_90d0292_1424100044514_99059_4986" association="_17_0_5_1_90d0292_1430667075674_100158_4489">
-                <eAnnotations xmi:id="_btuuUkbUEeWY2qcg87dWeg" source="appliedStereotypes">
-                  <contents xmi:type="persistence_0:persistence__Persistent" xmi:id="_btuuU0bUEeWY2qcg87dWeg"/>
+                <eAnnotations xmi:id="_SO2JEEeEEeWlKfVTs-HO8g" source="appliedStereotypes">
+                  <contents xmi:type="persistence_0:persistence__Persistent" xmi:id="_SO2JEUeEEeWlKfVTs-HO8g"/>
                 </eAnnotations>
                 <ownedComment xmi:id="_17_0_5_1_90d0292_1430669863669_202265_4673" body="the subscription to which the transaction applies" annotatedElement="_17_0_5_1_90d0292_1430667075674_991332_4490"/>
                 <upperValue xmi:type="uml:LiteralUnlimitedNatural" xmi:id="_17_0_5_1_90d0292_1430669148889_444453_4611" value="1"/>
@@ -496,8 +497,8 @@
                 <lowerValue xmi:type="uml:LiteralInteger" xmi:id="_17_0_5_1_90d0292_1430844060506_411998_4028" value="1"/>
               </ownedAttribute>
               <ownedAttribute xmi:id="_17_0_5_1_90d0292_1430844187519_101196_4036" name="transactionType" type="_9_0_1fe00f9_1119336925531_364079_66">
-                <eAnnotations xmi:id="_buHI1EbUEeWY2qcg87dWeg" source="appliedStereotypes">
-                  <contents xmi:type="persistence_0:persistence__SizedProperty" xmi:id="_buHI1UbUEeWY2qcg87dWeg" length="50"/>
+                <eAnnotations xmi:id="_SPKSJEeEEeWlKfVTs-HO8g" source="appliedStereotypes">
+                  <contents xmi:type="persistence_0:persistence__SizedProperty" xmi:id="_SPKSJUeEEeWlKfVTs-HO8g" length="50"/>
                 </eAnnotations>
                 <ownedComment xmi:id="_17_0_5_1_90d0292_1430844365564_357137_4041" body="the kind of transaction: Initial, Renewal, Refund" annotatedElement="_17_0_5_1_90d0292_1430844187519_101196_4036"/>
                 <upperValue xmi:type="uml:LiteralUnlimitedNatural" xmi:id="_17_0_5_1_90d0292_1437768434511_789105_4865" value="1"/>
@@ -506,9 +507,9 @@
             </ownedMember>
             <ownedMember xmi:type="uml:Association" xmi:id="_17_0_5_1_90d0292_1430667075674_100158_4489" memberEnd="_17_0_5_1_90d0292_1430667075674_991332_4490 _17_0_5_1_90d0292_1430667075675_968940_4491"/>
             <ownedMember xmi:type="uml:AssociationClass" xmi:id="_17_0_5_1_90d0292_1424100044514_99059_4986" name="Subscription" memberEnd="_17_0_5_1_90d0292_1424100044515_977937_4987 _17_0_5_1_90d0292_1424100044515_34532_4988">
-              <eAnnotations xmi:id="_bt67kEbUEeWY2qcg87dWeg" source="appliedStereotypes">
-                <contents xmi:type="persistence_0:persistence__Persistent" xmi:id="_bt67kUbUEeWY2qcg87dWeg"/>
-                <contents xmi:type="key_0:key__AssociationKey" xmi:id="_buuM0kbUEeWY2qcg87dWeg" lazy="true"/>
+              <eAnnotations xmi:id="_SOBpsEeEEeWlKfVTs-HO8g" source="appliedStereotypes">
+                <contents xmi:type="key_0:key__AssociationKey" xmi:id="_SOBpsUeEEeWlKfVTs-HO8g" lazy="true"/>
+                <contents xmi:type="persistence_0:persistence__Persistent" xmi:id="_SO6agEeEEeWlKfVTs-HO8g"/>
               </eAnnotations>
               <ownedComment xmi:id="_17_0_5_1_90d0292_1424100508318_730374_5163" body="An agreement by a party to take and pay for access to a partner system; a relationship between a party and a partner system" annotatedElement="_17_0_5_1_90d0292_1424100044514_99059_4986"/>
               <ownedAttribute xmi:id="_17_0_5_1_90d0292_1424101174647_625865_5194" name="startDate" type="_9_0_1fe00f9_1119336925531_281112_48">
@@ -522,16 +523,16 @@
                 <lowerValue xmi:type="uml:LiteralInteger" xmi:id="_17_0_5_1_90d0292_1430670335843_59657_4675" value="1"/>
               </ownedAttribute>
               <ownedAttribute xmi:id="_17_0_5_1_90d0292_1430667075675_968940_4491" name="transactions" type="_17_0_5_1_90d0292_1424102324779_820802_5255" association="_17_0_5_1_90d0292_1430667075674_100158_4489">
-                <eAnnotations xmi:id="_bt2DEEbUEeWY2qcg87dWeg" source="appliedStereotypes">
-                  <contents xmi:type="persistence_0:persistence__Persistent" xmi:id="_bt2DEUbUEeWY2qcg87dWeg"/>
+                <eAnnotations xmi:id="_SPAhIEeEEeWlKfVTs-HO8g" source="appliedStereotypes">
+                  <contents xmi:type="persistence_0:persistence__Persistent" xmi:id="_SPAhIUeEEeWlKfVTs-HO8g"/>
                 </eAnnotations>
                 <ownedComment xmi:id="_17_0_5_1_90d0292_1430669880364_608003_4674" body="the set of transactions for a subscription" annotatedElement="_17_0_5_1_90d0292_1430667075675_968940_4491"/>
                 <upperValue xmi:type="uml:LiteralUnlimitedNatural" xmi:id="_17_0_5_1_90d0292_1430669145169_65674_4605" value="-1"/>
                 <lowerValue xmi:type="uml:LiteralInteger" xmi:id="_17_0_5_1_90d0292_1430669145169_673154_4604"/>
               </ownedAttribute>
               <ownedAttribute xmi:id="_17_0_5_1_90d0292_1431177090786_75142_4197" name="subscriptionId" type="_9_0_1fe00f9_1119336925531_227130_59">
-                <eAnnotations xmi:id="_buwCAEbUEeWY2qcg87dWeg" source="appliedStereotypes">
-                  <contents xmi:type="key_0:key__AK" xmi:id="_buwCAUbUEeWY2qcg87dWeg" uniqueGroup="id"/>
+                <eAnnotations xmi:id="_SOEtAEeEEeWlKfVTs-HO8g" source="appliedStereotypes">
+                  <contents xmi:type="key_0:key__AK" xmi:id="_SOEtAUeEEeWlKfVTs-HO8g" uniqueGroup="id"/>
                 </eAnnotations>
                 <ownedComment xmi:id="_17_0_5_1_90d0292_1431177139766_708385_4200" body="an alternate single-number identifier for the subscription" annotatedElement="_17_0_5_1_90d0292_1431177090786_75142_4197"/>
                 <upperValue xmi:type="uml:LiteralUnlimitedNatural" xmi:id="_17_0_5_1_90d0292_1437768447471_184361_4867" value="1"/>
@@ -539,9 +540,9 @@
               </ownedAttribute>
             </ownedMember>
             <ownedMember xmi:type="uml:Class" xmi:id="_17_0_5_1_90d0292_1437758772287_102459_4694" name="ActivationCode">
-              <eAnnotations xmi:id="_bt8wwEbUEeWY2qcg87dWeg" source="appliedStereotypes">
-                <contents xmi:type="persistence_0:persistence__Persistent" xmi:id="_bt8wwUbUEeWY2qcg87dWeg"/>
-                <contents xmi:type="key_0:key__SequenceKey" xmi:id="_busXoUbUEeWY2qcg87dWeg"/>
+              <eAnnotations xmi:id="_SN2qkEeEEeWlKfVTs-HO8g" source="appliedStereotypes">
+                <contents xmi:type="key_0:key__SequenceKey" xmi:id="_SN2qkUeEEeWlKfVTs-HO8g"/>
+                <contents xmi:type="persistence_0:persistence__Persistent" xmi:id="_SOzFwkeEEeWlKfVTs-HO8g"/>
               </eAnnotations>
               <ownedComment xmi:id="_17_0_5_1_90d0292_1437768209888_191955_4853" body="A code that a subscriber can use to activate their subscription to a partner" annotatedElement="_17_0_5_1_90d0292_1437758772287_102459_4694"/>
               <ownedAttribute xmi:id="_17_0_5_1_90d0292_1437758838340_771677_4717" name="activationCode" type="_9_0_1fe00f9_1119336925531_364079_66">
@@ -550,22 +551,22 @@
                 <lowerValue xmi:type="uml:LiteralInteger" xmi:id="_17_0_5_1_90d0292_1437768397187_277202_4858" value="1"/>
               </ownedAttribute>
               <ownedAttribute xmi:id="_17_0_5_1_90d0292_1437758864740_372206_4724" visibility="private" type="_17_0_5_1_90d0292_1423933884151_521948_4451" association="_17_0_5_1_90d0292_1437758864740_479112_4723">
-                <eAnnotations xmi:id="_bt_NBEbUEeWY2qcg87dWeg" source="appliedStereotypes">
-                  <contents xmi:type="persistence_0:persistence__Persistent" xmi:id="_bt_NBUbUEeWY2qcg87dWeg"/>
+                <eAnnotations xmi:id="_SO7Bk0eEEeWlKfVTs-HO8g" source="appliedStereotypes">
+                  <contents xmi:type="persistence_0:persistence__Persistent" xmi:id="_SO7BlEeEEeWlKfVTs-HO8g"/>
                 </eAnnotations>
                 <upperValue xmi:type="uml:LiteralUnlimitedNatural" xmi:id="_17_0_5_1_90d0292_1437767935357_96948_4814" value="1"/>
                 <lowerValue xmi:type="uml:LiteralInteger" xmi:id="_17_0_5_1_90d0292_1437767935357_81704_4813" value="1"/>
               </ownedAttribute>
               <ownedAttribute xmi:id="_17_0_5_1_90d0292_1437758870012_571516_4745" name="party" type="_17_0_5_1_90d0292_1423933035402_953579_4214" association="_17_0_5_1_90d0292_1437758870012_604783_4744">
-                <eAnnotations xmi:id="_bt2DEkbUEeWY2qcg87dWeg" source="appliedStereotypes">
-                  <contents xmi:type="persistence_0:persistence__Persistent" xmi:id="_bt2DE0bUEeWY2qcg87dWeg"/>
+                <eAnnotations xmi:id="_SO82wUeEEeWlKfVTs-HO8g" source="appliedStereotypes">
+                  <contents xmi:type="persistence_0:persistence__Persistent" xmi:id="_SO82wkeEEeWlKfVTs-HO8g"/>
                 </eAnnotations>
                 <upperValue xmi:type="uml:LiteralUnlimitedNatural" xmi:id="_17_0_5_1_90d0292_1437767945010_389981_4820" value="1"/>
                 <lowerValue xmi:type="uml:LiteralInteger" xmi:id="_17_0_5_1_90d0292_1437767945010_345295_4819" value="1"/>
               </ownedAttribute>
               <ownedAttribute xmi:id="_17_0_5_1_90d0292_1437768068483_9994_4847" name="period" type="_9_0_1fe00f9_1119336925531_479934_4">
-                <eAnnotations xmi:id="_buHv5EbUEeWY2qcg87dWeg" source="appliedStereotypes">
-                  <contents xmi:type="persistence_0:persistence__Number" xmi:id="_buHv5UbUEeWY2qcg87dWeg" precision="8"/>
+                <eAnnotations xmi:id="_SPK5MEeEEeWlKfVTs-HO8g" source="appliedStereotypes">
+                  <contents xmi:type="persistence_0:persistence__Number" xmi:id="_SPK5MUeEEeWlKfVTs-HO8g" precision="8"/>
                 </eAnnotations>
                 <ownedComment xmi:id="_17_0_5_1_90d0292_1437768183601_501022_4852" body="The number of months for the subscription activated by the code" annotatedElement="_17_0_5_1_90d0292_1437768068483_9994_4847"/>
                 <upperValue xmi:type="uml:LiteralUnlimitedNatural" xmi:id="_17_0_5_1_90d0292_1437768409129_257075_4861" value="1"/>
@@ -581,20 +582,20 @@
             <ownedMember xmi:type="uml:Association" xmi:id="_17_0_5_1_90d0292_1437758870012_604783_4744" memberEnd="_17_0_5_1_90d0292_1437758870012_571516_4745 _17_0_5_1_90d0292_1437758870012_362640_4746"/>
           </ownedMember>
           <ownedMember xmi:type="uml:Package" xmi:id="_17_0_5_1_90d0292_1430662822149_250948_4176" name="meter">
-            <eAnnotations xmi:id="_bt_0FkbUEeWY2qcg87dWeg" source="appliedStereotypes">
-              <contents xmi:type="persistence_0:persistence__Subsystem" xmi:id="_bt_0F0bUEeWY2qcg87dWeg" businessPackage="org.phoenixbioinformatics.api.bs.meter"/>
+            <eAnnotations xmi:id="_SPCWUEeEEeWlKfVTs-HO8g" source="appliedStereotypes">
+              <contents xmi:type="persistence_0:persistence__Subsystem" xmi:id="_SPCWUUeEEeWlKfVTs-HO8g" businessPackage="org.phoenixbioinformatics.api.bs.meter"/>
             </eAnnotations>
             <ownedComment xmi:id="_17_0_5_1_90d0292_1432082264159_626207_4201" body="the API relating to the counting of accesses for the purpose of warning and blocking access to non-subscribers" annotatedElement="_17_0_5_1_90d0292_1430662822149_250948_4176"/>
             <ownedMember xmi:type="uml:Class" xmi:id="_17_0_4_1_90d0292_1391726541087_202721_3626" name="IpCount">
-              <eAnnotations xmi:id="_bt3RMEbUEeWY2qcg87dWeg" source="appliedStereotypes">
-                <contents xmi:type="persistence_0:persistence__Persistent" xmi:id="_bt3RMUbUEeWY2qcg87dWeg"/>
-                <contents xmi:type="key_0:key__NaturalKey" xmi:id="_butlwkbUEeWY2qcg87dWeg"/>
+              <eAnnotations xmi:id="_SOAbkEeEEeWlKfVTs-HO8g" source="appliedStereotypes">
+                <contents xmi:type="key_0:key__NaturalKey" xmi:id="_SOAbkUeEEeWlKfVTs-HO8g"/>
+                <contents xmi:type="persistence_0:persistence__Persistent" xmi:id="_SO5zc0eEEeWlKfVTs-HO8g"/>
               </eAnnotations>
               <ownedComment xmi:id="_17_0_4_1_90d0292_1391726802033_721597_3662" body="Tracks an IP address and the count of page views made since initialization" annotatedElement="_17_0_4_1_90d0292_1391726541087_202721_3626"/>
               <ownedAttribute xmi:id="_17_0_4_1_90d0292_1391726602678_154911_3649" name="ip" type="_9_0_1fe00f9_1119336925531_364079_66">
-                <eAnnotations xmi:id="_buGhxEbUEeWY2qcg87dWeg" source="appliedStereotypes">
-                  <contents xmi:type="persistence_0:persistence__SizedProperty" xmi:id="_buGhxUbUEeWY2qcg87dWeg" length="200"/>
-                  <contents xmi:type="key_0:key__PK" xmi:id="_buva8EbUEeWY2qcg87dWeg"/>
+                <eAnnotations xmi:id="_SOC30EeEEeWlKfVTs-HO8g" source="appliedStereotypes">
+                  <contents xmi:type="key_0:key__PK" xmi:id="_SOC30UeEEeWlKfVTs-HO8g"/>
+                  <contents xmi:type="persistence_0:persistence__SizedProperty" xmi:id="_SPEykkeEEeWlKfVTs-HO8g" length="200"/>
                 </eAnnotations>
                 <ownedComment xmi:id="_17_0_4_1_90d0292_1391726842962_369409_3663" body="the IP address being tracked (IPv4 or IPv6)" annotatedElement="_17_0_4_1_90d0292_1391726602678_154911_3649"/>
                 <upperValue xmi:type="uml:LiteralUnlimitedNatural" xmi:id="_17_0_4_1_90d0292_1391726647780_711089_3654" value="1"/>
@@ -607,9 +608,9 @@
                 <defaultValue xmi:type="uml:LiteralInteger" xmi:id="_17_0_4_1_90d0292_1391726708926_63291_3660" value="1"/>
               </ownedAttribute>
               <ownedAttribute xmi:id="_17_0_5_1_90d0292_1430666018501_750380_4346" name="partner" type="_17_0_5_1_90d0292_1423933884151_521948_4451" association="_17_0_5_1_90d0292_1430666018501_317218_4345">
-                <eAnnotations xmi:id="_bt9X0kbUEeWY2qcg87dWeg" source="appliedStereotypes">
-                  <contents xmi:type="persistence_0:persistence__Persistent" xmi:id="_bt9X00bUEeWY2qcg87dWeg"/>
-                  <contents xmi:type="key_0:key__PK" xmi:id="_buva8kbUEeWY2qcg87dWeg"/>
+                <eAnnotations xmi:id="_SOEF8EeEEeWlKfVTs-HO8g" source="appliedStereotypes">
+                  <contents xmi:type="key_0:key__PK" xmi:id="_SOEF8UeEEeWlKfVTs-HO8g"/>
+                  <contents xmi:type="persistence_0:persistence__Persistent" xmi:id="_SO8PskeEEeWlKfVTs-HO8g"/>
                 </eAnnotations>
                 <ownedComment xmi:id="_17_0_5_1_90d0292_1430666227012_789489_4433" body="the partner to which an ip-address count applies" annotatedElement="_17_0_5_1_90d0292_1430666018501_750380_4346"/>
                 <upperValue xmi:type="uml:LiteralUnlimitedNatural" xmi:id="_17_0_5_1_90d0292_1430666126900_502905_4420" value="1"/>
@@ -617,9 +618,9 @@
               </ownedAttribute>
             </ownedMember>
             <ownedMember xmi:type="uml:Class" xmi:id="_17_0_5_1_90d0292_1430663498551_144370_4274" name="LimitValue">
-              <eAnnotations xmi:id="_bt4fVEbUEeWY2qcg87dWeg" source="appliedStereotypes">
-                <contents xmi:type="persistence_0:persistence__Persistent" xmi:id="_bt4fVUbUEeWY2qcg87dWeg"/>
-                <contents xmi:type="key_0:key__SequenceKey" xmi:id="_buqicUbUEeWY2qcg87dWeg"/>
+              <eAnnotations xmi:id="_SN_0gEeEEeWlKfVTs-HO8g" source="appliedStereotypes">
+                <contents xmi:type="key_0:key__SequenceKey" xmi:id="_SN_0gUeEEeWlKfVTs-HO8g"/>
+                <contents xmi:type="persistence_0:persistence__Persistent" xmi:id="_SPBIMEeEEeWlKfVTs-HO8g"/>
               </eAnnotations>
               <ownedComment xmi:id="_17_0_5_1_90d0292_1430663963416_208496_4304" body="An integer count that limits access in some way" annotatedElement="_17_0_5_1_90d0292_1430663498551_144370_4274"/>
               <ownedAttribute xmi:id="_17_0_5_1_90d0292_1430663893984_883300_4302" name="value" type="_9_0_1fe00f9_1119336925531_479934_4">
@@ -628,9 +629,9 @@
                 <lowerValue xmi:type="uml:LiteralInteger" xmi:id="_17_0_5_1_90d0292_1430664053919_594850_4307" value="1"/>
               </ownedAttribute>
               <ownedAttribute xmi:id="_17_0_5_1_90d0292_1430666023425_706922_4367" name="partner" type="_17_0_5_1_90d0292_1423933884151_521948_4451" association="_17_0_5_1_90d0292_1430666023425_425417_4366">
-                <eAnnotations xmi:id="_bt8JsEbUEeWY2qcg87dWeg" source="appliedStereotypes">
-                  <contents xmi:type="persistence_0:persistence__Persistent" xmi:id="_bt8JsUbUEeWY2qcg87dWeg"/>
-                  <contents xmi:type="key_0:key__PK" xmi:id="_buuz4UbUEeWY2qcg87dWeg"/>
+                <eAnnotations xmi:id="_SOEF8keEEeWlKfVTs-HO8g" source="appliedStereotypes">
+                  <contents xmi:type="key_0:key__PK" xmi:id="_SOEF80eEEeWlKfVTs-HO8g"/>
+                  <contents xmi:type="persistence_0:persistence__Persistent" xmi:id="_SPAhIkeEEeWlKfVTs-HO8g"/>
                 </eAnnotations>
                 <ownedComment xmi:id="_17_0_5_1_90d0292_1430666243534_169821_4434" body="the partner to which the limit value applies" annotatedElement="_17_0_5_1_90d0292_1430666023425_706922_4367"/>
                 <upperValue xmi:type="uml:LiteralUnlimitedNatural" xmi:id="_17_0_5_1_90d0292_1430666100590_656544_4402" value="1"/>
@@ -643,79 +644,79 @@
             <ownedMember xmi:type="uml:Association" xmi:id="_17_0_5_1_90d0292_1430666023425_425417_4366" memberEnd="_17_0_5_1_90d0292_1430666023425_706922_4367 _17_0_5_1_90d0292_1430666023426_830509_4368"/>
           </ownedMember>
           <ownedMember xmi:type="uml:Package" xmi:id="_17_0_5_1_90d0292_1430670422114_638673_4677" name="authorization">
-            <eAnnotations xmi:id="_bt_0EkbUEeWY2qcg87dWeg" source="appliedStereotypes">
-              <contents xmi:type="persistence_0:persistence__Subsystem" xmi:id="_bt_0E0bUEeWY2qcg87dWeg" businessPackage="org.phoenixbioinformatics.api.bs.authorization"/>
+            <eAnnotations xmi:id="_SPBvQEeEEeWlKfVTs-HO8g" source="appliedStereotypes">
+              <contents xmi:type="persistence_0:persistence__Subsystem" xmi:id="_SPBvQUeEEeWlKfVTs-HO8g" businessPackage="org.phoenixbioinformatics.api.bs.authorization"/>
             </eAnnotations>
             <ownedComment xmi:id="_17_0_5_1_90d0292_1430670455977_818161_4678" body="the API relating to the process of granting or refusing access to a parter by a party" annotatedElement="_17_0_5_1_90d0292_1430670422114_638673_4677"/>
             <ownedMember xmi:type="uml:Class" xmi:id="_17_0_5_1_90d0292_1430670528535_619458_4726" name="UriPattern">
-              <eAnnotations xmi:id="_bt7iokbUEeWY2qcg87dWeg" source="appliedStereotypes">
-                <contents xmi:type="persistence_0:persistence__Persistent" xmi:id="_bt7io0bUEeWY2qcg87dWeg"/>
-                <contents xmi:type="key_0:key__SequenceKey" xmi:id="_burwkUbUEeWY2qcg87dWeg"/>
+              <eAnnotations xmi:id="_SN8xMEeEEeWlKfVTs-HO8g" source="appliedStereotypes">
+                <contents xmi:type="key_0:key__SequenceKey" xmi:id="_SN8xMUeEEeWlKfVTs-HO8g"/>
+                <contents xmi:type="persistence_0:persistence__Persistent" xmi:id="_SO5zcEeEEeWlKfVTs-HO8g"/>
               </eAnnotations>
               <ownedComment xmi:id="_17_0_5_1_90d0292_1430670937428_700726_4805" body="A regular expression pattern that specifies a set of URIs" annotatedElement="_17_0_5_1_90d0292_1430670528535_619458_4726"/>
               <ownedAttribute xmi:id="_17_0_5_1_90d0292_1430670799303_428106_4798" name="pattern" type="_9_0_1fe00f9_1119336925531_364079_66">
-                <eAnnotations xmi:id="_buDedEbUEeWY2qcg87dWeg" source="appliedStereotypes">
-                  <contents xmi:type="persistence_0:persistence__SizedProperty" xmi:id="_buDedUbUEeWY2qcg87dWeg" length="200"/>
+                <eAnnotations xmi:id="_SPJrEEeEEeWlKfVTs-HO8g" source="appliedStereotypes">
+                  <contents xmi:type="persistence_0:persistence__SizedProperty" xmi:id="_SPJrEUeEEeWlKfVTs-HO8g" length="200"/>
                 </eAnnotations>
                 <ownedComment xmi:id="_17_0_5_1_90d0292_1430673536367_915419_4948" body="a regular expression that identifies a set of URIs" annotatedElement="_17_0_5_1_90d0292_1430670799303_428106_4798"/>
                 <upperValue xmi:type="uml:LiteralUnlimitedNatural" xmi:id="_17_0_5_1_90d0292_1430670814476_817230_4801" value="1"/>
                 <lowerValue xmi:type="uml:LiteralInteger" xmi:id="_17_0_5_1_90d0292_1430670814476_346051_4800" value="1"/>
               </ownedAttribute>
               <ownedAttribute xmi:id="_17_0_5_1_90d0292_1430671090284_461257_4821" name="accessRules" type="_17_0_5_1_90d0292_1430670743673_143572_4769" association="_17_0_5_1_90d0292_1430671090284_686414_4820">
-                <eAnnotations xmi:id="_bts5IkbUEeWY2qcg87dWeg" source="appliedStereotypes">
-                  <contents xmi:type="persistence_0:persistence__Persistent" xmi:id="_bts5I0bUEeWY2qcg87dWeg"/>
+                <eAnnotations xmi:id="_SO5MYEeEEeWlKfVTs-HO8g" source="appliedStereotypes">
+                  <contents xmi:type="persistence_0:persistence__Persistent" xmi:id="_SO5MYUeEEeWlKfVTs-HO8g"/>
                 </eAnnotations>
                 <upperValue xmi:type="uml:LiteralUnlimitedNatural" xmi:id="_17_0_5_1_90d0292_1430671206331_387431_4925" value="-1"/>
                 <lowerValue xmi:type="uml:LiteralInteger" xmi:id="_17_0_5_1_90d0292_1430671206330_601278_4924"/>
               </ownedAttribute>
             </ownedMember>
             <ownedMember xmi:type="uml:Class" xmi:id="_17_0_5_1_90d0292_1430670732849_22159_4748" name="AccessType">
-              <eAnnotations xmi:id="_bt8JskbUEeWY2qcg87dWeg" source="appliedStereotypes">
-                <contents xmi:type="persistence_0:persistence__Persistent" xmi:id="_bt8Js0bUEeWY2qcg87dWeg"/>
-                <contents xmi:type="key_0:key__SequenceKey" xmi:id="_busXoEbUEeWY2qcg87dWeg"/>
+              <eAnnotations xmi:id="_SN5G0EeEEeWlKfVTs-HO8g" source="appliedStereotypes">
+                <contents xmi:type="key_0:key__SequenceKey" xmi:id="_SN5G0UeEEeWlKfVTs-HO8g"/>
+                <contents xmi:type="persistence_0:persistence__Persistent" xmi:id="_SO069EeEEeWlKfVTs-HO8g"/>
               </eAnnotations>
               <ownedComment xmi:id="_17_0_5_1_90d0292_1430670962235_892089_4806" body="A particular kind of access to authorize" annotatedElement="_17_0_5_1_90d0292_1430670732849_22159_4748"/>
               <ownedAttribute xmi:id="_17_0_5_1_90d0292_1430671020598_279690_4808" name="name" type="_9_0_1fe00f9_1119336925531_364079_66">
-                <eAnnotations xmi:id="_buHv4EbUEeWY2qcg87dWeg" source="appliedStereotypes">
-                  <contents xmi:type="persistence_0:persistence__SizedProperty" xmi:id="_buHv4UbUEeWY2qcg87dWeg" length="200"/>
+                <eAnnotations xmi:id="_SPGnxEeEEeWlKfVTs-HO8g" source="appliedStereotypes">
+                  <contents xmi:type="persistence_0:persistence__SizedProperty" xmi:id="_SPGnxUeEEeWlKfVTs-HO8g" length="200"/>
                 </eAnnotations>
                 <ownedComment xmi:id="_17_0_5_1_90d0292_1430671066991_782386_4815" body="the name of the access type" annotatedElement="_17_0_5_1_90d0292_1430671020598_279690_4808"/>
                 <upperValue xmi:type="uml:LiteralUnlimitedNatural" xmi:id="_17_0_5_1_90d0292_1430671035519_730923_4811" value="1"/>
                 <lowerValue xmi:type="uml:LiteralInteger" xmi:id="_17_0_5_1_90d0292_1430671035518_64695_4810" value="1"/>
               </ownedAttribute>
               <ownedAttribute xmi:id="_17_0_5_1_90d0292_1430671094908_939513_4842" name="accessRules" type="_17_0_5_1_90d0292_1430670743673_143572_4769" association="_17_0_5_1_90d0292_1430671094908_20462_4841">
-                <eAnnotations xmi:id="_bt5GZEbUEeWY2qcg87dWeg" source="appliedStereotypes">
-                  <contents xmi:type="persistence_0:persistence__Persistent" xmi:id="_bt5GZUbUEeWY2qcg87dWeg"/>
+                <eAnnotations xmi:id="_SO-E4EeEEeWlKfVTs-HO8g" source="appliedStereotypes">
+                  <contents xmi:type="persistence_0:persistence__Persistent" xmi:id="_SO-E4UeEEeWlKfVTs-HO8g"/>
                 </eAnnotations>
                 <upperValue xmi:type="uml:LiteralUnlimitedNatural" xmi:id="_17_0_5_1_90d0292_1430671211220_308144_4931" value="-1"/>
                 <lowerValue xmi:type="uml:LiteralInteger" xmi:id="_17_0_5_1_90d0292_1430671211220_336105_4930"/>
               </ownedAttribute>
             </ownedMember>
             <ownedMember xmi:type="uml:Class" xmi:id="_17_0_5_1_90d0292_1430670743673_143572_4769" name="AccessRule">
-              <eAnnotations xmi:id="_btsSFEbUEeWY2qcg87dWeg" source="appliedStereotypes">
-                <contents xmi:type="persistence_0:persistence__Persistent" xmi:id="_btsSFUbUEeWY2qcg87dWeg"/>
-                <contents xmi:type="key_0:key__SequenceKey" xmi:id="_bup7YEbUEeWY2qcg87dWeg"/>
+              <eAnnotations xmi:id="_SN-mYEeEEeWlKfVTs-HO8g" source="appliedStereotypes">
+                <contents xmi:type="key_0:key__SequenceKey" xmi:id="_SN-mYUeEEeWlKfVTs-HO8g"/>
+                <contents xmi:type="persistence_0:persistence__Persistent" xmi:id="_SO82w0eEEeWlKfVTs-HO8g"/>
               </eAnnotations>
               <ownedComment xmi:id="_17_0_5_1_90d0292_1430670993785_140001_4807" body="A rule that links a set of URIs to a specific access type" annotatedElement="_17_0_5_1_90d0292_1430670743673_143572_4769"/>
               <ownedAttribute xmi:id="_17_0_5_1_90d0292_1430671090285_74406_4822" name="pattern" type="_17_0_5_1_90d0292_1430670528535_619458_4726" association="_17_0_5_1_90d0292_1430671090284_686414_4820">
-                <eAnnotations xmi:id="_bt1cAEbUEeWY2qcg87dWeg" source="appliedStereotypes">
-                  <contents xmi:type="persistence_0:persistence__Persistent" xmi:id="_bt1cAUbUEeWY2qcg87dWeg"/>
+                <eAnnotations xmi:id="_SOzFwEeEEeWlKfVTs-HO8g" source="appliedStereotypes">
+                  <contents xmi:type="persistence_0:persistence__Persistent" xmi:id="_SOzFwUeEEeWlKfVTs-HO8g"/>
                 </eAnnotations>
                 <ownedComment xmi:id="_17_0_5_1_90d0292_1430671199306_289491_4923" body="the regular expression identifying the set of URIs to authorize" annotatedElement="_17_0_5_1_90d0292_1430671090285_74406_4822"/>
                 <upperValue xmi:type="uml:LiteralUnlimitedNatural" xmi:id="_17_0_5_1_90d0292_1430671154606_144309_4911" value="1"/>
                 <lowerValue xmi:type="uml:LiteralInteger" xmi:id="_17_0_5_1_90d0292_1430671154606_985521_4910" value="1"/>
               </ownedAttribute>
               <ownedAttribute xmi:id="_17_0_5_1_90d0292_1430671094909_75065_4843" name="accessType" type="_17_0_5_1_90d0292_1430670732849_22159_4748" association="_17_0_5_1_90d0292_1430671094908_20462_4841">
-                <eAnnotations xmi:id="_bt4fUkbUEeWY2qcg87dWeg" source="appliedStereotypes">
-                  <contents xmi:type="persistence_0:persistence__Persistent" xmi:id="_bt4fU0bUEeWY2qcg87dWeg"/>
+                <eAnnotations xmi:id="_SOxQkkeEEeWlKfVTs-HO8g" source="appliedStereotypes">
+                  <contents xmi:type="persistence_0:persistence__Persistent" xmi:id="_SOxQk0eEEeWlKfVTs-HO8g"/>
                 </eAnnotations>
                 <ownedComment xmi:id="_17_0_5_1_90d0292_1430671179075_461306_4922" body="the type of access to authorize" annotatedElement="_17_0_5_1_90d0292_1430671094909_75065_4843"/>
                 <upperValue xmi:type="uml:LiteralUnlimitedNatural" xmi:id="_17_0_5_1_90d0292_1430671150212_932600_4905" value="1"/>
                 <lowerValue xmi:type="uml:LiteralInteger" xmi:id="_17_0_5_1_90d0292_1430671150212_529176_4904" value="1"/>
               </ownedAttribute>
               <ownedAttribute xmi:id="_17_0_5_1_90d0292_1431032419122_435632_4094" name="partner" type="_17_0_5_1_90d0292_1423933884151_521948_4451" association="_17_0_5_1_90d0292_1431032419122_137138_4092">
-                <eAnnotations xmi:id="_btuHQkbUEeWY2qcg87dWeg" source="appliedStereotypes">
-                  <contents xmi:type="persistence_0:persistence__Persistent" xmi:id="_btuHQ0bUEeWY2qcg87dWeg"/>
+                <eAnnotations xmi:id="_SO8PsEeEEeWlKfVTs-HO8g" source="appliedStereotypes">
+                  <contents xmi:type="persistence_0:persistence__Persistent" xmi:id="_SO8PsUeEEeWlKfVTs-HO8g"/>
                 </eAnnotations>
                 <ownedComment xmi:id="_17_0_5_1_90d0292_1431032539190_898048_4156" body="the partner that owns the access rule" annotatedElement="_17_0_5_1_90d0292_1431032419122_435632_4094"/>
                 <upperValue xmi:type="uml:LiteralUnlimitedNatural" xmi:id="_17_0_5_1_90d0292_1431032474910_495633_4142" value="1"/>
@@ -726,19 +727,19 @@
             <ownedMember xmi:type="uml:Association" xmi:id="_17_0_5_1_90d0292_1430671094908_20462_4841" memberEnd="_17_0_5_1_90d0292_1430671094908_939513_4842 _17_0_5_1_90d0292_1430671094909_75065_4843"/>
           </ownedMember>
           <ownedMember xmi:type="uml:Package" xmi:id="_17_0_5_1_90d0292_1430855402016_259271_4499" name="logging">
-            <eAnnotations xmi:id="_buAbIkbUEeWY2qcg87dWeg" source="appliedStereotypes">
-              <contents xmi:type="persistence_0:persistence__Subsystem" xmi:id="_buAbI0bUEeWY2qcg87dWeg" businessPackage="org.phoenixbioinformatics.api.bs.logging"/>
+            <eAnnotations xmi:id="_SPBvQkeEEeWlKfVTs-HO8g" source="appliedStereotypes">
+              <contents xmi:type="persistence_0:persistence__Subsystem" xmi:id="_SPBvQ0eEEeWlKfVTs-HO8g" businessPackage="org.phoenixbioinformatics.api.bs.logging"/>
             </eAnnotations>
             <ownedComment xmi:id="_17_0_5_1_90d0292_1432082221897_327293_4200" body="the API relating to the logging of events such as page-views" annotatedElement="_17_0_5_1_90d0292_1430855402016_259271_4499"/>
             <ownedMember xmi:type="uml:Class" xmi:id="_17_0_5_1_90d0292_1430855495841_949092_4547" name="Session">
-              <eAnnotations xmi:id="_bt-l8kbUEeWY2qcg87dWeg" source="appliedStereotypes">
-                <contents xmi:type="persistence_0:persistence__Persistent" xmi:id="_bt-l80bUEeWY2qcg87dWeg"/>
-                <contents xmi:type="key_0:key__SequenceKey" xmi:id="_bus-skbUEeWY2qcg87dWeg"/>
+              <eAnnotations xmi:id="_SN9YQEeEEeWlKfVTs-HO8g" source="appliedStereotypes">
+                <contents xmi:type="key_0:key__SequenceKey" xmi:id="_SN9YQUeEEeWlKfVTs-HO8g"/>
+                <contents xmi:type="persistence_0:persistence__Persistent" xmi:id="_SO7BkEeEEeWlKfVTs-HO8g"/>
               </eAnnotations>
               <ownedComment xmi:id="_17_0_5_1_90d0292_1430855732197_982573_4621" body="A collection of page views for a single IP address" annotatedElement="_17_0_5_1_90d0292_1430855495841_949092_4547"/>
               <ownedAttribute xmi:id="_17_0_5_1_90d0292_1430855590079_977437_4600" name="pageViews" type="_17_0_5_1_90d0292_1430855505312_989190_4568" association="_17_0_5_1_90d0292_1430855590079_44903_4598">
-                <eAnnotations xmi:id="_bt34QkbUEeWY2qcg87dWeg" source="appliedStereotypes">
-                  <contents xmi:type="persistence_0:persistence__Persistent" xmi:id="_bt34Q0bUEeWY2qcg87dWeg"/>
+                <eAnnotations xmi:id="_SOx3oEeEEeWlKfVTs-HO8g" source="appliedStereotypes">
+                  <contents xmi:type="persistence_0:persistence__Persistent" xmi:id="_SOx3oUeEEeWlKfVTs-HO8g"/>
                 </eAnnotations>
                 <ownedComment xmi:id="_17_0_5_1_90d0292_1431099283381_579836_4064" body="the possibly empty set of page views within the session" annotatedElement="_17_0_5_1_90d0292_1430855590079_977437_4600"/>
                 <upperValue xmi:type="uml:LiteralUnlimitedNatural" xmi:id="_17_0_5_1_90d0292_1430856383039_405692_4701" value="-1"/>
@@ -755,13 +756,13 @@
               </ownedAttribute>
             </ownedMember>
             <ownedMember xmi:type="uml:Class" xmi:id="_17_0_5_1_90d0292_1430855505312_989190_4568" name="PageView">
-              <eAnnotations xmi:id="_bttgMEbUEeWY2qcg87dWeg" source="appliedStereotypes">
-                <contents xmi:type="persistence_0:persistence__Persistent" xmi:id="_bttgMUbUEeWY2qcg87dWeg"/>
-                <contents xmi:type="key_0:key__SequenceKey" xmi:id="_bup7YUbUEeWY2qcg87dWeg"/>
+              <eAnnotations xmi:id="_SN7jEEeEEeWlKfVTs-HO8g" source="appliedStereotypes">
+                <contents xmi:type="key_0:key__SequenceKey" xmi:id="_SN7jEUeEEeWlKfVTs-HO8g"/>
+                <contents xmi:type="persistence_0:persistence__Persistent" xmi:id="_SO2wIEeEEeWlKfVTs-HO8g"/>
               </eAnnotations>
               <ownedAttribute xmi:id="_17_0_5_1_90d0292_1430855590079_697282_4599" name="session" type="_17_0_5_1_90d0292_1430855495841_949092_4547" association="_17_0_5_1_90d0292_1430855590079_44903_4598">
-                <eAnnotations xmi:id="_bt9X1EbUEeWY2qcg87dWeg" source="appliedStereotypes">
-                  <contents xmi:type="persistence_0:persistence__Persistent" xmi:id="_bt9X1UbUEeWY2qcg87dWeg"/>
+                <eAnnotations xmi:id="_SO068EeEEeWlKfVTs-HO8g" source="appliedStereotypes">
+                  <contents xmi:type="persistence_0:persistence__Persistent" xmi:id="_SO068UeEEeWlKfVTs-HO8g"/>
                 </eAnnotations>
                 <ownedComment xmi:id="_17_0_5_1_90d0292_1431099260758_448346_4063" body="the session that owns the page view" annotatedElement="_17_0_5_1_90d0292_1430855590079_697282_4599"/>
                 <upperValue xmi:type="uml:LiteralUnlimitedNatural" xmi:id="_17_0_5_1_90d0292_1430856389390_989761_4707" value="1"/>
@@ -773,32 +774,32 @@
                 <lowerValue xmi:type="uml:LiteralInteger" xmi:id="_17_0_5_1_90d0292_1430856614555_667381_4764" value="1"/>
               </ownedAttribute>
               <ownedAttribute xmi:id="_17_0_5_1_90d0292_1430856570214_752510_4758" name="uri" type="_9_0_1fe00f9_1119336925531_364079_66">
-                <eAnnotations xmi:id="_buGhwkbUEeWY2qcg87dWeg" source="appliedStereotypes">
-                  <contents xmi:type="persistence_0:persistence__SizedProperty" xmi:id="_buGhw0bUEeWY2qcg87dWeg" length="250"/>
+                <eAnnotations xmi:id="_SPHO0EeEEeWlKfVTs-HO8g" source="appliedStereotypes">
+                  <contents xmi:type="persistence_0:persistence__SizedProperty" xmi:id="_SPHO0UeEEeWlKfVTs-HO8g" length="250"/>
                 </eAnnotations>
                 <ownedComment xmi:id="_17_0_5_1_90d0292_1430856650879_743685_4769" body="the request URI and any query string" annotatedElement="_17_0_5_1_90d0292_1430856570214_752510_4758"/>
                 <upperValue xmi:type="uml:LiteralUnlimitedNatural" xmi:id="_17_0_5_1_90d0292_1430856637621_275406_4768" value="1"/>
                 <lowerValue xmi:type="uml:LiteralInteger" xmi:id="_17_0_5_1_90d0292_1430856637621_108745_4767" value="1"/>
               </ownedAttribute>
               <ownedAttribute xmi:id="_17_0_5_1_90d0292_1430856292870_464012_4653" name="party" type="_17_0_5_1_90d0292_1423933035402_953579_4214" association="_17_0_5_1_90d0292_1430856292870_950576_4651">
-                <eAnnotations xmi:id="_bt2qIEbUEeWY2qcg87dWeg" source="appliedStereotypes">
-                  <contents xmi:type="persistence_0:persistence__Persistent" xmi:id="_bt2qIUbUEeWY2qcg87dWeg"/>
+                <eAnnotations xmi:id="_SO4lVEeEEeWlKfVTs-HO8g" source="appliedStereotypes">
+                  <contents xmi:type="persistence_0:persistence__Persistent" xmi:id="_SO4lVUeEEeWlKfVTs-HO8g"/>
                 </eAnnotations>
                 <ownedComment xmi:id="_17_0_5_1_90d0292_1431099350148_287564_4066" body="the optional party that initiated the session; party is optional because it depends on whether the party has authenticated or not, which is outside the scope of the session" annotatedElement="_17_0_5_1_90d0292_1430856292870_464012_4653"/>
                 <upperValue xmi:type="uml:LiteralUnlimitedNatural" xmi:id="_17_0_5_1_90d0292_1430856488997_96330_4751" value="1"/>
                 <lowerValue xmi:type="uml:LiteralInteger" xmi:id="_17_0_5_1_90d0292_1430856488997_885807_4750"/>
               </ownedAttribute>
               <ownedAttribute xmi:id="_17_0_5_1_90d0292_1430855740819_717202_4622" name="ip" type="_9_0_1fe00f9_1119336925531_364079_66">
-                <eAnnotations xmi:id="_buEskEbUEeWY2qcg87dWeg" source="appliedStereotypes">
-                  <contents xmi:type="persistence_0:persistence__SizedProperty" xmi:id="_buEskUbUEeWY2qcg87dWeg" length="200"/>
+                <eAnnotations xmi:id="_SPDkc0eEEeWlKfVTs-HO8g" source="appliedStereotypes">
+                  <contents xmi:type="persistence_0:persistence__SizedProperty" xmi:id="_SPDkdEeEEeWlKfVTs-HO8g" length="200"/>
                 </eAnnotations>
                 <ownedComment xmi:id="_17_0_5_1_90d0292_1430855909361_58101_4624" body="the IP address of the requests in the session; all page views in the session have this IP address" annotatedElement="_17_0_5_1_90d0292_1430855740819_717202_4622"/>
                 <upperValue xmi:type="uml:LiteralUnlimitedNatural" xmi:id="_17_0_5_1_90d0292_1430856587275_276632_4761" value="1"/>
                 <lowerValue xmi:type="uml:LiteralInteger" xmi:id="_17_0_5_1_90d0292_1430856587275_661898_4760" value="1"/>
               </ownedAttribute>
               <ownedAttribute xmi:id="_17_0_5_1_90d0292_1432993205292_751023_4302" name="sessionId" type="_9_0_1fe00f9_1119336925531_364079_66">
-                <eAnnotations xmi:id="_buF6sEbUEeWY2qcg87dWeg" source="appliedStereotypes">
-                  <contents xmi:type="persistence_0:persistence__SizedProperty" xmi:id="_buF6sUbUEeWY2qcg87dWeg" length="250"/>
+                <eAnnotations xmi:id="_SPKSIEeEEeWlKfVTs-HO8g" source="appliedStereotypes">
+                  <contents xmi:type="persistence_0:persistence__SizedProperty" xmi:id="_SPKSIUeEEeWlKfVTs-HO8g" length="250"/>
                 </eAnnotations>
                 <ownedComment xmi:id="_17_0_5_1_90d0292_1432993341563_449628_4310" body="a token identifying a collection of page views as defined by the client processing the page views" annotatedElement="_17_0_5_1_90d0292_1432993205292_751023_4302"/>
                 <upperValue xmi:type="uml:LiteralUnlimitedNatural" xmi:id="_17_0_5_1_90d0292_1432993237229_221080_4305" value="1"/>
@@ -808,85 +809,85 @@
             <ownedMember xmi:type="uml:Association" xmi:id="_17_0_5_1_90d0292_1430855590079_44903_4598" memberEnd="_17_0_5_1_90d0292_1430855590079_697282_4599 _17_0_5_1_90d0292_1430855590079_977437_4600"/>
           </ownedMember>
           <ownedMember xmi:type="uml:Package" xmi:id="_17_0_5_1_90d0292_1432081972120_775848_4142" name="authentication">
-            <eAnnotations xmi:id="_bt_0FEbUEeWY2qcg87dWeg" source="appliedStereotypes">
-              <contents xmi:type="persistence_0:persistence__Subsystem" xmi:id="_bt_0FUbUEeWY2qcg87dWeg" businessPackage="org.phoenixbioinformatics.api.bs.authentication"/>
+            <eAnnotations xmi:id="_SPC9YEeEEeWlKfVTs-HO8g" source="appliedStereotypes">
+              <contents xmi:type="persistence_0:persistence__Subsystem" xmi:id="_SPC9YUeEEeWlKfVTs-HO8g" businessPackage="org.phoenixbioinformatics.api.bs.authentication"/>
             </eAnnotations>
             <ownedComment xmi:id="_17_0_5_1_90d0292_1432082120131_883674_4199" body="the API relating to the process of verifying the identity of a party" annotatedElement="_17_0_5_1_90d0292_1432081972120_775848_4142"/>
             <ownedMember xmi:type="uml:Class" xmi:id="_17_0_5_1_90d0292_1432082456288_738950_4209" name="Credential">
-              <eAnnotations xmi:id="_bt9-4kbUEeWY2qcg87dWeg" source="appliedStereotypes">
-                <contents xmi:type="persistence_0:persistence__Persistent" xmi:id="_bt9-40bUEeWY2qcg87dWeg"/>
-                <contents xmi:type="key_0:key__NaturalKey" xmi:id="_buuM0EbUEeWY2qcg87dWeg"/>
+              <eAnnotations xmi:id="_SOBCoEeEEeWlKfVTs-HO8g" source="appliedStereotypes">
+                <contents xmi:type="key_0:key__NaturalKey" xmi:id="_SOBCoUeEEeWlKfVTs-HO8g"/>
+                <contents xmi:type="persistence_0:persistence__Persistent" xmi:id="_SO82wEeEEeWlKfVTs-HO8g"/>
               </eAnnotations>
               <ownedComment xmi:id="_17_0_5_1_90d0292_1432083087587_336673_4349" body="the username and password that correspond to a party and partner; the system verifies the identity of the party by comparison of the password given the username" annotatedElement="_17_0_5_1_90d0292_1432082456288_738950_4209"/>
               <ownedAttribute xmi:id="_17_0_5_1_90d0292_1432082501893_431811_4232" name="username" type="_9_0_1fe00f9_1119336925531_364079_66">
-                <eAnnotations xmi:id="_buGhxkbUEeWY2qcg87dWeg" source="appliedStereotypes">
-                  <contents xmi:type="persistence_0:persistence__SizedProperty" xmi:id="_buGhx0bUEeWY2qcg87dWeg" length="128"/>
-                  <contents xmi:type="key_0:key__PK" xmi:id="_buva8UbUEeWY2qcg87dWeg"/>
+                <eAnnotations xmi:id="_SOC30keEEeWlKfVTs-HO8g" source="appliedStereotypes">
+                  <contents xmi:type="key_0:key__PK" xmi:id="_SOC300eEEeWlKfVTs-HO8g"/>
+                  <contents xmi:type="persistence_0:persistence__SizedProperty" xmi:id="_SPFZokeEEeWlKfVTs-HO8g" length="128"/>
                 </eAnnotations>
                 <ownedComment xmi:id="_17_0_5_1_90d0292_1432082550995_801212_4237" body="the unique, case-insensitive username for a party" annotatedElement="_17_0_5_1_90d0292_1432082501893_431811_4232"/>
                 <upperValue xmi:type="uml:LiteralUnlimitedNatural" xmi:id="_17_0_5_1_90d0292_1432082522560_522861_4235" value="1"/>
                 <lowerValue xmi:type="uml:LiteralInteger" xmi:id="_17_0_5_1_90d0292_1432082522560_426117_4234" value="1"/>
               </ownedAttribute>
               <ownedAttribute xmi:id="_17_0_5_1_90d0292_1432082592661_825897_4238" name="password" type="_9_0_1fe00f9_1119336925531_364079_66">
-                <eAnnotations xmi:id="_buHv4kbUEeWY2qcg87dWeg" source="appliedStereotypes">
-                  <contents xmi:type="persistence_0:persistence__SizedProperty" xmi:id="_buHv40bUEeWY2qcg87dWeg" length="64"/>
+                <eAnnotations xmi:id="_SPELgEeEEeWlKfVTs-HO8g" source="appliedStereotypes">
+                  <contents xmi:type="persistence_0:persistence__SizedProperty" xmi:id="_SPELgUeEEeWlKfVTs-HO8g" length="64"/>
                 </eAnnotations>
                 <ownedComment xmi:id="_17_0_5_1_90d0292_1432082651074_377764_4242" body="the password that authenticates the user/party" annotatedElement="_17_0_5_1_90d0292_1432082592661_825897_4238"/>
                 <upperValue xmi:type="uml:LiteralUnlimitedNatural" xmi:id="_17_0_5_1_90d0292_1432082657356_639433_4244" value="1"/>
                 <lowerValue xmi:type="uml:LiteralInteger" xmi:id="_17_0_5_1_90d0292_1432082657356_942396_4243" value="1"/>
               </ownedAttribute>
               <ownedAttribute xmi:id="_17_0_5_1_90d0292_1432082686550_400456_4248" name="email" type="_9_0_1fe00f9_1119336925531_364079_66">
-                <eAnnotations xmi:id="_buEFgEbUEeWY2qcg87dWeg" source="appliedStereotypes">
-                  <contents xmi:type="persistence_0:persistence__SizedProperty" xmi:id="_buEFgUbUEeWY2qcg87dWeg" length="128"/>
+                <eAnnotations xmi:id="_SPJEAEeEEeWlKfVTs-HO8g" source="appliedStereotypes">
+                  <contents xmi:type="persistence_0:persistence__SizedProperty" xmi:id="_SPJEAUeEEeWlKfVTs-HO8g" length="128"/>
                 </eAnnotations>
                 <ownedComment xmi:id="_17_0_5_1_90d0292_1432082720244_364911_4250" body="the party's email address" annotatedElement="_17_0_5_1_90d0292_1432082686550_400456_4248"/>
               </ownedAttribute>
               <ownedAttribute xmi:id="_17_0_5_1_90d0292_1432082749172_183493_4254" name="institution" type="_9_0_1fe00f9_1119336925531_364079_66">
-                <eAnnotations xmi:id="_buFTpEbUEeWY2qcg87dWeg" source="appliedStereotypes">
-                  <contents xmi:type="persistence_0:persistence__SizedProperty" xmi:id="_buFTpUbUEeWY2qcg87dWeg" length="64"/>
+                <eAnnotations xmi:id="_SPFZoEeEEeWlKfVTs-HO8g" source="appliedStereotypes">
+                  <contents xmi:type="persistence_0:persistence__SizedProperty" xmi:id="_SPFZoUeEEeWlKfVTs-HO8g" length="64"/>
                 </eAnnotations>
                 <ownedComment xmi:id="_17_0_5_1_90d0292_1432082812152_355887_4257" body="the name of the organization to which the party belongs, such as a company or university name" annotatedElement="_17_0_5_1_90d0292_1432082749172_183493_4254"/>
               </ownedAttribute>
               <ownedAttribute xmi:id="_17_0_5_1_90d0292_1432082880540_855096_4286" name="party" type="_17_0_5_1_90d0292_1423933035402_953579_4214" association="_17_0_5_1_90d0292_1432082880540_684880_4284">
-                <eAnnotations xmi:id="_btuuUEbUEeWY2qcg87dWeg" source="appliedStereotypes">
-                  <contents xmi:type="persistence_0:persistence__Persistent" xmi:id="_btuuUUbUEeWY2qcg87dWeg"/>
+                <eAnnotations xmi:id="_SO3-QkeEEeWlKfVTs-HO8g" source="appliedStereotypes">
+                  <contents xmi:type="persistence_0:persistence__Persistent" xmi:id="_SO3-Q0eEEeWlKfVTs-HO8g"/>
                 </eAnnotations>
                 <ownedComment xmi:id="_17_0_5_1_90d0292_1432083024238_534332_4348" body="the party that corresponds to the username and password" annotatedElement="_17_0_5_1_90d0292_1432082880540_855096_4286"/>
                 <upperValue xmi:type="uml:LiteralUnlimitedNatural" xmi:id="_17_0_5_1_90d0292_1432082929179_880929_4328" value="1"/>
                 <lowerValue xmi:type="uml:LiteralInteger" xmi:id="_17_0_5_1_90d0292_1432082929179_957819_4327" value="1"/>
               </ownedAttribute>
               <ownedAttribute xmi:id="_17_0_5_1_90d0292_1437774928407_876330_4911" name="partner" type="_17_0_5_1_90d0292_1423933884151_521948_4451" association="_17_0_5_1_90d0292_1437774928407_412149_4910">
-                <eAnnotations xmi:id="_bttgNEbUEeWY2qcg87dWeg" source="appliedStereotypes">
-                  <contents xmi:type="persistence_0:persistence__Persistent" xmi:id="_bttgNUbUEeWY2qcg87dWeg"/>
-                  <contents xmi:type="key_0:key__PK" xmi:id="_buuz4EbUEeWY2qcg87dWeg"/>
+                <eAnnotations xmi:id="_SODe4EeEEeWlKfVTs-HO8g" source="appliedStereotypes">
+                  <contents xmi:type="key_0:key__PK" xmi:id="_SODe4UeEEeWlKfVTs-HO8g"/>
+                  <contents xmi:type="persistence_0:persistence__Persistent" xmi:id="_SO1iAUeEEeWlKfVTs-HO8g"/>
                 </eAnnotations>
                 <ownedComment xmi:id="_17_0_5_1_90d0292_1437775013392_516270_4959" body="the partner for which the User authenticates" annotatedElement="_17_0_5_1_90d0292_1437774928407_876330_4911"/>
                 <upperValue xmi:type="uml:LiteralUnlimitedNatural" xmi:id="_17_0_5_1_90d0292_1437774976797_803729_4954" value="1"/>
                 <lowerValue xmi:type="uml:LiteralInteger" xmi:id="_17_0_5_1_90d0292_1437774976796_334948_4953" value="1"/>
               </ownedAttribute>
               <ownedAttribute xmi:id="_17_0_5_1_90d0292_1437775047147_593194_4960" name="userIdentifier" type="_9_0_1fe00f9_1119336925531_364079_66">
-                <eAnnotations xmi:id="_buCQUEbUEeWY2qcg87dWeg" source="appliedStereotypes">
-                  <contents xmi:type="persistence_0:persistence__SizedProperty" xmi:id="_buCQUUbUEeWY2qcg87dWeg" length="32"/>
+                <eAnnotations xmi:id="_SPFZo0eEEeWlKfVTs-HO8g" source="appliedStereotypes">
+                  <contents xmi:type="persistence_0:persistence__SizedProperty" xmi:id="_SPFZpEeEEeWlKfVTs-HO8g" length="32"/>
                 </eAnnotations>
                 <ownedComment xmi:id="_17_0_5_1_90d0292_1437775393562_951314_4963" body="a partner-specific identifier for the user, represented as a string (such as the TAIR community id); used by the partner to identify the user" annotatedElement="_17_0_5_1_90d0292_1437775047147_593194_4960"/>
               </ownedAttribute>
               <ownedAttribute xmi:id="_18_1_90d0292_1440027922743_876286_5400" name="role" type="_18_1_90d0292_1440026803671_366420_5333" association="_18_1_90d0292_1440027922743_872023_5399">
-                <eAnnotations xmi:id="_btrD8EbUEeWY2qcg87dWeg" source="appliedStereotypes">
-                  <contents xmi:type="persistence_0:persistence__Persistent" xmi:id="_btrD8UbUEeWY2qcg87dWeg"/>
+                <eAnnotations xmi:id="_SO5zcUeEEeWlKfVTs-HO8g" source="appliedStereotypes">
+                  <contents xmi:type="persistence_0:persistence__Persistent" xmi:id="_SO5zckeEEeWlKfVTs-HO8g"/>
                 </eAnnotations>
                 <upperValue xmi:type="uml:LiteralUnlimitedNatural" xmi:id="_18_1_90d0292_1440029706862_720569_5525" value="-1"/>
                 <lowerValue xmi:type="uml:LiteralInteger" xmi:id="_18_1_90d0292_1440029706862_781549_5524"/>
               </ownedAttribute>
             </ownedMember>
             <ownedMember xmi:type="uml:Class" xmi:id="_17_0_5_1_90d0292_1433250296293_228582_4418" name="ApiKey">
-              <eAnnotations xmi:id="_btuHQEbUEeWY2qcg87dWeg" source="appliedStereotypes">
-                <contents xmi:type="persistence_0:persistence__Persistent" xmi:id="_btuHQUbUEeWY2qcg87dWeg"/>
-                <contents xmi:type="key_0:key__SequenceKey" xmi:id="_bup7YkbUEeWY2qcg87dWeg"/>
+              <eAnnotations xmi:id="_SN_NcEeEEeWlKfVTs-HO8g" source="appliedStereotypes">
+                <contents xmi:type="key_0:key__SequenceKey" xmi:id="_SN_NcUeEEeWlKfVTs-HO8g"/>
+                <contents xmi:type="persistence_0:persistence__Persistent" xmi:id="_SO_TAkeEEeWlKfVTs-HO8g"/>
               </eAnnotations>
               <ownedComment xmi:id="_17_0_5_1_90d0292_1433250419984_81661_4443" body="Provides a set of API keys for use in authenticating callers of the API; only authenticated callers may call the API" annotatedElement="_17_0_5_1_90d0292_1433250296293_228582_4418"/>
               <ownedAttribute xmi:id="_17_0_5_1_90d0292_1433250355228_357067_4441" name="apiKey" type="_9_0_1fe00f9_1119336925531_364079_66">
-                <eAnnotations xmi:id="_buEskkbUEeWY2qcg87dWeg" source="appliedStereotypes">
-                  <contents xmi:type="persistence_0:persistence__SizedProperty" xmi:id="_buEsk0bUEeWY2qcg87dWeg" length="200"/>
+                <eAnnotations xmi:id="_SPHO0keEEeWlKfVTs-HO8g" source="appliedStereotypes">
+                  <contents xmi:type="persistence_0:persistence__SizedProperty" xmi:id="_SPHO00eEEeWlKfVTs-HO8g" length="200"/>
                 </eAnnotations>
                 <ownedComment xmi:id="_17_0_5_1_90d0292_1433250462925_690418_4449" body="the API key token" annotatedElement="_17_0_5_1_90d0292_1433250355228_357067_4441"/>
                 <upperValue xmi:type="uml:LiteralUnlimitedNatural" xmi:id="_17_0_5_1_90d0292_1433250428084_655290_4445" value="1"/>
@@ -895,40 +896,40 @@
             </ownedMember>
             <ownedMember xmi:type="uml:Association" xmi:id="_17_0_5_1_90d0292_1437774928407_412149_4910" memberEnd="_17_0_5_1_90d0292_1437774928407_876330_4911 _17_0_5_1_90d0292_1437774928407_682826_4912"/>
             <ownedMember xmi:type="uml:Class" xmi:id="_18_1_90d0292_1440026803671_366420_5333" name="Role">
-              <eAnnotations xmi:id="_btrrBEbUEeWY2qcg87dWeg" source="appliedStereotypes">
-                <contents xmi:type="persistence_0:persistence__Persistent" xmi:id="_btrrBUbUEeWY2qcg87dWeg"/>
-                <contents xmi:type="key_0:key__SequenceKey" xmi:id="_bupUUUbUEeWY2qcg87dWeg"/>
+              <eAnnotations xmi:id="_SN-mYkeEEeWlKfVTs-HO8g" source="appliedStereotypes">
+                <contents xmi:type="key_0:key__SequenceKey" xmi:id="_SN-mY0eEEeWlKfVTs-HO8g"/>
+                <contents xmi:type="persistence_0:persistence__Persistent" xmi:id="_SO9d0EeEEeWlKfVTs-HO8g"/>
               </eAnnotations>
               <ownedAttribute xmi:id="_18_1_90d0292_1440026814152_523907_5355" name="name" type="_9_0_1fe00f9_1119336925531_364079_66"/>
               <ownedAttribute xmi:id="_18_1_90d0292_1440027922743_850596_5401" name="credential" type="_17_0_5_1_90d0292_1432082456288_738950_4209" association="_18_1_90d0292_1440027922743_872023_5399">
-                <eAnnotations xmi:id="_btqc4kbUEeWY2qcg87dWeg" source="appliedStereotypes">
-                  <contents xmi:type="persistence_0:persistence__Persistent" xmi:id="_btqc40bUEeWY2qcg87dWeg"/>
+                <eAnnotations xmi:id="_SO2JEkeEEeWlKfVTs-HO8g" source="appliedStereotypes">
+                  <contents xmi:type="persistence_0:persistence__Persistent" xmi:id="_SO2JE0eEEeWlKfVTs-HO8g"/>
                 </eAnnotations>
                 <upperValue xmi:type="uml:LiteralUnlimitedNatural" xmi:id="_18_1_90d0292_1440029702055_871659_5519" value="-1"/>
                 <lowerValue xmi:type="uml:LiteralInteger" xmi:id="_18_1_90d0292_1440029702054_221408_5518"/>
               </ownedAttribute>
               <ownedAttribute xmi:id="_18_1_90d0292_1440027952467_438389_5474" name="permission" type="_18_1_90d0292_1440027939324_140550_5446" association="_18_1_90d0292_1440027952467_604280_5472" aggregation="composite">
-                <eAnnotations xmi:id="_btp10EbUEeWY2qcg87dWeg" source="appliedStereotypes">
-                  <contents xmi:type="persistence_0:persistence__Persistent" xmi:id="_btp10UbUEeWY2qcg87dWeg"/>
+                <eAnnotations xmi:id="_SO5MYkeEEeWlKfVTs-HO8g" source="appliedStereotypes">
+                  <contents xmi:type="persistence_0:persistence__Persistent" xmi:id="_SO5MY0eEEeWlKfVTs-HO8g"/>
                 </eAnnotations>
                 <upperValue xmi:type="uml:LiteralUnlimitedNatural" xmi:id="_18_1_90d0292_1440029717314_212590_5531" value="-1"/>
                 <lowerValue xmi:type="uml:LiteralInteger" xmi:id="_18_1_90d0292_1440029717314_906370_5530"/>
               </ownedAttribute>
             </ownedMember>
             <ownedMember xmi:type="uml:AssociationClass" xmi:id="_18_1_90d0292_1440027922743_872023_5399" name="CredentialRole" memberEnd="_18_1_90d0292_1440027922743_876286_5400 _18_1_90d0292_1440027922743_850596_5401">
-              <eAnnotations xmi:id="_btrrAkbUEeWY2qcg87dWeg" source="appliedStereotypes">
-                <contents xmi:type="persistence_0:persistence__Persistent" xmi:id="_btrrA0bUEeWY2qcg87dWeg"/>
-                <contents xmi:type="key_0:key__AssociationKey" xmi:id="_buuM0UbUEeWY2qcg87dWeg"/>
+              <eAnnotations xmi:id="_SOCQwEeEEeWlKfVTs-HO8g" source="appliedStereotypes">
+                <contents xmi:type="key_0:key__AssociationKey" xmi:id="_SOCQwUeEEeWlKfVTs-HO8g"/>
+                <contents xmi:type="persistence_0:persistence__Persistent" xmi:id="_SO7ooEeEEeWlKfVTs-HO8g"/>
               </eAnnotations>
             </ownedMember>
             <ownedMember xmi:type="uml:Class" xmi:id="_18_1_90d0292_1440027939324_140550_5446" name="Permission">
-              <eAnnotations xmi:id="_btrrAEbUEeWY2qcg87dWeg" source="appliedStereotypes">
-                <contents xmi:type="persistence_0:persistence__Persistent" xmi:id="_btrrAUbUEeWY2qcg87dWeg"/>
-                <contents xmi:type="key_0:key__SequenceKey" xmi:id="_bupUUEbUEeWY2qcg87dWeg"/>
+              <eAnnotations xmi:id="_SN6U8EeEEeWlKfVTs-HO8g" source="appliedStereotypes">
+                <contents xmi:type="key_0:key__SequenceKey" xmi:id="_SN68AEeEEeWlKfVTs-HO8g"/>
+                <contents xmi:type="persistence_0:persistence__Persistent" xmi:id="_SO1iAEeEEeWlKfVTs-HO8g"/>
               </eAnnotations>
               <ownedAttribute xmi:id="_18_1_90d0292_1440027952467_792299_5473" visibility="private" type="_18_1_90d0292_1440026803671_366420_5333" association="_18_1_90d0292_1440027952467_604280_5472">
-                <eAnnotations xmi:id="_btqc4EbUEeWY2qcg87dWeg" source="appliedStereotypes">
-                  <contents xmi:type="persistence_0:persistence__Persistent" xmi:id="_btqc4UbUEeWY2qcg87dWeg"/>
+                <eAnnotations xmi:id="_SO9d0UeEEeWlKfVTs-HO8g" source="appliedStereotypes">
+                  <contents xmi:type="persistence_0:persistence__Persistent" xmi:id="_SO9d0keEEeWlKfVTs-HO8g"/>
                 </eAnnotations>
                 <upperValue xmi:type="uml:LiteralUnlimitedNatural" xmi:id="_18_1_90d0292_1440029735939_566588_5537" value="1"/>
                 <lowerValue xmi:type="uml:LiteralInteger" xmi:id="_18_1_90d0292_1440029735939_632674_5536" value="1"/>
@@ -940,6 +941,7 @@
       </ownedMember>
     </ownedMember>
   </ownedMember>
+  <ownedMember xmi:type="uml:Package" xmi:id="_16_9_90d0292_1292730744294_811214_1401" name="com.poesys.profile"/>
   <ownedMember xmi:type="uml:Package" xmi:id="_9_0_1fe00f9_1119336925546_238419_77" name="datatype">
     <ownedMember xmi:type="uml:DataType" xmi:id="_9_0_1fe00f9_1119336925531_193099_28" name="Blob"/>
     <ownedMember xmi:type="uml:DataType" xmi:id="_9_0_1fe00f9_1119336925531_918521_25" name="Time"/>
@@ -1037,10 +1039,9 @@
     <ownedMember xmi:type="uml:DataType" xmi:id="_17_0_4_1_90d0292_1395707347819_666531_3245" name="BigInteger"/>
     <ownedMember xmi:type="uml:DataType" xmi:id="_17_0_4_1_90d0292_1395707405899_174701_3264" name="BigDecimal"/>
   </ownedMember>
-  <ownedMember xmi:type="uml:Package" xmi:id="_16_9_90d0292_1292730744294_811214_1401" name="com.poesys.profile"/>
   <ownedMember xmi:type="uml:Package" xmi:id="magicdraw_uml_standard_profile_v_0001" name="UML Standard Profile">
-    <eAnnotations xmi:id="_buMoYEbUEeWY2qcg87dWeg" source="appliedStereotypes">
-      <contents xmi:type="MagicDrawProfile_0:MagicDrawProfile__auxiliaryResource" xmi:id="_buMoYUbUEeWY2qcg87dWeg"/>
+    <eAnnotations xmi:id="_SOLasEeEEeWlKfVTs-HO8g" source="appliedStereotypes">
+      <contents xmi:type="MagicDrawProfile_0:MagicDrawProfile__auxiliaryResource" xmi:id="_SOLasUeEEeWlKfVTs-HO8g"/>
     </eAnnotations>
     <ownedComment xmi:id="_be00301_1078843546940_242228_131" body="UML Standard Profile contains UML metamodel (metaclasses without properties and associations), StandardProfileL2 and StandardProfileL3 from UML specification, Standard UML stereotypes defined in annex C of UML specification.&#xA;Profile also includes validation suites for UML model correctness and completeness checking, and stereotypes used by MagicDraw internally." annotatedElement="magicdraw_uml_standard_profile_v_0001"/>
   </ownedMember>
