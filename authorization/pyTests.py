@@ -141,7 +141,7 @@ class AuthenticationTest(AuthorizationTestBase):
         # run the system test
         loginKey = generateSecretKey(self.partyId, self.credentialSample.data['password'])
         url = self.url + '?url=%s&partnerId=%s' % (self.uriPatternSample.data['pattern'], self.partnerId)
-        cookies = {'partyId':str(self.partyId), 'secret_key':loginKey, 'apiKey':self.apiKey}
+        cookies = {'credentialId':str(self.partyId), 'secretKey':loginKey, 'apiKey':self.apiKey}
         req = requests.get(url,cookies=cookies)
         self.assertEqual(req.status_code, 200)
         self.assertEqual(req.json()['access'], expectedStatus)
