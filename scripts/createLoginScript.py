@@ -1,3 +1,11 @@
+import django
+import os
+import csv
+
+os.sys.path.append('../')
+os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'paywall2.settings')
+django.setup()
+
 from django.shortcuts import render, redirect
 from django.core.urlresolvers import reverse
 from django.http import HttpResponse
