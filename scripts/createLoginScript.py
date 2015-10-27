@@ -22,14 +22,14 @@ from authentication.models import Credential, GooglePartyAffiliation
 from authentication.serializers import CredentialSerializer, CredentialSerializerNoPassword
 from subscription.models import Party
 
-params = {'username':'tair2468','password':'234','email':'tair2468_1@test.cn','institution':'QL ins','partnerId':'tair','userIdentifier':'1501492704'}
+params = {'username':'tair2468','password':'234','email':'tair2468_1@test.cn','institution':'QL ins','partnerId':'tair','userIdentifier':'1501492704',}
 if 'username' not in params:
     print 'error: Put method needs username'
 obj = Credential.objects.all().get(userIdentifier='1501492704')
-data = {'username':'tair2468','password':'234','email':'tair2468_1@test.cn','institution':'QL ins','partnerId':'tair','userIdentifier':'1501492704'}
+data = {'username':'tair2468','password':'234','email':'tair2468_1@test.cn','institution':'QL ins','partnerId':'tair','userIdentifier':'1501492704',}
 if 'password' in data:
     data['password'] = hashlib.sha1(data['password']).hexdigest()
-serializer = CredentialSerializer(obj, data=data, partial=True)
+serializer = CredentialSerializer(obj, data=data)
 if serializer.is_valid():
     serializer.save()
     print "update successful: "+data
