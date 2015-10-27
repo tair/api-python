@@ -29,7 +29,7 @@ obj = Credential.objects.all().get(userIdentifier='1501492704')
 data = {'username':'tair2468_2','password':'234','email':'tair2468_1@test.cn','institution':'QL ins','partnerId':'tair','userIdentifier':'1501492704',}
 if 'password' in data:
     data['password'] = hashlib.sha1(data['password']).hexdigest()
-serializer = CredentialSerializer(obj, data=data)
+serializer = CredentialSerializer(obj, data=data, partial=True)
 if serializer.is_valid():
     serializer.save()
     print "update successful: "+data
