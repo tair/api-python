@@ -34,4 +34,5 @@ if serializer.is_valid():
     serializer.save()
     print "update successful: "+data
 else:
-    print "serializer invalid" + serializer.errors
+    print "serializer invalid"
+    print serializer.errors
