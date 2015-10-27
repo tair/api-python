@@ -244,28 +244,6 @@ class CommercialSubscription(APIView):
 #        logging.error("------Done sending commercial email------")
         return HttpResponse(json.dumps({'message':'success'}), content_type="application/json")
 
-
-#vet PW-123 TODO move from here
-class ForgotPassword(APIView):
-    requireApiKey = False
-    def post (self, request):
-        data = request.data
-        dataTuple = (
-            data.get('user'),
-            data.get('useremail'),
-        )
-
-        subject = "%s Reset Password For %s" % (data.get('user'), data.get('useremail'))
-        message = "%s (%s)\n" \
-                  "\n" \
-                  "Your temp password is XXX \n" \
-                  % dataTuple
-
-        from_email = "info@phoenixbioinformatics.org"
-        recipient_list = ["andrey@arabidopsis.org", "info@phoenixbioinformatics.org"]
-        send_mail(subject=subject, message=message, from_email=from_email, recipient_list=recipient_list)
-        return HttpResponse(json.dumps({'message':'success'}), content_type="application/json")
-
 # /<userIdentifier>/expdatebyuseridentifier/
 class EndDate(generics.GenericAPIView):
     def get(self, request):

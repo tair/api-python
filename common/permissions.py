@@ -21,7 +21,7 @@ class ApiKeyPermission():
 
 def isPhoenix(request):
     from authentication.models import Credential
-    partyId = request.GET.get('partyId')
+    partyId = request.GET.get('credentialId')
     secretKey = request.GET.get('secret_key')
     if partyId and secretKey and Credential.validate(partyId, secretKey):
         return True
