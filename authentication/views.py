@@ -60,14 +60,15 @@ class listcreateuser(GenericCRUDView):
       return Response({'error': 'Put method needs username'})
     obj = self.get_queryset().first()
     #obj = Credential.objects.all().get(userIdentifier='1501492704')
-    data = request.data.copy()
+    #http://stackoverflow.com/questions/18930234/django-modifying-the-request-object PW-123
+    data = request.data.copy() # PW-123
     if 'password' in data:
       data['password'] = hashlib.sha1(data['password']).hexdigest()
     serializer = serializer_class(obj, data=data, partial=True)
     if serializer.is_valid():
       serializer.save()
-      # return Response(serializer.data, status=status.HTTP_201_CREATED)
-      return Response("update successfull")
+      return Response(serializer.data, status=status.HTTP_201_CREATED)
+      #return Response("update successfull")
     return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 #/credentials/login/
