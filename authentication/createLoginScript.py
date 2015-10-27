@@ -25,10 +25,10 @@ generic_crud = GenericCRUDView(generics.GenericAPIView)
 obj = generic_crud.get_queryset().first()
 data = {'username':'tair2468','password':'234','email':'tair2468_1@test.cn','institution':'QL ins','partnerId':'tair','userIdentifier':'1501492704'}
 if 'password' in data:
-  data['password'] = hashlib.sha1(data['password']).hexdigest()
+    data['password'] = hashlib.sha1(data['password']).hexdigest()
 serializer = serializer_class(obj, data=data, partial=True)
 if serializer.is_valid():
-  serializer.save()
-  print "update successful: "+data
+    serializer.save()
+    print "update successful: "+data
 else:
     print "serializer invalid"
