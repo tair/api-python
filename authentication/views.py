@@ -1,6 +1,8 @@
 from django.shortcuts import render, redirect
 from django.core.urlresolvers import reverse
 from django.http import HttpResponse
+from django.core.mail import send_mail
+
 import requests
 import json
 import base64, hmac, hashlib
