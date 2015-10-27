@@ -57,7 +57,8 @@ class listcreateuser(GenericCRUDView):
     params = request.GET
     if 'username' not in params:
       return Response({'error': 'Put method needs username'})
-    obj = self.get_queryset().first()
+    # obj = self.get_queryset().first()
+    obj = Credential.objects.all().filter(userIdentifier=params['userIdentifier']).first()
     data = request.data
     if 'password' in data:
       data['password'] = hashlib.sha1(data['password']).hexdigest()
