@@ -22,10 +22,7 @@ from authentication.models import Credential, GooglePartyAffiliation
 from authentication.serializers import CredentialSerializer, CredentialSerializerNoPassword
 from subscription.models import Party
 
-def get_serializer_class(self):
-    return CredentialSerializer
-
-serializer_class = get_serializer_class()
+serializer_class = CredentialSerializer
 params = {'username':'tair2468','password':'234','email':'tair2468_1@test.cn','institution':'QL ins','partnerId':'tair','userIdentifier':'1501492704'}
 if 'username' not in params:
     print 'error: Put method needs username'
