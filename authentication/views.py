@@ -89,7 +89,7 @@ def login(request):
         response = HttpResponse(json.dumps({
           "message": "Correct password", 
           "partyId": user.partyId.partyId, 
-          "secret_key": generateSecretKey(str(user.partyId.partyId), user.password),
+          "secretKey": generateSecretKey(str(user.partyId.partyId), user.password),
           "email": user.email,
           "role":"librarian",
 	  "username": user.username,

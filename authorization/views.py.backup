@@ -21,8 +21,8 @@ import json
 # /access/
 class Access(APIView):
     def get(self, request, format=None):
-        partyId = request.COOKIES.get('partyId')
-        loginKey = request.COOKIES.get('secret_key')
+        credentialId = request.COOKIES.get('credentialId')
+        loginKey = request.COOKIES.get('secretKey')
         ip = request.GET.get('ip')
         url = request.GET.get('url')
         partnerId = request.GET.get('partnerId')
@@ -36,7 +36,7 @@ class Access(APIView):
         f.write('stuff are %s, %s, %s \n' %(partyId, loginKey, ip))
         f.write(str(request.COOKIES))
         f.write("\n CATS \n")
-        status = Authorization.getAccessStatus(loginKey, ip, partyId, url, partnerId, getHostUrlFromRequest(request), apiKey)
+        status = Authorization.getAccessStatus(loginKey, ip, credentialId, url, partnerId, getHostUrlFromRequest(request), apiKey)
         response = {
             "status":status,
         }
