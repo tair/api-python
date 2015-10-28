@@ -62,7 +62,6 @@ class listcreateuser(GenericCRUDView):
     data = request.data.copy() # PW-123
     if 'password' in data:
       data['password'] = hashlib.sha1(data['password']).hexdigest()
-    data['username']=params['username']
     serializer = serializer_class(obj, data=data, partial=True)
     if serializer.is_valid():
       serializer.save()
