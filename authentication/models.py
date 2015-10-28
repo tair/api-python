@@ -6,7 +6,8 @@ import base64, hmac, hashlib
 # Create your models here.
 
 class Credential(models.Model):
-  username = models.CharField(max_length=32, db_index=True)
+  # username = models.CharField(max_length=32, db_index=True)
+  username = models.CharField(max_length=32)
   password = models.CharField(max_length=64)
   email = models.CharField(max_length=128, null=True)
   institution = models.CharField(max_length=64, null=True)
