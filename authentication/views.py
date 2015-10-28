@@ -55,8 +55,8 @@ class listcreateuser(GenericCRUDView):
     # http://stackoverflow.com/questions/12611345/django-why-is-the-request-post-object-immutable
     serializer_class = self.get_serializer_class()
     params = request.GET
-    if 'username' not in params:
-      return Response({'error': 'Put method needs username'})
+    # if 'username' not in params:
+    #   return Response({'error': 'Put method needs username'})
     obj = self.get_queryset().first()
     #http://stackoverflow.com/questions/18930234/django-modifying-the-request-object PW-123
     data = request.data.copy() # PW-123
