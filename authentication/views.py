@@ -45,7 +45,7 @@ class listcreateuser(GenericCRUDView):
       serializer = serializer_class(data=data)
       if serializer.is_valid():
         serializer.save()
-        return Response("successfull from post function")
+        return Response(serializer.data, status=status.HTTP_201_CREATED)
     return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST) 
 
   def put(self, request, format=None):
@@ -54,21 +54,19 @@ class listcreateuser(GenericCRUDView):
     #   return Response(status=status.HTTP_400_BAD_REQUEST)
     # http://stackoverflow.com/questions/12611345/django-why-is-the-request-post-object-immutable
     serializer_class = self.get_serializer_class()
-    #request.PUT = request.PUT.copy()
     params = request.GET
     if 'username' not in params:
       return Response({'error': 'Put method needs username'})
     obj = self.get_queryset().first()
-    #obj = Credential.objects.all().get(userIdentifier='1501492704')
     #http://stackoverflow.com/questions/18930234/django-modifying-the-request-object PW-123
     data = request.data.copy() # PW-123
     if 'password' in data:
       data['password'] = hashlib.sha1(data['password']).hexdigest()
+    data['username']=params['username']
     serializer = serializer_class(obj, data=data, partial=True)
     if serializer.is_valid():
       serializer.save()
       return Response(serializer.data, status=status.HTTP_201_CREATED)
-      #return Response("update successfull")
     return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 #/credentials/login/
