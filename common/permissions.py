@@ -21,16 +21,16 @@ class ApiKeyPermission():
 
 def isPhoenix(request):
     from authentication.models import Credential
-    partyId = request.GET.get('credentialId')
-    secretKey = request.GET.get('secret_key')
-    if partyId and secretKey and Credential.validate(partyId, secretKey):
+    credentialId = request.GET.get('credentialId')
+    secretKey = request.GET.get('secretKey')
+    if credentialId and secretKey and Credential.validate(credentialId, secretKey):
         return True
     return False
 
 def isLoggedIn(request):
     from authentication.models import Credential
-    partyId = request.GET.get('partyId')
-    secretKey = request.GET.get('secret_key')
-    if partyId and secretKey and Credential.validate(partyId, secretKey):# and Credential.objects.get(partyId=partyId).partyId.partyType=='phoenix':
+    credentialId = request.GET.get('credentialId')
+    secretKey = request.GET.get('secretKey')
+    if credentialId and secretKey and Credential.validate(credentialId, secretKey):# and Credential.objects.get(partyId=credentialId).partyId.partyType=='phoenix':
         return True
     return False

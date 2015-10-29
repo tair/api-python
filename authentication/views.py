@@ -87,8 +87,8 @@ def login(request):
       if ( user.password == requestPassword ):
         response = HttpResponse(json.dumps({
           "message": "Correct password", 
-          "partyId": user.partyId.partyId, 
-          "secret_key": generateSecretKey(str(user.partyId.partyId), user.password),
+          "credentialId": user.partyId.partyId, 
+          "secretKey": generateSecretKey(str(user.partyId.partyId), user.password),
           "email": user.email,
           "role":"librarian",
 	  "username": user.username,

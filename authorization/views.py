@@ -24,8 +24,8 @@ import urllib
 # /access/
 class Access(APIView):
     def get(self, request, format=None):
-        partyId = request.COOKIES.get('partyId')
-        loginKey = request.COOKIES.get('secret_key')
+        partyId = request.COOKIES.get('credentialId')
+        loginKey = request.COOKIES.get('secretKey')
         ip = request.GET.get('ip')
         url = request.GET.get('url').decode('utf8')
         partnerId = request.GET.get('partnerId')
@@ -59,13 +59,13 @@ class SubscriptionsAccess(APIView):
 # /authentications/
 class AuthenticationsAccess(APIView):
     def get(self, request, format=None):
-        partyId = request.COOKIES.get('partyId')
-        loginKey = request.COOKIES.get('secret_key')
+        credentialId = request.COOKIES.get('credentialId')
+        loginKey = request.COOKIES.get('secretKey')
         url = request.GET.get('url')
         partnerId = request.GET.get('partnerId')
         hostUrl = "http://%s" % request.get_host()
         apiKey = request.COOKIES.get('apiKey')
-        access = Authorization.authentication(loginKey, partyId, url, partnerId, getHostUrlFromRequest(request), apiKey)
+        access = Authorization.authentication(loginKey, credentialId, url, partnerId, getHostUrlFromRequest(request), apiKey)
         response = {
             "access":access,
         }
