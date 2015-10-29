@@ -9,7 +9,7 @@ urlpatterns = [
     url(r'^login/$', views.login, name='login'),
     # PW-161 url(r'^register', views.registerUser, name='register'),
     # PW-123 /credintials/forgot
-    url(r'^forgot', views.ForgotPassword, name='forgot'),
+    url(r'^resetPassword', views.ResetPassword, name='resetPassword'),
     
 ]
 

@@ -101,7 +101,7 @@ def login(request):
 # PW-123
 #/credentials/forgot/
 #user,partnerId
-def ForgotPassword(request):
+def ResetPassword(request):
   if request.method == 'POST':
     if not 'user' in request.POST:
         return HttpResponse(json.dumps({"message": "No username provided"}), status=400)
