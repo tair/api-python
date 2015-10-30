@@ -120,7 +120,7 @@ def ResetPassword(request):
                   "Your temp password is %s \n" \
                   % (user.username, user.email, temppwd)
         from_email = "info@phoenixbioinformatics.org"
-        recipient_list = [user.email, "info@phoenixbioinformatics.org"]
+        recipient_list = [user.email]
         send_mail(subject=subject, message=message, from_email=from_email, recipient_list=recipient_list)
         return HttpResponse(json.dumps({'reset pwd email message':'success', 'username':user.username, 'useremail':user.email, 'temppwd':temppwd}), content_type="application/json")
     else:
