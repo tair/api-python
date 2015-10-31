@@ -6,6 +6,8 @@ from django.core.mail import send_mail
 import requests
 import json
 import base64, hmac, hashlib
+import string
+import random
 from rest_framework import generics, status
 from rest_framework.views import APIView
 from rest_framework.response import Response
@@ -126,9 +128,9 @@ def ResetPassword(request):
     else:
       return HttpResponse(json.dumps({"message":"No such user"}), status=401)
 
-#/credentials/ResetPassword2/
+#/credentials/resetPassword2/
 #user,partnerId in body of request
-def ResetPassword2(self, request, format=None):
+def newResetPassword(self, request, format=None):
   if request.method == 'POST':
     serializer_class = self.get_serializer_class()
     obj = self.get_queryset().first()
