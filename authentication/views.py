@@ -130,7 +130,7 @@ def ResetPassword(request):
 
 #/credentials/resetPassword2/
 #user,partnerId in body of request
-def newResetPassword(self, request, format=None):
+def newResetPassword(request):
   if request.method == 'POST':
     serializer_class = self.get_serializer_class()
     obj = self.get_queryset().first()
