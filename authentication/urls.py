@@ -10,6 +10,7 @@ urlpatterns = [
     # PW-161 url(r'^register', views.registerUser, name='register'),
     # PW-123 /credintials/forgot
     url(r'^resetPassword', views.ResetPassword, name='resetPassword'),
+    url(r'^resetPassword2', views.ResetPassword2, name='resetPassword2'),
     
 ]
 

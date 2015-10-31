@@ -126,6 +126,36 @@ def ResetPassword(request):
     else:
       return HttpResponse(json.dumps({"message":"No such user"}), status=401)
 
+#/credentials/ResetPassword2/
+#user,partnerId in body of request
+def ResetPassword2(self, request, format=None):
+  if request.method == 'POST':
+    serializer_class = self.get_serializer_class()
+    obj = self.get_queryset().first()
+    data = request.data.copy() # PW-123
+    password = ''.join(random.choice(string.ascii_uppercase + string.digits) for _ in range(8))
+    data['password'] = hashlib.sha1(password).hexdigest()
+    serializer = serializer_class(obj, data=data, partial=True)
+    if serializer.is_valid():
+      serializer.save()
+      #send email
+      requestUsername = request.POST.get('user')
+      requestPartner = request.POST.get('partnerId')
+      user = Credential.objects.filter(partnerId=requestPartner).filter(username=requestUsername)
+      if user: 
+          user = user.first()
+          subject = "%s Reset Password For %s" % (user.username, user.email)
+          message = "%s (%s)\n" \
+                  "\n" \
+                  "Your temp password is %s \n" \
+                  % (user.username, user.email, password)
+          from_email = "info@phoenixbioinformatics.org"
+          recipient_list = [user.email]
+          send_mail(subject=subject, message=message, from_email=from_email, recipient_list=recipient_list)
+          return HttpResponse(json.dumps({'reset pwd email message':'success', 'username':user.username, 'useremail':user.email, 'temppwd':password}), content_type="application/json")
+      else:
+          return HttpResponse(json.dumps({"message":"No such user"}), status=401)
+    return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 #/credentials/register/
 #https://demoapi.arabidopsis.org/credentials/register
 def registerUser(request):
