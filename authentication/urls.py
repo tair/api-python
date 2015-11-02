@@ -7,8 +7,6 @@ from rest_framework.urlpatterns import format_suffix_patterns
 urlpatterns = [ 
     url(r'^$', views.listcreateuser.as_view(), name='listcreateuser'),
     url(r'^login/$', views.login, name='login'),
-    # PW-161 url(r'^register', views.registerUser, name='register'),
-    # PW-123 /credintials/forgot
     url(r'^resetPassword', views.ResetPassword, name='resetPassword'),
     url(r'^newResetPassword', views.newResetPassword, name='newResetPassword'),
     

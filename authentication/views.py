@@ -62,8 +62,13 @@ class listcreateuser(GenericCRUDView):
     obj = self.get_queryset().first()
     #http://stackoverflow.com/questions/18930234/django-modifying-the-request-object PW-123
     data = request.data.copy() # PW-123
-    if 'password' in data:
-      data['password'] = hashlib.sha1(data['password']).hexdigest()
+    if 'reset' in data:
+        password = ''.join(random.choice(string.ascii_uppercase + string.digits) for _ in range(8))
+        data['password'] = password
+    else:
+        if 'password' in data:
+            data['password'] = hashlib.sha1(data['password']).hexdigest()
+
     serializer = serializer_class(obj, data=data, partial=True)
     if serializer.is_valid():
       serializer.save()
@@ -130,13 +135,30 @@ def ResetPassword(request):
 
 #/credentials/resetPassword2/
 #user,partnerId in body of request
-def newResetPassword(self, request, format=None):
+def newResetPassword(request):
   if request.method == 'POST':
+    
+    requestUsername = request.GET.get('user')
+    requestPartner = request.GET.get('partnerId')
+    user = Credential.objects.filter(partnerId=requestPartner).filter(username=requestUsername)
+    user = user.first()
+    
+    data = request.data
+    password = ''.join(random.choice(string.ascii_uppercase + string.digits) for _ in range(8))
+    data['password'] = hashlib.sha1(password).hexdigest()
+      
+    serializer = serializer_class(obj, data=data, partial=True)
+    if serializer.is_valid():
+      serializer.save()
+      return Response(serializer.data, status=status.HTTP_201_CREATED)
+    return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
     serializer_class = self.get_serializer_class()
     obj = self.get_queryset().first()
     data = request.data.copy() # PW-123
     password = ''.join(random.choice(string.ascii_uppercase + string.digits) for _ in range(8))
     data['password'] = hashlib.sha1(password).hexdigest()
+    
     serializer = serializer_class(obj, data=data, partial=True)
     if serializer.is_valid():
       serializer.save()
