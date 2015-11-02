@@ -49,7 +49,7 @@ class listcreateuser(GenericCRUDView):
         serializer.save()
         return Response(serializer.data, status=status.HTTP_201_CREATED)
     return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST) 
-
+#reset pwd: https://demoapi.arabidopsis.org/credentials/?username=andrey&partnerId=tair and reset in request payload
   def put(self, request, format=None):
     # TODO: security risk here, get username based on the partyId verified in isPhoenix -SC
     # if not isPhoenix(self.request):
@@ -62,9 +62,26 @@ class listcreateuser(GenericCRUDView):
     obj = self.get_queryset().first()
     #http://stackoverflow.com/questions/18930234/django-modifying-the-request-object PW-123
     data = request.data.copy() # PW-123
+    
     if 'reset' in data:
         password = ''.join(random.choice(string.ascii_uppercase + string.digits) for _ in range(8))
-        data['password'] = password
+        requestUsername = request.POST.get('username')
+        requestPartner = request.GET.get('partnerId')
+        user = Credential.objects.filter(partnerId=requestPartner).filter(username=requestUsername)
+        if user: 
+            user = user.first()
+            subject = "%s Reset Password For %s" % (user.username, user.email)
+            message = "%s (%s)\n" \
+            "\n" \
+            "Your temp password is %s \n" \
+            % (user.username, user.email, password)
+            from_email = "info@phoenixbioinformatics.org"
+            recipient_list = [user.email]
+            send_mail(subject=subject, message=message, from_email=from_email, recipient_list=recipient_list)
+            data['password'] = hashlib.sha1(password).hexdigest()
+            #return HttpResponse(json.dumps({'reset pwd email message':'success', 'username':user.username, 'useremail':user.email, 'temppwd':temppwd}), content_type="application/json")
+        else:
+            return HttpResponse(json.dumps({"message":"No such user"}), status=401)
     else:
         if 'password' in data:
             data['password'] = hashlib.sha1(data['password']).hexdigest()
