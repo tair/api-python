@@ -65,7 +65,7 @@ class listcreateuser(GenericCRUDView):
     
     if 'reset' in data:
         password = ''.join(random.choice(string.ascii_uppercase + string.digits) for _ in range(8))
-        requestUsername = request.POST.get('username')
+        requestUsername = request.GET.get('username')
         requestPartner = request.GET.get('partnerId')
         user = Credential.objects.filter(partnerId=requestPartner).filter(username=requestUsername)
         if user: 
