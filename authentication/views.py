@@ -63,7 +63,7 @@ class listcreateuser(GenericCRUDView):
     #http://stackoverflow.com/questions/18930234/django-modifying-the-request-object PW-123
     data = request.data.copy() # PW-123
     
-    if 'reset' in data:
+    if 'resetpwd' in params:
         password = ''.join(random.choice(string.ascii_uppercase + string.digits) for _ in range(8))
         requestUsername = request.GET.get('username')
         requestPartner = request.GET.get('partnerId')
