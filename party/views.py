@@ -40,6 +40,8 @@ class IpRangeCRUD(GenericCRUDView):
     serializer_class = IpRangeSerializer
 
     def get_queryset(self):
+        if self.request.GET.get('authority') == 'admin':
+            return super(IpRangeCRUD, self).get_queryset()
         if isPhoenix(self.request):
             partyId = self.request.GET.get('partyId')
             return super(IpRangeCRUD, self).get_queryset().filter(partyId=partyId)
