@@ -23,7 +23,9 @@ urlpatterns = [
 
     # Templates
     url(r'^templates/block/$', TemplateView.as_view(template_name="subscription/block.html")),
-    url(r'^templates/login/$', TemplateView.as_view(template_name="subscription/login.html")),
+    # PW-161 https://demoapi.arabidopsis.org/subscriptions/templates/login.html
+    # url(r'^templates/login/$', TemplateView.as_view(template_name="subscription/login.html")),
+    
     url(r'^templates/warn/$', TemplateView.as_view(template_name="subscription/warn.html")),
 ]
 urlpatterns = format_suffix_patterns(urlpatterns)
