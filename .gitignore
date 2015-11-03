@@ -17,3 +17,9 @@
 # Setting File #
 ################
 settings.py
+
+#created by ecilpse (org.eclipse.core.resources.prefs) on my (Andrey) local dev env
+/.settings/
+
+#unkown from my (Andrey) machine
+/.myumldata
