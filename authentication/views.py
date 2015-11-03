@@ -123,7 +123,7 @@ def resetPwd(request):
                 % (user.username, user.email, password)
       from_email = "info@phoenixbioinformatics.org"
       recipient_list = [user.email]
-      send_mail(subject=subject, message=message, from_email=from_email, recipient_list=recipient_list, html_message)
+      send_mail(subject=subject, message=message, from_email=from_email, recipient_list=recipient_list, html_message=html_message)
             
       return HttpResponse(json.dumps({'reset pwd':'success', 'username':user.username, 'useremail':user.email, 'temppwd':user.password}), content_type="application/json")
     return HttpResponse(json.dumps({"reset pwd failed":"No such user"}), status=401)
