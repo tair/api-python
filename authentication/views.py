@@ -123,6 +123,31 @@ def login(request):
     else:
       return HttpResponse(json.dumps({"message":"No such user"}), status=401)
 
+def resetPwd(request):
+  if request.method == 'PUT':
+    if not 'user' in request.GET:
+        return HttpResponse(json.dumps({"message": "No username provided"}), status=400)
+    if not 'partnerId' in request.GET:
+        return HttpResponse(json.dumps({"message": "No partnerId provided"}), status=400)
+    requestUsername = request.GET.get('user')
+    requestPartner = request.GET.get('partnerId')
+    user = Credential.objects.filter(partnerId=requestPartner).filter(username=requestUsername)
+    
+    if user: 
+      user = user.first()
+      password = ''.join(random.choice(string.ascii_uppercase + string.digits) for _ in range(8))
+      user.password=hashlib.sha1(password).hexdigest()
+      user.save()
+      
+      subject = "%s Reset Password For %s" % (user.username, user.email)
+      message = "%s (%s)\n\nYour temp password is %s \n" \
+            % (user.username, user.email, password)
+      from_email = "info@phoenixbioinformatics.org"
+      recipient_list = [user.email]
+      send_mail(subject=subject, message=message, from_email=from_email, recipient_list=recipient_list)
+            
+      return HttpResponse(json.dumps({'reset pwd':'success', 'username':user.username, 'useremail':user.email, 'temppwd':user.password}), content_type="application/json")
+    return HttpResponse(json.dumps({"reset pwd failed":"No such user"}), status=401)
 #/credentials/register/
 #https://demoapi.arabidopsis.org/credentials/register
 def registerUser(request):
