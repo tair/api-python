@@ -117,13 +117,13 @@ def resetPwd(request):
       user.password=hashlib.sha1(password).hexdigest()
       user.save()
       
-      subject = "%s(%s), your temporary password" % (user.username, user.email)
-      message = "username :%s (%s)\n\nYour temp password is %s \n" \
+      subject = "Temporary password for %s (%s)" % (user.username, user.email)
+      message = "username: %s (%s)\n\nYour temp password is %s \n" \
                 "Please <a href=\"http://demotair.arabidopsis.org/servlets/Community?action=logout\"> log on to your account and change your password.</a>" \
                 % (user.username, user.email, password)
       from_email = "info@phoenixbioinformatics.org"
       recipient_list = [user.email]
-      send_mail(subject=subject, message=message, from_email=from_email, recipient_list=recipient_list)
+      send_mail(subject=subject, message=message, from_email=from_email, recipient_list=recipient_list, html_message)
             
       return HttpResponse(json.dumps({'reset pwd':'success', 'username':user.username, 'useremail':user.email, 'temppwd':user.password}), content_type="application/json")
     return HttpResponse(json.dumps({"reset pwd failed":"No such user"}), status=401)
