@@ -118,7 +118,7 @@ def resetPwd(request):
       user.save()
       
       subject = "Temporary password for %s (%s)" % (user.username, user.email)
-      message = "username: %s (%s)\n\nYour temp password is %s \n" \
+      message = "username: %s (%s)\n\nYour temp password is %s \n\n" \
                 "Please log on to your account and change your password." \
                 % (user.username, user.email, password)
       from_email = "info@phoenixbioinformatics.org"
