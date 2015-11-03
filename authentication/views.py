@@ -119,11 +119,11 @@ def resetPwd(request):
       
       subject = "Temporary password for %s (%s)" % (user.username, user.email)
       message = "username: %s (%s)\n\nYour temp password is %s \n" \
-                "Please <a href=\"http://demotair.arabidopsis.org/servlets/Community?action=logout\"> log on to your account and change your password.</a>" \
+                "Please log on to your account and change your password." \
                 % (user.username, user.email, password)
       from_email = "info@phoenixbioinformatics.org"
       recipient_list = [user.email]
-      send_mail(subject=subject, message=message, from_email=from_email, recipient_list=recipient_list, html_message=html_message)
+      send_mail(subject=subject, message=message, from_email=from_email, recipient_list=recipient_list)
             
       return HttpResponse(json.dumps({'reset pwd':'success', 'username':user.username, 'useremail':user.email, 'temppwd':user.password}), content_type="application/json")
     return HttpResponse(json.dumps({"reset pwd failed":"No such user"}), status=401)
