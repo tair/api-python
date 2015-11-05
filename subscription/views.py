@@ -339,8 +339,7 @@ class SubscriptionEdit(generics.GenericAPIView):#TODO: act only as admin
 
     def put(self, request, pk):
         partnerId = request.GET.get('partnerId')
-        queryset = super(GenericCRUDView, self).get_queryset().filter(partnerId=partnerId)
-        subscription = queryset[0]
+        subscription = Subscription.objects.all().filter(partnerId=partnerId)[0]
         serializer = SubscriptionSerializer(subscription, data=request.data)
         if serializer.is_valid():
             subscription = serializer.save()
