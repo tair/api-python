@@ -12,6 +12,8 @@ from authentication.models import Credential
 import json
 from django.http import HttpResponse
 from rest_framework.views import APIView
+from rest_framework import status
+from rest_framework.response import Response
 
 from django.core.mail import send_mail
 from common.permissions import isPhoenix
@@ -115,3 +117,14 @@ class ConsortiumInstitutions(APIView):
         #    ret_tmp['state'] = None
         #    ret.append(ret_tmp)
         return HttpResponse(json.dumps(ret), status=200)
+
+# ipranges/getall/
+class GetAllIpranges(GenericCRUDView):
+    requireApiKey = False
+    def get(self, request):
+        ipRangeList = IpRange.objects.all()
+        serializer = IpRangeSerializer(ipRangeList, many=True)
+
+        if True: #TODO: return only the user is admin
+            return Response(serializer.data)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
