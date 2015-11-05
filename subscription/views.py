@@ -264,7 +264,10 @@ class ActiveSubscriptions(generics.GenericAPIView):
     requireApiKey = False
     def get(self, request, partyId):
 	now = datetime.datetime.now()
-        activeSubscriptions = Subscription.objects.all().filter(partyId=partyId).filter(endDate__gt=now).filter(startDate__lt=now)
+        if request.GET.get('authority')=='admin':
+            activeSubscriptions = Subscription.objects.all()
+        else:
+            activeSubscriptions = Subscription.objects.all().filter(partyId=partyId).filter(endDate__gt=now).filter(startDate__lt=now)
 	serializer = SubscriptionSerializer(activeSubscriptions, many=True)
 	#return HttpResponse(json.dumps(dict(serializer.data)))
         ret = {}
@@ -329,7 +332,7 @@ class RequestSubscription(generics.GenericAPIView):
         return HttpResponse(json.dumps({'message':'success'}), content_type="application/json")
 
 # /<pk>/edit/
-class SubscriptionEdit(generics.GenericAPIView):
+class SubscriptionEdit(generics.GenericAPIView):#TODO: to be implemented
     queryset = Subscription.objects.all()
     serializer_class = SubscriptionSerializer
 
