@@ -39,6 +39,13 @@ class SubscriptionCRUD(GenericCRUDView):
     serializer_class = SubscriptionSerializer
     requireApiKey = False
 
+    def get(self, request):
+        if 'subscriptionId' in request.GET:
+            subscriptionId = request.GET.get('subscriptionId')
+            subscription = Subscription.objects.all().get(subscriptionId=subscriptionId)
+            serializer = SubscriptionSerializer(subscription)
+            return Response(serializer.data)
+
     def get_queryset(self):
         if isPhoenix(self.request):
             partyId = self.request.GET.get('partyId')
