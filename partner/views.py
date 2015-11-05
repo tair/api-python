@@ -107,19 +107,3 @@ class SubscriptionDescriptionItemCRUD(GenericCRUDView):
     queryset = SubscriptionDescriptionItem.objects.all()
     serializer_class = SubscriptionDescriptionItemSerializer
 
-#/edit/
-class EditSubscription(GenericCRUDView):
-    requireApiKey = False
-    queryset = Partner.objects.all()
-    def put(self, request, format=None):
-        partnerId = request.GET.get('partnerId')
-        queryset = super(GenericCRUDView, self).get_queryset().filter(partnerId=partnerId)
-        endDate = request.PUT.get('endDate')
-        data={
-            'endDate':endDate,
-        }
-        serializer = PartnerSerializer(queryset[0],data=data,partial=True)
-        if serializer.is_valid():
-            serializer.save()
-            return Response(serializer.data)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)

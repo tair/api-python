@@ -21,6 +21,7 @@ urlpatterns = [
     url(r'^request/$', views.RequestSubscription.as_view()),
     url(r'^renew/$', views.RenewSubscription.as_view()),
     url(r'^getall/$', views.GetAllSubscription.as_view()),
+    url(r'^edit/$', views.SubscriptionEdit.as_view()),
 
     # Templates
     url(r'^templates/block/$', TemplateView.as_view(template_name="subscription/block.html")),

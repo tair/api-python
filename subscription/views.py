@@ -331,19 +331,19 @@ class RequestSubscription(generics.GenericAPIView):
         send_mail(subject=subject, message=message, from_email=from_email, recipient_list=recipient_list)
         return HttpResponse(json.dumps({'message':'success'}), content_type="application/json")
 
-# /<pk>/edit/
-class SubscriptionEdit(generics.GenericAPIView):#TODO: to be implemented
+# /edit/
+class SubscriptionEdit(generics.GenericAPIView):#TODO: act only as admin
     queryset = Subscription.objects.all()
     serializer_class = SubscriptionSerializer
 
     def put(self, request, pk):
-        subscription = Subscription.objects.get(subscriptionId=pk)
+        partnerId = request.GET.get('partnerId')
+        queryset = super(GenericCRUDView, self).get_queryset().filter(partnerId=partnerId)
+        subscription = queryset[0]
         serializer = SubscriptionSerializer(subscription, data=request.data)
         if serializer.is_valid():
             subscription = serializer.save()
-            transaction = SubscriptionTransaction.createFromSubscription(subscription, 'Renewal')
             returnData = serializer.data
-            returnData['subscriptionTransactionId']=transaction.subscriptionTransactionId
             return Response(returnData)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
