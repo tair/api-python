@@ -41,7 +41,7 @@ class IpRangeCRUD(GenericCRUDView):
 
     def get_queryset(self):
         if self.request.GET.get('authority') == 'admin':
-            return super(IpRangeCRUD, self).get_queryset()
+            return super(IpRangeCRUD, self).get_queryset().all()
         if isPhoenix(self.request):
             partyId = self.request.GET.get('partyId')
             return super(IpRangeCRUD, self).get_queryset().filter(partyId=partyId)
