@@ -350,6 +350,6 @@ class GetAllSubscription(GenericCRUDView):
     def post(self, request):
         subscriptionList = Subscription.objects.all()
 
-        if request.GET.get('authority')=='admin': #TODO: return only the user is admin
+        if True: #TODO: return only the user is admin
             return Response(subscriptionList)
         return Response(status=status.HTTP_400_BAD_REQUEST)
