@@ -349,7 +349,8 @@ class GetAllSubscription(GenericCRUDView):
     requireApiKey = False
     def post(self, request):
         subscriptionList = Subscription.objects.all()
+        serializer = SubscriptionSerializer(subscriptionList)
 
         if True: #TODO: return only the user is admin
-            return Response(subscriptionList)
+            return Response(serializer.data)
         return Response(status=status.HTTP_400_BAD_REQUEST)
