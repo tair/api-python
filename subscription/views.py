@@ -333,6 +333,7 @@ class RequestSubscription(generics.GenericAPIView):
 
 # /edit/
 class SubscriptionEdit(generics.GenericAPIView):#TODO: act only as admin
+    requireApiKey = False
     queryset = Subscription.objects.all()
     serializer_class = SubscriptionSerializer
 
