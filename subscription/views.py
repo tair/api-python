@@ -338,11 +338,13 @@ class SubscriptionEdit(generics.GenericAPIView):#TODO: act only as admin
     serializer_class = SubscriptionSerializer
 
     def put(self, request):
-        partnerId = request.GET.get('partnerId')
-        subscription = Subscription.objects.all().filter(partnerId=partnerId)[0]
+        # partnerId = request.GET.get('partnerId')
+        # subscription = Subscription.objects.all().filter(partnerId=partnerId)[0]
         if 'subscriptionId' in request.GET.get:
             subscriptionId = request.GET.get('subscriptionId')
             subscription = Subscription.objects.all().get(subscriptionId=subscriptionId)
+        else:
+            return Response({'error':'subscriptionId required'})
         serializer = SubscriptionSerializer(subscription, data=request.data)
         if serializer.is_valid():
             subscription = serializer.save()
