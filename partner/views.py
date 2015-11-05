@@ -28,6 +28,10 @@ class PartnerCRUD(GenericCRUDView):
     def get(self, request, format=None):
         obj = self.get_queryset()
         params = request.GET
+        if request.GET.get('authority')=='admin':
+            partnerList = Partner.objects.all()
+            serializer = PartnerSerializer(partnerList, many=True)
+            return Response(serializer.data)
         if 'uri' in params:
             patternObj = PartnerPattern.objects.filter(sourceUri=params['uri'])
             serializer = PartnerPatternSerializer(patternObj, many=True)

@@ -27,8 +27,6 @@ class PartyCRUD(GenericCRUDView):
     serializer_class = PartySerializer
 
     def get_queryset(self):
-        if self.request.GET.get('authority')=='admin':
-            return super(PartyCRUD, self).get_queryset()
         if isPhoenix(self.request):
             partyId = self.request.GET.get('partyId')
             return super(PartyCRUD, self).get_queryset().filter(partyId=partyId)
