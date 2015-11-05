@@ -345,11 +345,11 @@ class SubscriptionEdit(generics.GenericAPIView):
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 # /getall/
-class GetAllSubscription(generics.GenericAPIView):
-
+class GetAllSubscription(GenericCRUDView):
+    requireApiKey = False
     def get(self, request):
         subscriptionList = Subscription.objects.all()
 
-        if request.GET.get('authority')=='admin': #TODO: return only the user is admin user
+        if request.GET.get('authority')=='admin': #TODO: return only the user is admin
             return Response(subscriptionList)
         return Response(status=status.HTTP_400_BAD_REQUEST)
