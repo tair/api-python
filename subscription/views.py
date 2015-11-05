@@ -350,6 +350,6 @@ class GetAllSubscription(generics.GenericAPIView):
     def get(self, request):
         subscriptionList = Subscription.objects.all()
 
-        if True: #TODO: return only the user is admin user
+        if request.GET.get('authority')=='admin': #TODO: return only the user is admin user
             return Response(subscriptionList)
         return Response(status=status.HTTP_400_BAD_REQUEST)
