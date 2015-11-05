@@ -347,7 +347,7 @@ class SubscriptionEdit(generics.GenericAPIView):
 # /getall/
 class GetAllSubscription(GenericCRUDView):
     requireApiKey = False
-    def get(self, request):
+    def post(self, request):
         subscriptionList = Subscription.objects.all()
 
         if request.GET.get('authority')=='admin': #TODO: return only the user is admin
