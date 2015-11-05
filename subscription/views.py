@@ -340,7 +340,7 @@ class SubscriptionEdit(generics.GenericAPIView):#TODO: act only as admin
     def put(self, request):
         # partnerId = request.GET.get('partnerId')
         # subscription = Subscription.objects.all().filter(partnerId=partnerId)[0]
-        if 'subscriptionId' in request.GET.get:
+        if 'subscriptionId' in request.GET:
             subscriptionId = request.GET.get('subscriptionId')
             subscription = Subscription.objects.all().get(subscriptionId=subscriptionId)
         else:
