@@ -13,6 +13,7 @@ urlpatterns = [
     url(r'^descriptionItems/$', views.SubscriptionDescriptionItemCRUD.as_view()),
     url(r'^patterns/$', views.PartnerPatternCRUD.as_view()),
     url(r'^terms/$', views.TermsCRUD.as_view()),
+    url(r'^edit/$', views.EditSubscription.as_view()),
     url(r'^$', views.PartnerCRUD.as_view()),
 ]
 urlpatterns = format_suffix_patterns(urlpatterns)
