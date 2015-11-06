@@ -82,8 +82,8 @@ class SubscriptionCRUD(GenericCRUDView):
             return Response(returnData, status=status.HTTP_201_CREATED)
         else:
             # basic subscription creation
-            if not isPhoenix(self.request):
-                return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+            # if not isPhoenix(self.request):
+            #     return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
             serializer = self.serializer_class(data=request.data)
             if serializer.is_valid():
