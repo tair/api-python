@@ -28,11 +28,11 @@ class PartyCRUD(GenericCRUDView):
     queryset = Party.objects.all()
     serializer_class = PartySerializer
 
-    # def get_queryset(self):
-    #     if isPhoenix(self.request):
-    #         partyId = self.request.GET.get('partyId')
-    #         return super(PartyCRUD, self).get_queryset().filter(partyId=partyId)
-    #     return []
+    def get_queryset(self):
+        if isPhoenix(self.request):
+            partyId = self.request.GET.get('partyId')
+            return super(PartyCRUD, self).get_queryset().filter(partyId=partyId)
+        return []
 # TODO: "post" is still a security vulnerability -SC
 
     # def put(self, request, format=None):
