@@ -35,15 +35,15 @@ class PartyCRUD(GenericCRUDView):
         return []
 # TODO: "post" is still a security vulnerability -SC
 
-    def put(self, request, format=None):
-        if 'partyId' in request.GET:
-            partyId = request.GET.get('partyId')
-        obj = Party.objects.all().get(partyId=partyId)
-        serializer = PartySerializer(obj, data=request.data)
-        if serializer.is_valid():
-            serializer.save()
-            return Response(serializer.data)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+    # def put(self, request, format=None):
+    #     if 'partyId' in request.GET:
+    #         partyId = request.GET.get('partyId')
+    #     obj = Party.objects.all().get(partyId=partyId)
+    #     serializer = PartySerializer(obj, data=request.data)
+    #     if serializer.is_valid():
+    #         serializer.save()
+    #         return Response(serializer.data)
+    #     return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
 # /ipranges/
