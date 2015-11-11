@@ -37,7 +37,7 @@ class GenericCRUDView(generics.GenericAPIView):
             if serializer.is_valid():
                 serializer.save()
                 ret.append(serializer.data)
-        return Response(ret)
+        return Response(ret, obj, request.data)
 
     def post(self, request, format=None):
         serializer_class = self.get_serializer_class()
