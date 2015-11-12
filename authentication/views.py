@@ -67,9 +67,10 @@ class listcreateuser(GenericCRUDView):
     serializer = serializer_class(obj, data=data, partial=True)
     if serializer.is_valid():
       serializer.save()
+      data = serializer.data
       if 'password' in serializer.data:
-        serializer.data['secretKey'] = generateSecretKey(str(serializer.data["credentialId"]), serializer.data['password'])
-      return Response(serializer.data, status=status.HTTP_201_CREATED)
+        data['secretKey'] = generateSecretKey(str(data["credentialId"]), data['password'])
+      return Response(data, status=status.HTTP_201_CREATED)
     return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 #/credentials/login/
