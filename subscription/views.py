@@ -283,25 +283,18 @@ class ActiveSubscriptions(generics.GenericAPIView):
 class RenewSubscription(generics.GenericAPIView):
     requireApiKey = False
     def post(self, request):
-        if not isPhoenix(request):
-            return HttpResponse(status=400)
-        data = request.data
-        dataTuple = (
-            data.get('name'),
-            data.get('email'),
-            data.get('institution'),
-	    data.get('comments'),
-        )
-        subject = "%s Subscription Renewal Request For %s" % (data.get('partnerName'), data.get('institution'))
+        #if not isPhoenix(request):
+        #    return HttpResponse(status=400)
+        subject = "%s Subscription Renewal Request For %s" % (request.POST.get('partnerName'), request.POST.get('institution'))
         message = "\n" \
                   "\n" \
                   "Please contact me about a subscription renewal. My information is below.\n" \
                   "Name: %s\n" \
                   "Email: %s \n" \
                   "Institution Name: %s \n" \
-		  "Comments: %s \n" \
+                  "Comments: %s \n" \
                   "\n" \
-                  % dataTuple
+                  % (request.POST.get('name'), request.POST.get('email'), request.POST.get('institution'), request.POST.get('comments'))
         from_email = "info@phoenixbioinformatics.org"
         recipient_list = ["info@phoenixbioinformatics.org"]
         send_mail(subject=subject, message=message, from_email=from_email, recipient_list=recipient_list)
@@ -311,25 +304,18 @@ class RenewSubscription(generics.GenericAPIView):
 class RequestSubscription(generics.GenericAPIView):
     requireApiKey = False
     def post(self, request):
-        if not isPhoenix(request):
-            return HttpResponse(status=400)
-        data = request.data
-        dataTuple = (
-            data.get('name'),
-            data.get('email'),
-            data.get('institution'),
-	    data.get('comments'),
-        )
-        subject = "%s Subscription Request For %s" % (data.get('partnerName'), data.get('institution'))
+        #if not isPhoenix(request):
+        #    return HttpResponse(status=400)
+        subject = "%s Subscription Request For %s" % (request.POST.get('partnerName'), request.POST.get('institution'))
         message = "\n" \
                   "\n" \
                   "Please contact me about a subscription renewal. My information is below.\n" \
                   "Name: %s\n" \
                   "Email: %s \n" \
                   "Institution Name: %s \n" \
-		  "Comments: %s \n" \
+                  "Comments: %s \n" \
                   "\n" \
-                  % dataTuple
+                  % (request.POST.get('name'), request.POST.get('email'), request.POST.get('institution'), request.POST.get('comments'))
         from_email = "info@phoenixbioinformatics.org"
         recipient_list = ["info@phoenixbioinformatics.org"]
         send_mail(subject=subject, message=message, from_email=from_email, recipient_list=recipient_list)
