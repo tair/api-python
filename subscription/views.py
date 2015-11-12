@@ -320,7 +320,7 @@ class RequestSubscription(generics.GenericAPIView):
                   "Name: %s\n" \
                   "Email: %s \n" \
                   "Institution Name: %s \n" \
-		  "Comments: %s \n" \
+                  "Comments: %s \n" \
                   "\n" \
                   % (request.POST.get('name'), request.POST.get('email'), request.POST.get('institution'), request.POST.get('comments'))
         from_email = "info@phoenixbioinformatics.org"
