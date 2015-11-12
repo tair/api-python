@@ -97,7 +97,7 @@ def login(request):
         }), status=200)
         return response
       else:
-        return HttpResponse(json.dumps({"message":"Incorrect password %s" % (requestPassword)}), status=401)
+        return HttpResponse(json.dumps({"message":"Incorrect password"}), status=401)
     else:
       return HttpResponse(json.dumps({"message":"No such user"}), status=401)
 
