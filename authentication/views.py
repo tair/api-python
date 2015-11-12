@@ -68,6 +68,7 @@ class listcreateuser(GenericCRUDView):
     if serializer.is_valid():
       serializer.save()
       if 'password' in data:
+        # HACK: 2015-11-12: YM: TAIR-2493: The new secret key (a.k.a. login key) is being returned as 'password' attribute. Should be refactored to use 'loginKey' attribute.
         data['password'] = generateSecretKey(str(obj.partyId.partyId), data['password'])
       return Response(data, status=status.HTTP_201_CREATED)
     return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
