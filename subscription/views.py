@@ -322,7 +322,7 @@ class RequestSubscription(generics.GenericAPIView):
                   "Institution Name: %s \n" \
 		  "Comments: %s \n" \
                   "\n" \
-                  % request.POST.get('name'), request.POST.get('email'), request.POST.get('institution'), request.POST.get('comments')
+                  % (request.POST.get('name'), request.POST.get('email'), request.POST.get('institution'), request.POST.get('comments'))
         from_email = "info@phoenixbioinformatics.org"
         recipient_list = ["info@phoenixbioinformatics.org"]
         send_mail(subject=subject, message=message, from_email=from_email, recipient_list=recipient_list)
