@@ -311,8 +311,8 @@ class RenewSubscription(generics.GenericAPIView):
 class RequestSubscription(generics.GenericAPIView):
     requireApiKey = False
     def post(self, request):
-        #if not isPhoenix(request):
-        #    return HttpResponse(status=400)
+        if not isPhoenix(request):
+            return HttpResponse(status=400)
         subject = "%s Subscription Request For %s" % (request.POST.get('partnerName'), request.POST.get('institution'))
         message = "\n" \
                   "\n" \
