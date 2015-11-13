@@ -27,7 +27,7 @@ class Access(APIView):
         partyId = request.COOKIES.get('credentialId')
         loginKey = request.COOKIES.get('secretKey')
         ip = request.GET.get('ip')
-        url = request.GET.get('url').decode('utf8')
+        url = urllib.unquote(request.GET.get('url').decode('utf8'))
         partnerId = request.GET.get('partnerId')
         apiKey = request.COOKIES.get('apiKey')
 
