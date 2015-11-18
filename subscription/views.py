@@ -259,15 +259,18 @@ class CommercialSubscription(APIView):
 class EndDate(generics.GenericAPIView):
     def get(self, request):
         partnerId=request.GET.get("partnerId")
+        ipAddress=request.GET.get("ipAddress")
         userIdentifier=request.GET.get("userIdentifier")
         expDate = ""
         subscribed = False
-        if Credential.objects.filter(userIdentifier=userIdentifier).filter(partnerId=partnerId).exists():
-            partyId = Credential.objects.filter(userIdentifier=userIdentifier)[0].partyId.partyId
-            sub = Subscription.getActiveById(partyId, partnerId)
-            if len(sub)>0:
-                expDate = SubscriptionSerializer(sub[0]).data['endDate']
-                subscribed = True
+        sub = Subscription.getActiveByIp(ipAddress, partnerId)
+        if len(sub)==0:
+            if Credential.objects.filter(userIdentifier=userIdentifier).filter(partnerId=partnerId).exists():
+                partyId = Credential.objects.filter(userIdentifier=userIdentifier)[0].partyId.partyId
+                sub = Subscription.getActiveById(partyId, partnerId)
+        if len(sub)>0:
+            expDate = SubscriptionSerializer(sub[0]).data['endDate']
+            subscribed = True
         return HttpResponse(json.dumps({'expDate':expDate, 'subscribed':subscribed}), content_type="application/json")
 
 # /activesubscriptions/<partyId>
