@@ -242,7 +242,7 @@ class PaymentControl():
     def validateCharge(price, termId, quantity):
         so = SubscriptionTerm.objects.get(subscriptionTermId=termId)
         calcprice = so.price*quantity
-        if so.groupDiscountPercentage > 0 and quantity > 2:
+        if so.groupDiscountPercentage > 0 and quantity > 1:
             calcprice = so.price*quantity*(1-(so.groupDiscountPercentage/100))
         calcprice = round(calcprice*100)/100
 	return (price == calcprice)
