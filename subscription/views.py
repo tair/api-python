@@ -163,7 +163,11 @@ class SubscriptionsPayment(APIView):
 	
         description = "Test charge"
         message = PaymentControl.tryCharge(stripe_api_secret_test_key, token, price, description, termId, quantity, email, firstname, lastname, institute, street, city, state, country, zip, hostname, redirect)
-        return HttpResponse(json.dumps(message), content_type="application/json")
+        #PW-120 vet
+        status = 200
+        if 'message' in message:
+            status = 400
+        return HttpResponse(json.dumps(message), content_type="application/json", status=status)
 
 # /institutions/
 class InstitutionSubscription(APIView):

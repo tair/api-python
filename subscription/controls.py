@@ -71,11 +71,12 @@ class PaymentControl():
         message['price'] = priceToCharge
         message['termId'] = termId
         message['quantity'] = quantity
-	if not PaymentControl.validateCharge(priceToCharge, termId, quantity):
-	 	message['message'] = "Charge validation error"
-		return message
+    if not PaymentControl.validateCharge(priceToCharge, termId, quantity):
+        message['message'] = "Charge validation error"
+        #message['status'] = False //PW-120 vet we will return 400 instead - see SubscriptionsPayment post - i.e. the caller 
+        return message
+        
         stripe.api_key = secret_key
- 
         charge = stripe.Charge.create(
             amount=int(priceToCharge*100), # stripe takes in cents; UI passes in dollars. multiply by 100 to convert.
             currency="usd",
