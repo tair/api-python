@@ -255,7 +255,9 @@ class CommercialSubscription(APIView):
 #        logging.error("------Done sending commercial email------")
         return HttpResponse(json.dumps({'message':'success'}), content_type="application/json")
 
-# /<userIdentifier>/expdatebyuseridentifier/
+# /enddate
+# Among all the subscriptions to a given partner, looks for the effective subscription that either covers the given IP address or belongs to the given party.
+# Upon success, returns the expiration date of the found subscription and 'subscribed' status as True; otherwise, the returned expiration date is null and status is False.
 class EndDate(generics.GenericAPIView):
     def get(self, request):
         partnerId=request.GET.get("partnerId")
