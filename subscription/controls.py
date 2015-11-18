@@ -71,10 +71,10 @@ class PaymentControl():
         message['price'] = priceToCharge
         message['termId'] = termId
         message['quantity'] = quantity
-    if not PaymentControl.validateCharge(priceToCharge, termId, quantity):
-        message['message'] = "Charge validation error"
-        #message['status'] = False //PW-120 vet we will return 400 instead - see SubscriptionsPayment post - i.e. the caller 
-        return message
+        if not PaymentControl.validateCharge(priceToCharge, termId, quantity):
+            message['message'] = "Charge validation error"
+            #message['status'] = False //PW-120 vet we will return 400 instead - see SubscriptionsPayment post - i.e. the caller 
+            return message
         
         stripe.api_key = secret_key
         charge = stripe.Charge.create(
@@ -83,7 +83,7 @@ class PaymentControl():
             source=stripe_token,
             description=chargeDescription,
             metadata = {'Email': emailAddress, 'Institute': institute}
-        )
+            )
         activationCodes = PaymentControl.postPaymentHandling(termId, quantity)
         emailInfo = PaymentControl.getEmailInfo(activationCodes, termId, quantity, priceToCharge, charge.id, emailAddress, firstname, lastname, institute, street, city, state, country, zip, hostname, redirect)
         PaymentControl.emailReceipt(emailInfo)
