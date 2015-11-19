@@ -130,7 +130,10 @@ class PaymentControl():
             "name": name,
             "partnerName": partnerObj.name,
             "accessCodes": activationCodes,
-	    "loginUrl": hostname+"/#/login?partnerId="+partnerObj.partnerId+"&redirect="+redirect,
+            # https://demoui.arabidopsis.org/#/contentaccess/login?partnerId=tair&redirect=https:%2F%2Fdemotair.arabidopsis.org%2Fjsp%2Fcommunity%2Fwelcome.jsp 
+            # http://demotair.arabidopsis.org/jsp/community/welcome.jsp
+            #"loginUrl": hostname+"/#/login?partnerId="+partnerObj.partnerId+"&redirect="+redirect,
+            "loginUrl": hostname+"jsp/community/welcome.jsp",
             "partnerId": partnerObj.partnerId,
             "subscriptionDescription": "%s Subscription" % partnerObj.name,
             "institute": institute,
