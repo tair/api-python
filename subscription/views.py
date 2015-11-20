@@ -82,8 +82,8 @@ class SubscriptionCRUD(GenericCRUDView):
             return Response(returnData, status=status.HTTP_201_CREATED)
         else:
             # basic subscription creation
-            # if not isPhoenix(self.request):
-            #     return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+            if not isPhoenix(self.request):
+                return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
             serializer = self.serializer_class(data=request.data)
             if serializer.is_valid():
@@ -292,8 +292,8 @@ class ActiveSubscriptions(generics.GenericAPIView):
 class RenewSubscription(generics.GenericAPIView):
     requireApiKey = False
     def post(self, request):
-        #if not isPhoenix(request):
-        #    return HttpResponse(status=400)
+        if not isPhoenix(request):
+           return HttpResponse(status=400)
         subject = "%s Subscription Renewal Request For %s" % (request.POST.get('partnerName'), request.POST.get('institution'))
         message = "\n" \
                   "\n" \
@@ -313,8 +313,8 @@ class RenewSubscription(generics.GenericAPIView):
 class RequestSubscription(generics.GenericAPIView):
     requireApiKey = False
     def post(self, request):
-        #if not isPhoenix(request):
-        #    return HttpResponse(status=400)
+        if not isPhoenix(request):
+           return HttpResponse(status=400)
         subject = "%s Subscription Request For %s" % (request.POST.get('partnerName'), request.POST.get('institution'))
         message = "\n" \
                   "\n" \
@@ -337,6 +337,8 @@ class SubscriptionEdit(generics.GenericAPIView):#TODO: act only as admin
     serializer_class = SubscriptionSerializer
 
     def put(self, request):
+        if not isPhoenix(request):
+           return HttpResponse(status=400)
         # partnerId = request.GET.get('partnerId')
         # subscription = Subscription.objects.all().filter(partnerId=partnerId)[0]
         if 'subscriptionId' in request.GET:
@@ -352,12 +354,12 @@ class SubscriptionEdit(generics.GenericAPIView):#TODO: act only as admin
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 # /getall/
-class GetAllSubscription(GenericCRUDView):
-    requireApiKey = False
-    def get(self, request):
-        subscriptionList = Subscription.objects.all()
-        serializer = SubscriptionSerializer(subscriptionList, many=True)
-
-        if True: #TODO: return only the user is admin
-            return Response(serializer.data)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+# class GetAllSubscription(GenericCRUDView):
+#     requireApiKey = False
+#     def get(self, request):
+#         subscriptionList = Subscription.objects.all()
+#         serializer = SubscriptionSerializer(subscriptionList, many=True)
+#
+#         if True: #TODO: return only the user is admin
+#             return Response(serializer.data)
+#         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
