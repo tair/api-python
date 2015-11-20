@@ -52,8 +52,8 @@ class listcreateuser(GenericCRUDView):
   
   def put(self, request, format=None):
     # TODO: security risk here, get username based on the partyId verified in isPhoenix -SC
-    # if not isPhoenix(self.request):
-    #   return Response(status=status.HTTP_400_BAD_REQUEST)
+    if not isPhoenix(self.request):
+      return Response(status=status.HTTP_400_BAD_REQUEST)
     # http://stackoverflow.com/questions/12611345/django-why-is-the-request-post-object-immutable
     serializer_class = self.get_serializer_class()
     params = request.GET
@@ -92,7 +92,7 @@ def login(request):
       if ( user.password == requestPassword ):
         response = HttpResponse(json.dumps({
           "message": "Correct password", 
-          "credentialId": user.partyId.partyId, 
+          "credentialId": user.partyId.partyId,
           "secretKey": generateSecretKey(str(user.partyId.partyId), user.password),
           "email": user.email,
           "role":"librarian",
