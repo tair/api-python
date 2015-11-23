@@ -30,8 +30,12 @@ class PartyCRUD(GenericCRUDView):
 
     def get_queryset(self):
         if isPhoenix(self.request):
-            partyId = self.request.GET.get('partyId')
-            return super(PartyCRUD, self).get_queryset().filter(partyId=partyId)
+            if 'partyId' in self.request.GET:
+                partyId = self.request.GET.get('partyId')
+                return super(PartyCRUD, self).get_queryset().filter(partyId=partyId)
+            elif 'partyType' in self.request.GET:
+                partyType = self.request.GET.get('partyType')
+                return super(PartyCRUD, self).get_queryset().filter(partyType=partyType)
         return []
 # TODO: "post" is still a security vulnerability -SC
 
