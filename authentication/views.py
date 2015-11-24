@@ -43,7 +43,7 @@ class listcreateuser(GenericCRUDView):
       data = request.data
       data['password'] = hashlib.sha1(data['password']).hexdigest()
       if 'partyId' not in data:
-        name = data['firstName'] + ' ' + data['lastName']
+        name = data['name']
         partyData = {'name':name, 'partyType':'user'}
         partySerializer = PartySerializer(data=partyData, partial =True)
         # pu = Party(); pu.save()
