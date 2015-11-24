@@ -15,7 +15,7 @@ class Party(models.Model):
     partyType = models.CharField(max_length=200, default='user')
     name = models.CharField(max_length=200, default='')
     display = models.BooleanField(default=True)
-    country = models.ForeignKey('Country', null=True, default=219, db_column="countryId")
+    country = models.ForeignKey('Country', null=True, db_column="countryId")
     consortium = models.ForeignKey('self', null=True)
 
     @staticmethod
