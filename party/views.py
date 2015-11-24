@@ -36,6 +36,9 @@ class PartyCRUD(GenericCRUDView):
             elif 'partyType' in self.request.GET:
                 partyType = self.request.GET.get('partyType')
                 return super(PartyCRUD, self).get_queryset().filter(partyType=partyType)
+            elif 'consortium' in self.request.GET:
+                consortium = self.request.GET.get('consortium')
+                return super(PartyCRUD, self).get_queryset().filter(consortium=consortium)
         return []
 # TODO: "post" is still a security vulnerability -SC
 
