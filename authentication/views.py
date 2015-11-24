@@ -19,6 +19,7 @@ from authentication.serializers import CredentialSerializer, CredentialSerialize
 from subscription.models import Party
 from partner.models import Partner
 from party.serializers import PartySerializer
+from party.models import Party
 
 from common.permissions import isPhoenix
 
@@ -74,6 +75,16 @@ class listcreateuser(GenericCRUDView):
     serializer = serializer_class(obj, data=data, partial=True)
     if serializer.is_valid():
       serializer.save()
+      #update party info
+      if 'partyId' in serializer.data:
+        partyId = serializer.data['partyId']
+        partyObj = Party.objects.all().get(partyId = partyId)
+        if 'name' in data:
+          name = data['name']
+          partyData = {'name':name}
+        partySerializer = PartySerializer(partyObj, data=partyData, partial =True)
+        if partySerializer.is_valid():
+          partySerializer.save()
       if 'password' in data:
         # HACK: 2015-11-12: YM: TAIR-2493: The new secret key (a.k.a. login key) is being returned as 'password' attribute. Should be refactored to use 'loginKey' attribute.
         data['password'] = generateSecretKey(str(obj.partyId.partyId), data['password'])
