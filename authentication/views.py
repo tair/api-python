@@ -18,6 +18,7 @@ from authentication.models import Credential, GooglePartyAffiliation
 from authentication.serializers import CredentialSerializer, CredentialSerializerNoPassword
 from subscription.models import Party
 from partner.models import Partner
+from party.serializers import PartySerializer
 
 from common.permissions import isPhoenix
 
@@ -42,8 +43,14 @@ class listcreateuser(GenericCRUDView):
       data = request.data
       data['password'] = hashlib.sha1(data['password']).hexdigest()
       if 'partyId' not in data:
-        pu = Party(); pu.save()
-        data['partyId'] = pu.partyId
+        name = data['firstName'] + ' ' + data['lastName']
+        partyData = {'name':name, 'partyType':'user'}
+        partySerializer = PartySerializer(data=partyData, partial =True)
+        # pu = Party(); pu.save()
+        # data['partyId'] = pu.partyId
+        if partySerializer.is_valid():
+          partySerializer.save()
+          data['partyId'] = partySerializer.data['partyId']
       serializer = serializer_class(data=data)
       if serializer.is_valid():
         serializer.save()
