@@ -134,6 +134,7 @@ class PaymentControl():
             # http://demotair.arabidopsis.org/jsp/community/welcome.jsp
             #"loginUrl": hostname+"/#/login?partnerId="+partnerObj.partnerId+"&redirect="+redirect,
             "loginUrl": redirect+"/jsp/community/welcome.jsp",
+            "registerUrl": redirect+"/community/abrc-new-register.faces",
             "partnerId": partnerObj.partnerId,
             "subscriptionDescription": "%s Subscription" % partnerObj.name,
             "institute": institute,
@@ -167,6 +168,7 @@ class PaymentControl():
                 kwargs['partnerName'],
                 listr,
                 kwargs['loginUrl'],
+                kwargs['registerUrl'],
                 kwargs['partnerName'],
                 kwargs['partnerName'],
                 kwargs['subscriptionDescription'],
