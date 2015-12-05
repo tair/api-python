@@ -140,7 +140,7 @@ class ConsortiumCRUD(GenericCRUDView):
         if isPhoenix(self.request):
             if 'partyId' in self.request.GET:
                 partyId = self.request.GET.get('partyId')
-                return super(PartyCRUD, self).get_queryset().filter(partyId=partyId)
+                return super(ConsortiumCRUD, self).get_queryset().filter(partyId=partyId)
         return []
 
     def get(self, request, format=None):
@@ -182,7 +182,7 @@ class AffiliationCRUD(GenericCRUDView):
         if isPhoenix(self.request):
             if 'partyId' in self.request.GET:
                 partyId = self.request.GET.get('partyId')
-                return super(PartyCRUD, self).get_queryset().filter(partyId=partyId)
+                return super(AffiliationCRUD, self).get_queryset().filter(partyId=partyId)
         return []
 
     def get(self, request, format=None):
