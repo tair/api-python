@@ -129,3 +129,68 @@ class GetAllIpranges(GenericCRUDView):
         if True: #TODO: return only the user is admin
             return Response(serializer.data)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+# consortiums/
+class ConsortiumCRUD(GenericCRUDView):
+    requireApiKey = False
+    queryset = Party.objects.all()
+    serializer_class = PartySerializer
+
+    def get_queryset(self):
+        if isPhoenix(self.request):
+            if 'partyId' in self.request.GET:
+                partyId = self.request.GET.get('partyId')
+                return super(PartyCRUD, self).get_queryset().filter(partyId=partyId)
+        return []
+
+    def get(self, request, format=None):
+        serializer_class = self.get_serializer_class()
+        params = request.GET
+        # does not allow user to update everything, too dangerous
+        if not params:
+            return Response({'error':'does not allow update without query parameters'})
+        obj = self.get_queryset()
+        return HttpResponse(json.dumps(obj.consortiums.all()), content_type="application/json")
+
+    def put(self, request, format=None):
+        serializer_class = self.get_serializer_class()
+        params = request.GET
+        # does not allow user to update everything, too dangerous
+        if not params:
+            return Response({'error':'does not allow update without query parameters'})
+        obj = self.get_queryset()
+        if 'consortiumId' in request.data:
+            consortiumId = request.data['consortiumId']
+            consortium = queryset.get(partyId = consortiumId)
+        if 'action' in params:
+            if params['action'] == 'add':
+                obj.consortiums.add(consortium)
+            elif params['action'] == 'remove':
+                obj.consortiums.remove(consortium)
+        serializer = serializer_class(obj)
+        return Response(serializer.data)
+
+# TODO: "post" is still a security vulnerability -SC
+
+# affiliations/
+class AffiliationCRUD(GenericCRUDView):
+    requireApiKey = False
+    queryset = Party.objects.all()
+    serializer_class = PartySerializer
+
+    def get_queryset(self):
+        if isPhoenix(self.request):
+            if 'partyId' in self.request.GET:
+                partyId = self.request.GET.get('partyId')
+                return super(PartyCRUD, self).get_queryset().filter(partyId=partyId)
+        return []
+
+    def get(self, request, format=None):
+        serializer_class = self.get_serializer_class()
+        params = request.GET
+        # does not allow user to update everything, too dangerous
+        if not params:
+            return Response({'error':'does not allow update without query parameters'})
+        obj = self.get_queryset()
+        return HttpResponse(json.dumps(obj.party_set.all()), content_type="application/json")
+# TODO: "post" is still a security vulnerability -SC

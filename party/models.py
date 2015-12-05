@@ -16,7 +16,7 @@ class Party(models.Model):
     name = models.CharField(max_length=200, default='')
     display = models.BooleanField(default=True)
     country = models.ForeignKey('Country', null=True, db_column="countryId")
-    consortium = models.ForeignKey('self', null=True)
+    consortiums = models.ManyToManyField('self', null=True, db_colum="consortiums")
 
     @staticmethod
     def getByIp(ipAddress):
