@@ -30,6 +30,10 @@ class Party(models.Model):
     class Meta:
         db_table = "Party"
 
+class Affiliation(models.Model):
+    institutionId = models.ForeignKey(Party)
+    consortiumId = models.ForeignKey(Party)
+
 class IpRange(models.Model):
     ipRangeId = models.AutoField(primary_key=True)
     start = models.GenericIPAddressField()
