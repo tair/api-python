@@ -168,7 +168,8 @@ class ConsortiumCRUD(GenericCRUDView):
             elif params['action'] == 'remove':
                 obj.consortiums.remove(consortium)
         serializer = serializer_class(obj)
-        return Response([serializer.data, consortium])
+        serializer1 = serializer_class(consortium)
+        return Response([serializer.data, serializer1.data])
 
 # TODO: "post" is still a security vulnerability -SC
 
