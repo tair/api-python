@@ -1,9 +1,10 @@
 #Copyright 2015 Phoenix Bioinformatics Corporation. All rights reserved.
 
-from party.models import Party, IpRange, Country
+from party.models import Party, IpRange, Country, Affiliation
 from party.serializers import PartySerializer, IpRangeSerializer
 from subscription.models import Subscription
 from partner.models import Partner
+from django.db.models import Q
 
 from common.views import GenericCRUDView
 
@@ -164,12 +165,11 @@ class ConsortiumCRUD(GenericCRUDView):
             consortium = Party.objects.get(partyId = consortiumId)
         if 'action' in params:
             if params['action'] == 'add':
-                obj.consortiums.add(consortium)
+                Affiliation.objects.create(institutionId=obj,consortiumId=consortium)
             elif params['action'] == 'remove':
-                obj.consortiums.remove(consortium)
+                Affiliation.objects.filter(Q(institutionId=obj, consortiumId=consortium)).delete()
         serializer = serializer_class(obj)
-        serializer1 = serializer_class(consortium)
-        return Response([serializer.data, serializer1.data])
+        return Response(serializer.data)
 
 # TODO: "post" is still a security vulnerability -SC
 
