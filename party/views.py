@@ -149,7 +149,7 @@ class ConsortiumCRUD(GenericCRUDView):
         # does not allow user to update everything, too dangerous
         if not params:
             return Response({'error':'does not allow update without query parameters'})
-        obj = self.get_queryset()
+        obj = self.get_queryset()[0]
         return HttpResponse(json.dumps(obj.consortiums.all()), content_type="application/json")
 
     def put(self, request, format=None):
