@@ -144,6 +144,7 @@ class ConsortiumCRUD(GenericCRUDView):
                 return super(ConsortiumCRUD, self).get_queryset().get(partyId=partyId)
         return []
 
+    #Actually when we use PartyCRUD's get function we can always get consortiums list
     def get(self, request, format=None):
         serializer_class = self.get_serializer_class()
         params = request.GET
@@ -196,5 +197,8 @@ class AffiliationCRUD(GenericCRUDView):
         if not params:
             return Response({'error':'does not allow update without query parameters'})
         obj = self.get_queryset()
-        return HttpResponse(json.dumps(obj.party_set.all()), content_type="application/json")
+        out = []
+        for entry in obj.party_set.all():
+            out.append(entry.partyId)
+        return HttpResponse(json.dumps(out), content_type="application/json")
 # TODO: "post" is still a security vulnerability -SC
