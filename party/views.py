@@ -164,9 +164,9 @@ class ConsortiumCRUD(GenericCRUDView):
             consortiumId = request.data['consortiumId']
             consortium = Party.objects.get(partyId = consortiumId)
         if 'action' in request.data:
-            if params['action'] == 'add':
+            if request.data['action'] == 'add':
                 Affiliation.objects.create(institutionId=obj,consortiumId=consortium)
-            elif params['action'] == 'remove':
+            elif request.data['action'] == 'remove':
                 Affiliation.objects.filter(institutionId=obj, consortiumId=consortium).delete()
         serializer = serializer_class(obj)
         return Response(serializer.data)
