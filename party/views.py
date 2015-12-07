@@ -163,7 +163,7 @@ class ConsortiumCRUD(GenericCRUDView):
         if 'consortiumId' in request.data:
             consortiumId = request.data['consortiumId']
             consortium = Party.objects.get(partyId = consortiumId)
-        if 'action' in params:
+        if 'action' in request.data:
             if params['action'] == 'add':
                 Affiliation.objects.create(institutionId=obj,consortiumId=consortium)
             elif params['action'] == 'remove':
