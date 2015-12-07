@@ -198,7 +198,7 @@ class AffiliationCRUD(GenericCRUDView):
             return Response({'error':'does not allow update without query parameters'})
         obj = self.get_queryset()
         out = []
-        for entry in obj.party_set.all():
+        for entry in obj.Affiliation.all():
             out.append(entry.partyId)
         return HttpResponse(json.dumps(out), content_type="application/json")
 # TODO: "post" is still a security vulnerability -SC
