@@ -31,8 +31,8 @@ class Party(models.Model):
         db_table = "Party"
 
 class Affiliation(models.Model):
-    institutionId = models.ForeignKey(Party, related_name="institutionId")
-    consortiumId = models.ForeignKey(Party, related_name="consortiumId")
+    institutionId = models.ForeignKey(Party, related_name="institutionId", db_column="institutionId")
+    consortiumId = models.ForeignKey(Party, related_name="consortiumId", db_column="consortiumId")
 
 class IpRange(models.Model):
     ipRangeId = models.AutoField(primary_key=True)
