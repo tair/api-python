@@ -151,7 +151,10 @@ class ConsortiumCRUD(GenericCRUDView):
         if not params:
             return Response({'error':'does not allow update without query parameters'})
         obj = self.get_queryset()
-        return HttpResponse(obj.consortiums.all())
+        out = []
+        for entry in obj.consortiums.all():
+            out.append(entry.partyId)
+        return HttpResponse(json.dumps(out), content_type="application/json")
 
     def put(self, request, format=None):
         serializer_class = self.get_serializer_class()
