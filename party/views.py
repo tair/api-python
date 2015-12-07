@@ -168,7 +168,7 @@ class ConsortiumCRUD(GenericCRUDView):
             elif params['action'] == 'remove':
                 obj.consortiums.remove(consortium)
         serializer = serializer_class(obj)
-        return Response(serializer.data)
+        return Response([serializer.data, consortium])
 
 # TODO: "post" is still a security vulnerability -SC
 
@@ -182,7 +182,7 @@ class AffiliationCRUD(GenericCRUDView):
         if isPhoenix(self.request):
             if 'partyId' in self.request.GET:
                 partyId = self.request.GET.get('partyId')
-                return super(AffiliationCRUD, self).get_queryset().filter(partyId=partyId)
+                return super(AffiliationCRUD, self).get_queryset().get(partyId=partyId)
         return []
 
     def get(self, request, format=None):
