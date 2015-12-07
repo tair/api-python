@@ -161,7 +161,7 @@ class ConsortiumCRUD(GenericCRUDView):
         obj = self.get_queryset()
         if 'consortiumId' in request.data:
             consortiumId = request.data['consortiumId']
-            consortium = queryset.get(partyId = consortiumId)
+            consortium = Party.objects.get(partyId = consortiumId)
         if 'action' in params:
             if params['action'] == 'add':
                 obj.consortiums.add(consortium)
