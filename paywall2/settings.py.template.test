@@ -111,11 +111,10 @@ WSGI_APPLICATION = 'paywall2.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.mysql',
-        'NAME': 'steveTest',
+        'NAME': 'phoenix_api',
         'USER': 'phoenix',
-        'PASSWORD': 'phoenix123',
-#        'HOST': 'paywalltestmysqldb.c871k9lscygy.us-east-1.rds.amazonaws.com',
-        'HOST': 'paywall2.cwyjt5kql77y.us-west-2.rds.amazonaws.com',
+        'PASSWORD': 'xrXbTZfrHdwmS7VC',
+        'HOST': 'phoenix-api-test.cwyjt5kql77y.us-west-2.rds.amazonaws.com',
         'PORT': '3306',
     }
 }
