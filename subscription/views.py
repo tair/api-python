@@ -161,7 +161,7 @@ class SubscriptionsPayment(APIView):
         hostname = request.META.get("HTTP_ORIGIN")
         redirect = request.POST['redirect']
 	
-        description = "Test charge"
+        description = str(request.POST.get('partnerName'))+"-"+ str(termId)
         message = PaymentControl.tryCharge(stripe_api_secret_test_key, token, price, description, termId, quantity, email, firstname, lastname, institute, street, city, state, country, zip, hostname, redirect)
         #PW-120 vet
         status = 200

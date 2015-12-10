@@ -1,9 +1,10 @@
 #Copyright 2015 Phoenix Bioinformatics Corporation. All rights reserved.
 
-from party.models import Party, IpRange, Country
+from party.models import Party, IpRange, Country, Affiliation
 from party.serializers import PartySerializer, IpRangeSerializer
 from subscription.models import Subscription
 from partner.models import Partner
+from django.db.models import Q
 
 from common.views import GenericCRUDView
 
@@ -36,9 +37,6 @@ class PartyCRUD(GenericCRUDView):
             elif 'partyType' in self.request.GET:
                 partyType = self.request.GET.get('partyType')
                 return super(PartyCRUD, self).get_queryset().filter(partyType=partyType)
-            elif 'consortium' in self.request.GET:
-                consortium = self.request.GET.get('consortium')
-                return super(PartyCRUD, self).get_queryset().filter(consortium=consortium)
         return []
 # TODO: "post" is still a security vulnerability -SC
 
@@ -129,3 +127,75 @@ class GetAllIpranges(GenericCRUDView):
         if True: #TODO: return only the user is admin
             return Response(serializer.data)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+# consortiums/
+class ConsortiumCRUD(GenericCRUDView):
+    requireApiKey = False
+    queryset = Party.objects.all()
+    serializer_class = PartySerializer
+
+    def get_queryset(self):
+        if isPhoenix(self.request):
+            if 'partyId' in self.request.GET:
+                partyId = self.request.GET.get('partyId')
+                return super(ConsortiumCRUD, self).get_queryset().get(partyId=partyId)
+        return []
+
+    #Actually when we use PartyCRUD's get function we can always get consortiums list
+    def get(self, request, format=None):
+        serializer_class = self.get_serializer_class()
+        params = request.GET
+        # does not allow user to update everything, too dangerous
+        if not params:
+            return Response({'error':'does not allow update without query parameters'})
+        obj = self.get_queryset()
+        out = []
+        for entry in obj.consortiums.all():
+            out.append(entry.partyId)
+        return HttpResponse(json.dumps(out), content_type="application/json")
+
+    def put(self, request, format=None):
+        serializer_class = self.get_serializer_class()
+        params = request.GET
+        # does not allow user to update everything, too dangerous
+        if not params:
+            return Response({'error':'does not allow update without query parameters'})
+        obj = self.get_queryset()
+        if 'consortiumId' in request.data:
+            consortiumId = request.data['consortiumId']
+            consortium = Party.objects.get(partyId = consortiumId)
+        if 'action' in request.data:
+            if request.data['action'] == 'add':
+                Affiliation.objects.create(institutionId=obj,consortiumId=consortium)
+            elif request.data['action'] == 'remove':
+                Affiliation.objects.filter(institutionId=obj, consortiumId=consortium).delete()
+        serializer = serializer_class(obj)
+        return Response(serializer.data)
+
+# TODO: "post" is still a security vulnerability -SC
+
+# affiliations/
+class AffiliationCRUD(GenericCRUDView):
+    requireApiKey = False
+    queryset = Party.objects.all()
+    serializer_class = PartySerializer
+
+    def get_queryset(self):
+        if isPhoenix(self.request):
+            if 'partyId' in self.request.GET:
+                partyId = self.request.GET.get('partyId')
+                return super(AffiliationCRUD, self).get_queryset().get(partyId=partyId)
+        return []
+
+    def get(self, request, format=None):
+        serializer_class = self.get_serializer_class()
+        params = request.GET
+        # does not allow user to update everything, too dangerous
+        if not params:
+            return Response({'error':'does not allow update without query parameters'})
+        obj = self.get_queryset()
+        out = []
+        for entry in obj.Affiliation.all():
+            out.append(entry.partyId)
+        return HttpResponse(json.dumps(out), content_type="application/json")
+# TODO: "post" is still a security vulnerability -SC

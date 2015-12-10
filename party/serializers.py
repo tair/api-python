@@ -7,7 +7,7 @@ from rest_framework import serializers
 class PartySerializer(serializers.ModelSerializer):
     class Meta:
         model = Party
-        fields = ('partyId','partyType', 'name', 'country', 'display', 'consortium')
+        fields = ('partyId','partyType', 'name', 'country', 'display', 'consortiums')
 
 class IpRangeSerializer(serializers.ModelSerializer):
     class Meta:
