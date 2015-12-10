@@ -29,16 +29,16 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='affiliation',
             name='consortiumId',
-            field=models.ForeignKey(related_name='consortiumId', to='party.Party'),
+            field=models.ForeignKey(related_name='consortiumId', db_column=b'consortiumId', to='party.Party'),
         ),
         migrations.AddField(
             model_name='affiliation',
             name='institutionId',
-            field=models.ForeignKey(related_name='institutionId', to='party.Party'),
+            field=models.ForeignKey(related_name='institutionId', db_column=b'institutionId', to='party.Party'),
         ),
         migrations.AddField(
             model_name='party',
             name='consortiums',
-            field=models.ManyToManyField(to='party.Party', through='party.Affiliation'),
+            field=models.ManyToManyField(related_name='Affiliation', through='party.Affiliation', to='party.Party'),
         ),
     ]
