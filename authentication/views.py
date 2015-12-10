@@ -23,6 +23,8 @@ from party.models import Party
 
 from common.permissions import isPhoenix
 
+import logging
+
 # Create your views here.
 
 #/credentials/
@@ -94,12 +96,27 @@ class listcreateuser(GenericCRUDView):
 #/credentials/login/
 def login(request):
   if request.method == 'POST':
+    import os
+    dirname = os.path.dirname(os.path.realpath(__file__))
+    logging.basicConfig(filename="%s/logs/login.log" % dirname,
+                        format='%(asctime)s %(message)s'
+    )
+
+    ip = request.META.get('REMOTE_ADDR')
+    logging.error("Receiving request from %s:" % ip)
     if not 'user' in request.POST:
-        return HttpResponse(json.dumps({"message": "No username provided"}), status=400)
+      msg = "No username provided"
+      logging.error("%s, %s" % (ip, msg))
+      return HttpResponse(json.dumps({"message": msg}), status=400)
     if not 'password' in request.POST:
-        return HttpResponse(json.dumps({"message": "No password provided"}), status=400)
+      msg = "No password provided"
+      logging.error("%s, %s" % (ip, msg))
+      return HttpResponse(json.dumps({"message": msg}), status=400)
     if not 'partnerId' in request.GET:
-        return HttpResponse(json.dumps({"message": "No partnerId provided"}), status=400)
+      msg = "No partnerId provided"
+      logging.error("%s, %s" % (ip, msg))
+      return HttpResponse(json.dumps({"message": msg}), status=400)
+
     requestUsername = request.POST.get('user')
     requestPassword = hashlib.sha1(request.POST.get('password')).hexdigest()
     requestPartner = request.GET.get('partnerId')
@@ -116,11 +133,16 @@ def login(request):
           "role":"librarian",
 	  "username": user.username,
         }), status=200)
+        logging.error("Successful login from %s: %s" % (ip, request.POST['user']))
         return response
       else:
-        return HttpResponse(json.dumps({"message":"Incorrect password"}), status=401)
+        msg = "Incorrect password"
+        logging.error("%s, %s: %s %s %s" % (ip, msg, request.POST['user'], request.POST['password'], request.GET['partnerId']))
+        return HttpResponse(json.dumps({"message":msg}), status=401)
     else:
-      return HttpResponse(json.dumps({"message":"No such user"}), status=401)
+      msg = "No such user"
+      logging.error("%s, %s: %s %s %s" % (ip, msg, request.POST['user'], request.POST['password'], request.GET['partnerId']))
+      return HttpResponse(json.dumps({"message":msg}), status=401)
 
 def resetPwd(request):
   if request.method == 'PUT':
