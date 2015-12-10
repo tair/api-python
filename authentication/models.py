@@ -28,7 +28,7 @@ class Credential(models.Model):
       pu = pu.first().consortiums
       if Credential.objects.filter(partyId_id__in=pu.values('partyId')).exists():
         for usu in Credential.objects.filter(partyId_id__in=pu.values('partyId')):
-          digested = base64.b64encode(hmac.new(str(pu.partyId).encode('ascii'), usu.password.encode('ascii'), hashlib.sha1).digest())
+          digested = base64.b64encode(hmac.new(str(usu.partyId).encode('ascii'), usu.password.encode('ascii'), hashlib.sha1).digest())
           if digested == secretKey:
             return True
     return False
