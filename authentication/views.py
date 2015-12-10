@@ -104,6 +104,10 @@ def login(request):
 
     ip = request.META.get('REMOTE_ADDR')
     logging.error("Receiving request from %s:" % ip)
+#vet PW-223
+    browser = request.META['HTTP_USER_AGENT']
+    logging.error("Client browser %s:" % browser)
+
     if not 'user' in request.POST:
       msg = "No username provided"
       logging.error("%s, %s" % (ip, msg))
