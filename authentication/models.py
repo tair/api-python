@@ -24,13 +24,12 @@ class Credential(models.Model):
         digested = base64.b64encode(hmac.new(str(partyId).encode('ascii'), usu.password.encode('ascii'), hashlib.sha1).digest())
         if digested == secretKey:
           return True
-      pu = pu.first().consortium
-      if Credential.objects.filter(partyId=pu).exists():
-        usu = Credential.objects.filter(partyId=pu).first()
-        digested = base64.b64encode(hmac.new(str(pu.partyId).encode('ascii'), usu.password.encode('ascii'), hashlib.sha1).digest()) 
-	return digested
-        if digested == secretKey:
-          return True
+      pu = pu.first().consortiums
+      if Credential.objects.filter(partyId_id__in=pu.values('partyId')).exists():
+        for usu in Credential.objects.filter(partyId_id__in=pu.values('partyId')):
+          digested = base64.b64encode(hmac.new(str(pu.partyId).encode('ascii'), usu.password.encode('ascii'), hashlib.sha1).digest())
+          if digested == secretKey:
+            return True
     return False
 
   class Meta:
