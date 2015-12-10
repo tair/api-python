@@ -196,6 +196,6 @@ class AffiliationCRUD(GenericCRUDView):
         obj = self.get_queryset()
         out = []
         for entry in obj.Affiliation.all():
-            out.append(entry.partyId)
+            out.append(entry)
         return HttpResponse(json.dumps(out), content_type="application/json")
 # TODO: "post" is still a security vulnerability -SC
