@@ -134,7 +134,7 @@ def login(request):
     requestHashedPassword = hashlib.sha1(request.POST.get('password')).hexdigest()
     requestUser = request.POST.get('user')
 
-    # iexact does not work unfortunately. Steve to find out why 
+    # iexact does not work unfortunately. Steve to find out why
     #dbUserList = Credential.objects.filter(partnerId=request.GET.get('partnerId')).filter(username__iexact=requestUser)
 
     # get list of users by partner and pwd -  less efficient though than fetching by (partner+username) as there could be many users with same pwd
@@ -161,11 +161,11 @@ def login(request):
             if dbUser.username.lower() != requestUser.lower():
                 msg = "  USER NOT MATCH. i=%s continue..." % (i)
                 logging.error(msg)
-                i = i+1 
+                i = i+1
                 continue
             else:
                 response = HttpResponse(json.dumps({
-                     "message": "Correct password", 
+                     "message": "Correct password",
                      "credentialId": dbUser.partyId.partyId,
                      "secretKey": generateSecretKey(str(dbUser.partyId.partyId), dbUser.password),
                      "email": dbUser.email,
@@ -178,7 +178,7 @@ def login(request):
 
         logging.error("end of loop")
     #}end of if not empty list
-    #if we did not return from above and we are here, then it's an error. 
+    #if we did not return from above and we are here, then it's an error.
     #print last error msg from the loop and return 401 response
     logging.error("%s, %s: \n %s %s %s" % (ip, msg, requestUser, requestPassword, request.GET['partnerId']))
     return HttpResponse(json.dumps({"message":msg}), status=401)
