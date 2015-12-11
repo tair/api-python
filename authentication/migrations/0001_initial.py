@@ -26,7 +26,7 @@ class Migration(migrations.Migration):
             name='User',
             fields=[
                 ('id', models.AutoField(verbose_name='ID', serialize=False, auto_created=True, primary_key=True)),
-                ('username', models.CharField(max_length=32, db_index=True)),
+                ('username', models.CharField(max_length=32, db_index=True)),#PW-215 ?
                 ('password', models.CharField(max_length=32)),
                 ('email', models.CharField(max_length=128, null=True)),
                 ('institution', models.CharField(max_length=64, null=True)),
@@ -38,6 +38,6 @@ class Migration(migrations.Migration):
         ),
         migrations.AlterUniqueTogether(
             name='user',
-            unique_together=set([('username',)]),
+            unique_together=set([('username',)]),#PW-215 ?
         ),
     ]
