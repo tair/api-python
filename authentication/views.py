@@ -118,11 +118,15 @@ def login(request):
       return HttpResponse(json.dumps({"message": msg}), status=400)
 
     requestUsername = request.POST.get('user')
-    requestUsernameLCClean = requestUsername.lower().strip()#PW-215
+    requestUsernameLCClean = requestUsername.lower()#PW-215 w/o strip
+    #requestUsernameLCClean = requestUsername.lower().strip()#PW-215 this assumes we don't have outer spaces in usernames in DB
     #PW-215 usernameLCClean = username.lower().strip() # not sure it will work hence comment it out
     requestPassword = hashlib.sha1(request.POST.get('password')).hexdigest()
     requestPartner = request.GET.get('partnerId')
+    
     user = Credential.objects.filter(partnerId=requestPartner).filter(username=requestUsernameLCClean)
+    #can we get user by boht username and password? if yes it will grantee we get single unique user.
+    #user = Credential.objects.filter(partnerId=requestPartner).filter(username=requestUsernameLCClean, password=requestPassword)
     #user = Credential.objects.filter(partnerId=requestPartner).filter(usernameLCClean=requestUsernameLCClean) # unlikely this is correct
     
     if user: 
