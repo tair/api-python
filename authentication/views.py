@@ -122,9 +122,16 @@ def login(request):
       return HttpResponse(json.dumps({"message": msg}), status=400)
 
     requestUsername = request.POST.get('user')
+    requestUsernameLCClean = requestUsername.lower()#PW-215 w/o strip
+    #requestUsernameLCClean = requestUsername.lower().strip()#PW-215 this assumes we don't have outer spaces in usernames in DB
+    #PW-215 usernameLCClean = username.lower().strip() # not sure it will work hence comment it out
     requestPassword = hashlib.sha1(request.POST.get('password')).hexdigest()
     requestPartner = request.GET.get('partnerId')
-    user = Credential.objects.filter(partnerId=requestPartner).filter(username=requestUsername)
+    
+    user = Credential.objects.filter(partnerId=requestPartner).filter(username=requestUsernameLCClean)
+    #can we get user by boht username and password? if yes it will grantee we get single unique user.
+    #user = Credential.objects.filter(partnerId=requestPartner).filter(username=requestUsernameLCClean, password=requestPassword)
+    #user = Credential.objects.filter(partnerId=requestPartner).filter(usernameLCClean=requestUsernameLCClean) # unlikely this is correct
     
     if user: 
       user = user.first()
@@ -135,7 +142,7 @@ def login(request):
           "secretKey": generateSecretKey(str(user.partyId.partyId), user.password),
           "email": user.email,
           "role":"librarian",
-	  "username": user.username,
+          "username": user.username,#PW-215 user.username.lower().strip() ? #unlikely this is needed and correct; why to return clean username in response?
         }), status=200)
         logging.error("Successful login from %s: %s" % (ip, request.POST['user']))
         return response
@@ -154,9 +161,9 @@ def resetPwd(request):
         return HttpResponse(json.dumps({"message": "No username provided"}), status=400)
     if not 'partnerId' in request.GET:
         return HttpResponse(json.dumps({"message": "No partnerId provided"}), status=400)
-    requestUsername = request.GET.get('user')
+    requestUsername = request.GET.get('user').lower().strip()#PW-125 ?
     requestPartner = request.GET.get('partnerId')
-    user = Credential.objects.filter(partnerId=requestPartner).filter(username=requestUsername)
+    user = Credential.objects.filter(partnerId=requestPartner).filter(username=requestUsername)#PW-125 likely need it here too
     
     if user: 
       user = user.first()
@@ -164,15 +171,15 @@ def resetPwd(request):
       user.password=hashlib.sha1(password).hexdigest()
       user.save()
       
-      subject = "Temporary password for %s (%s)" % (user.username, user.email)
+      subject = "Temporary password for %s (%s)" % (user.username, user.email)#PW-215 unlikely
       message = "username: %s (%s)\n\nYour temp password is %s \n\n" \
                 "Please log on to your account and change your password." \
-                % (user.username, user.email, password)
+                % (user.username, user.email, password)#PW-215
       from_email = "info@phoenixbioinformatics.org"
       recipient_list = [user.email]
       send_mail(subject=subject, message=message, from_email=from_email, recipient_list=recipient_list)
             
-      return HttpResponse(json.dumps({'reset pwd':'success', 'username':user.username, 'useremail':user.email, 'temppwd':user.password}), content_type="application/json")
+      return HttpResponse(json.dumps({'reset pwd':'success', 'username':user.username, 'useremail':user.email, 'temppwd':user.password}), content_type="application/json")#PW-215 unlikely
     return HttpResponse(json.dumps({"reset pwd failed":"No such user"}), status=401)
 #/credentials/register/
 #https://demoapi.arabidopsis.org/credentials/register
