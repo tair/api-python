@@ -122,16 +122,22 @@ def login(request):
       return HttpResponse(json.dumps({"message": msg}), status=400)
 
     requestUsername = request.POST.get('user')
-    requestUsernameLCClean = requestUsername.lower()#PW-215 w/o strip
+    #requestUsernameLCClean = requestUsername.lower()#PW-215 w/o strip
     #requestUsernameLCClean = requestUsername.lower().strip()#PW-215 this assumes we don't have outer spaces in usernames in DB
     #PW-215 usernameLCClean = username.lower().strip() # not sure it will work hence comment it out
     requestPassword = hashlib.sha1(request.POST.get('password')).hexdigest()
     requestPartner = request.GET.get('partnerId')
     
-    user = Credential.objects.filter(partnerId=requestPartner).filter(username=requestUsernameLCClean)
-    #can we get user by boht username and password? if yes it will grantee we get single unique user.
-    #user = Credential.objects.filter(partnerId=requestPartner).filter(username=requestUsernameLCClean, password=requestPassword)
-    #user = Credential.objects.filter(partnerId=requestPartner).filter(usernameLCClean=requestUsernameLCClean) # unlikely this is correct
+    #1) username=requestUsername.lower() - finds mixed-cased user from request if and only if DB-username is low-cased 
+    #1) (request-username teCHteam will be found b/c DB-username is techteam). 
+    #1) SO 1 IS NOT A FIX
+    #user = Credential.objects.filter(partnerId=requestPartner).filter(username=request.POST.get('user').lower())#(1)
+    
+    #2) getting by request-username AND hashed pwd. NOT A FIX EITHER
+    #user = Credential.objects.filter(partnerId=requestPartner).filter(username=request.POST.get('user'), password=hashlib.sha1(request.POST.get('password')).hexdigest())
+    
+    #3)__iexact
+    user = Credential.objects.filter(partnerId=requestPartner).filter(username__iexact=request.POST.get('user'))
     
     if user: 
       user = user.first()
@@ -161,9 +167,9 @@ def resetPwd(request):
         return HttpResponse(json.dumps({"message": "No username provided"}), status=400)
     if not 'partnerId' in request.GET:
         return HttpResponse(json.dumps({"message": "No partnerId provided"}), status=400)
-    requestUsername = request.GET.get('user').lower().strip()#PW-125 ?
+    requestUsername = request.GET.get('user')
     requestPartner = request.GET.get('partnerId')
-    user = Credential.objects.filter(partnerId=requestPartner).filter(username=requestUsername)#PW-125 likely need it here too
+    user = Credential.objects.filter(partnerId=requestPartner).filter(username__iexact=requestUsername)#PW-125
     
     if user: 
       user = user.first()
