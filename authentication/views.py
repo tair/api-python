@@ -136,16 +136,17 @@ def login(request):
     dbUserList = Credential.objects.filter(partnerId=request.GET.get('partnerId')).filter(password=requestHashedPassword)
     i=0
     if not dbUserList.exists():
-        msg = "userList empty. pwd not found"
+        msg = "userList empty. PWD NOT FOUND in db"
         logging.error("%s, %s: %s %s %s" % (ip, msg, requestUser, requestPassword, request.GET['partnerId']))
         return HttpResponse(json.dumps({"message":msg}), status=401)
     else:
-        logging.error("starting loop")
+        logging.error("found %s user(s) with this PWD % starting loop" %(len(dbUserList), requestPassword))
         for dbUser in dbUserList:
-            if dbUser.username.lower() == requestUser.lower():
-            #user found
+            #if USER FOUND by lower-cased name comparison then check his pwd
+            if dbUser.username.lower() == requestUser.lower(): 
+                #if pwd match return success else continue to iterate
                 if dbUser.password == requestHashedPassword:
-                    msg="user found. pwd match. dbUser=%s requestUser=%s requestPwd=%s" % (dbUser.username, requestUser, requestPassword)
+                    msg="USER FOUND by lower-cased name comparison. PWD MATCH. dbUser=%s requestUser=%s requestPwd=%s" % (dbUser.username, requestUser, requestPassword)
                     response = HttpResponse(json.dumps({
                      "message": "Correct password", 
                      "credentialId": dbUser.partyId.partyId,
@@ -156,22 +157,23 @@ def login(request):
                     }), status=200)
                     logging.error("Successful login from %s: %s" % (ip, request.POST['user']))
                     return response
+                #USER FOUND but PWD NOT MATCH. check next user in the loop
                 else:
-                     #user found but pwd wrong
-                    msg="user (dBuser=%s requestUser=%s) found and pwd wrong (pwd=%s) iteration i=%s  continue..."  % (dbUser.username, requestUser, requestPassword, i)
+                    msg="USER FOUND (dBuser=%s requestUser=%s) by lower-cased name comparison and PWD NOT MATCH (pwd=%s) iteration i=%s continue ..."  % (dbUser.username, requestUser, requestPassword, i)
                     logging.error(msg)
                     i = i+1
-                    continue #check next user in the list
+                    continue
+            #if USER NOT FOUND then log error and check next user in the loop
             else:
-            #user not found
-                msg = "user not found so far iteration i=%s dbUser=%s requestUser=%s pwd= %s continue..." % (i, dbUser.username, requestUser, requestPassword)
+                msg = "USER NOT FOUND so far by lower-cased name comparison. iteration i=%s dbUser=%s requestUser=%s pwd= %s continue..." % (i, dbUser.username, requestUser, requestPassword)
                 logging.error(msg)
                 i = i+1 
-                continue #check next user in the list
-        #} end of for
+                continue
         logging.error("end of loop")
     #}end of if not empty list
-    logging.error("%s, %s: %s %s %s" % (ip, msg, requestUser, requestPassword, request.GET['partnerId']))
+    #if we did not return with success from above and we are here, then it's an error. 
+    #print last error msg from the loop and return 401 response
+    logging.error("%s, %s: \n %s %s %s" % (ip, msg, requestUser, requestPassword, request.GET['partnerId']))
     return HttpResponse(json.dumps({"message":msg}), status=401)
     
 
