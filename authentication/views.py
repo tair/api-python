@@ -145,7 +145,7 @@ def login(request):
             if dbUser.username.lower() == requestUser.lower():
             #user found
                 if dbUser.password == requestHashedPassword:
-                    msg="user found. pwd match. dbUser=%s requestUser=%s requestPwd=%s" % (dbUser.username, requestUser, requestPassord)
+                    msg="user found. pwd match. dbUser=%s requestUser=%s requestPwd=%s" % (dbUser.username, requestUser, requestPassword)
                     response = HttpResponse(json.dumps({
                      "message": "Correct password", 
                      "credentialId": dbUser.partyId.partyId,
