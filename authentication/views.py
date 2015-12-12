@@ -120,46 +120,60 @@ def login(request):
       msg = "No partnerId provided"
       logging.error("%s, %s" % (ip, msg))
       return HttpResponse(json.dumps({"message": msg}), status=400)
-
-    requestUsername = request.POST.get('user')
-    #requestUsernameLCClean = requestUsername.lower()#PW-215 w/o strip
-    #requestUsernameLCClean = requestUsername.lower().strip()#PW-215 this assumes we don't have outer spaces in usernames in DB
-    #PW-215 usernameLCClean = username.lower().strip() # not sure it will work hence comment it out
-    requestPassword = hashlib.sha1(request.POST.get('password')).hexdigest()
-    requestPartner = request.GET.get('partnerId')
+ 
+    #   msg = "Incorrect password"
+    #   logging.error("%s, %s: %s %s %s" % (ip, msg, request.POST['user'], request.POST['password'], request.GET['partnerId']))
+    #   return HttpResponse(json.dumps({"message":msg}), status=401)
     
-    #1) username=requestUsername.lower() - finds mixed-cased user from request if and only if DB-username is low-cased 
-    #1) (request-username teCHteam will be found b/c DB-username is techteam). 
-    #1) SO 1 IS NOT A FIX
-    #user = Credential.objects.filter(partnerId=requestPartner).filter(username=request.POST.get('user').lower())#(1)
-    
-    #2) getting by request-username AND hashed pwd. NOT A FIX EITHER
-    #user = Credential.objects.filter(partnerId=requestPartner).filter(username=request.POST.get('user'), password=hashlib.sha1(request.POST.get('password')).hexdigest())
-    
-    #3)__iexact
-    user = Credential.objects.filter(partnerId=requestPartner).filter(username__iexact=request.POST.get('user'))
-    
-    if user: 
-      user = user.first()
-      if ( user.password == requestPassword ):
-        response = HttpResponse(json.dumps({
-          "message": "Correct password", 
-          "credentialId": user.partyId.partyId,
-          "secretKey": generateSecretKey(str(user.partyId.partyId), user.password),
-          "email": user.email,
-          "role":"librarian",
-          "username": user.username,#PW-215 user.username.lower().strip() ? #unlikely this is needed and correct; why to return clean username in response?
-        }), status=200)
-        logging.error("Successful login from %s: %s" % (ip, request.POST['user']))
-        return response
-      else:
-        msg = "Incorrect password"
-        logging.error("%s, %s: %s %s %s" % (ip, msg, request.POST['user'], request.POST['password'], request.GET['partnerId']))
+    #  msg = "No such user"
+    #  logging.error("%s, %s: %s %s %s" % (ip, msg, request.POST['user'], request.POST['password'], request.GET['partnerId']))
+    #  return HttpResponse(json.dumps({"message":msg}), status=401)
+  
+    requestPassword = request.POST.get('password')
+    requestHashedPassword = hashlib.sha1(request.POST.get('password')).hexdigest()
+    requestUser = request.POST.get('user')
+    # get list of users by partner and pwd
+    dbUserList = Credential.objects.filter(partnerId=request.GET.get('partnerId')).filter(password=requestHashedPassword)
+    i=0
+    if not dbUserList.exist():
+        msg = "userList empty. pwd not found"
+        logging.error("%s, %s: %s %s %s" % (ip, msg, requestUser, requestPassword, request.GET['partnerId']))
         return HttpResponse(json.dumps({"message":msg}), status=401)
     else:
-      msg = "No such user"
-      logging.error("%s, %s: %s %s %s" % (ip, msg, request.POST['user'], request.POST['password'], request.GET['partnerId']))
-      return HttpResponse(json.dumps({"message":msg}), status=401)
+        logging.error("starting loop")
+        for dbUser in dbUserList:
+            if dbUser.username.lower() == requestUser.lower():
+            #user found
+                if dbUser.password == requestHashedPassword:
+                    msg="user found. pwd match. dbUser=%s requestUser=%s requestPwd=%s" % (dbUser.username, requestUser, requestPwd)
+                    response = HttpResponse(json.dumps({
+                     "message": "Correct password", 
+                     "credentialId": dbUser.partyId.partyId,
+                     "secretKey": generateSecretKey(str(dbUser.partyId.partyId), dbUser.password),
+                     "email": dbUser.email,
+                     "role":"librarian",
+                     "username": dbUser.username,
+                    }), status=200)
+                    logging.error("Successful login from %s: %s" % (ip, request.POST['user']))
+                    return response
+                else:
+                     #user found but pwd wrong
+                    msg="user (dBuser=%s requestUser=%s) found and pwd wrong (pwd=%s) iteration i=%s  continue..."  % (dbUser.username, requestUser, requestPassword, i)
+                    logging.error(msg)
+                    i = i+1
+                    continue #check next user in the list
+            else:
+            #user not found
+                msg = "user not found so far iteration i=%s dbUser=%s requestUser=%s pwd= %s continue..." % (i, dbUser.username, requestUser, requestPassword)
+                logging.error(msg)
+                i = i+1 
+                continue #check next user in the list
+        #} end of for
+        logging.error("end of loop")
+        #}end of if not empty list
+        logging.error("%s, %s: %s %s %s" % (ip, msg, requestUser, requestPassword, request.GET['partnerId']))
+        return HttpResponse(json.dumps({"message":msg}), status=401)
+    
 
 def resetPwd(request):
   if request.method == 'PUT':
