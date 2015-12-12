@@ -135,7 +135,7 @@ def login(request):
     # get list of users by partner and pwd
     dbUserList = Credential.objects.filter(partnerId=request.GET.get('partnerId')).filter(password=requestHashedPassword)
     i=0
-    if not dbUserList.exist():
+    if not dbUserList.exists():
         msg = "userList empty. pwd not found"
         logging.error("%s, %s: %s %s %s" % (ip, msg, requestUser, requestPassword, request.GET['partnerId']))
         return HttpResponse(json.dumps({"message":msg}), status=401)
