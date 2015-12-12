@@ -171,6 +171,8 @@ def login(request):
         #} end of for
         logging.error("end of loop")
     #}end of if not empty list
+    #if we did not return with success from above and we are here, then it's an error. 
+    #print last error msg from the loop 
     logging.error("%s, %s: %s %s %s" % (ip, msg, requestUser, requestPassword, request.GET['partnerId']))
     return HttpResponse(json.dumps({"message":msg}), status=401)
     
