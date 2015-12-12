@@ -130,8 +130,10 @@ def login(request):
     #user = Credential.objects.filter(partnerId=requestPartner).filter(username=request.POST.get('user').lower())#(1)
     
     #2) getting by request-username AND hashed pwd. NOT A FIX EITHER
-    user = Credential.objects.filter(partnerId=requestPartner).filter(username=request.POST.get('user'), password=hashlib.sha1(request.POST.get('password')).hexdigest())
-    #user = Credential.objects.filter(partnerId=requestPartner).filter(usernameLCClean=requestUsernameLCClean) # unlikely this is correct
+    #user = Credential.objects.filter(partnerId=requestPartner).filter(username=request.POST.get('user'), password=hashlib.sha1(request.POST.get('password')).hexdigest())
+    
+    #3)__iexact
+    user = Credential.objects.filter(partnerId=requestPartner).filter(username__iexact=request.POST.get('user'))
     
     if user: 
       user = user.first()
@@ -161,9 +163,9 @@ def resetPwd(request):
         return HttpResponse(json.dumps({"message": "No username provided"}), status=400)
     if not 'partnerId' in request.GET:
         return HttpResponse(json.dumps({"message": "No partnerId provided"}), status=400)
-    requestUsername = request.GET.get('user').lower().strip()#PW-125 ?
+    requestUsername = request.GET.get('user')
     requestPartner = request.GET.get('partnerId')
-    user = Credential.objects.filter(partnerId=requestPartner).filter(username=requestUsername)#PW-125 likely need it here too
+    user = Credential.objects.filter(partnerId=requestPartner).filter(username__iexact=requestUsername)#PW-125
     
     if user: 
       user = user.first()
