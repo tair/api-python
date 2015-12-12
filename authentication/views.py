@@ -105,6 +105,7 @@ def login(request):
     ip = request.META.get('REMOTE_ADDR')
     #vet PW-223
     browser = request.META['HTTP_USER_AGENT']
+    logging.error("-------------------------")
     logging.error("Receiving request from %s: Client browser %s:" % (ip, browser))
     #logging.error("Client browser %s:" % browser)
 
@@ -133,6 +134,7 @@ def login(request):
     requestHashedPassword = hashlib.sha1(request.POST.get('password')).hexdigest()
     requestUser = request.POST.get('user')
     # get list of users by partner and pwd
+    #logging.error("---")
     dbUserList = Credential.objects.filter(partnerId=request.GET.get('partnerId')).filter(password=requestHashedPassword)
     i=0
     if not dbUserList.exists():
@@ -140,7 +142,7 @@ def login(request):
         logging.error("%s, %s: %s %s %s" % (ip, msg, requestUser, requestPassword, request.GET['partnerId']))
         return HttpResponse(json.dumps({"message":msg}), status=401)
     else:
-        logging.error("found %s user(s) with this PWD % starting loop" %(len(dbUserList), requestPassword))
+        logging.error("found %s user(s) with this PWD %s starting loop" %(len(dbUserList), requestPassword))
         for dbUser in dbUserList:
             #if USER FOUND by lower-cased name comparison then check his pwd
             if dbUser.username.lower() == requestUser.lower(): 
