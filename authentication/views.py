@@ -170,9 +170,9 @@ def login(request):
                 continue #check next user in the list
         #} end of for
         logging.error("end of loop")
-        #}end of if not empty list
-        logging.error("%s, %s: %s %s %s" % (ip, msg, requestUser, requestPassword, request.GET['partnerId']))
-        return HttpResponse(json.dumps({"message":msg}), status=401)
+    #}end of if not empty list
+    logging.error("%s, %s: %s %s %s" % (ip, msg, requestUser, requestPassword, request.GET['partnerId']))
+    return HttpResponse(json.dumps({"message":msg}), status=401)
     
 
 def resetPwd(request):
