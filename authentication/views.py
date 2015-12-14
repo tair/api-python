@@ -105,7 +105,7 @@ def login(request):
     ip = request.META.get('REMOTE_ADDR')
     #vet PW-223
     browser = request.META['HTTP_USER_AGENT']
-    logging.error("-------------------------")
+    logging.error("===")
     logging.error("Receiving request from %s: Client browser %s:" % (ip, browser))
     #logging.error("Client browser %s:" % browser)
 
@@ -121,7 +121,7 @@ def login(request):
       msg = "No partnerId provided"
       logging.error("%s, %s" % (ip, msg))
       return HttpResponse(json.dumps({"message": msg}), status=400)
- 
+
     #   msg = "Incorrect password"
     #   logging.error("%s, %s: %s %s %s" % (ip, msg, request.POST['user'], request.POST['password'], request.GET['partnerId']))
     #   return HttpResponse(json.dumps({"message":msg}), status=401)
@@ -129,55 +129,59 @@ def login(request):
     #  msg = "No such user"
     #  logging.error("%s, %s: %s %s %s" % (ip, msg, request.POST['user'], request.POST['password'], request.GET['partnerId']))
     #  return HttpResponse(json.dumps({"message":msg}), status=401)
-  
+
     requestPassword = request.POST.get('password')
     requestHashedPassword = hashlib.sha1(request.POST.get('password')).hexdigest()
     requestUser = request.POST.get('user')
-    # get list of users by partner and pwd
-    #logging.error("---")
+
+    # iexact does not work unfortunately. Steve to find out why 
+    #dbUserList = Credential.objects.filter(partnerId=request.GET.get('partnerId')).filter(username__iexact=requestUser)
+
+    # get list of users by partner and pwd -  less efficient though than fetching by (partner+username) as there could be many users with same pwd
+    # more efficient is to fetch by partner+username
+
     dbUserList = Credential.objects.filter(partnerId=request.GET.get('partnerId')).filter(password=requestHashedPassword)
+
     i=0
     if not dbUserList.exists():
-        msg = "userList empty. PWD NOT FOUND in db"
+
+        msg = "PWD NOT FOUND IN DB. username existance unknown"
         logging.error("%s, %s: %s %s %s" % (ip, msg, requestUser, requestPassword, request.GET['partnerId']))
         return HttpResponse(json.dumps({"message":msg}), status=401)
+
     else:
-        logging.error("found %s user(s) with this PWD %s starting loop" %(len(dbUserList), requestPassword))
+
+        logging.error("%s USER(S) WITH PWD %s FOUND:" %(len(dbUserList), requestPassword))
+
         for dbUser in dbUserList:
-            #if USER FOUND by lower-cased name comparison then check his pwd
-            if dbUser.username.lower() == requestUser.lower(): 
-                #if pwd match return success else continue to iterate
-                if dbUser.password == requestHashedPassword:
-                    msg="USER FOUND by lower-cased name comparison. PWD MATCH. dbUser=%s requestUser=%s requestPwd=%s" % (dbUser.username, requestUser, requestPassword)
-                    response = HttpResponse(json.dumps({
+
+            logging.error("dbUser %s requestUser %s pwd %s" % (dbUser.username,requestUser,requestPassword))
+
+            #if user not found then continue
+            if dbUser.username.lower() != requestUser.lower():
+                msg = "  USER NOT MATCH. i=%s continue..." % (i)
+                logging.error(msg)
+                i = i+1 
+                continue
+            else:
+                response = HttpResponse(json.dumps({
                      "message": "Correct password", 
                      "credentialId": dbUser.partyId.partyId,
                      "secretKey": generateSecretKey(str(dbUser.partyId.partyId), dbUser.password),
                      "email": dbUser.email,
                      "role":"librarian",
                      "username": dbUser.username,
-                    }), status=200)
-                    logging.error("Successful login from %s: %s" % (ip, request.POST['user']))
-                    return response
-                #USER FOUND but PWD NOT MATCH. check next user in the loop
-                else:
-                    msg="USER FOUND (dBuser=%s requestUser=%s) by lower-cased name comparison and PWD NOT MATCH (pwd=%s) iteration i=%s continue ..."  % (dbUser.username, requestUser, requestPassword, i)
-                    logging.error(msg)
-                    i = i+1
-                    continue
-            #if USER NOT FOUND then log error and check next user in the loop
-            else:
-                msg = "USER NOT FOUND so far by lower-cased name comparison. iteration i=%s dbUser=%s requestUser=%s pwd= %s continue..." % (i, dbUser.username, requestUser, requestPassword)
+                }), status=200)
+                msg="  USER AND PWD MATCH. dbUser=%s requestUser=%s requestPwd=%s" % (dbUser.username, requestUser, requestPassword)
                 logging.error(msg)
-                i = i+1 
-                continue
+                return response
+
         logging.error("end of loop")
     #}end of if not empty list
-    #if we did not return with success from above and we are here, then it's an error. 
+    #if we did not return from above and we are here, then it's an error. 
     #print last error msg from the loop and return 401 response
     logging.error("%s, %s: \n %s %s %s" % (ip, msg, requestUser, requestPassword, request.GET['partnerId']))
     return HttpResponse(json.dumps({"message":msg}), status=401)
-    
 
 def resetPwd(request):
   if request.method == 'PUT':
@@ -187,7 +191,7 @@ def resetPwd(request):
         return HttpResponse(json.dumps({"message": "No partnerId provided"}), status=400)
     requestUsername = request.GET.get('user')
     requestPartner = request.GET.get('partnerId')
-    user = Credential.objects.filter(partnerId=requestPartner).filter(username__iexact=requestUsername)#PW-125
+    user = Credential.objects.filter(partnerId=requestPartner).filter(username__iexact=requestUsername)#PW-125 TODO
     
     if user: 
       user = user.first()
