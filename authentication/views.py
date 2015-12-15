@@ -103,7 +103,12 @@ def login(request):
     )
 
     ip = request.META.get('REMOTE_ADDR')
-    logging.error("Receiving request from %s:" % ip)
+    #vet PW-223
+    browser = request.META['HTTP_USER_AGENT']
+    logging.error("===")
+    logging.error("Receiving request from %s: Client browser %s:" % (ip, browser))
+    #logging.error("Client browser %s:" % browser)
+
     if not 'user' in request.POST:
       msg = "No username provided"
       logging.error("%s, %s" % (ip, msg))
@@ -117,32 +122,66 @@ def login(request):
       logging.error("%s, %s" % (ip, msg))
       return HttpResponse(json.dumps({"message": msg}), status=400)
 
-    requestUsername = request.POST.get('user')
-    requestPassword = hashlib.sha1(request.POST.get('password')).hexdigest()
-    requestPartner = request.GET.get('partnerId')
-    user = Credential.objects.filter(partnerId=requestPartner).filter(username=requestUsername)
+    #   msg = "Incorrect password"
+    #   logging.error("%s, %s: %s %s %s" % (ip, msg, request.POST['user'], request.POST['password'], request.GET['partnerId']))
+    #   return HttpResponse(json.dumps({"message":msg}), status=401)
     
-    if user: 
-      user = user.first()
-      if ( user.password == requestPassword ):
-        response = HttpResponse(json.dumps({
-          "message": "Correct password", 
-          "credentialId": user.partyId.partyId,
-          "secretKey": generateSecretKey(str(user.partyId.partyId), user.password),
-          "email": user.email,
-          "role":"librarian",
-	  "username": user.username,
-        }), status=200)
-        logging.error("Successful login from %s: %s" % (ip, request.POST['user']))
-        return response
-      else:
-        msg = "Incorrect password"
-        logging.error("%s, %s: %s %s %s" % (ip, msg, request.POST['user'], request.POST['password'], request.GET['partnerId']))
+    #  msg = "No such user"
+    #  logging.error("%s, %s: %s %s %s" % (ip, msg, request.POST['user'], request.POST['password'], request.GET['partnerId']))
+    #  return HttpResponse(json.dumps({"message":msg}), status=401)
+
+    requestPassword = request.POST.get('password')
+    requestHashedPassword = hashlib.sha1(request.POST.get('password')).hexdigest()
+    requestUser = request.POST.get('user')
+
+    # iexact does not work unfortunately. Steve to find out why 
+    #dbUserList = Credential.objects.filter(partnerId=request.GET.get('partnerId')).filter(username__iexact=requestUser)
+
+    # get list of users by partner and pwd -  less efficient though than fetching by (partner+username) as there could be many users with same pwd
+    # more efficient is to fetch by partner+username
+
+    dbUserList = Credential.objects.filter(partnerId=request.GET.get('partnerId')).filter(password=requestHashedPassword)
+
+    i=0
+    if not dbUserList.exists():
+
+        msg = "PWD NOT FOUND IN DB. username existance unknown"
+        logging.error("%s, %s: %s %s %s" % (ip, msg, requestUser, requestPassword, request.GET['partnerId']))
         return HttpResponse(json.dumps({"message":msg}), status=401)
+
     else:
-      msg = "No such user"
-      logging.error("%s, %s: %s %s %s" % (ip, msg, request.POST['user'], request.POST['password'], request.GET['partnerId']))
-      return HttpResponse(json.dumps({"message":msg}), status=401)
+
+        logging.error("%s USER(S) WITH PWD %s FOUND:" %(len(dbUserList), requestPassword))
+
+        for dbUser in dbUserList:
+
+            logging.error("dbUser %s requestUser %s pwd %s" % (dbUser.username,requestUser,requestPassword))
+
+            #if user not found then continue
+            if dbUser.username.lower() != requestUser.lower():
+                msg = "  USER NOT MATCH. i=%s continue..." % (i)
+                logging.error(msg)
+                i = i+1 
+                continue
+            else:
+                response = HttpResponse(json.dumps({
+                     "message": "Correct password", 
+                     "credentialId": dbUser.partyId.partyId,
+                     "secretKey": generateSecretKey(str(dbUser.partyId.partyId), dbUser.password),
+                     "email": dbUser.email,
+                     "role":"librarian",
+                     "username": dbUser.username,
+                }), status=200)
+                msg="  USER AND PWD MATCH. dbUser=%s requestUser=%s requestPwd=%s" % (dbUser.username, requestUser, requestPassword)
+                logging.error(msg)
+                return response
+
+        logging.error("end of loop")
+    #}end of if not empty list
+    #if we did not return from above and we are here, then it's an error. 
+    #print last error msg from the loop and return 401 response
+    logging.error("%s, %s: \n %s %s %s" % (ip, msg, requestUser, requestPassword, request.GET['partnerId']))
+    return HttpResponse(json.dumps({"message":msg}), status=401)
 
 def resetPwd(request):
   if request.method == 'PUT':
@@ -152,7 +191,7 @@ def resetPwd(request):
         return HttpResponse(json.dumps({"message": "No partnerId provided"}), status=400)
     requestUsername = request.GET.get('user')
     requestPartner = request.GET.get('partnerId')
-    user = Credential.objects.filter(partnerId=requestPartner).filter(username=requestUsername)
+    user = Credential.objects.filter(partnerId=requestPartner).filter(username__iexact=requestUsername)#PW-125 TODO
     
     if user: 
       user = user.first()
@@ -160,15 +199,15 @@ def resetPwd(request):
       user.password=hashlib.sha1(password).hexdigest()
       user.save()
       
-      subject = "Temporary password for %s (%s)" % (user.username, user.email)
+      subject = "Temporary password for %s (%s)" % (user.username, user.email)#PW-215 unlikely
       message = "username: %s (%s)\n\nYour temp password is %s \n\n" \
                 "Please log on to your account and change your password." \
-                % (user.username, user.email, password)
+                % (user.username, user.email, password)#PW-215
       from_email = "info@phoenixbioinformatics.org"
       recipient_list = [user.email]
       send_mail(subject=subject, message=message, from_email=from_email, recipient_list=recipient_list)
             
-      return HttpResponse(json.dumps({'reset pwd':'success', 'username':user.username, 'useremail':user.email, 'temppwd':user.password}), content_type="application/json")
+      return HttpResponse(json.dumps({'reset pwd':'success', 'username':user.username, 'useremail':user.email, 'temppwd':user.password}), content_type="application/json")#PW-215 unlikely
     return HttpResponse(json.dumps({"reset pwd failed":"No such user"}), status=401)
 #/credentials/register/
 #https://demoapi.arabidopsis.org/credentials/register
