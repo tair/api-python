@@ -230,7 +230,7 @@ def profile(request):
     else:
       partyId = params['partyId']
     obj = Credential.objects.all().get(partyId = partyId)
-    data = request.data.copy()
+    data = request.PUT.copy()
     if 'password' in data:
       data['password'] = hashlib.sha1(data['password']).hexdigest()
     serializer = serializer_class(obj, data=data, partial=True)
