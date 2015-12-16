@@ -84,9 +84,9 @@ class listcreateuser(GenericCRUDView):
         if 'name' in data:
           name = data['name']
           partyData = {'name':name}
-        partySerializer = PartySerializer(partyObj, data=partyData, partial =True)
-        if partySerializer.is_valid():
-          partySerializer.save()
+          partySerializer = PartySerializer(partyObj, data=partyData, partial =True)
+          if partySerializer.is_valid():
+            partySerializer.save()
       if 'password' in data:
         # HACK: 2015-11-12: YM: TAIR-2493: The new secret key (a.k.a. login key) is being returned as 'password' attribute. Should be refactored to use 'loginKey' attribute.
         data['password'] = generateSecretKey(str(obj.partyId.partyId), data['password'])
