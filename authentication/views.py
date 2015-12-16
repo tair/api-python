@@ -228,7 +228,7 @@ class profile(GenericCRUDView):
     if not isPhoenix(self.request):
       return Response(status=status.HTTP_400_BAD_REQUEST)
     # http://stackoverflow.com/questions/12611345/django-why-is-the-request-post-object-immutable
-    serializer_class = self.get_serializer_class()
+    serializer_class = CredentialSerializer
     params = request.GET
     if 'partyId' not in params:
       return Response({'error': 'Put method needs partyId'})
