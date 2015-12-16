@@ -217,3 +217,34 @@ def registerUser(request):
 
 def generateSecretKey(partyId, password):
   return base64.b64encode(hmac.new(str(partyId).encode('ascii'), password.encode('ascii'), hashlib.sha1).digest())
+
+#/credentials/profile/
+def profile(request):
+  if request.method == 'PUT':
+    if not isPhoenix(request):
+      return Response(status=status.HTTP_400_BAD_REQUEST)
+    serializer_class = CredentialSerializer
+    params = request.GET
+    if 'partyId' not in params:
+      return Response({'error': 'Put method needs partyId'})
+    else:
+      partyId = params['partyId']
+    obj = Credential.objects.all().get(partyId = partyId)
+    data = request.data.copy()
+    if 'password' in data:
+      data['password'] = hashlib.sha1(data['password']).hexdigest()
+    serializer = serializer_class(obj, data=data, partial=True)
+    if serializer.is_valid():
+      serializer.save()
+      #update party info
+      if 'partyId' in serializer.data:
+        partyId = serializer.data['partyId']
+        partyObj = Party.objects.all().get(partyId = partyId)
+        if 'name' in data:
+          name = data['name']
+          partyData = {'name':name}
+          partySerializer = PartySerializer(partyObj, data=partyData, partial =True)
+          if partySerializer.is_valid():
+            partySerializer.save()
+      return Response(data, status=status.HTTP_201_CREATED)
+    return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
