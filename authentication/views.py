@@ -219,18 +219,22 @@ def generateSecretKey(partyId, password):
   return base64.b64encode(hmac.new(str(partyId).encode('ascii'), password.encode('ascii'), hashlib.sha1).digest())
 
 #/credentials/profile/
-def profile(request):
-  if request.method == 'PUT':
-    if not isPhoenix(request):
+class profile(GenericCRUDView):
+  queryset = Credential.objects.all()
+  requireApiKey = False
+
+  def put(self, request, format=None):
+    # TODO: security risk here, get username based on the partyId verified in isPhoenix -SC
+    if not isPhoenix(self.request):
       return Response(status=status.HTTP_400_BAD_REQUEST)
-    serializer_class = CredentialSerializer
+    # http://stackoverflow.com/questions/12611345/django-why-is-the-request-post-object-immutable
+    serializer_class = self.get_serializer_class()
     params = request.GET
     if 'partyId' not in params:
       return Response({'error': 'Put method needs partyId'})
-    else:
-      partyId = params['partyId']
-    obj = Credential.objects.all().get(partyId = partyId)
-    data = request.PUT.copy()
+    obj = self.get_queryset().first()
+    #http://stackoverflow.com/questions/18930234/django-modifying-the-request-object PW-123
+    data = request.data.copy() # PW-123
     if 'password' in data:
       data['password'] = hashlib.sha1(data['password']).hexdigest()
     serializer = serializer_class(obj, data=data, partial=True)
