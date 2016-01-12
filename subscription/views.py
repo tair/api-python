@@ -137,8 +137,6 @@ class SubscriptionsPayment(APIView):
         #TODO: Handle more human readable price
         termId = request.GET.get('termId')
         message['price'] = int(SubscriptionTerm.objects.get(subscriptionTermId=termId).price)
-        #PW-204 SubscriptionTerm.description#
-        #message['description'] = SubscriptionTerm.objects.get(subscriptionTermId=termId).description
         message['quantity'] = request.GET.get('quantity')
         message['termId'] = termId
         message['stripeKey'] = settings.STRIPE_PUBLIC_KEY
@@ -150,9 +148,6 @@ class SubscriptionsPayment(APIView):
         token = request.POST['stripeToken']
         price = float(request.POST['price'])
         termId = request.POST['termId']
-        #PW-204
-        #description = request.POST['description']
-        descriptionDuration = SubscriptionTerm.objects.get(subscriptionTermId=termId).description
         quantity = int(request.POST['quantity'])
         email = request.POST['email']
         firstname = request.POST['firstName']
@@ -165,16 +160,8 @@ class SubscriptionsPayment(APIView):
         zip = request.POST['zip']
         hostname = request.META.get("HTTP_ORIGIN")
         redirect = request.POST['redirect']
-# PW-204  duration fetched from SubscriptionTerm table decription column :
-#SELECT subscriptionTermId, period, price, groupDiscountPercentage, partnerId, description
-#FROM phoenix_api.SubscriptionTerm;
-#subscriptionTermId |period |price  |groupDiscountPercentage |partnerId |description |
-#-------------------|-------|-------|------------------------|----------|------------|
-#1                  |30     |9.80   |10.00                   |tair      |1 month     |
-#2                  |365    |98.00  |10.00                   |tair      |1 year      |
-#3                  |730    |196.00 |10.00                   |tair      |2 years     |
-
-        #PW-204 requirement: "TAIR 1-year subscription" would suffice.  
+        #PW-204 requirement: "TAIR 1-year subscription" would suffice.
+        descriptionDuration = SubscriptionTerm.objects.get(subscriptionTermId=termId).description
         descriptionPartnerDuration = str(request.POST.get('partnerName'))+" "+descriptionDuration +" subscription"
         message = PaymentControl.tryCharge(stripe_api_secret_test_key, token, price, descriptionPartnerDuration, termId, quantity, email, firstname, lastname, institute, street, city, state, country, zip, hostname, redirect)
         #PW-120 vet
