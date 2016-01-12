@@ -137,6 +137,7 @@ class SubscriptionsPayment(APIView):
         #TODO: Handle more human readable price
         termId = request.GET.get('termId')
         message['price'] = int(SubscriptionTerm.objects.get(subscriptionTermId=termId).price)
+        message['description'] = SubscriptionTerm.objects.get(subscriptionTermId=termId).description # PW-204 SubscriptionTerm.description#
         message['quantity'] = request.GET.get('quantity')
         message['termId'] = termId
         message['stripeKey'] = settings.STRIPE_PUBLIC_KEY
@@ -147,22 +148,32 @@ class SubscriptionsPayment(APIView):
         stripe.api_key = stripe_api_secret_test_key 
         token = request.POST['stripeToken']
         price = float(request.POST['price'])
+        desciption = request.POST['description'] #PW-204
         termId = request.POST['termId']
         quantity = int(request.POST['quantity'])
         email = request.POST['email']
-	firstname = request.POST['firstName']
-	lastname = request.POST['lastName']
-	institute = request.POST['institute']
-	street = request.POST['street']
-	city = request.POST['city']
-	state = request.POST['state']
-	country = request.POST['country']
-	zip = request.POST['zip']
+        firstname = request.POST['firstName']
+        lastname = request.POST['lastName']
+        institute = request.POST['institute']
+        street = request.POST['street']
+        city = request.POST['city']
+        state = request.POST['state']
+        country = request.POST['country']
+        zip = request.POST['zip']
         hostname = request.META.get("HTTP_ORIGIN")
         redirect = request.POST['redirect']
-	
-        description = str(request.POST.get('partnerName'))+"-"+ str(termId)
-        message = PaymentControl.tryCharge(stripe_api_secret_test_key, token, price, description, termId, quantity, email, firstname, lastname, institute, street, city, state, country, zip, hostname, redirect)
+# PW-204  duration fetched from SubscriptionTerm table decription column :
+#SELECT subscriptionTermId, period, price, groupDiscountPercentage, partnerId, description
+#FROM phoenix_api.SubscriptionTerm;
+#subscriptionTermId |period |price  |groupDiscountPercentage |partnerId |description |
+#-------------------|-------|-------|------------------------|----------|------------|
+#1                  |30     |9.80   |10.00                   |tair      |1 month     |
+#2                  |365    |98.00  |10.00                   |tair      |1 year      |
+#3                  |730    |196.00 |10.00                   |tair      |2 years     |
+
+        #PW-204 requirement: "TAIR 1-year subscription" would suffice.  
+        descriptionPartnerDuration = str(request.POST.get('partnerName'))+" "+ desciption + "subscription"
+        message = PaymentControl.tryCharge(stripe_api_secret_test_key, token, price, descriptionPartnerDuration, termId, quantity, email, firstname, lastname, institute, street, city, state, country, zip, hostname, redirect)
         #PW-120 vet
         status = 200
         if 'message' in message:
