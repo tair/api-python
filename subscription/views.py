@@ -162,7 +162,7 @@ class SubscriptionsPayment(APIView):
         redirect = request.POST['redirect']
         #PW-204 requirement: "TAIR 1-year subscription" would suffice.
         descriptionDuration = SubscriptionTerm.objects.get(subscriptionTermId=termId).description
-        descriptionPartnerDuration = str(request.POST.get('partnerName'))+" "+descriptionDuration +" subscription"
+        descriptionPartnerDuration = request.POST.get('partnerName')+" "+descriptionDuration +" subscription"
         message = PaymentControl.tryCharge(stripe_api_secret_test_key, token, price, descriptionPartnerDuration, termId, quantity, email, firstname, lastname, institute, street, city, state, country, zip, hostname, redirect)
         #PW-120 vet
         status = 200
