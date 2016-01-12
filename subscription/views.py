@@ -137,7 +137,8 @@ class SubscriptionsPayment(APIView):
         #TODO: Handle more human readable price
         termId = request.GET.get('termId')
         message['price'] = int(SubscriptionTerm.objects.get(subscriptionTermId=termId).price)
-        message['description'] = SubscriptionTerm.objects.get(subscriptionTermId=termId).description # PW-204 SubscriptionTerm.description#
+        #PW-204 SubscriptionTerm.description#
+        message['description'] = SubscriptionTerm.objects.get(subscriptionTermId=termId).description
         message['quantity'] = request.GET.get('quantity')
         message['termId'] = termId
         message['stripeKey'] = settings.STRIPE_PUBLIC_KEY
@@ -148,8 +149,10 @@ class SubscriptionsPayment(APIView):
         stripe.api_key = stripe_api_secret_test_key 
         token = request.POST['stripeToken']
         price = float(request.POST['price'])
-        desciption = request.POST['description'] #PW-204
         termId = request.POST['termId']
+        #PW-204
+        description = request.POST['description']
+        #description = SubscriptionTerm.objects.get(subscriptionTermId=termId).description
         quantity = int(request.POST['quantity'])
         email = request.POST['email']
         firstname = request.POST['firstName']
@@ -172,7 +175,7 @@ class SubscriptionsPayment(APIView):
 #3                  |730    |196.00 |10.00                   |tair      |2 years     |
 
         #PW-204 requirement: "TAIR 1-year subscription" would suffice.  
-        descriptionPartnerDuration = str(request.POST.get('partnerName'))+" "+ desciption + "subscription"
+        descriptionPartnerDuration = str(request.POST.get('partnerName'))+" "+ description + "subscription"
         message = PaymentControl.tryCharge(stripe_api_secret_test_key, token, price, descriptionPartnerDuration, termId, quantity, email, firstname, lastname, institute, street, city, state, country, zip, hostname, redirect)
         #PW-120 vet
         status = 200
