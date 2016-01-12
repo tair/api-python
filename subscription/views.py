@@ -175,7 +175,7 @@ class SubscriptionsPayment(APIView):
         # I am getting partnerName directly from SubscriptionTerm.partnerId column (as the column actually contains varchar partner name but not numeric partner id... stupid design imho)
         partnerName = SubscriptionTerm.objects.get(subscriptionTermId=termId).partnerId
         
-        descriptionPartnerDuration = partnerName+" "+descriptionDuration +" subscription"
+        descriptionPartnerDuration = str(partnerName)+" "+descriptionDuration +" subscription"
         message = PaymentControl.tryCharge(stripe_api_secret_test_key, token, price, descriptionPartnerDuration, termId, quantity, email, firstname, lastname, institute, street, city, state, country, zip, hostname, redirect)
         #PW-120 vet
         status = 200
