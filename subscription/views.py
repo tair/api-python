@@ -163,19 +163,9 @@ class SubscriptionsPayment(APIView):
 
         #PW-204 requirement: "TAIR 1-year subscription" would suffice.
         descriptionDuration = SubscriptionTerm.objects.get(subscriptionTermId=termId).description
+        partnerName = SubscriptionTerm.objects.get(subscriptionTermId=termId).partnerId.name
+        descriptionPartnerDuration = partnerName+" "+descriptionDuration +" subscription"
         
-        # PW-204 in controls partnername is fetched from SubscriptionTerm table like below. 
-        # not sure why they get partnerObj.name instead of just termObj.partnerId
-        # SubscriptionTerm.partnerId column already contains varchar partner name (like "tair")
-        # so below code to get partner name from controls.py (used in emails etc) is not quite clear to me
-        # termObj = SubscriptionTerm.objects.get(subscriptionTermId=termId)
-        # partnerObj = termObj.partnerId
-        #"partnerName": partnerObj.name
-        
-        # I am getting partnerName directly from SubscriptionTerm.partnerId column (as the column actually contains varchar partner name but not numeric partner id... stupid design imho)
-        partnerName = SubscriptionTerm.objects.get(subscriptionTermId=termId).partnerId
-        
-        descriptionPartnerDuration = str(partnerName)+" "+descriptionDuration +" subscription"
         message = PaymentControl.tryCharge(stripe_api_secret_test_key, token, price, descriptionPartnerDuration, termId, quantity, email, firstname, lastname, institute, street, city, state, country, zip, hostname, redirect)
         #PW-120 vet
         status = 200
