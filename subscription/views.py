@@ -150,19 +150,23 @@ class SubscriptionsPayment(APIView):
         termId = request.POST['termId']
         quantity = int(request.POST['quantity'])
         email = request.POST['email']
-	firstname = request.POST['firstName']
-	lastname = request.POST['lastName']
-	institute = request.POST['institute']
-	street = request.POST['street']
-	city = request.POST['city']
-	state = request.POST['state']
-	country = request.POST['country']
-	zip = request.POST['zip']
+        firstname = request.POST['firstName']
+        lastname = request.POST['lastName']
+        institute = request.POST['institute']
+        street = request.POST['street']
+        city = request.POST['city']
+        state = request.POST['state']
+        country = request.POST['country']
+        zip = request.POST['zip']
         hostname = request.META.get("HTTP_ORIGIN")
         redirect = request.POST['redirect']
-	
-        description = str(request.POST.get('partnerName'))+"-"+ str(termId)
-        message = PaymentControl.tryCharge(stripe_api_secret_test_key, token, price, description, termId, quantity, email, firstname, lastname, institute, street, city, state, country, zip, hostname, redirect)
+
+        #PW-204 requirement: "TAIR 1-year subscription" would suffice.
+        descriptionDuration = SubscriptionTerm.objects.get(subscriptionTermId=termId).description
+        partnerName = SubscriptionTerm.objects.get(subscriptionTermId=termId).partnerId.name
+        descriptionPartnerDuration = partnerName+" "+descriptionDuration +" subscription"
+        
+        message = PaymentControl.tryCharge(stripe_api_secret_test_key, token, price, descriptionPartnerDuration, termId, quantity, email, firstname, lastname, institute, street, city, state, country, zip, hostname, redirect)
         #PW-120 vet
         status = 200
         if 'message' in message:

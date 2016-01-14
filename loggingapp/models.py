@@ -11,7 +11,7 @@ class PageView(models.Model):
   uri = models.CharField(max_length=250)
   partyId = models.ForeignKey('party.Party', db_column='partyId', null=True)
   pageViewDate = models.DateTimeField(default=datetime.datetime.utcnow)
-  sessionId = models.CharField(max_length=250)
+  sessionId = models.CharField(max_length=250, null=True)
   ip = models.GenericIPAddressField(max_length=200)
   class Meta:
     db_table = "PageView"
