@@ -16,6 +16,7 @@ from rest_framework.views import APIView
 from rest_framework import generics
 from common.views import GenericCRUDView
 from common.permissions import isPhoenix
+from common.common import getIpAddress
 
 from django.shortcuts import render
 import stripe
@@ -211,7 +212,7 @@ class InstitutionSubscription(APIView):
 
         message += "\nSource IP Address: " + Common.getIpAddress(request)
         from_email = "info@phoenixbioinformatics.org"
-        recipient_list = ["yarik@arabidopsis.org", "info@phoenixbioinformatics.org"]
+        recipient_list = ["yarik@arabidopsis.org"] # 2016-01-20: YM: PW-246: Temporary #, "info@phoenixbioinformatics.org"]
         send_mail(subject=subject, message=message, from_email=from_email, recipient_list=recipient_list)
 #        logging.error("------Done sending institution subscription email------")
 
