@@ -210,7 +210,7 @@ class InstitutionSubscription(APIView):
 #        logging.error("%s" % subject)
 #        logging.error("%s" % message)
 
-        message += "\nSource IP Address: " + Common.getIpAddress(request)
+        message += "\nSource IP Address: " + getIpAddress(request)
         from_email = "info@phoenixbioinformatics.org"
         recipient_list = ["yarik@arabidopsis.org"] # 2016-01-20: YM: PW-246: Temporary #, "info@phoenixbioinformatics.org"]
         send_mail(subject=subject, message=message, from_email=from_email, recipient_list=recipient_list)
