@@ -122,7 +122,6 @@ class PaymentControl():
         country = country
         zipcode = zip
         senderEmail = "info@phoenixbioinformatics.org"
-        #senderEmail = "steve@getexp.com"
         recipientEmails = [email]
         payment = "%.2f" % float(payment)
         return {
