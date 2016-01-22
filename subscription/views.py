@@ -16,6 +16,7 @@ from rest_framework.views import APIView
 from rest_framework import generics
 from common.views import GenericCRUDView
 from common.permissions import isPhoenix
+from common.common import getRemoteIpAddress
 
 from django.shortcuts import render
 import stripe
@@ -202,15 +203,17 @@ class InstitutionSubscription(APIView):
                   "Librarian Email: %s \n" \
                   % dataTuple
 
+        message += "\nSubmitter's public IP Address: " + getRemoteIpAddress(request)
+
 #        logging.basicConfig(filename="/home/ec2-user/logs/debug.log",
 #                            format='%(asctime)s %(message)s'
 #        )
 #        logging.error("------Sending institution subscription email------")
 #        logging.error("%s" % subject)
 #        logging.error("%s" % message)
-        #from_email = "steve@getexp.com"
+
         from_email = "info@phoenixbioinformatics.org"
-        recipient_list = ["steve@getexp.com", "info@phoenixbioinformatics.org"]
+        recipient_list = ["yarik@arabidopsis.org", "info@phoenixbioinformatics.org"]
         send_mail(subject=subject, message=message, from_email=from_email, recipient_list=recipient_list)
 #        logging.error("------Done sending institution subscription email------")
 
@@ -246,6 +249,8 @@ class CommercialSubscription(APIView):
         if data.get('commercialLicense'):
             message += "Commercial Licenses\n"
 
+        message += "\nSubmitter's public IP Address: " + getRemoteIpAddress(request)
+
 #        logging.basicConfig(filename="/home/ec2-user/logs/debug.log",
 #                            format='%(asctime)s %(message)s'
 #        )
@@ -254,7 +259,7 @@ class CommercialSubscription(APIView):
 #        logging.error("%s" % message)
 
         from_email = "info@phoenixbioinformatics.org"
-        recipient_list = ["steve@getexp.com", "info@phoenixbioinformatics.org"]
+        recipient_list = ["yarik@arabidopsis.org", "info@phoenixbioinformatics.org"]
         send_mail(subject=subject, message=message, from_email=from_email, recipient_list=recipient_list)
 #        logging.error("------Done sending commercial email------")
         return HttpResponse(json.dumps({'message':'success'}), content_type="application/json")
