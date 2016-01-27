@@ -6,7 +6,7 @@ from rest_framework import serializers
 class PartnerSerializer(serializers.ModelSerializer):
     class Meta:
         model = Partner
-        fields = ('partnerId','name','logoUri','termOfServiceUri')
+        fields = ('partnerId','name','logoUri','homeUri','termOfServiceUri')
 
 class PartnerPatternSerializer(serializers.ModelSerializer):
     class Meta:

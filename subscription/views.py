@@ -16,6 +16,7 @@ from rest_framework.views import APIView
 from rest_framework import generics
 from common.views import GenericCRUDView
 from common.permissions import isPhoenix
+from common.common import getRemoteIpAddress
 
 from django.shortcuts import render
 import stripe
@@ -150,19 +151,23 @@ class SubscriptionsPayment(APIView):
         termId = request.POST['termId']
         quantity = int(request.POST['quantity'])
         email = request.POST['email']
-	firstname = request.POST['firstName']
-	lastname = request.POST['lastName']
-	institute = request.POST['institute']
-	street = request.POST['street']
-	city = request.POST['city']
-	state = request.POST['state']
-	country = request.POST['country']
-	zip = request.POST['zip']
+        firstname = request.POST['firstName']
+        lastname = request.POST['lastName']
+        institute = request.POST['institute']
+        street = request.POST['street']
+        city = request.POST['city']
+        state = request.POST['state']
+        country = request.POST['country']
+        zip = request.POST['zip']
         hostname = request.META.get("HTTP_ORIGIN")
         redirect = request.POST['redirect']
-	
-        description = str(request.POST.get('partnerName'))+"-"+ str(termId)
-        message = PaymentControl.tryCharge(stripe_api_secret_test_key, token, price, description, termId, quantity, email, firstname, lastname, institute, street, city, state, country, zip, hostname, redirect)
+
+        #PW-204 requirement: "TAIR 1-year subscription" would suffice.
+        descriptionDuration = SubscriptionTerm.objects.get(subscriptionTermId=termId).description
+        partnerName = SubscriptionTerm.objects.get(subscriptionTermId=termId).partnerId.name
+        descriptionPartnerDuration = partnerName+" "+descriptionDuration +" subscription"
+        
+        message = PaymentControl.tryCharge(stripe_api_secret_test_key, token, price, descriptionPartnerDuration, termId, quantity, email, firstname, lastname, institute, street, city, state, country, zip, hostname, redirect)
         #PW-120 vet
         status = 200
         if 'message' in message:
@@ -198,15 +203,17 @@ class InstitutionSubscription(APIView):
                   "Librarian Email: %s \n" \
                   % dataTuple
 
+        message += "\nSubmitter's public IP Address: " + getRemoteIpAddress(request)
+
 #        logging.basicConfig(filename="/home/ec2-user/logs/debug.log",
 #                            format='%(asctime)s %(message)s'
 #        )
 #        logging.error("------Sending institution subscription email------")
 #        logging.error("%s" % subject)
 #        logging.error("%s" % message)
-        #from_email = "steve@getexp.com"
+
         from_email = "info@phoenixbioinformatics.org"
-        recipient_list = ["steve@getexp.com", "info@phoenixbioinformatics.org"]
+        recipient_list = ["yarik@arabidopsis.org", "info@phoenixbioinformatics.org"]
         send_mail(subject=subject, message=message, from_email=from_email, recipient_list=recipient_list)
 #        logging.error("------Done sending institution subscription email------")
 
@@ -242,6 +249,8 @@ class CommercialSubscription(APIView):
         if data.get('commercialLicense'):
             message += "Commercial Licenses\n"
 
+        message += "\nSubmitter's public IP Address: " + getRemoteIpAddress(request)
+
 #        logging.basicConfig(filename="/home/ec2-user/logs/debug.log",
 #                            format='%(asctime)s %(message)s'
 #        )
@@ -250,7 +259,7 @@ class CommercialSubscription(APIView):
 #        logging.error("%s" % message)
 
         from_email = "info@phoenixbioinformatics.org"
-        recipient_list = ["steve@getexp.com", "info@phoenixbioinformatics.org"]
+        recipient_list = ["yarik@arabidopsis.org", "info@phoenixbioinformatics.org"]
         send_mail(subject=subject, message=message, from_email=from_email, recipient_list=recipient_list)
 #        logging.error("------Done sending commercial email------")
         return HttpResponse(json.dumps({'message':'success'}), content_type="application/json")
