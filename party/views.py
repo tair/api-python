@@ -151,7 +151,8 @@ class ConsortiumCRUD(GenericCRUDView):
         obj = self.get_queryset()
         out = []
         for entry in obj.consortiums.all():
-            out.append(entry.partyId)
+            serializer = serializer_class(entry)
+            out.append(serializer.data)
         return HttpResponse(json.dumps(out), content_type="application/json")
 
     def put(self, request, format=None):
