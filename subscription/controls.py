@@ -121,11 +121,11 @@ class PaymentControl():
         if "arabidopsis" in redirect:
             #if tair user is already logged in he will get to welcome page
             #if user is not logged-in welcome url will redirect user to login page and after login he'll get to welcome page
-            loginURL = "https://www.arabidopsis.org/jsp/community/welcome.jsp"
-            registerURL = "https://www.arabidopsis.org/community/abrc-new-register.faces"
-        else:
-            loginURL = "TBD"
-            registerURL = "TBD"
+            loginURL = settings.TAIR_LOGIN_URL #".../jsp/community/welcome.jsp"
+            registerURL = setting.TAIR_REGISTRATION_URL #".../community/abrc-new-register.faces"
+        else: #TODO
+            loginURL = GIRI_LOGIN_URL #"TBD"
+            registerURL = GIRI_LOGIN_URL #"TBD"
             
         termObj = SubscriptionTerm.objects.get(subscriptionTermId=termId)
         partnerObj = termObj.partnerId
