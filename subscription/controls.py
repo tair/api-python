@@ -122,10 +122,10 @@ class PaymentControl():
             #if tair user is already logged in he will get to welcome page
             #if user is not logged-in welcome url will redirect user to login page and after login he'll get to welcome page
             loginURL = settings.TAIR_LOGIN_URL #".../jsp/community/welcome.jsp"
-            registerURL = setting.TAIR_REGISTRATION_URL #".../community/abrc-new-register.faces"
+            registerURL = settings.TAIR_REGISTRATION_URL #".../community/abrc-new-register.faces"
         else: #TODO
-            loginURL = GIRI_LOGIN_URL #"TBD"
-            registerURL = GIRI_LOGIN_URL #"TBD"
+            loginURL = settings.GIRI_LOGIN_URL #"TBD"
+            registerURL = settings.GIRI_LOGIN_URL #"TBD"
             
         termObj = SubscriptionTerm.objects.get(subscriptionTermId=termId)
         partnerObj = termObj.partnerId
