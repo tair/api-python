@@ -112,6 +112,19 @@ class PaymentControl():
 
     @staticmethod
     def getEmailInfo(activationCodes, termId, quantity, payment, transactionId, email, firstname, lastname, institute, street, city, state, country, zip, hostname, redirect):
+        #PW-253 hardcode prod URLs for tair. 
+        #   pros:HLP-47737, HLP-48801 and alike won't occur
+        #   cons: 1) user won't be returnd to his starting point (the page where he was doing the suscribtion flom
+        #         2) demo env will have prod URL in the subscription email
+        # If it's not tair then urls values are TBD for now. 
+        # Note, we can check partnerObj.partnerId insted of checking arabidopsis substring in redirect string to determine partner
+        if "arabidopsis" in redirect:
+            loginURL = "https://www.arabidopsis.org/jsp/community/welcome.jsp"
+            registerURL = "https://www.arabidopsis.org/community/abrc-new-register.faces"
+        else:
+            loginURL = "TBD"
+            registerURL = "TBD"
+            
         termObj = SubscriptionTerm.objects.get(subscriptionTermId=termId)
         partnerObj = termObj.partnerId
         name = firstname+" "+lastname
@@ -132,8 +145,8 @@ class PaymentControl():
             # https://demoui.arabidopsis.org/#/contentaccess/login?partnerId=tair&redirect=https:%2F%2Fdemotair.arabidopsis.org%2Fjsp%2Fcommunity%2Fwelcome.jsp 
             # http://demotair.arabidopsis.org/jsp/community/welcome.jsp
             #"loginUrl": hostname+"/#/login?partnerId="+partnerObj.partnerId+"&redirect="+redirect,
-            "loginUrl": redirect+"/jsp/community/welcome.jsp",
-            "registerUrl": redirect+"/community/abrc-new-register.faces",
+            "loginUrl": loginURL,
+            "registerUrl": registerURL,
             "partnerId": partnerObj.partnerId,
             "subscriptionDescription": "%s Subscription" % partnerObj.name,
             "institute": institute,
