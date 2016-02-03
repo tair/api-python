@@ -15,6 +15,8 @@ import uuid
 from django.core.mail import send_mail
 import logging
 
+from django.conf import settings
+
 class SubscriptionControl():
 
     @staticmethod
