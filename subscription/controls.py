@@ -119,6 +119,8 @@ class PaymentControl():
         # If it's not tair then urls values are TBD for now. 
         # Note, we can check partnerObj.partnerId insted of checking arabidopsis substring in redirect string to determine partner
         if "arabidopsis" in redirect:
+            #if tair user is already logged in he will get to welcome page
+            #if user is not logged-in welcome url will redirect user to login page and after login he'll get to welcome page
             loginURL = "https://www.arabidopsis.org/jsp/community/welcome.jsp"
             registerURL = "https://www.arabidopsis.org/community/abrc-new-register.faces"
         else:
