@@ -362,13 +362,48 @@ class SubscriptionEdit(generics.GenericAPIView):#TODO: act only as admin
             return Response(returnData)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
-# /getall/
-# class GetAllSubscription(GenericCRUDView):
-#     requireApiKey = False
-#     def get(self, request):
-#         subscriptionList = Subscription.objects.all()
-#         serializer = SubscriptionSerializer(subscriptionList, many=True)
-#
-#         if True: #TODO: return only the user is admin
-#             return Response(serializer.data)
-#         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+# /institutions1/
+class InstitutionSubscription1(APIView):
+    requireApiKey = False
+    def post (self, request):
+        # data = request.data
+        # dataTuple = (
+        #     data.get('comments'),
+        #     data.get('firstName'),
+        #     data.get('lastName'),
+        #     data.get('email'),
+        #     data.get('institution'),
+        #     data.get('librarianName'),
+        #     data.get('librarianEmail'),
+        # )
+        #
+        # subject = "%s Institutional Subscription Request For %s" % (data.get('partnerName'), data.get('institution'))
+        # message = "%s\n" \
+        #           "\n" \
+        #          "My information is below.\n" \
+        #           "First Name: %s\n" \
+        #           "Last Name: %s \n" \
+        #           "Email: %s \n" \
+        #           "Institution Name: %s \n" \
+        #           "\n" \
+        #           "My library contact information is below.\n" \
+        #           "Librarian Contact Name: %s \n" \
+        #           "Librarian Email: %s \n" \
+        #           % dataTuple
+        #
+        # message += "\nSubmitter's public IP Address: " + getRemoteIpAddress(request)
+        subject = "testsbj"
+        message = "testmsg"
+#        logging.basicConfig(filename="/home/ec2-user/logs/debug.log",
+#                            format='%(asctime)s %(message)s'
+#        )
+#        logging.error("------Sending institution subscription email------")
+#        logging.error("%s" % subject)
+#        logging.error("%s" % message)
+
+        from_email = "info@phoenixbioinformatics.org"
+        recipient_list = ["qianli1987@arabidopsis.org", "richardlee515@gmail.com"]
+        send_mail(subject=subject, message=message, from_email=from_email, recipient_list=recipient_list)
+#        logging.error("------Done sending institution subscription email------")
+
+        return HttpResponse(json.dumps({'message':'success'}), content_type="application/json")
