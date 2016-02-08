@@ -366,7 +366,7 @@ class SubscriptionEdit(generics.GenericAPIView):#TODO: act only as admin
 class InstitutionSubscription1(APIView):
     requireApiKey = False
     def post (self, request):
-        # data = request.data
+        data = request.data
         # dataTuple = (
         #     data.get('comments'),
         #     data.get('firstName'),
@@ -392,8 +392,9 @@ class InstitutionSubscription1(APIView):
         #           % dataTuple
         #
         # message += "\nSubmitter's public IP Address: " + getRemoteIpAddress(request)
-        subject = "testsbj"
-        message = "testmsg"
+        to_email = data.get('email')
+        subject = "Phoenix Bioinformatics Password Reset"
+        message = "Test Message"
 #        logging.basicConfig(filename="/home/ec2-user/logs/debug.log",
 #                            format='%(asctime)s %(message)s'
 #        )
@@ -402,7 +403,8 @@ class InstitutionSubscription1(APIView):
 #        logging.error("%s" % message)
 
         from_email = "info@phoenixbioinformatics.org"
-        recipient_list = ["qianli1987@arabidopsis.org", "richardlee515@gmail.com"]
+        recipient_list = []
+        recipient_list.append(to_email)
         send_mail(subject=subject, message=message, from_email=from_email, recipient_list=recipient_list)
 #        logging.error("------Done sending institution subscription email------")
 
