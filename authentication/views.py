@@ -89,8 +89,10 @@ class listcreateuser(GenericCRUDView):
             partySerializer.save()
       if 'password' in data:
         # HACK: 2015-11-12: YM: TAIR-2493: The new secret key (a.k.a. login key) is being returned as 'password' attribute. Should be refactored to use 'loginKey' attribute.
-        data['password'] = generateSecretKey(str(obj.partyId.partyId), data['password'])
-      return Response(data, status=status.HTTP_201_CREATED)
+        #data['password'] = generateSecretKey(str(obj.partyId.partyId), data['password'])
+        data['loginKey'] = generateSecretKey(str(obj.partyId.partyId), data['password'])
+      #vet PW-254 http://stackoverflow.com/questions/797834/should-a-restful-put-operation-return-something should be 200, not 201
+      return Response(data, status=status.HTTP_200_OK)
     return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 #/credentials/login/
@@ -166,7 +168,7 @@ def login(request):
             else:
                 response = HttpResponse(json.dumps({
                      "message": "Correct password", 
-                     "credentialId": dbUser.partyId.partyId,
+                     "credentialId": dbUser.partyId.partyId,#
                      "secretKey": generateSecretKey(str(dbUser.partyId.partyId), dbUser.password),
                      "email": dbUser.email,
                      "role":"librarian",
