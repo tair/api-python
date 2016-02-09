@@ -386,7 +386,7 @@ class InstitutionSubscription1(APIView):
             username = serializer.data['username']
 
             message = 'Username: '+username + '(' + to_email + ')\n'
-            message = "Your temporary password is: " + temp_password + '\n'
+            message += "Your temporary password is: " + temp_password + '\n'
             message += "Please log on to your account and change your password."
 
             from_email = "info@phoenixbioinformatics.org"
