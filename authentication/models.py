@@ -10,7 +10,7 @@ class Credential(models.Model):
   username = models.CharField(max_length=32, db_index=True)
   password = models.CharField(max_length=64)
   email = models.CharField(max_length=128, null=True)
-  institution = models.CharField(max_length=64, null=True)
+  institution = models.CharField(max_length=200, null=True)#PW-254
   partyId = models.ForeignKey(Party, db_column='partyId')
   partnerId = models.ForeignKey(Partner, db_column='partnerId')
   userIdentifier = models.CharField(max_length=32, null=True)
@@ -25,10 +25,11 @@ class Credential(models.Model):
         digested = base64.b64encode(hmac.new(str(partyId).encode('ascii'), usu.password.encode('ascii'), hashlib.sha1).digest())
         if digested == secretKey:
           return True
-      pu = pu.first().consortiums
+      #TODO: validation still fail
+      pu = pu.first().consortiums.all()
       if Credential.objects.filter(partyId_id__in=pu.values('partyId')).exists():
         for usu in Credential.objects.filter(partyId_id__in=pu.values('partyId')):
-          digested = base64.b64encode(hmac.new(str(pu.partyId).encode('ascii'), usu.password.encode('ascii'), hashlib.sha1).digest())
+          digested = base64.b64encode(hmac.new(str(usu.partyId).encode('ascii'), usu.password.encode('ascii'), hashlib.sha1).digest())
           if digested == secretKey:
             return True
     return False

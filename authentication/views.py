@@ -88,9 +88,9 @@ class listcreateuser(GenericCRUDView):
           if partySerializer.is_valid():
             partySerializer.save()
       if 'password' in data:
-        # HACK: 2015-11-12: YM: TAIR-2493: The new secret key (a.k.a. login key) is being returned as 'password' attribute. Should be refactored to use 'loginKey' attribute.
-        data['password'] = generateSecretKey(str(obj.partyId.partyId), data['password'])
-      return Response(data, status=status.HTTP_201_CREATED)
+        #data['password'] = generateSecretKey(str(obj.partyId.partyId), data['password'])#PW-254 and YM: TAIR-2493
+        data['loginKey'] = generateSecretKey(str(obj.partyId.partyId), data['password'])
+      return Response(data, status=status.HTTP_200_OK)
     return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 #/credentials/login/
@@ -134,7 +134,7 @@ def login(request):
     requestHashedPassword = hashlib.sha1(request.POST.get('password')).hexdigest()
     requestUser = request.POST.get('user')
 
-    # iexact does not work unfortunately. Steve to find out why 
+    # iexact does not work unfortunately. Steve to find out why
     #dbUserList = Credential.objects.filter(partnerId=request.GET.get('partnerId')).filter(username__iexact=requestUser)
 
     # get list of users by partner and pwd -  less efficient though than fetching by (partner+username) as there could be many users with same pwd
@@ -161,11 +161,11 @@ def login(request):
             if dbUser.username.lower() != requestUser.lower():
                 msg = "  USER NOT MATCH. i=%s continue..." % (i)
                 logging.error(msg)
-                i = i+1 
+                i = i+1
                 continue
             else:
                 response = HttpResponse(json.dumps({
-                     "message": "Correct password", 
+                     "message": "Correct password",
                      "credentialId": dbUser.partyId.partyId,
                      "secretKey": generateSecretKey(str(dbUser.partyId.partyId), dbUser.password),
                      "email": dbUser.email,
@@ -178,7 +178,7 @@ def login(request):
 
         logging.error("end of loop")
     #}end of if not empty list
-    #if we did not return from above and we are here, then it's an error. 
+    #if we did not return from above and we are here, then it's an error.
     #print last error msg from the loop and return 401 response
     logging.error("%s, %s: \n %s %s %s" % (ip, msg, requestUser, requestPassword, request.GET['partnerId']))
     return HttpResponse(json.dumps({"message":msg}), status=401)
@@ -217,3 +217,38 @@ def registerUser(request):
 
 def generateSecretKey(partyId, password):
   return base64.b64encode(hmac.new(str(partyId).encode('ascii'), password.encode('ascii'), hashlib.sha1).digest())
+
+#/credentials/profile/
+class profile(GenericCRUDView):
+  queryset = Credential.objects.all()
+  requireApiKey = False
+
+  def put(self, request, format=None):
+    # TODO: security risk here, get username based on the partyId verified in isPhoenix -SC
+    if not isPhoenix(self.request):
+      return Response(status=status.HTTP_400_BAD_REQUEST)
+    # http://stackoverflow.com/questions/12611345/django-why-is-the-request-post-object-immutable
+    serializer_class = CredentialSerializer
+    params = request.GET
+    if 'partyId' not in params:
+      return Response({'error': 'Put method needs partyId'})
+    obj = self.get_queryset().first()
+    #http://stackoverflow.com/questions/18930234/django-modifying-the-request-object PW-123
+    data = request.data.copy() # PW-123
+    if 'password' in data:
+      data['password'] = hashlib.sha1(data['password']).hexdigest()
+    serializer = serializer_class(obj, data=data, partial=True)
+    if serializer.is_valid():
+      serializer.save()
+      #update party info
+      if 'partyId' in serializer.data:
+        partyId = serializer.data['partyId']
+        partyObj = Party.objects.all().get(partyId = partyId)
+        if 'name' in data:
+          name = data['name']
+          partyData = {'name':name}
+          partySerializer = PartySerializer(partyObj, data=partyData, partial =True)
+          if partySerializer.is_valid():
+            partySerializer.save()
+      return Response(data, status=status.HTTP_201_CREATED)
+    return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)

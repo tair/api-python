@@ -8,6 +8,7 @@ urlpatterns = [
     url(r'^$', views.listcreateuser.as_view(), name='listcreateuser'),
     url(r'^login/$', views.login, name='login'),
     url(r'^resetPwd/$', views.resetPwd, name='resetPwd'),
+    url(r'^profile/$', views.profile.as_view(), name='profile'),
 ]
 
 urlpatterns = format_suffix_patterns(urlpatterns)
