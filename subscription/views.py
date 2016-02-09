@@ -9,6 +9,7 @@ from subscription.serializers import SubscriptionSerializer, SubscriptionTransac
 from partner.models import Partner, SubscriptionTerm
 from party.models import Party
 from authentication.models import Credential
+from authentication.serializers import CredentialSerializer
 
 from rest_framework import status
 from rest_framework.response import Response
@@ -21,6 +22,8 @@ from common.common import getRemoteIpAddress
 from django.shortcuts import render
 import stripe
 import json
+import random, string
+import hashlib
 
 import datetime
 
@@ -367,45 +370,28 @@ class InstitutionSubscription1(APIView):
     requireApiKey = False
     def post (self, request):
         data = request.data
-        # dataTuple = (
-        #     data.get('comments'),
-        #     data.get('firstName'),
-        #     data.get('lastName'),
-        #     data.get('email'),
-        #     data.get('institution'),
-        #     data.get('librarianName'),
-        #     data.get('librarianEmail'),
-        # )
-        #
-        # subject = "%s Institutional Subscription Request For %s" % (data.get('partnerName'), data.get('institution'))
-        # message = "%s\n" \
-        #           "\n" \
-        #          "My information is below.\n" \
-        #           "First Name: %s\n" \
-        #           "Last Name: %s \n" \
-        #           "Email: %s \n" \
-        #           "Institution Name: %s \n" \
-        #           "\n" \
-        #           "My library contact information is below.\n" \
-        #           "Librarian Contact Name: %s \n" \
-        #           "Librarian Email: %s \n" \
-        #           % dataTuple
-        #
-        # message += "\nSubmitter's public IP Address: " + getRemoteIpAddress(request)
         to_email = data.get('email')
         subject = "Phoenix Bioinformatics Password Reset"
-        message = "Test Message"
-#        logging.basicConfig(filename="/home/ec2-user/logs/debug.log",
-#                            format='%(asctime)s %(message)s'
-#        )
-#        logging.error("------Sending institution subscription email------")
-#        logging.error("%s" % subject)
-#        logging.error("%s" % message)
 
-        from_email = "info@phoenixbioinformatics.org"
-        recipient_list = []
-        recipient_list.append(to_email)
-        send_mail(subject=subject, message=message, from_email=from_email, recipient_list=recipient_list)
-#        logging.error("------Done sending institution subscription email------")
+        length = 8
+        chars = string.ascii_letters + string.digits + '!@#$%^&*()'
+        temp_password = ''.join(random.choice(chars) for i in range(length))
+        data['password'] = hashlib.sha1(temp_password).hexdigest()
 
-        return HttpResponse(json.dumps({'message':'success'}), content_type="application/json")
+        if Credential.objects.all().get(email=to_email):
+            credential = Credential.objects.all().get(email=to_email)
+            serializer = CredentialSerializer(credential, data=data, partial=True)
+            if serializer.is_valid():
+                serializer.save()
+
+            message = "Your temporary password is: " + temp_password
+            message += "\nPlease login and set a new password asap."
+
+            from_email = "info@phoenixbioinformatics.org"
+            recipient_list = []
+            recipient_list.append(to_email)
+            send_mail(subject=subject, message=message, from_email=from_email, recipient_list=recipient_list)
+
+            return HttpResponse(json.dumps({'message':'success'}), content_type="application/json")
+        else:
+            return HttpResponse('Cannot find registered email address.')
