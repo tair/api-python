@@ -88,10 +88,8 @@ class listcreateuser(GenericCRUDView):
           if partySerializer.is_valid():
             partySerializer.save()
       if 'password' in data:
-        # HACK: 2015-11-12: YM: TAIR-2493: The new secret key (a.k.a. login key) is being returned as 'password' attribute. Should be refactored to use 'loginKey' attribute.
-        #data['password'] = generateSecretKey(str(obj.partyId.partyId), data['password'])
+        #data['password'] = generateSecretKey(str(obj.partyId.partyId), data['password'])#PW-254 and YM: TAIR-2493
         data['loginKey'] = generateSecretKey(str(obj.partyId.partyId), data['password'])
-      #vet PW-254 http://stackoverflow.com/questions/797834/should-a-restful-put-operation-return-something should be 200, not 201
       return Response(data, status=status.HTTP_200_OK)
     return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
@@ -136,7 +134,7 @@ def login(request):
     requestHashedPassword = hashlib.sha1(request.POST.get('password')).hexdigest()
     requestUser = request.POST.get('user')
 
-    # iexact does not work unfortunately. Steve to find out why 
+    # iexact does not work unfortunately. Steve to find out why
     #dbUserList = Credential.objects.filter(partnerId=request.GET.get('partnerId')).filter(username__iexact=requestUser)
 
     # get list of users by partner and pwd -  less efficient though than fetching by (partner+username) as there could be many users with same pwd
@@ -163,12 +161,12 @@ def login(request):
             if dbUser.username.lower() != requestUser.lower():
                 msg = "  USER NOT MATCH. i=%s continue..." % (i)
                 logging.error(msg)
-                i = i+1 
+                i = i+1
                 continue
             else:
                 response = HttpResponse(json.dumps({
-                     "message": "Correct password", 
-                     "credentialId": dbUser.partyId.partyId,#
+                     "message": "Correct password",
+                     "credentialId": dbUser.partyId.partyId,
                      "secretKey": generateSecretKey(str(dbUser.partyId.partyId), dbUser.password),
                      "email": dbUser.email,
                      "role":"librarian",
@@ -180,7 +178,7 @@ def login(request):
 
         logging.error("end of loop")
     #}end of if not empty list
-    #if we did not return from above and we are here, then it's an error. 
+    #if we did not return from above and we are here, then it's an error.
     #print last error msg from the loop and return 401 response
     logging.error("%s, %s: \n %s %s %s" % (ip, msg, requestUser, requestPassword, request.GET['partnerId']))
     return HttpResponse(json.dumps({"message":msg}), status=401)
