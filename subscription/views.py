@@ -317,8 +317,7 @@ class RenewSubscription(generics.GenericAPIView):
                   "\n" \
                   % (request.POST.get('name'), request.POST.get('email'), request.POST.get('institution'), request.POST.get('comments'))
         from_email = "info@phoenixbioinformatics.org"
-        # recipient_list = ["info@phoenixbioinformatics.org"]
-        recipient_list = ["richardlee515@gmail.com"]
+        recipient_list = ["info@phoenixbioinformatics.org"]
         send_mail(subject=subject, message=message, from_email=from_email, recipient_list=recipient_list)
         return HttpResponse(json.dumps({'message':'success'}), content_type="application/json")
 
@@ -339,8 +338,7 @@ class RequestSubscription(generics.GenericAPIView):
                   "\n" \
                   % (request.POST.get('name'), request.POST.get('email'), request.POST.get('institution'), request.POST.get('comments'))
         from_email = "info@phoenixbioinformatics.org"
-        # recipient_list = ["info@phoenixbioinformatics.org"]
-        recipient_list = ["richardlee515@gmail.com"]
+        recipient_list = ["info@phoenixbioinformatics.org"]
         send_mail(subject=subject, message=message, from_email=from_email, recipient_list=recipient_list)
         return HttpResponse(json.dumps({'message':'success'}), content_type="application/json")
 
