@@ -17,7 +17,7 @@ def createAffiliation(institutionId, consortiumId):
 # Begin main program:
 
 # Step1: Open the source CSV file and load into memory.
-with open('Parites.csv', 'rU') as f:
+with open('partyAffiliationCSV.csv', 'rU') as f:
     reader = csv.reader(f,dialect=csv.excel_tab)
     partyAffiliatoinData = list(reader)
 
