@@ -17,11 +17,12 @@ def createAffiliation(institutionId, consortiumId):
 # Begin main program:
 
 # Step1: Open the source CSV file and load into memory.
-with open('Parites.csv', 'rb') as f:
-    reader = csv.reader(f)
+with open('Parites.csv', 'rU') as f:
+    reader = csv.reader(f,dialect=csv.excel_tab)
     partyAffiliatoinData = list(reader)
 
 # Step2: Call function
 for entry in partyAffiliatoinData:
-    createAffiliation(entry[0], entry[1])
-
+    institutionId = entry[0].split(',')[0]
+    consortiumId = entry[0].split(',')[1]
+    createAffiliation(institutionId, consortiumId)
