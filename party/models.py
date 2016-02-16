@@ -36,6 +36,7 @@ class Affiliation(models.Model):
 
     class Meta:
         db_table = "partyAffiliation"
+        unique_together = ("institutionId", "consortiumId")
 
 class IpRange(models.Model):
     ipRangeId = models.AutoField(primary_key=True)
