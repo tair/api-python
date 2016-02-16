@@ -34,6 +34,9 @@ class Affiliation(models.Model):
     institutionId = models.ForeignKey(Party, related_name="institutionId", db_column="institutionId")
     consortiumId = models.ForeignKey(Party, related_name="consortiumId", db_column="consortiumId")
 
+    class Meta:
+        db_table = "partyAffiliation"
+
 class IpRange(models.Model):
     ipRangeId = models.AutoField(primary_key=True)
     start = models.GenericIPAddressField()
