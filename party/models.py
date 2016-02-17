@@ -31,8 +31,8 @@ class Party(models.Model):
         db_table = "Party"
 
 class Affiliation(models.Model):
-    institutionId = models.ForeignKey(Party, related_name="institutionId", db_column="institutionId")
-    consortiumId = models.ForeignKey(Party, related_name="consortiumId", db_column="consortiumId")
+    institutionId = models.ForeignKey(Party, related_name="institutionId", db_column="childPartyId")
+    consortiumId = models.ForeignKey(Party, related_name="consortiumId", db_column="parentPartyId")
 
     class Meta:
         db_table = "PartyAffiliation"
