@@ -35,7 +35,7 @@ class Affiliation(models.Model):
     consortiumId = models.ForeignKey(Party, related_name="consortiumId", db_column="consortiumId")
 
     class Meta:
-        db_table = "partyAffiliation"
+        db_table = "PartyAffiliation"
         unique_together = ("institutionId", "consortiumId")
 
 class IpRange(models.Model):
