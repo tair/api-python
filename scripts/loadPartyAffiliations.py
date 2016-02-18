@@ -6,13 +6,13 @@ os.sys.path.append('../')
 os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'paywall2.settings')
 django.setup()
 
-from party.models import Affiliation, Party
+from party.models import PartyAffiliation, Party
 
 #Function to add one affiliation
 def createAffiliation(institutionId, consortiumId):
     institution = Party.objects.get(partyId = institutionId)
     consortium = Party.objects.get(partyId = consortiumId)
-    Affiliation.objects.create(institutionId=institution,consortiumId=consortium)
+    PartyAffiliation.objects.create(childPartyId=institution,parentPartyId=consortium)
 
 # Begin main program:
 
