@@ -196,7 +196,7 @@ class AffiliationCRUD(GenericCRUDView):
             return Response({'error':'does not allow update without query parameters'})
         obj = self.get_queryset()
         out = []
-        for entry in obj.Affiliation.all():
+        for entry in obj.PartyAffiliation.all():
             serializer = serializer_class(entry)
             out.append(serializer.data)
         return HttpResponse(json.dumps(out), content_type="application/json")
