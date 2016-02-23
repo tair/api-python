@@ -195,8 +195,8 @@ class InstitutionCRUD(GenericCRUDView):
         serializer_class = self.get_serializer_class()
         params = request.GET
 
-        if not params:
-            return Response({'error':'does not allow update without query parameters'},status=status.HTTP_400_BAD_REQUEST)
+        #if not params:
+        #    return Response({'error':'does not allow update without query parameters'},status=status.HTTP_400_BAD_REQUEST)
         
         obj = self.get_queryset()
         out = []
