@@ -200,7 +200,7 @@ class InstitutionCRUD(GenericCRUDView):
         
         obj = self.get_queryset()
         out = []
-        for entry in obj.institutions.all():
+        for entry in obj:
             serializer = serializer_class(entry)
             out.append(serializer.data)
         return HttpResponse(json.dumps(out), content_type="application/json")
