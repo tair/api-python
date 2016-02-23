@@ -310,12 +310,13 @@ class RenewSubscription(generics.GenericAPIView):
         message = "\n" \
                   "\n" \
                   "Please contact me about a subscription renewal. My information is below.\n" \
+                  "Product: %s\n" \
                   "Name: %s\n" \
                   "Email: %s \n" \
                   "Institution Name: %s \n" \
                   "Comments: %s \n" \
                   "\n" \
-                  % (request.POST.get('name'), request.POST.get('email'), request.POST.get('institution'), request.POST.get('comments'))
+                  % (request.POST.get('partnerName'), request.POST.get('name'), request.POST.get('email'), request.POST.get('institution'), request.POST.get('comments'))
         from_email = "info@phoenixbioinformatics.org"
         recipient_list = ["info@phoenixbioinformatics.org"]
         send_mail(subject=subject, message=message, from_email=from_email, recipient_list=recipient_list)
@@ -330,13 +331,14 @@ class RequestSubscription(generics.GenericAPIView):
         subject = "%s Subscription Request For %s" % (request.POST.get('partnerName'), request.POST.get('institution'))
         message = "\n" \
                   "\n" \
-                  "Please contact me about a subscription renewal. My information is below.\n" \
+                  "Please contact me about a subscription request. My information is below.\n" \
+                  "Product: %s\n" \
                   "Name: %s\n" \
                   "Email: %s \n" \
                   "Institution Name: %s \n" \
                   "Comments: %s \n" \
                   "\n" \
-                  % (request.POST.get('name'), request.POST.get('email'), request.POST.get('institution'), request.POST.get('comments'))
+                  % (request.POST.get('partnerName'), request.POST.get('name'), request.POST.get('email'), request.POST.get('institution'), request.POST.get('comments'))
         from_email = "info@phoenixbioinformatics.org"
         recipient_list = ["info@phoenixbioinformatics.org"]
         send_mail(subject=subject, message=message, from_email=from_email, recipient_list=recipient_list)
