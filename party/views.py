@@ -177,8 +177,9 @@ class ConsortiumCRUD(GenericCRUDView):
 
 # TODO: "post" is still a security vulnerability -SC
 
-# institutions/
-#PW-161 /parties/institutions/ get all parties by partyId
+#PW-161 /parties/institutions/
+#GET https://demoapi.arabidopsis.org/parties/institutions?partyId=30740&credentialId=2&secretKey=7DgskfEF7jeRGn1h%2B5iDCpvIkRA%3D
+#[{"partyId": 30740, "partyType": "organization", "name": "ASPB Conference", "country": null, "display": false, "consortiums": []}]
 class InstitutionCRUD(GenericCRUDView):
     requireApiKey = False
     queryset = Party.objects.all()
@@ -188,18 +189,8 @@ class InstitutionCRUD(GenericCRUDView):
         if isPhoenix(self.request):
             if 'partyId' in self.request.GET:
                 partyId = self.request.GET.get('partyId')
-                return super(InstitutionCRUD, self).get_queryset().filter(partyId=partyId)
+                return super(InstitutionCRUD, self).get_queryset().filter(partyId=partyId).filter(partyType="organization")
         return []
-
-    def get(self, request, format=None):
-        serializer_class = self.get_serializer_class()
-        params = request.GET
-        obj = self.get_queryset()
-        out = []
-        for entry in obj:
-            serializer = serializer_class(entry)
-            out.append(serializer.data)
-        return HttpResponse(json.dumps(out), content_type="application/json")
 
     def put(self, request, format=None):
         serializer_class = self.get_serializer_class()
