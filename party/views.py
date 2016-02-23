@@ -188,16 +188,12 @@ class InstitutionCRUD(GenericCRUDView):
         if isPhoenix(self.request):
             if 'partyId' in self.request.GET:
                 partyId = self.request.GET.get('partyId')
-                return super(InstitutionCRUD, self).get_queryset().get(partyId=partyId)
+                return super(InstitutionCRUD, self).get_queryset().filter(partyId=partyId)
         return []
 
     def get(self, request, format=None):
         serializer_class = self.get_serializer_class()
         params = request.GET
-
-        #if not params:
-        #    return Response({'error':'does not allow update without query parameters'},status=status.HTTP_400_BAD_REQUEST)
-        
         obj = self.get_queryset()
         out = []
         for entry in obj:
