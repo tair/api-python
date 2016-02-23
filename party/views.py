@@ -206,9 +206,23 @@ class InstitutionCRUD(GenericCRUDView):
         serializer = serializer_class(obj)
         return Response(serializer.data)
     
+    #PW-161 POST https://demoapi.arabidopsis.org/parties/institutions/
+    #FORM DATA
+        #username required
+        #password required
+        #partnerId required (tair/phoenix); (username+partnerId) must make a unique set.
+        #partyType required and must be "organization"
     def post(self, request, format=None):
         if ApiKeyPermission.has_permission(request, self):
             data = request.data
+            
+            if 'partyType' not in data:
+                return Response({'error': 'POST method needs partyType'}, status=status.HTTP_400_BAD_REQUEST)
+            if data['partyType'] != "organization":
+                return Response({'error': 'POST method. patyType must be organization'}, status=status.HTTP_400_BAD_REQUEST)
+            if 'password' not in data:
+                return Response({'error': 'POST method needs password'}, status=status.HTTP_400_BAD_REQUEST)
+            
             data['password'] = hashlib.sha1(data['password']).hexdigest()
             partySerializer = PartySerializer(data=data)
             if partySerializer.is_valid():
@@ -224,6 +238,7 @@ class InstitutionCRUD(GenericCRUDView):
                 return Response(partySerializer.errors, status=status.HTTP_400_BAD_REQUEST)
         else:
             return Response(partySerializer.data, status=status.HTTP_401_UNAUTHORIZED)
+
 
 # affiliations/
 class AffiliationCRUD(GenericCRUDView):
