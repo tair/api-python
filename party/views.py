@@ -41,26 +41,6 @@ class PartyCRUD(GenericCRUDView):
                 partyType = self.request.GET.get('partyType')
                 return super(PartyCRUD, self).get_queryset().filter(partyType=partyType)
         return []
-# TODO: "post" is still a security vulnerability -SC
-    #vet PW-161 POST 
-    def post(self, request, format=None):
-        if ApiKeyPermission.has_permission(request, self):
-            data = request.data
-            data['password'] = hashlib.sha1(data['password']).hexdigest()
-            partySerializer = PartySerializer(data=data)
-            if partySerializer.is_valid():
-                partySerializer.save()
-                data['partyId'] = partySerializer.data['partyId']
-                credentialSerializer = CredentialSerializer(data=data)
-                if credentialSerializer.is_valid():
-                    credentialSerializer.save()
-                    return Response(credentialSerializer.data, status=status.HTTP_201_CREATED)
-                else:
-                    return Response(credentialSerializer.errors, status=status.HTTP_400_BAD_REQUEST)
-            else:
-                return Response(partySerializer.errors, status=status.HTTP_400_BAD_REQUEST)
-        else:
-            return Response(partySerializer.data, status=status.HTTP_401_UNAUTHORIZED)
 
 # /ipranges/
 class IpRangeCRUD(GenericCRUDView):
@@ -196,6 +176,67 @@ class ConsortiumCRUD(GenericCRUDView):
         return Response(serializer.data)
 
 # TODO: "post" is still a security vulnerability -SC
+
+# institutions/
+#PW-161 /parties/institutions/ get all parties by partyId
+class InstitutionCRUD(GenericCRUDView):
+    requireApiKey = False
+    queryset = Party.objects.all()
+    serializer_class = PartySerializer
+
+    def get_queryset(self):
+        if isPhoenix(self.request):
+            if 'partyId' in self.request.GET:
+                partyId = self.request.GET.get('partyId')
+                return super(InstitutionCRUD, self).get_queryset().get(partyId=partyId)
+        return []
+
+    def get(self, request, format=None):
+        serializer_class = self.get_serializer_class()
+        params = request.GET
+
+        if not params:
+            return Response({'error':'does not allow update without query parameters'},status=status.HTTP_400_BAD_REQUEST)
+        
+        obj = self.get_queryset()
+        out = []
+        for entry in obj.institutions.all():
+            serializer = serializer_class(entry)
+            out.append(serializer.data)
+        return HttpResponse(json.dumps(out), content_type="application/json")
+
+    def put(self, request, format=None):
+        serializer_class = self.get_serializer_class()
+        params = request.GET
+        if not params:
+            return Response({'error':'does not allow update without query parameters'},status=status.HTTP_400_BAD_REQUEST)
+        obj = self.get_queryset()
+        
+        if 'institutionId' in request.data:
+            institutionId = request.data['institutionId']
+            consortium = Party.objects.get(partyId = institutionId)
+
+        serializer = serializer_class(obj)
+        return Response(serializer.data)
+    
+    def post(self, request, format=None):
+        if ApiKeyPermission.has_permission(request, self):
+            data = request.data
+            data['password'] = hashlib.sha1(data['password']).hexdigest()
+            partySerializer = PartySerializer(data=data)
+            if partySerializer.is_valid():
+                partySerializer.save()
+                data['partyId'] = partySerializer.data['partyId']
+                credentialSerializer = CredentialSerializer(data=data)
+                if credentialSerializer.is_valid():
+                    credentialSerializer.save()
+                    return Response(credentialSerializer.data, status=status.HTTP_201_CREATED)
+                else:
+                    return Response(credentialSerializer.errors, status=status.HTTP_400_BAD_REQUEST)
+            else:
+                return Response(partySerializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        else:
+            return Response(partySerializer.data, status=status.HTTP_401_UNAUTHORIZED)
 
 # affiliations/
 class AffiliationCRUD(GenericCRUDView):
