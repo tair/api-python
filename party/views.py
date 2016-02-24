@@ -203,7 +203,7 @@ class InstitutionCRUD(GenericCRUDView):
         
         serializer_class = self.get_serializer_class()
         institutionId = request.data['institutionId']
-        party = Party.objects.all.get(partyId = institutionId)
+        party = Party.objects.get(partyId = institutionId)
         serializer = PartySerializer(party, data=request.data)
         if serializer.is_valid():
             party = serializer.save()
