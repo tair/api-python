@@ -291,9 +291,9 @@ class InstitutionCRUD(GenericCRUDView):
             party = Party.objects.get(partyId = institutionId)
             party.delete()
             #credential is being deleted automatically
-            return Response({'success':'delete partyId '+partyId+'completed'},status=status.HTTP_204_NO_CONTENT)
+            return Response({'success':'delete partyId '+institutionId+'completed'},status=status.HTTP_204_NO_CONTENT)
         else:
-            return Response({'error':'delete '+partyId+'failed. partyId not found in Party tbl'},status=status.HTTP_400_BAD_REQUEST)
+            return Response({'error':'delete '+institutionId+'failed. partyId not found in Party tbl'},status=status.HTTP_400_BAD_REQUEST)
 
 # affiliations/
 class AffiliationCRUD(GenericCRUDView):
