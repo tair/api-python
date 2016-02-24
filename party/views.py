@@ -220,7 +220,7 @@ class InstitutionCRUD(GenericCRUDView):
             data['password'] = hashlib.sha1(data['password']).hexdigest()
             credentialSerializer = CredentialSerializer(credential, data=data)
         else:
-            credentialserializer = CredentialSerializerNoPassword(credential, data=data, partial=True) #??
+            credentialSerializer = CredentialSerializerNoPassword(credential, data=data, partial=True) #??
             
         out = []
         if partySerializer.is_valid():
