@@ -287,7 +287,7 @@ class InstitutionCRUD(GenericCRUDView):
         institutionId = request.data['partyId']
         
         #get party
-        if Party.objects.get(partyId = institutionId).exists():
+        if Party.objects.filter(partyId = institutionId).exists():
             party = Party.objects.get(partyId = institutionId)
             party.delete()
             #credential is being deleted automatically
