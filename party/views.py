@@ -193,18 +193,23 @@ class InstitutionCRUD(GenericCRUDView):
         return []
 
     def put(self, request, format=None):
-        serializer_class = self.get_serializer_class()
+        if not isPhoenix(request):
+           return HttpResponse(status=status.HTTP_400_BAD_REQUEST)
         params = request.GET
         if not params:
             return Response({'error':'does not allow update without query parameters'},status=status.HTTP_400_BAD_REQUEST)
-        obj = self.get_queryset()
+        if 'institutionId' not in request.data:
+            return Response({'error':'institutionId required'},status=status.HTTP_400_BAD_REQUEST)
         
-        if 'institutionId' in request.data:
-            institutionId = request.data['institutionId']
-            consortium = Party.objects.get(partyId = institutionId)
-
-        serializer = serializer_class(obj)
-        return Response(serializer.data)
+        serializer_class = self.get_serializer_class()
+        institutionId = request.data['institutionId']
+        party = Party.objects.all.get(partyId = institutionId)
+        serializer = PartySerializer(party, data=request.data)
+        if serializer.is_valid():
+            party = serializer.save()
+            returnData = serializer.data
+            return Response(returnData)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
     
     #PW-161 POST https://demoapi.arabidopsis.org/parties/institutions/
     #FORM DATA
