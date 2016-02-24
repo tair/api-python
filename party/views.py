@@ -207,7 +207,7 @@ class InstitutionCRUD(GenericCRUDView):
         partySerializer = PartySerializer(party, data=request.data)
         #get credential
         credential = Credential.objects.get(partyId = institutionId)
-        credentialSerializer = CredentialSerializer(party, data=request.data)
+        credentialSerializer = CredentialSerializer(credential, data=request.data)
         
         if partySerializer.is_valid() and credentialSerializer.is_valid():
             partySerializer.save()
