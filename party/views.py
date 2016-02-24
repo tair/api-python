@@ -269,6 +269,41 @@ class InstitutionCRUD(GenericCRUDView):
         else:
             return Response(partySerializer.errors, status=status.HTTP_400_BAD_REQUEST) 
 
+#
+    def delete(self, request, format=None):
+        if not isPhoenix(request):
+           return HttpResponse({'error':'does not allow delete without credentialId and secretKey query parameters'},status=status.HTTP_400_BAD_REQUEST)
+        
+        params = request.GET
+        data = request.data
+        
+        if not params:
+            return Response({'error':'does not allow update without query parameters'},status=status.HTTP_400_BAD_REQUEST)
+        
+        if 'partyId' not in request.data:
+            return Response({'error':'partyId (aka institutionId) required'},status=status.HTTP_400_BAD_REQUEST)
+        
+        institutionId = request.data['partyId']
+        
+        #get party
+        party = Party.objects.get(partyId = institutionId)
+        partySerializer = PartySerializer(party, data=data)
+        
+        #get credential
+        credential = Credential.objects.get(partyId = institutionId)
+        credentialSerializer = CredentialSerializer(credential, data=data)
+        
+        if partySerializer.is_valid():
+            partySerializer.delete()
+        else:
+            return Response({'error':'party delete failed'},status=status.HTTP_400_BAD_REQUEST)
+        if credentialSerializer.is_valid():
+            credentialSerializer.delete()
+        else:
+            return Response({'error':'credential delete failed'},status=status.HTTP_400_BAD_REQUEST)
+        
+        return Response({'success':'delete complete'},status=status.HTTP_204_NO_CONTENT)
+
 # affiliations/
 class AffiliationCRUD(GenericCRUDView):
     requireApiKey = False
