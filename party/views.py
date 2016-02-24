@@ -201,15 +201,21 @@ class InstitutionCRUD(GenericCRUDView):
         if 'institutionId' not in request.data:
             return Response({'error':'institutionId required'},status=status.HTTP_400_BAD_REQUEST)
         
-        serializer_class = self.get_serializer_class()
         institutionId = request.data['institutionId']
+        #get party
         party = Party.objects.get(partyId = institutionId)
-        serializer = PartySerializer(party, data=request.data)
-        if serializer.is_valid():
-            party = serializer.save()
-            returnData = serializer.data
+        partySerializer = PartySerializer(party, data=request.data)
+        #get credential
+        credential = Credential.objects.get(partyId = institutionId)
+        credentialSerializer = CredentialSerializer(party, data=request.data)
+        
+        if partySerializer.is_valid() and credentialSerializer.is_valid():
+            partySerializer.save()
+            credentialSerializer.save()
+            returnData = partySerializer.data
             return Response(returnData)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        
+        return Response(partySerializer.errors, status=status.HTTP_400_BAD_REQUEST)
     
     #PW-161 POST https://demoapi.arabidopsis.org/parties/institutions/
     #FORM DATA
