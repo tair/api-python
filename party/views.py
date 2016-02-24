@@ -289,13 +289,10 @@ class InstitutionCRUD(GenericCRUDView):
         #get party
         party = Party.objects.get(partyId = institutionId)
         party.delete()
+        #credential is being deleted automatically
         out.append(party)
-        #get credential
-        credential = Credential.objects.get(partyId = institutionId)
-        credential.delete()
-        out.append(credential)
         
-        return HttpResponse(json.dumps(out), content_type="application/json")
+        return HttpResponse(json.dumps(out), content_type="application/json", status=status.HTTP_204_NO_CONTENT)
         #return Response({'success':'delete '+party+' and '+credential+ 'complete'},status=status.HTTP_204_NO_CONTENT)
 
 # affiliations/
