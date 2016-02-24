@@ -197,25 +197,31 @@ class InstitutionCRUD(GenericCRUDView):
     # output all from both tables for a given institutionId
     def put(self, request, format=None):
         if not isPhoenix(request):
-           return HttpResponse(status=status.HTTP_400_BAD_REQUEST)
+           return HttpResponse({'error':'does not allow update without credentialId and secretKey query parameters'},status=status.HTTP_400_BAD_REQUEST)
         
         params = request.GET
         data = request.data
         
         if not params:
             return Response({'error':'does not allow update without query parameters'},status=status.HTTP_400_BAD_REQUEST)
-        if 'institutionId' not in request.data:
-            return Response({'error':'institutionId required'},status=status.HTTP_400_BAD_REQUEST)
-        if 'password' in request.data:
-            data['password'] = hashlib.sha1(data['password']).hexdigest()
         
-        institutionId = request.data['institutionId']
+        #if 'institutionId' not in request.data:
+        #    return Response({'error':'institutionId required'},status=status.HTTP_400_BAD_REQUEST)
+        
+        institutionId = request.data['partyId']
         #get party
         party = Party.objects.get(partyId = institutionId)
         partySerializer = PartySerializer(party, data=data)
+        
         #get credential
         credential = Credential.objects.get(partyId = institutionId)
-        credentialSerializer = CredentialSerializer(credential, data=data)
+        
+        if 'password' in request.data:
+            data['password'] = hashlib.sha1(data['password']).hexdigest()
+            credentialSerializer = CredentialSerializer(credential, data=data)
+        else:
+            credentialserializer = CredentialSerializerNoPassword(credential, data=data, partial=True) #??
+            
         out = []
         if partySerializer.is_valid():
             partySerializer.save()
