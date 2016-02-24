@@ -193,8 +193,8 @@ class InstitutionCRUD(GenericCRUDView):
         return []
     
     #PW-161 PUT https://demoapi.arabidopsis.org/parties/institutions?credentialId=2&secretKey=7DgskfEF7jeRGn1h%2B5iDCpvIkRA%3D
-    #FORM DATA - all kv pairs for both Credential and Party tables ?
-    # output all from both tables for a given institutionId
+    #FORM DATA partyId is required. If pwd passed it will be updated in Credential if not - not.
+    # output data from both tables for a given partyId (aka institutionId)
     def put(self, request, format=None):
         if not isPhoenix(request):
            return HttpResponse({'error':'does not allow update without credentialId and secretKey query parameters'},status=status.HTTP_400_BAD_REQUEST)
@@ -205,8 +205,8 @@ class InstitutionCRUD(GenericCRUDView):
         if not params:
             return Response({'error':'does not allow update without query parameters'},status=status.HTTP_400_BAD_REQUEST)
         
-        #if 'institutionId' not in request.data:
-        #    return Response({'error':'institutionId required'},status=status.HTTP_400_BAD_REQUEST)
+        if 'partyId' not in request.data:
+            return Response({'error':'partyId (aka institutionId) required'},status=status.HTTP_400_BAD_REQUEST)
         
         institutionId = request.data['partyId']
         #get party
