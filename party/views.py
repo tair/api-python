@@ -285,24 +285,18 @@ class InstitutionCRUD(GenericCRUDView):
         
         institutionId = request.data['partyId']
         
+        out = []
         #get party
-        party = Party.objects.get(partyId = institutionId)
-        partySerializer = PartySerializer(party, data=data)
-        
+        party = Party.objects.get_object_or_404(partyId = institutionId)
+        party.delete()
+        out.append(party)
         #get credential
-        credential = Credential.objects.get(partyId = institutionId)
-        credentialSerializer = CredentialSerializer(credential, data=data)
+        credential = Credential.objects.get_object_or_404(partyId = institutionId)
+        credential.delete()
+        out.append(credential)
         
-        if partySerializer.is_valid():
-            partySerializer.delete()
-        else:
-            return Response({'error':'party delete failed'},status=status.HTTP_400_BAD_REQUEST)
-        if credentialSerializer.is_valid():
-            credentialSerializer.delete()
-        else:
-            return Response({'error':'credential delete failed'},status=status.HTTP_400_BAD_REQUEST)
-        
-        return Response({'success':'delete complete'},status=status.HTTP_204_NO_CONTENT)
+        return HttpResponse(json.dumps(out), content_type="application/json")
+        #return Response({'success':'delete '+party+' and '+credential+ 'complete'},status=status.HTTP_204_NO_CONTENT)
 
 # affiliations/
 class AffiliationCRUD(GenericCRUDView):
