@@ -287,11 +287,11 @@ class InstitutionCRUD(GenericCRUDView):
         
         out = []
         #get party
-        party = Party.objects.get_object_or_404(partyId = institutionId)
+        party = Party.objects.get(partyId = institutionId)
         party.delete()
         out.append(party)
         #get credential
-        credential = Credential.objects.get_object_or_404(partyId = institutionId)
+        credential = Credential.objects.get(partyId = institutionId)
         credential.delete()
         out.append(credential)
         
