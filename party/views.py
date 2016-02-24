@@ -186,11 +186,11 @@ class InstitutionCRUD(GenericCRUDView):
     serializer_class = PartySerializer
 
     def get_queryset(self):
-        if isPhoenix(self.request):
-            if 'partyId' in self.request.GET:
-                partyId = self.request.GET.get('partyId')
-                return super(InstitutionCRUD, self).get_queryset().filter(partyId=partyId).filter(partyType="organization")
-        return []
+        if not isPhoenix(self.request):
+            return Response({'error':'Must provide credentialId and secretKey'},status=status.HTTP_400_BAD_REQUEST)
+        if 'partyId' in self.request.GET:
+            partyId = self.request.GET.get('partyId')
+            return super(InstitutionCRUD, self).get_queryset().filter(partyId=partyId).filter(partyType="organization")
 
     def put(self, request, format=None):
         serializer_class = self.get_serializer_class()
@@ -206,39 +206,40 @@ class InstitutionCRUD(GenericCRUDView):
         serializer = serializer_class(obj)
         return Response(serializer.data)
     
-    #PW-161 POST https://demoapi.arabidopsis.org/parties/institutions/
+    #PW-161 POST https://demoapi.arabidopsis.org/parties/institutions/&credentialId=2&secretKey=7DgskfEF7jeRGn1h%2B5iDCpvIkRA%3D
     #FORM DATA
         #username required
         #password required
         #partnerId required (tair/phoenix); (username+partnerId) must make a unique set.
         #partyType required and must be "organization"
     def post(self, request, format=None):
-        if ApiKeyPermission.has_permission(request, self):
-            data = request.data
+        
+        if not isPhoenix(self.request):
+            return Response({'error':'Must provide credentialId and secretKey'},status=status.HTTP_400_BAD_REQUEST)
+        
+        data = request.data
             
-            if 'partyType' not in data:
-                return Response({'error': 'POST method needs partyType'}, status=status.HTTP_400_BAD_REQUEST)
-            if data['partyType'] != "organization":
-                return Response({'error': 'POST method. patyType must be organization'}, status=status.HTTP_400_BAD_REQUEST)
-            if 'password' not in data:
-                return Response({'error': 'POST method needs password'}, status=status.HTTP_400_BAD_REQUEST)
-            
-            data['password'] = hashlib.sha1(data['password']).hexdigest()
-            partySerializer = PartySerializer(data=data)
-            if partySerializer.is_valid():
-                partySerializer.save()
-                data['partyId'] = partySerializer.data['partyId']
-                credentialSerializer = CredentialSerializer(data=data)
-                if credentialSerializer.is_valid():
-                    credentialSerializer.save()
-                    return Response(credentialSerializer.data, status=status.HTTP_201_CREATED)
-                else:
-                    return Response(credentialSerializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        if 'partyType' not in data:
+            return Response({'error': 'POST method needs partyType'}, status=status.HTTP_400_BAD_REQUEST)
+        if data['partyType'] != "organization":
+            return Response({'error': 'POST method. patyType must be organization'}, status=status.HTTP_400_BAD_REQUEST)
+        if 'password' not in data:
+            return Response({'error': 'POST method needs password'}, status=status.HTTP_400_BAD_REQUEST)
+        
+        data['password'] = hashlib.sha1(data['password']).hexdigest()
+        partySerializer = PartySerializer(data=data)
+        if partySerializer.is_valid():
+            partySerializer.save()
+            data['partyId'] = partySerializer.data['partyId']
+            credentialSerializer = CredentialSerializer(data=data)
+            if credentialSerializer.is_valid():
+                credentialSerializer.save()
+                return Response(credentialSerializer.data, status=status.HTTP_201_CREATED)
             else:
-                return Response(partySerializer.errors, status=status.HTTP_400_BAD_REQUEST)
+                return Response(credentialSerializer.errors, status=status.HTTP_400_BAD_REQUEST)
         else:
-            return Response(partySerializer.data, status=status.HTTP_401_UNAUTHORIZED)
-
+            return Response(partySerializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        
 
 # affiliations/
 class AffiliationCRUD(GenericCRUDView):
