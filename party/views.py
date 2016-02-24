@@ -206,54 +206,6 @@ class InstitutionCRUD(GenericCRUDView):
         serializer = serializer_class(obj)
         return Response(serializer.data)
     
-    def post(self, request, format=None):
-        if ApiKeyPermission.has_permission(request, self):
-            data = request.data
-            data['password'] = hashlib.sha1(data['password']).hexdigest()
-            partySerializer = PartySerializer(data=data)
-            if partySerializer.is_valid():
-                partySerializer.save()
-                data['partyId'] = partySerializer.data['partyId']
-                credentialSerializer = CredentialSerializer(data=data)
-                if credentialSerializer.is_valid():
-                    credentialSerializer.save()
-                    return Response(credentialSerializer.data, status=status.HTTP_201_CREATED)
-                else:
-                    return Response(credentialSerializer.errors, status=status.HTTP_400_BAD_REQUEST)
-            else:
-                return Response(partySerializer.errors, status=status.HTTP_400_BAD_REQUEST)
-        else:
-            return Response(partySerializer.data, status=status.HTTP_401_UNAUTHORIZED)
-
-#PW-161 /parties/institutions/
-#GET https://demoapi.arabidopsis.org/parties/institutions?partyId=30740&credentialId=2&secretKey=7DgskfEF7jeRGn1h%2B5iDCpvIkRA%3D
-#[{"partyId": 30740, "partyType": "organization", "name": "ASPB Conference", "country": null, "display": false, "consortiums": []}]
-class InstitutionCRUD(GenericCRUDView):
-    requireApiKey = False
-    queryset = Party.objects.all()
-    serializer_class = PartySerializer
-
-    def get_queryset(self):
-        if isPhoenix(self.request):
-            if 'partyId' in self.request.GET:
-                partyId = self.request.GET.get('partyId')
-                return super(InstitutionCRUD, self).get_queryset().filter(partyId=partyId).filter(partyType="organization")
-        return []
-
-    def put(self, request, format=None):
-        serializer_class = self.get_serializer_class()
-        params = request.GET
-        if not params:
-            return Response({'error':'does not allow update without query parameters'},status=status.HTTP_400_BAD_REQUEST)
-        obj = self.get_queryset()
-        
-        if 'institutionId' in request.data:
-            institutionId = request.data['institutionId']
-            consortium = Party.objects.get(partyId = institutionId)
-
-        serializer = serializer_class(obj)
-        return Response(serializer.data)
-    
     #PW-161 POST https://demoapi.arabidopsis.org/parties/institutions/
     #FORM DATA
         #username required
