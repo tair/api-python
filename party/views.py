@@ -21,7 +21,7 @@ from common.permissions import isPhoenix
 
 from common.permissions import ApiKeyPermission
 import hashlib
-from authentication.serializers import CredentialSerializer
+from authentication.serializers import CredentialSerializer, CredentialSerializerNoPassword
 # top level: /parties/
 
 # Basic CRUD operation for Party and IpRange
