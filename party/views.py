@@ -22,6 +22,7 @@ from common.permissions import isPhoenix
 from common.permissions import ApiKeyPermission
 import hashlib
 from authentication.serializers import CredentialSerializer, CredentialSerializerNoPassword
+from genericpath import exists
 # top level: /parties/
 
 # Basic CRUD operation for Party and IpRange
@@ -285,15 +286,14 @@ class InstitutionCRUD(GenericCRUDView):
         
         institutionId = request.data['partyId']
         
-        out = []
         #get party
-        party = Party.objects.get(partyId = institutionId)
-        party.delete()
-        #credential is being deleted automatically
-        out.append(party)
-        
-        return HttpResponse(json.dumps(out), content_type="application/json", status=status.HTTP_204_NO_CONTENT)
-        #return Response({'success':'delete '+party+' and '+credential+ 'complete'},status=status.HTTP_204_NO_CONTENT)
+        if Party.objects.get(partyId = institutionId).exists():
+            party = Party.objects.get(partyId = institutionId)
+            party.delete()
+            #credential is being deleted automatically
+            return Response({'success':'delete partyId '+partyId+'completed'},status=status.HTTP_204_NO_CONTENT)
+        else:
+            return Response({'error':'delete '+partyId+'failed. partyId not found in Party tbl'},status=status.HTTP_400_BAD_REQUEST)
 
 # affiliations/
 class AffiliationCRUD(GenericCRUDView):
