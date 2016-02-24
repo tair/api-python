@@ -209,13 +209,16 @@ class InstitutionCRUD(GenericCRUDView):
         credential = Credential.objects.get(partyId = institutionId)
         credentialSerializer = CredentialSerializer(credential, data=request.data)
         
-        if partySerializer.is_valid() and credentialSerializer.is_valid():
+        if partySerializer.is_valid():
             partySerializer.save()
-            credentialSerializer.save()
-            returnData = partySerializer.data
-            return Response(returnData)
-        
-        return Response(partySerializer.errors, status=status.HTTP_400_BAD_REQUEST)
+            if credentialSerializer.is_valid():
+                credentialSerializer.save()
+                returnData = partySerializer.data
+                return Response(returnData)
+            else:
+                return Response(credentialSerializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        else:
+            return Response(partySerializer.errors, status=status.HTTP_400_BAD_REQUEST)
     
     #PW-161 POST https://demoapi.arabidopsis.org/parties/institutions/
     #FORM DATA
