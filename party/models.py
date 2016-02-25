@@ -36,7 +36,7 @@ class PartyAffiliation(models.Model):
 
     class Meta:
         db_table = "PartyAffiliation"
-        unique_together = ("childPartyId", "parentPartyId")
+        unique_together = ("childParty", "parentParty")
 
 class IpRange(models.Model):
     ipRangeId = models.AutoField(primary_key=True)
