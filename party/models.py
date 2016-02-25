@@ -30,7 +30,7 @@ class Party(models.Model):
     class Meta:
         db_table = "Party"
 
-class PartyAffiliation(models.Model):
+class PartyAffiliations(models.Model):
     childPartyId = models.ForeignKey(Party, related_name="childPartyId", db_column="childPartyId")
     parentPartyId = models.ForeignKey(Party, related_name="parentPartyId", db_column="parentPartyId")
 
