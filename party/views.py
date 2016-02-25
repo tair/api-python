@@ -201,7 +201,7 @@ class AffiliationCRUD(GenericCRUDView):
            for entry in obj.PartyAffiliation.all():
                serializer = serializer_class(entry)
                out.append(serializer.data)
-       elif params['partyType'] == 'institution':
+       elif params['partyType'] == 'organization':
            for entry in obj.consortiums.all():
                serializer = serializer_class(entry)
                out.append(serializer.data)
