@@ -1,6 +1,6 @@
 #Copyright 2015 Phoenix Bioinformatics Corporation. All rights reserved.
 
-from party.models import Party, IpRange, Country, Affiliation
+from party.models import Party, IpRange, Country, PartyAffiliation
 from party.serializers import PartySerializer, IpRangeSerializer
 from subscription.models import Subscription
 from partner.models import Partner
@@ -167,9 +167,9 @@ class ConsortiumCRUD(GenericCRUDView):
             consortium = Party.objects.get(partyId = consortiumId)
         if 'action' in request.data:
             if request.data['action'] == 'add':
-                Affiliation.objects.create(institutionId=obj,consortiumId=consortium)
+                PartyAffiliation.objects.create(childPartyId=obj, parentPartyId=consortium)
             elif request.data['action'] == 'remove':
-                Affiliation.objects.filter(institutionId=obj, consortiumId=consortium).delete()
+                PartyAffiliation.objects.filter(childPartyId=obj, parentPartyId=consortium).delete()
         serializer = serializer_class(obj)
         return Response(serializer.data)
 
