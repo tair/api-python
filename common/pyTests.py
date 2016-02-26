@@ -2,7 +2,7 @@ import requests
 import json
 import sys, getopt
 
-from common.testSamples import CommonApiKeySample
+from testSamples import CommonApiKeySample
 from partner.models import Partner
 from apikey.models import ApiKey
 
