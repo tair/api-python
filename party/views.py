@@ -184,7 +184,6 @@ class ConsortiumCRUD(GenericCRUDView):
 class InstitutionCRUD(GenericCRUDView):
     requireApiKey = False
     queryset = Party.objects.all()
-    serializer_class = PartySerializer
 
     def get_queryset(self):
         if isPhoenix(self.request):
@@ -241,35 +240,34 @@ class InstitutionCRUD(GenericCRUDView):
     #PW-161 POST https://demoapi.arabidopsis.org/parties/institutions/
     #FORM DATA
         #username required
-        #password required
+        #password NOT required (latest requirement change)
         #partnerId required (tair/phoenix); (username+partnerId) must make a unique set.
         #partyType required and must be "organization"
     def post(self, request, format=None):
-        if ApiKeyPermission.has_permission(request, self):
-            data = request.data
-            if 'partyType' not in data:
-                return Response({'error': 'POST method needs partyType'}, status=status.HTTP_400_BAD_REQUEST)
-            if data['partyType'] != "organization":
-                return Response({'error': 'POST method. patyType must be organization'}, status=status.HTTP_400_BAD_REQUEST)
-            if 'password' not in data:
-                return Response({'error': 'POST method needs password'}, status=status.HTTP_400_BAD_REQUEST)
-            
+        if not isPhoenix(request):
+           return HttpResponse({'error':'does not allow update without credentialId and secretKey query parameters'},status=status.HTTP_400_BAD_REQUEST)
+        
+        data = request.data
+        if 'partyType' not in data:
+            return Response({'error': 'POST method needs partyType'}, status=status.HTTP_400_BAD_REQUEST)
+        if data['partyType'] != "organization":
+            return Response({'error': 'POST method. patyType must be organization'}, status=status.HTTP_400_BAD_REQUEST)
+        if 'password' in data:
             data['password'] = hashlib.sha1(data['password']).hexdigest()
-            partySerializer = PartySerializer(data=data)
-            if partySerializer.is_valid():
-                partySerializer.save()
-                data['partyId'] = partySerializer.data['partyId']
-                credentialSerializer = CredentialSerializer(data=data)
-                if credentialSerializer.is_valid():
-                    credentialSerializer.save()
-                    return Response(credentialSerializer.data, status=status.HTTP_201_CREATED)
-                else:
-                    return Response(credentialSerializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        
+        partySerializer = PartySerializer(data=data)
+        if partySerializer.is_valid():
+            partySerializer.save()
+            
+            data['partyId'] = partySerializer.data['partyId']
+            credentialSerializer = CredentialSerializer(data=data)
+            if credentialSerializer.is_valid():
+                credentialSerializer.save()
+                return Response(credentialSerializer.data, status=status.HTTP_201_CREATED)
             else:
-                return Response(partySerializer.errors, status=status.HTTP_400_BAD_REQUEST)
+                return Response(credentialSerializer.errors, status=status.HTTP_400_BAD_REQUEST)
         else:
-            return Response(partySerializer.errors, status=status.HTTP_400_BAD_REQUEST) 
-
+            return Response(partySerializer.errors, status=status.HTTP_400_BAD_REQUEST)
 #
     def delete(self, request, format=None):
         if not isPhoenix(request):
