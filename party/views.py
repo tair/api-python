@@ -255,23 +255,30 @@ class InstitutionCRUD(GenericCRUDView):
             return Response({'error': 'POST method. patyType must be organization'}, status=status.HTTP_400_BAD_REQUEST)
         # if password is being passed and value of it is empty then error
         # not passing password in form data of POST is allowed - credential will be created with empty pwd in such case
+        # boolean in pythin http://stackoverflow.com/questions/12644075/how-to-set-python-variables-to-true-or-false 
         if ('password' in data):
             if (not data['password'] or data['password'] == ""):
                 ### password passed and it's value is empty
                 return Response({'error': 'POST parties/institutions/ password must not be empty'}, status=status.HTTP_400_BAD_REQUEST)
             else:
                 ### password passed and it's not empty
-                data['password'] = hashlib.sha1(data['password']).hexdigest()
+                pwd = True
         else:
             # password is not passed
-            data['password']=""
+            pwd = False
         
         partySerializer = PartySerializer(data=data)
         if partySerializer.is_valid():
             partySerializer.save()
             
             data['partyId'] = partySerializer.data['partyId']
-            credentialSerializer = CredentialSerializer(data=data)
+            
+            if pwd == True:
+                data['password'] = hashlib.sha1(data['password']).hexdigest()
+                credentialSerializer = CredentialSerializer(data=data)
+            else:
+                credentialSerializer = CredentialSerializerNoPassword(data=data)
+                
             if credentialSerializer.is_valid():
                 credentialSerializer.save()
                 return Response(credentialSerializer.data, status=status.HTTP_201_CREATED)
