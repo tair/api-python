@@ -169,8 +169,11 @@ class ConsortiumCRUD(GenericCRUDView):
         credential = Credential.objects.get(partyId = consortiumId)
         
         if 'password' in request.data:
-            data['password'] = hashlib.sha1(data['password']).hexdigest()
-            credentialSerializer = CredentialSerializer(credential, data=data)
+            if (not data['password'] or data['password'] == ""):
+                return Response({'error': 'PUT parties/consortiums/ password must not be empty'}, status=status.HTTP_400_BAD_REQUEST)
+            else:
+                data['password'] = hashlib.sha1(data['password']).hexdigest()
+                credentialSerializer = CredentialSerializer(credential, data=data)
         else:
             credentialSerializer = CredentialSerializerNoPassword(credential, data=data, partial=True) #??
             
@@ -315,8 +318,11 @@ class InstitutionCRUD(GenericCRUDView):
         credential = Credential.objects.get(partyId = institutionId)
         
         if 'password' in request.data:
-            data['password'] = hashlib.sha1(data['password']).hexdigest()
-            credentialSerializer = CredentialSerializer(credential, data=data)
+            if (not data['password'] or data['password'] == ""):
+                return Response({'error': 'PUT parties/institutions/ password must not be empty'}, status=status.HTTP_400_BAD_REQUEST)
+            else:
+                data['password'] = hashlib.sha1(data['password']).hexdigest()
+                credentialSerializer = CredentialSerializer(credential, data=data)
         else:
             credentialSerializer = CredentialSerializerNoPassword(credential, data=data, partial=True) #??
             
