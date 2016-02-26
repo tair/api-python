@@ -184,7 +184,8 @@ class ConsortiumCRUD(GenericCRUDView):
 class InstitutionCRUD(GenericCRUDView):
     requireApiKey = False
     queryset = Party.objects.all()
-
+    serializer_class = PartySerializer
+    
     def get_queryset(self):
         if isPhoenix(self.request):
             if 'partyId' in self.request.GET:
