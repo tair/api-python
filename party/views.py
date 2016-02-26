@@ -237,7 +237,8 @@ class InstitutionCRUD(GenericCRUDView):
         else:
             return Response(partySerializer.errors, status=status.HTTP_400_BAD_REQUEST)
     
-    #PW-161 POST https://demoapi.arabidopsis.org/parties/institutions/
+    #PW-161 POST https://demoapi.arabidopsis.org/parties/institutions/?credentialId=2&secretKey=7DgskfEF7jeRGn1h%2B5iDCpvIkRA%3D
+    #NOTE ?/ in parties/institutions/?credentialId=
     #FORM DATA
         #username required
         #password NOT required (latest requirement change)
@@ -245,15 +246,25 @@ class InstitutionCRUD(GenericCRUDView):
         #partyType required and must be "organization"
     def post(self, request, format=None):
         if not isPhoenix(request):
-           return HttpResponse({'error':'does not allow update without credentialId and secretKey query parameters'},status=status.HTTP_400_BAD_REQUEST)
+           return HttpResponse({'error':'POST parties/institutions/ credentialId and secretKey query parameters missing or invalid'},status=status.HTTP_400_BAD_REQUEST)
         
         data = request.data
         if 'partyType' not in data:
             return Response({'error': 'POST method needs partyType'}, status=status.HTTP_400_BAD_REQUEST)
         if data['partyType'] != "organization":
             return Response({'error': 'POST method. patyType must be organization'}, status=status.HTTP_400_BAD_REQUEST)
-        if 'password' in data:
-            data['password'] = hashlib.sha1(data['password']).hexdigest()
+        # if password is being passed and value of it is empty then error
+        # not passing password in form data of POST is allowed - credential will be created with empty pwd in such case
+        if ('password' in data):
+            if (not data['password'] or data['password'] == ""):
+                ### password passed and it's value is empty
+                return Response({'error': 'POST parties/institutions/ password must not be empty'}, status=status.HTTP_400_BAD_REQUEST)
+            else:
+                ### password passed and it's not empty
+                data['password'] = hashlib.sha1(data['password']).hexdigest()
+        #else:
+            # password is not passed
+            #data['password']=""
         
         partySerializer = PartySerializer(data=data)
         if partySerializer.is_valid():
