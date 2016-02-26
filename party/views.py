@@ -307,7 +307,7 @@ class InstitutionCRUD(GenericCRUDView):
         #get party
         if Party.objects.filter(partyId = partyId).exists():
             party = Party.objects.get(partyId = partyId)
-            partySerializer = PartySerializer(party, data=data)
+            partySerializer = PartySerializer(party)
             out.append(partySerializer.data)
         else:
             out.append({'error':'partyId '+partyId+' not found in Party tbl'})
@@ -315,7 +315,7 @@ class InstitutionCRUD(GenericCRUDView):
         #get credential
         if Credential.objects.filter(partyId = partyId).exists():
             credential = Credential.objects.get(partyId = partyId)
-            credentialSerializer = CredentialSerializer(credential, data=data)
+            credentialSerializer = CredentialSerializer(credential)
             out.append(credentialSerializer.data)
         else:
             out.append({'error':'partyId '+partyId+' not found in Credential tbl'})
