@@ -141,24 +141,24 @@ class ConsortiumCRUD(GenericCRUDView):
         if isPhoenix(self.request):
             if 'partyId' in self.request.GET:
                 partyId = self.request.GET.get('partyId')
-                return super(InstitutionCRUD, self).get_queryset().filter(partyId=partyId).filter(partyType="organization")
+                return super(ConsortiumCRUD, self).get_queryset().filter(partyId=partyId).filter(partyType="consortium") #PW-161 consortium
         return []
     
     #PW-161 PUT https://demoapi.arabidopsis.org/parties/consortiums?credentialId=2&secretKey=7DgskfEF7jeRGn1h%2B5iDCpvIkRA%3D
     #FORM DATA partyId is required. If pwd passed it will be updated in Credential if not - not.
-    # output data from both tables for a given partyId (aka institutionId)
+    # output data from both tables for a given partyId (aka consortiumId)
     def put(self, request, format=None):
         if not isPhoenix(request):
-           return HttpResponse({'error':'PUT parties/cosortiums/ credentialId and secretKey query parameters missing or invalid'},status=status.HTTP_400_BAD_REQUEST)
+           return HttpResponse({'error':'PUT parties/consortiums/ credentialId and secretKey query parameters missing or invalid'},status=status.HTTP_400_BAD_REQUEST)
         
         params = request.GET
         data = request.data
         
         if not params:
-            return Response({'error':'PUT parties/cosortiums/ does not allow update without query parameters'},status=status.HTTP_400_BAD_REQUEST)
+            return Response({'error':'PUT parties/consortiums/ does not allow update without query parameters'},status=status.HTTP_400_BAD_REQUEST)
         
         if 'partyId' not in request.data:
-            return Response({'error':'PUT parties/cosortiums/ partyId required'},status=status.HTTP_400_BAD_REQUEST)
+            return Response({'error':'PUT parties/consortiums/ partyId required'},status=status.HTTP_400_BAD_REQUEST)
         
         consortiumId = request.data['partyId']
         #get party
@@ -203,15 +203,15 @@ class ConsortiumCRUD(GenericCRUDView):
         data = request.data
         if 'partyType' not in data:
             return Response({'error': 'POST method needs partyType'}, status=status.HTTP_400_BAD_REQUEST)
-        if data['partyType'] != "organization":
-            return Response({'error': 'POST method. patyType must be organization'}, status=status.HTTP_400_BAD_REQUEST)
+        if data['partyType'] != "consortium":
+            return Response({'error': 'POST parties/consortiums/. patyType must be consortium'}, status=status.HTTP_400_BAD_REQUEST)
         # if password is being passed and value of it is empty then error
         # not passing password in form data of POST is allowed - credential will be created with empty pwd in such case
         # boolean in pythin http://stackoverflow.com/questions/12644075/how-to-set-python-variables-to-true-or-false 
         if ('password' in data):
             if (not data['password'] or data['password'] == ""):
                 ### password passed and it's value is empty
-                return Response({'error': 'POST parties/consourtiums/ password must not be empty'}, status=status.HTTP_400_BAD_REQUEST)
+                return Response({'error': 'POST parties/consortiums/ password must not be empty'}, status=status.HTTP_400_BAD_REQUEST)
             else:
                 ### password passed and it's not empty
                 pwd = True
