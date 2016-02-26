@@ -271,6 +271,10 @@ class InstitutionCRUD(GenericCRUDView):
         if partySerializer.is_valid():
             partySerializer.save()
             
+            out = []
+            partyReturnData = partySerializer.data
+            out.append(partyReturnData)
+            
             data['partyId'] = partySerializer.data['partyId']
             
             if pwd == True:
@@ -281,11 +285,15 @@ class InstitutionCRUD(GenericCRUDView):
                 
             if credentialSerializer.is_valid():
                 credentialSerializer.save()
-                return Response(credentialSerializer.data, status=status.HTTP_201_CREATED)
+                credentialReturnData = credentialSerializer.data
+                out.append(credentialReturnData)
+                return HttpResponse(json.dumps(out), content_type="application/json", status=status.HTTP_201_CREATED)
+                #return Response(credentialSerializer.data, status=status.HTTP_201_CREATED)
             else:
                 return Response(credentialSerializer.errors, status=status.HTTP_400_BAD_REQUEST)
         else:
             return Response(partySerializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        
 #
     def delete(self, request, format=None):
         if not isPhoenix(request):
