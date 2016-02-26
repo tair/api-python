@@ -262,9 +262,9 @@ class InstitutionCRUD(GenericCRUDView):
             else:
                 ### password passed and it's not empty
                 data['password'] = hashlib.sha1(data['password']).hexdigest()
-        #else:
+        else:
             # password is not passed
-            #data['password']=""
+            data['password']=""
         
         partySerializer = PartySerializer(data=data)
         if partySerializer.is_valid():
