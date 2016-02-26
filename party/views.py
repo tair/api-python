@@ -143,7 +143,35 @@ class ConsortiumCRUD(GenericCRUDView):
                 partyId = self.request.GET.get('partyId')
                 return super(ConsortiumCRUD, self).get_queryset().filter(partyId=partyId).filter(partyType="consortium") #PW-161 consortium
         return []
-    
+
+    def get(self, request, format=None):
+        if not isPhoenix(request):
+           return HttpResponse({'error':'credentialId and secretKey query parameters missing or invalid'},status=status.HTTP_400_BAD_REQUEST)
+        params = request.GET
+        if not params['partyId']:
+            return Response({'error':'does not allow get without partyId'},status=status.HTTP_400_BAD_REQUEST)
+
+        out = []
+        
+        partyId = params['partyId']
+        
+        #get party
+        if Party.objects.filter(partyId = partyId).exists():
+            party = Party.objects.get(partyId = partyId)
+            partySerializer = PartySerializer(party)
+            out.append(partySerializer.data)
+        else:
+            out.append({'error':'partyId '+partyId+' not found in Party tbl'})
+        
+        #get credential
+        if Credential.objects.filter(partyId = partyId).exists():
+            credential = Credential.objects.get(partyId = partyId)
+            credentialSerializer = CredentialSerializer(credential)
+            out.append(credentialSerializer.data)
+        else:
+            out.append({'error':'partyId '+partyId+' not found in Credential tbl'})
+        
+        return HttpResponse(json.dumps(out), content_type="application/json")    
     #PW-161 PUT https://demoapi.arabidopsis.org/parties/consortiums?credentialId=2&secretKey=7DgskfEF7jeRGn1h%2B5iDCpvIkRA%3D
     #FORM DATA partyId is required. If pwd passed it will be updated in Credential if not - not.
     # output data from both tables for a given partyId (aka consortiumId)
