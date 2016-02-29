@@ -181,6 +181,7 @@ class ConsortiumCRUD(GenericCRUDView):
 
         #http://stackoverflow.com/questions/18930234/django-modifying-the-request-object
         data = request.data.copy()
+        params = request.GET
         
         if not params:
             return Response({'error':'PUT parties/consortiums/ does not allow update without query parameters'},status=status.HTTP_400_BAD_REQUEST)
