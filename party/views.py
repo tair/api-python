@@ -145,8 +145,8 @@ class ConsortiumCRUD(GenericCRUDView):
         return []
 
     def get(self, request, format=None):
-        #if not isPhoenix(request):
-        #   return HttpResponse({'error':'credentialId and secretKey query parameters missing or invalid'},status=status.HTTP_400_BAD_REQUEST)
+        if not isPhoenix(request):
+           return HttpResponse({'error':'credentialId and secretKey query parameters missing or invalid'},status=status.HTTP_400_BAD_REQUEST)
         params = request.GET
         if not params['partyId']:
             return Response({'error':'does not allow get without partyId'},status=status.HTTP_400_BAD_REQUEST)
@@ -176,8 +176,8 @@ class ConsortiumCRUD(GenericCRUDView):
     #FORM DATA partyId is required. If pwd passed it will be updated in Credential if not - not.
     # output data from both tables for a given partyId (aka consortiumId)
     def put(self, request, format=None):
-        #if not isPhoenix(request):
-        #   return HttpResponse({'error':'PUT parties/consortiums/ credentialId and secretKey query parameters missing or invalid'},status=status.HTTP_400_BAD_REQUEST)
+        if not isPhoenix(request):
+           return HttpResponse({'error':'PUT parties/consortiums/ credentialId and secretKey query parameters missing or invalid'},status=status.HTTP_400_BAD_REQUEST)
 
         #http://stackoverflow.com/questions/18930234/django-modifying-the-request-object
         data = request.data.copy()
@@ -230,8 +230,8 @@ class ConsortiumCRUD(GenericCRUDView):
         #partnerId required (tair/phoenix); (username+partnerId) must make a unique set.
         #partyType required and must be "consortium"
     def post(self, request, format=None):
-        #if not isPhoenix(request):
-        #   return HttpResponse({'error':'POST parties/consortiums/ credentialId and secretKey query parameters missing or invalid'},status=status.HTTP_400_BAD_REQUEST)
+        if not isPhoenix(request):
+           return HttpResponse({'error':'POST parties/consortiums/ credentialId and secretKey query parameters missing or invalid'},status=status.HTTP_400_BAD_REQUEST)
         
         data = request.data.copy()
         
@@ -283,8 +283,8 @@ class ConsortiumCRUD(GenericCRUDView):
         
 #
     def delete(self, request, format=None):
-        #if not isPhoenix(request):
-        #  return HttpResponse({'error':'DELETE parties/consortiums/ credentialId and secretKey query parameters missing or invalid'},status=status.HTTP_400_BAD_REQUEST)
+        if not isPhoenix(request):
+          return HttpResponse({'error':'DELETE parties/consortiums/ credentialId and secretKey query parameters missing or invalid'},status=status.HTTP_400_BAD_REQUEST)
         
         params = request.GET
         data = request.data
@@ -311,8 +311,6 @@ class ConsortiumCRUD(GenericCRUDView):
 # TODO: "post" is still a security vulnerability -SC
 
 #PW-161 /parties/institutions/
-#GET https://demoapi.arabidopsis.org/parties/institutions?partyId=30740&credentialId=2&secretKey=7DgskfEF7jeRGn1h%2B5iDCpvIkRA%3D
-#[{"partyId": 30740, "partyType": "organization", "name": "ASPB Conference", "country": null, "display": false, "consortiums": []}]
 class InstitutionCRUD(GenericCRUDView):
     requireApiKey = False
     queryset = Party.objects.all()
@@ -326,8 +324,8 @@ class InstitutionCRUD(GenericCRUDView):
         return []
 
     def get(self, request, format=None):
-        #if not isPhoenix(request):
-        #   return HttpResponse({'error':'credentialId and secretKey query parameters missing or invalid'},status=status.HTTP_400_BAD_REQUEST)
+        if not isPhoenix(request):
+           return HttpResponse({'error':'credentialId and secretKey query parameters missing or invalid'},status=status.HTTP_400_BAD_REQUEST)
         params = request.GET
         if not params['partyId']:
             return Response({'error':'does not allow get without partyId'},status=status.HTTP_400_BAD_REQUEST)
@@ -356,10 +354,10 @@ class InstitutionCRUD(GenericCRUDView):
     
     #PW-161 PUT https://demoapi.arabidopsis.org/parties/institutions?credentialId=2&secretKey=7DgskfEF7jeRGn1h%2B5iDCpvIkRA%3D
     #FORM DATA partyId is required. If pwd passed it will be updated in Credential if not - not.
-    # output data from both tables for a given partyId (aka institutionId)
+    # output data from both tables for a given partyId
     def put(self, request, format=None):
-        #if not isPhoenix(request):
-        #   return HttpResponse({'error':'credentialId and secretKey query parameters missing or invalid'},status=status.HTTP_400_BAD_REQUEST)
+        if not isPhoenix(request):
+           return HttpResponse({'error':'credentialId and secretKey query parameters missing or invalid'},status=status.HTTP_400_BAD_REQUEST)
         
         params = request.GET
         data = request.data.copy()
@@ -411,8 +409,8 @@ class InstitutionCRUD(GenericCRUDView):
         #partnerId required (tair/phoenix); (username+partnerId) must make a unique set.
         #partyType required and must be "organization"
     def post(self, request, format=None):
-        #if not isPhoenix(request):
-        #   return HttpResponse({'error':'POST parties/institutions/ credentialId and secretKey query parameters missing or invalid'},status=status.HTTP_400_BAD_REQUEST)
+        if not isPhoenix(request):
+           return HttpResponse({'error':'POST parties/institutions/ credentialId and secretKey query parameters missing or invalid'},status=status.HTTP_400_BAD_REQUEST)
         
         data = request.data.copy()
         if 'partyType' not in data:
@@ -463,8 +461,8 @@ class InstitutionCRUD(GenericCRUDView):
         
 #
     def delete(self, request, format=None):
-        #if not isPhoenix(request):
-        #   return HttpResponse({'error':'credentialId and secretKey query parameters missing or invalid'},status=status.HTTP_400_BAD_REQUEST)
+        if not isPhoenix(request):
+           return HttpResponse({'error':'credentialId and secretKey query parameters missing or invalid'},status=status.HTTP_400_BAD_REQUEST)
         
         params = request.GET
         data = request.data
