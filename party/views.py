@@ -179,8 +179,11 @@ class ConsortiumCRUD(GenericCRUDView):
         #if not isPhoenix(request):
         #   return HttpResponse({'error':'PUT parties/consortiums/ credentialId and secretKey query parameters missing or invalid'},status=status.HTTP_400_BAD_REQUEST)
         
-        params = request.GET
-        data = request.data
+        params = request.GET.copy()
+        data = request.data.copy()
+        
+        #http://stackoverflow.com/questions/18930234/django-modifying-the-request-object
+        #request.GET = request.GET.copy()
         
         if not params:
             return Response({'error':'PUT parties/consortiums/ does not allow update without query parameters'},status=status.HTTP_400_BAD_REQUEST)
@@ -231,7 +234,8 @@ class ConsortiumCRUD(GenericCRUDView):
         #if not isPhoenix(request):
         #   return HttpResponse({'error':'POST parties/consortiums/ credentialId and secretKey query parameters missing or invalid'},status=status.HTTP_400_BAD_REQUEST)
         
-        data = request.data
+        data = request.data.copy()
+        
         if 'partyType' not in data:
             return Response({'error': 'POST method needs partyType'}, status=status.HTTP_400_BAD_REQUEST)
         if data['partyType'] != "consortium":
