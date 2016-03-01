@@ -238,4 +238,7 @@ class AffiliationCRUD(GenericCRUDView):
        PartyAffiliation.objects.filter(childPartyId=childParty, parentPartyId=parentParty).delete()
        serializer = serializer_class(childParty)
        return Response(serializer.data)
+
+    def put(self, request):
+        return Response({'error':'put function is unavailable'}, status=status.HTTP_400_BAD_REQUEST)
 # TODO: "post" is still a security vulnerability -SC
