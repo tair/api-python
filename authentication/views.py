@@ -219,8 +219,6 @@ def generateSecretKey(partyId, password):
   return base64.b64encode(hmac.new(str(partyId).encode('ascii'), password.encode('ascii'), hashlib.sha1).digest())
 
 #/credentials/profile/
-#PW-161 GET https://demoapi.arabidopsis.org/credentials/?username=andreylib&credentialId=32669&secretKey=Ac76mZWyaI2dcVn5HZeXwVQb5xE%3D
-#PW-161 PUT updates boht Cedential and Party tables
 class profile(GenericCRUDView):
   queryset = Credential.objects.all()
   requireApiKey = False
@@ -248,7 +246,7 @@ class profile(GenericCRUDView):
         partyObj = Party.objects.all().get(partyId = partyId)
         if 'name' in data:
           name = data['name']
-          partyData = {'name':name} #pw-161 Party tbl
+          partyData = {'name':name}
           partySerializer = PartySerializer(partyObj, data=partyData, partial =True)
           if partySerializer.is_valid():
             partySerializer.save()
