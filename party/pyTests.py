@@ -4,7 +4,7 @@ import django
 import unittest
 import sys, getopt
 from unittest import TestCase
-from party.models import Party, IpRange
+from models import Party, IpRange
 import requests
 import json
 from testSamples import PartySample, IpRangeSample
