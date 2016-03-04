@@ -398,4 +398,4 @@ class InstitutionSubscription1(APIView):
 
             return HttpResponse(json.dumps({'message':'success'}), content_type="application/json")
         else:
-            return HttpResponse('Cannot find registered email address.')
+            return HttpResponse({'error':'Cannot find registered email address.'})
