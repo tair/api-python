@@ -66,15 +66,21 @@ class OrganizationView(APIView):
             return HttpResponse(json.dumps([]), content_type="application/json")
 
         partyList = []
+        #SELECT partyId FROM phoenix_api.Subscription where partnerId = 'tair';
         objs = Subscription.objects.all().filter(partnerId=partnerId).values('partyId')
         for entry in objs:
             partyList.append(entry['partyId'])
+            #SELECT * from Party where partId in () and display=True and partyType='organization'
         obj = Party.objects.all().filter(partyId__in=partyList) \
                                  .filter(display=True) \
                                  .filter(partyType="organization")
         out = []
         for entry in obj:
-            out.append((entry.name, entry.country.name))
+            if not entry.country or not entry.country.name:#pw-265
+                countryName = "not defined"
+            else:
+                countryName = entry.country.name
+            out.append((entry.name, countryName))
         return HttpResponse(json.dumps(out), content_type="application/json")
 
 class CountryView(APIView):
