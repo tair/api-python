@@ -46,6 +46,7 @@ class Subscription(models.Model):
 
     class Meta:
         db_table = "Subscription"
+        unique_together = ("partyId", "partnerId")
 
 class ActivationCode(models.Model):
     activationCodeId = models.AutoField(primary_key=True)
