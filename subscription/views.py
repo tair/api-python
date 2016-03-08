@@ -380,7 +380,7 @@ class InstitutionSubscription1(APIView):
         temp_password = ''.join(random.choice(chars) for i in range(length))
         data['password'] = hashlib.sha1(temp_password).hexdigest()
 
-        if Credential.objects.all().filter(email=to_email):
+        if Credential.objects.all().filter(email=to_email,partnerId='phoenix'):
             credential = Credential.objects.all().filter(email=to_email,partnerId='phoenix')[0]
             serializer = CredentialSerializer(credential, data=data, partial=True)
             if serializer.is_valid():
