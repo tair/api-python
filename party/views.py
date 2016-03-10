@@ -102,7 +102,7 @@ class Usage(APIView):
         data = request.data
         subject = "Institution Usage Request For %s" % (data['institution'])
         message = "Partner: %s\n" \
-                  "Institution: %\n" \
+                  "Institution: %s\n" \
                   "Start date: %s\n" \
                   "End date: %s\n" \
                   "Comments: %s\n" \
