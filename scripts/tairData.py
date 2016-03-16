@@ -4,6 +4,7 @@ TAIR = {
         'name':'TAIR',
         'logoUri':'https://s3-us-west-2.amazonaws.com/pw2-logo/logo2.gif',
         'termOfServiceUri':'https://www.arabidopsis.org/doc/about/tair_terms_of_use/417',
+        'description':'Genome database for the reference plant Arabidopsis thaliana',
     },
     'PartnerPattern':[
         {'sourceUri':'demotair.arabidopsis.org', 'targetUri':'http://back-prod.arabidopsis.org'},
