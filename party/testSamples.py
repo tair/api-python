@@ -56,3 +56,13 @@ class IpRangeSample():
         postData = copy.deepcopy(data)
         postData['partyId'] = Party.objects.get(partyId=data['partyId'])
         return genericForcePost(self.model, self.pkName, postData)
+
+class PartyAffiliationSample():
+    path = 'parties/affiliations/'
+    url = None
+    data = {
+        'parentPartyId': 2,
+        'childPartyId' : 33390,
+    }
+    def __init__(self, serverUrl):
+        self.url = serverUrl+self.path
