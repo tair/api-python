@@ -19,6 +19,10 @@ from rest_framework.response import Response
 from django.core.mail import send_mail
 from common.permissions import isPhoenix
 
+from common.permissions import ApiKeyPermission
+import hashlib
+from authentication.serializers import CredentialSerializer, CredentialSerializerNoPassword
+from genericpath import exists
 # top level: /parties/
 
 # Basic CRUD operation for Party and IpRange
@@ -38,7 +42,6 @@ class PartyCRUD(GenericCRUDView):
                 partyType = self.request.GET.get('partyType')
                 return super(PartyCRUD, self).get_queryset().filter(partyType=partyType)
         return []
-# TODO: "post" is still a security vulnerability -SC
 
 # /ipranges/
 class IpRangeCRUD(GenericCRUDView):
@@ -63,15 +66,21 @@ class OrganizationView(APIView):
             return HttpResponse(json.dumps([]), content_type="application/json")
 
         partyList = []
+        #SELECT partyId FROM phoenix_api.Subscription where partnerId = 'tair';
         objs = Subscription.objects.all().filter(partnerId=partnerId).values('partyId')
         for entry in objs:
             partyList.append(entry['partyId'])
+            #SELECT * from Party where partId in () and display=True and partyType='organization'
         obj = Party.objects.all().filter(partyId__in=partyList) \
                                  .filter(display=True) \
                                  .filter(partyType="organization")
         out = []
         for entry in obj:
-            out.append((entry.name, entry.country.name))
+            if not entry.country or not entry.country.name:#pw-265
+                countryName = "not defined"
+            else:
+                countryName = entry.country.name
+            out.append((entry.name, countryName))
         return HttpResponse(json.dumps(out), content_type="application/json")
 
 class CountryView(APIView):
@@ -133,47 +142,353 @@ class ConsortiumCRUD(GenericCRUDView):
     requireApiKey = False
     queryset = Party.objects.all()
     serializer_class = PartySerializer
-
+    
     def get_queryset(self):
         if isPhoenix(self.request):
             if 'partyId' in self.request.GET:
                 partyId = self.request.GET.get('partyId')
-                return super(ConsortiumCRUD, self).get_queryset().get(partyId=partyId)
+                return super(ConsortiumCRUD, self).get_queryset().filter(partyId=partyId).filter(partyType="consortium") #PW-161 consortium
         return []
 
-    #Actually when we use PartyCRUD's get function we can always get consortiums list
     def get(self, request, format=None):
-        serializer_class = self.get_serializer_class()
+        if not isPhoenix(request):
+           return HttpResponse({'error':'credentialId and secretKey query parameters missing or invalid'},status=status.HTTP_400_BAD_REQUEST)
         params = request.GET
-        # does not allow user to update everything, too dangerous
-        if not params:
-            return Response({'error':'does not allow update without query parameters'})
-        obj = self.get_queryset()
-        out = []
-        for entry in obj.consortiums.all():
-            serializer = serializer_class(entry)
-            out.append(serializer.data)
-        return HttpResponse(json.dumps(out), content_type="application/json")
+        if not params['partyId']:
+            return Response({'error':'does not allow get without partyId'},status=status.HTTP_400_BAD_REQUEST)
 
+        out = []
+        
+        partyId = params['partyId']
+        
+        #get party
+        if Party.objects.filter(partyId = partyId).exists():
+            party = Party.objects.get(partyId = partyId)
+            partySerializer = PartySerializer(party)
+            out.append(partySerializer.data)
+        else:
+            out.append({'error':'partyId '+partyId+' not found in Party tbl'})
+        
+        #get credential
+        if Credential.objects.filter(partyId = partyId).exists():
+            credential = Credential.objects.get(partyId = partyId)
+            credentialSerializer = CredentialSerializer(credential)
+            out.append(credentialSerializer.data)
+        else:
+            out.append({'error':'partyId '+partyId+' not found in Credential tbl'})
+        
+        return HttpResponse(json.dumps(out), content_type="application/json")    
+    #PW-161 PUT https://demoapi.arabidopsis.org/parties/consortiums?credentialId=2&secretKey=7DgskfEF7jeRGn1h%2B5iDCpvIkRA%3D
+    #FORM DATA partyId is required. If pwd passed it will be updated in Credential if not - not.
+    # output data from both tables for a given partyId (aka consortiumId)
     def put(self, request, format=None):
-        serializer_class = self.get_serializer_class()
+        if not isPhoenix(request):
+           return HttpResponse({'error':'PUT parties/consortiums/ credentialId and secretKey query parameters missing or invalid'},status=status.HTTP_400_BAD_REQUEST)
+
+        #http://stackoverflow.com/questions/18930234/django-modifying-the-request-object
+        data = request.data.copy()
         params = request.GET
-        # does not allow user to update everything, too dangerous
+        
         if not params:
-            return Response({'error':'does not allow update without query parameters'})
-        obj = self.get_queryset()
-        if 'consortiumId' in request.data:
-            consortiumId = request.data['consortiumId']
-            consortium = Party.objects.get(partyId = consortiumId)
-        if 'action' in request.data:
-            if request.data['action'] == 'add':
-                PartyAffiliation.objects.create(childPartyId=obj, parentPartyId=consortium)
-            elif request.data['action'] == 'remove':
-                PartyAffiliation.objects.filter(childPartyId=obj, parentPartyId=consortium).delete()
-        serializer = serializer_class(obj)
-        return Response(serializer.data)
+            return Response({'error':'PUT parties/consortiums/ does not allow update without query parameters'},status=status.HTTP_400_BAD_REQUEST)
+        
+        if 'partyId' not in request.data:
+            return Response({'error':'PUT parties/consortiums/ partyId required'},status=status.HTTP_400_BAD_REQUEST)
+        
+        consortiumId = request.data['partyId']
+        #get party
+        party = Party.objects.get(partyId = consortiumId)
+        partySerializer = PartySerializer(party, data=data)
+        
+        #get credential
+        credential = Credential.objects.get(partyId = consortiumId)
+        
+        if 'password' in request.data:
+            if (not data['password'] or data['password'] == ""):
+                return Response({'error': 'PUT parties/consortiums/ password must not be empty'}, status=status.HTTP_400_BAD_REQUEST)
+            else:
+                newPwd = data['password']
+                data['password'] = hashlib.sha1(newPwd).hexdigest()
+                credentialSerializer = CredentialSerializer(credential, data=data)
+        else:
+            credentialSerializer = CredentialSerializerNoPassword(credential, data=data, partial=True) #??
+            
+        out = []
+        if partySerializer.is_valid():
+            partySerializer.save()
+            partyReturnData = partySerializer.data
+            out.append(partyReturnData)
+            if credentialSerializer.is_valid():
+                credentialSerializer.save()
+                credentialReturnData = credentialSerializer.data
+                out.append(credentialReturnData)
+                return HttpResponse(json.dumps(out), content_type="application/json")
+            else:
+                return Response(credentialSerializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        else:
+            return Response(partySerializer.errors, status=status.HTTP_400_BAD_REQUEST)
+    
+    #PW-161 POST https://demoapi.arabidopsis.org/parties/consortiums/?credentialId=2&secretKey=7DgskfEF7jeRGn1h%2B5iDCpvIkRA%3D
+    #NOTE ?/ in parties/consortiums/?credentialId=
+    #FORM DATA
+        #username required
+        #password NOT required (latest requirement change)
+        #partnerId required (tair/phoenix); (username+partnerId) must make a unique set.
+        #partyType required and must be "consortium"
+    def post(self, request, format=None):
+        if not isPhoenix(request):
+           return HttpResponse({'error':'POST parties/consortiums/ credentialId and secretKey query parameters missing or invalid'},status=status.HTTP_400_BAD_REQUEST)
+        
+        data = request.data.copy()
+        
+        if 'partyType' not in data:
+            return Response({'error': 'POST method needs partyType'}, status=status.HTTP_400_BAD_REQUEST)
+        if data['partyType'] != "consortium":
+            return Response({'error': 'POST parties/consortiums/. patyType must be consortium'}, status=status.HTTP_400_BAD_REQUEST)
+        # if password is being passed and value of it is empty then error
+        # not passing password in form data of POST is allowed - credential will be created with empty pwd in such case
+        # boolean in pythin http://stackoverflow.com/questions/12644075/how-to-set-python-variables-to-true-or-false 
+        if ('password' in data):
+            if (not data['password'] or data['password'] == ""):
+                ### password passed and it's value is empty
+                return Response({'error': 'POST parties/consortiums/ password must not be empty'}, status=status.HTTP_400_BAD_REQUEST)
+            else:
+                ### password passed and it's not empty
+                pwd = True
+        else:
+            # password is not passed
+            pwd = False
+        
+        partySerializer = PartySerializer(data=data)
+        if partySerializer.is_valid():
+            partySerializer.save()
+            
+            out = []
+            partyReturnData = partySerializer.data
+            out.append(partyReturnData)
+            
+            data['partyId'] = partySerializer.data['partyId']
+            
+            if pwd == True:
+                newPwd = data['password']
+                data['password'] = hashlib.sha1(newPwd).hexdigest()
+                credentialSerializer = CredentialSerializer(data=data)
+            else:
+                credentialSerializer = CredentialSerializerNoPassword(data=data)
+                
+            if credentialSerializer.is_valid():
+                credentialSerializer.save()
+                credentialReturnData = credentialSerializer.data
+                out.append(credentialReturnData)
+                return HttpResponse(json.dumps(out), content_type="application/json", status=status.HTTP_201_CREATED)
+                #return Response(credentialSerializer.data, status=status.HTTP_201_CREATED)
+            else:
+                return Response(credentialSerializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        else:
+            return Response(partySerializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        
+#
+    def delete(self, request, format=None):
+        if not isPhoenix(request):
+          return HttpResponse({'error':'DELETE parties/consortiums/ credentialId and secretKey query parameters missing or invalid'},status=status.HTTP_400_BAD_REQUEST)
+        
+        params = request.GET
+        data = request.data
+        
+        if not params:
+            return Response({'error':'does not allow delete without query parameters'},status=status.HTTP_400_BAD_REQUEST)
+        
+        if 'partyId' not in request.data:
+            return Response({'error':'partyId required'},status=status.HTTP_400_BAD_REQUEST)
+        
+        consortiumId = request.data['partyId']
+        
+        #get party
+        if Party.objects.filter(partyId = consortiumId).exists():
+            party = Party.objects.get(partyId = consortiumId)
+            party.delete()
+            #credential is being deleted automatically
+            return Response({'success':'delete partyId '+consortiumId+' completed'},status=status.HTTP_200_OK)
+        else:
+            return Response({'error':'delete partyId '+consortiumId+' failed. partyId not found'},status=status.HTTP_400_BAD_REQUEST)
+
+
 
 # TODO: "post" is still a security vulnerability -SC
+
+#PW-161 /parties/institutions/
+class InstitutionCRUD(GenericCRUDView):
+    requireApiKey = False
+    queryset = Party.objects.all()
+    serializer_class = PartySerializer
+    
+    def get_queryset(self):
+        if isPhoenix(self.request):
+            if 'partyId' in self.request.GET:
+                partyId = self.request.GET.get('partyId')
+                return super(InstitutionCRUD, self).get_queryset().filter(partyId=partyId).filter(partyType="organization")
+        return []
+
+    def get(self, request, format=None):
+        if not isPhoenix(request):
+           return HttpResponse({'error':'credentialId and secretKey query parameters missing or invalid'},status=status.HTTP_400_BAD_REQUEST)
+        params = request.GET
+        if not params['partyId']:
+            return Response({'error':'does not allow get without partyId'},status=status.HTTP_400_BAD_REQUEST)
+
+        out = []
+        
+        partyId = params['partyId']
+        
+        #get party
+        if Party.objects.filter(partyId = partyId).exists():
+            party = Party.objects.get(partyId = partyId)
+            partySerializer = PartySerializer(party)
+            out.append(partySerializer.data)
+        else:
+            out.append({'error':'partyId '+partyId+' not found in Party tbl'})
+        
+        #get credential
+        if Credential.objects.filter(partyId = partyId).exists():
+            credential = Credential.objects.get(partyId = partyId)
+            credentialSerializer = CredentialSerializer(credential)
+            out.append(credentialSerializer.data)
+        else:
+            out.append({'error':'partyId '+partyId+' not found in Credential tbl'})
+        
+        return HttpResponse(json.dumps(out), content_type="application/json")
+    
+    #PW-161 PUT https://demoapi.arabidopsis.org/parties/institutions?credentialId=2&secretKey=7DgskfEF7jeRGn1h%2B5iDCpvIkRA%3D
+    #FORM DATA partyId is required. If pwd passed it will be updated in Credential if not - not.
+    # output data from both tables for a given partyId
+    def put(self, request, format=None):
+        if not isPhoenix(request):
+           return HttpResponse({'error':'credentialId and secretKey query parameters missing or invalid'},status=status.HTTP_400_BAD_REQUEST)
+        
+        params = request.GET
+        data = request.data.copy()
+        
+        if not params:
+            return Response({'error':'does not allow update without query parameters'},status=status.HTTP_400_BAD_REQUEST)
+        
+        if 'partyId' not in request.data:
+            return Response({'error':'partyId (aka institutionId) required'},status=status.HTTP_400_BAD_REQUEST)
+        
+        institutionId = request.data['partyId']
+        #get party
+        party = Party.objects.get(partyId = institutionId)
+        partySerializer = PartySerializer(party, data=data)
+        
+        #get credential
+        credential = Credential.objects.get(partyId = institutionId)
+        
+        if 'password' in request.data:
+            if (not data['password'] or data['password'] == ""):
+                return Response({'error': 'PUT parties/institutions/ password must not be empty'}, status=status.HTTP_400_BAD_REQUEST)
+            else:
+                newPwd = data['password']
+                data['password'] = hashlib.sha1(newPwd).hexdigest()
+                credentialSerializer = CredentialSerializer(credential, data=data)
+        else:
+            credentialSerializer = CredentialSerializerNoPassword(credential, data=data, partial=True) #??
+            
+        out = []
+        if partySerializer.is_valid():
+            partySerializer.save()
+            partyReturnData = partySerializer.data
+            out.append(partyReturnData)
+            if credentialSerializer.is_valid():
+                credentialSerializer.save()
+                credentialReturnData = credentialSerializer.data
+                out.append(credentialReturnData)
+                return HttpResponse(json.dumps(out), content_type="application/json")
+            else:
+                return Response(credentialSerializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        else:
+            return Response(partySerializer.errors, status=status.HTTP_400_BAD_REQUEST)
+    
+    #PW-161 POST https://demoapi.arabidopsis.org/parties/institutions/?credentialId=2&secretKey=7DgskfEF7jeRGn1h%2B5iDCpvIkRA%3D
+    #NOTE ?/ in parties/institutions/?credentialId=
+    #FORM DATA
+        #username required
+        #password NOT required (latest requirement change)
+        #partnerId required (tair/phoenix); (username+partnerId) must make a unique set.
+        #partyType required and must be "organization"
+    def post(self, request, format=None):
+        if not isPhoenix(request):
+           return HttpResponse({'error':'POST parties/institutions/ credentialId and secretKey query parameters missing or invalid'},status=status.HTTP_400_BAD_REQUEST)
+        
+        data = request.data.copy()
+        if 'partyType' not in data:
+            return Response({'error': 'POST method needs partyType'}, status=status.HTTP_400_BAD_REQUEST)
+        if data['partyType'] != "organization":
+            return Response({'error': 'POST method. patyType must be organization'}, status=status.HTTP_400_BAD_REQUEST)
+        # if password is being passed and value of it is empty then error
+        # not passing password in form data of POST is allowed - credential will be created with empty pwd in such case
+        # boolean in pythin http://stackoverflow.com/questions/12644075/how-to-set-python-variables-to-true-or-false 
+        if ('password' in data):
+            if (not data['password'] or data['password'] == ""):
+                ### password passed and it's value is empty
+                return Response({'error': 'POST parties/institutions/ password must not be empty'}, status=status.HTTP_400_BAD_REQUEST)
+            else:
+                ### password passed and it's not empty
+                pwd = True
+        else:
+            # password is not passed
+            pwd = False
+        
+        partySerializer = PartySerializer(data=data)
+        if partySerializer.is_valid():
+            partySerializer.save()
+            
+            out = []
+            partyReturnData = partySerializer.data
+            out.append(partyReturnData)
+            
+            data['partyId'] = partySerializer.data['partyId']
+            
+            if pwd == True:
+                newPwd = data['password']
+                data['password'] = hashlib.sha1(newPwd).hexdigest()
+                credentialSerializer = CredentialSerializer(data=data)
+            else:
+                credentialSerializer = CredentialSerializerNoPassword(data=data)
+                
+            if credentialSerializer.is_valid():
+                credentialSerializer.save()
+                credentialReturnData = credentialSerializer.data
+                out.append(credentialReturnData)
+                return HttpResponse(json.dumps(out), content_type="application/json", status=status.HTTP_201_CREATED)
+                #return Response(credentialSerializer.data, status=status.HTTP_201_CREATED)
+            else:
+                return Response(credentialSerializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        else:
+            return Response(partySerializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        
+#
+    def delete(self, request, format=None):
+        if not isPhoenix(request):
+           return HttpResponse({'error':'credentialId and secretKey query parameters missing or invalid'},status=status.HTTP_400_BAD_REQUEST)
+        
+        params = request.GET
+        data = request.data
+        
+        if not params:
+            return Response({'error':'does not allow update without query parameters'},status=status.HTTP_400_BAD_REQUEST)
+        
+        if 'partyId' not in request.data:
+            return Response({'error':'partyId (aka institutionId) required'},status=status.HTTP_400_BAD_REQUEST)
+        
+        institutionId = request.data['partyId']
+        
+        #get party
+        if Party.objects.filter(partyId = institutionId).exists():
+            party = Party.objects.get(partyId = institutionId)
+            party.delete()
+            #credential is being deleted automatically
+            return Response({'success':'delete partyId '+institutionId+' completed'},status=status.HTTP_200_OK)
+        else:
+            return Response({'error':'delete partyId '+institutionId+' failed. partyId not found'},status=status.HTTP_400_BAD_REQUEST)
 
 # affiliations/
 class AffiliationCRUD(GenericCRUDView):
