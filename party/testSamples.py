@@ -67,3 +67,6 @@ class PartyAffiliationSample():
     def __init__(self, serverUrl):
         self.url = serverUrl+self.path
 
+    def forcePost(self,data):
+        return genericForcePost(self.model, self.pkName, postData)
+
