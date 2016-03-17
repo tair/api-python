@@ -66,3 +66,4 @@ class PartyAffiliationSample():
     }
     def __init__(self, serverUrl):
         self.url = serverUrl+self.path
+
