@@ -66,7 +66,7 @@ class PartyAffiliationSample():
     }
     pkName = 'partyAffiliationId';
     model = PartyAffiliation
-    def __init__(self, serverUrl, parentParty, childParty):
+    def __init__(self, serverUrl):
         self.url = serverUrl+self.path
 
     def forcePost(self,data):
