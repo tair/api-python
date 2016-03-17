@@ -7,8 +7,8 @@ from unittest import TestCase
 from models import Party, IpRange
 import requests
 import json
-from testSamples import PartySample, IpRangeSample
-from common.pyTests import PyTestGenerics, GenericCRUDTest, GenericTest
+from testSamples import PartySample, IpRangeSample, PartyAffiliationSample
+from common.pyTests import PyTestGenerics, GenericCRUDTest
 
 
 # Create your tests here.                                                                                                                                                                                 
@@ -20,7 +20,7 @@ print "using server url %s" % serverUrl
 
 class PartyCRUD(GenericTest, TestCase):
     sample = PartySample(serverUrl)
-    
+
     def test_for_get(self):
         credentialId = "2"
         partyId = "3"
