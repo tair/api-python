@@ -95,8 +95,23 @@ class PartyAffiliationCRUD(GenericCRUDTest, TestCase):
     def setUp(self):
         super(PartyAffiliationCRUD,self).setUp()
 
+    def test_for_update(self):
+        sample = self.sample
+        pk = sample.forcePost(sample.data)
+        url = sample.url + '?%s=%s' % (sample.pkName, str(pk))
+        if self.apiKey:
+            url = url+'&apiKey=%s' % (self.apiKey)
+        cookies = {'apiKey':self.apiKey}
+        req = requests.put(url, data=sample.updateData,cookies=cookies)
+        if sample.pkName in sample.updateData:
+            pk = sample.updateData[sample.pkName]
+        self.assertEqual(req.status_code, 400)
+        self.assertEqual(checkMatch(sample.updateData, req.json(), sample.pkName, pk), True)
+        PyTestGenerics.forceDelete(sample.model,sample.pkName,pk)
+
     def tearDown(self):
         super(PartyAffiliationCRUD,self).tearDown()
+        PyTestGenerics.forceDelete(self.sample.model, self.sample.pkName, self.sample.data['partyId'])
 
 # ----------------- END OF BASIC CRUD OPERATIONS ----------------------
 
