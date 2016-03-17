@@ -61,12 +61,12 @@ class PartyAffiliationSample():
     path = 'parties/affiliations/'
     url = None
     data = {
-        'parentPartyId': Party.objects.get(partyId=33448),
-        'childPartyId' : Party.objects.get(partyId=33390),
+        'parentPartyId': Party.objects.get(partyId=33342),
+        'childPartyId' : Party.objects.get(partyId=33343),
     }
     pkName = 'partyAffiliationId';
     model = PartyAffiliation
-    def __init__(self, serverUrl):
+    def __init__(self, serverUrl, parentParty, childParty):
         self.url = serverUrl+self.path
 
     def forcePost(self,data):
