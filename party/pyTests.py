@@ -7,7 +7,7 @@ from unittest import TestCase
 from party.models import Party, IpRange
 import requests
 import json
-from testSamples import PartySample, IpRangeSample
+from testSamples import PartySample, IpRangeSample, PartyAffiliationSample
 from common.pyTests import PyTestGenerics, GenericCRUDTest
 
 
