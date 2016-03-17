@@ -34,6 +34,15 @@ class IpRangeCRUD(GenericCRUDTest, TestCase):
         super(IpRangeCRUD,self).tearDown()
         PyTestGenerics.forceDelete(self.partySample.model, self.partySample.pkName, self.sample.data['partyId'])
 
+class PartyAffiliationCRUD(GenericCRUDTest, TestCase):
+    sample = PartyAffiliationSample(serverUrl)
+
+    def setUp(self):
+        super(PartyAffiliationCRUD,self).setUp()
+
+    def tearDown(self):
+        super(PartyAffiliationCRUD,self).tearDown()
+
 # ----------------- END OF BASIC CRUD OPERATIONS ----------------------
 
 print "Running unit tests on party web services API........."
