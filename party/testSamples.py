@@ -2,7 +2,7 @@ import django
 import unittest
 import sys, getopt
 from unittest import TestCase
-from party.models import Party, IpRange
+from party.models import Party, IpRange, PartyAffiliation
 from partner.models import Partner
 
 import copy
@@ -64,6 +64,8 @@ class PartyAffiliationSample():
         'parentPartyId': 2,
         'childPartyId' : 33390,
     }
+    pkName = 'partyAffiliationId';
+    model = PartyAffiliation
     def __init__(self, serverUrl):
         self.url = serverUrl+self.path
 
