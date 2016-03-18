@@ -40,7 +40,7 @@ class PartyAffiliationCRUD(GenericCRUDTest, TestCase):
     def setUp(self):
         super(PartyAffiliationCRUD,self).setUp()
         partyAffiliationId = self.sample.forcePost(self.sample.data)
-        self.sample.data['partyAffiliationId']==partyAffiliationId
+        self.sample.data['partyAffiliationId']=partyAffiliationId
 
     def test_for_update(self):
         self.assertEqual(200, 200)
