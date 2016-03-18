@@ -38,33 +38,25 @@ class PartyAffiliationCRUD(GenericCRUDTest, TestCase):
     sample = PartyAffiliationSample(serverUrl)
 
     def setUp(self):
-        # super(PartyAffiliationCRUD,self).setUp()
-        # partyAffiliationId = self.sample.forcePost(self.sample.data)
-        # self.sample.data['partyAffiliationId']=partyAffiliationId
+        pass
 
     def test_for_update(self):
-        # PyTestGenerics.forceDelete(self.sample.model, self.sample.pkName, self.sample.data['partyAffiliationId'])
-        # self.assertEqual(200, 200)
+        pass
 
     def test_for_get(self):
-        # PyTestGenerics.forceDelete(self.sample.model, self.sample.pkName, self.sample.data['partyAffiliationId'])
-        # self.assertEqual(200, 200)
+        pass
 
     def test_for_get_all(self):
-        # PyTestGenerics.forceDelete(self.sample.model, self.sample.pkName, self.sample.data['partyAffiliationId'])
-        # self.assertEqual(200, 200)
+        pass
 
     def test_for_create(self):
-        # PyTestGenerics.forceDelete(self.sample.model, self.sample.pkName, self.sample.data['partyAffiliationId'])
-        # self.assertEqual(200, 200)
+        pass
 
     def test_for_delete(self):
-        # PyTestGenerics.forceDelete(self.sample.model, self.sample.pkName, self.sample.data['partyAffiliationId'])
-        # self.assertEqual(200, 200)
+        pass
 
     def tearDown(self):
-        # super(PartyAffiliationCRUD,self).tearDown()
-        # PyTestGenerics.forceDelete(self.sample.model, self.sample.pkName, self.sample.data['partyAffiliationId'])
+        pass
 
 # ----------------- END OF BASIC CRUD OPERATIONS ----------------------
 
