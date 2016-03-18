@@ -7,7 +7,7 @@ from unittest import TestCase
 from models import Party, IpRange
 import requests
 import json
-from testSamples import PartySample, IpRangeSample
+from testSamples import PartySample, IpRangeSample, PartyAffiliationSample
 from common.pyTests import PyTestGenerics, GenericCRUDTest
 
 
@@ -33,6 +33,15 @@ class IpRangeCRUD(GenericCRUDTest, TestCase):
     def tearDown(self):
         super(IpRangeCRUD,self).tearDown()
         PyTestGenerics.forceDelete(self.partySample.model, self.partySample.pkName, self.sample.data['partyId'])
+
+class PartyAffiliationCRUD(GenericCRUDTest, TestCase):
+    sample = PartyAffiliationSample(serverUrl)
+
+    def setUp(self):
+        super(PartyAffiliationCRUD,self).setUp()
+
+    def tearDown(self):
+        super(PartyAffiliationCRUD,self).tearDown()
 
 # ----------------- END OF BASIC CRUD OPERATIONS ----------------------
 
