@@ -311,12 +311,11 @@ class RenewSubscription(generics.GenericAPIView):
                   "\n" \
                   "Please contact me about a subscription renewal. My information is below.\n" \
                   "Product: %s\n" \
-                  "Name: %s\n" \
                   "Email: %s \n" \
                   "Institution Name: %s \n" \
                   "Comments: %s \n" \
                   "\n" \
-                  % (request.POST.get('partnerName'), request.POST.get('name'), request.POST.get('email'), request.POST.get('institution'), request.POST.get('comments'))
+                  % (request.POST.get('partnerName'), request.POST.get('email'), request.POST.get('institution'), request.POST.get('comments'))
         from_email = "info@phoenixbioinformatics.org"
         recipient_list = ["info@phoenixbioinformatics.org"]
         send_mail(subject=subject, message=message, from_email=from_email, recipient_list=recipient_list)
@@ -333,12 +332,11 @@ class RequestSubscription(generics.GenericAPIView):
                   "\n" \
                   "Please contact me about a subscription request. My information is below.\n" \
                   "Product: %s\n" \
-                  "Name: %s\n" \
                   "Email: %s \n" \
                   "Institution Name: %s \n" \
                   "Comments: %s \n" \
                   "\n" \
-                  % (request.POST.get('partnerName'), request.POST.get('name'), request.POST.get('email'), request.POST.get('institution'), request.POST.get('comments'))
+                  % (request.POST.get('partnerName'), request.POST.get('email'), request.POST.get('institution'), request.POST.get('comments'))
         from_email = "info@phoenixbioinformatics.org"
         recipient_list = ["info@phoenixbioinformatics.org"]
         send_mail(subject=subject, message=message, from_email=from_email, recipient_list=recipient_list)
@@ -380,7 +378,7 @@ class InstitutionSubscription1(APIView):
         temp_password = ''.join(random.choice(chars) for i in range(length))
         data['password'] = hashlib.sha1(temp_password).hexdigest()
 
-        if Credential.objects.all().filter(email=to_email):
+        if Credential.objects.all().filter(email=to_email,partnerId='phoenix'):
             credential = Credential.objects.all().filter(email=to_email,partnerId='phoenix')[0]
             serializer = CredentialSerializer(credential, data=data, partial=True)
             if serializer.is_valid():
@@ -398,4 +396,4 @@ class InstitutionSubscription1(APIView):
 
             return HttpResponse(json.dumps({'message':'success'}), content_type="application/json")
         else:
-            return HttpResponse('Cannot find registered email address.')
+            return Response({'error':'Cannot find registered email address.'},status=status.HTTP_400_BAD_REQUEST)

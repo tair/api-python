@@ -16,12 +16,14 @@ class PartnerSample():
         'name':'testPartner',
         'logoUri':'randomuri.com',
         'termOfServiceUri':'anotherrandomuri.com',
+        'description':'Genome database for the reference plant Arabidopsis thaliana',
     }
     updateData = {
         'partnerId':'test',
         'name':'testPartner2',
         'logoUri':'randomuri.com',
         'termOfServiceUri':'anotherrandomuri.com',
+        'description':'Genome database for the reference plant Arabidopsis thaliana2',
     }
     pkName = 'partnerId'
     model = Partner

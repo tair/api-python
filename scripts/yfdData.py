@@ -4,6 +4,7 @@ YFD = {
         'name':'YFD',
         'logoUri':'https://s3-us-west-2.amazonaws.com/pw2-logo/yfd.png',
         'termOfServiceUri':'https://www.google.com/intl/en/policies/terms/?fg=1',
+        'description':'yfd partner description',
     },
     'PartnerPattern':[
         {'sourceUri':'testyfd.com', 'targetUri':'http://back-prod.testyfd.com'},

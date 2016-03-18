@@ -4,6 +4,7 @@ CDIFF = {
         'name':'CDIFF',
         'logoUri':'https://s3-us-west-2.amazonaws.com/pw2-logo/BioCyc.gif',
         'termOfServiceUri':'https://www.google.com/intl/en/policies/terms/?fg=1',
+        'description':'cdiff partner description',
     },
     'PartnerPattern':[
         {'sourceUri':'stevecdiff.steveatgetexp.com', 'targetUri':'http://cdifficile.biocyc.org'},

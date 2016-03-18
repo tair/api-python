@@ -29,12 +29,20 @@ set termOfServiceUri = 'https://demotair.arabidopsis.org/doc/about/tair_terms_of
 where partnerId = 'tair';
 
 update Partner 
+set description = 'Genome database for the reference plant Arabidopsis thaliana' 
+where partnerId = 'tair';
+
+update Partner 
 set homeUri = 'https://demotair.arabidopsis.org' 
 where partnerId = 'phoenix';
 
 update Partner 
 set termOfServiceUri = 'https://demotair.arabidopsis.org/doc/about/tair_terms_of_use/417' 
 where partnerId = 'phoenix';
+
+update Partner 
+set description = 'phoenix partner description' 
+where partnerId = 'phoenix'
 
 INSERT INTO phoenix_api.Partner (partnerId, name, logoUri, termOfServiceUri, homeUri) 
 VALUES ('biocyc', 'BioCyc', 'https://s3-us-west-2.amazonaws.com/pw2-logo/BioCyc.gif', 'http://biocyc.org/disclaimer.shtml', 'http://www.biocyc.org/');
