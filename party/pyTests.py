@@ -38,9 +38,9 @@ class PartyAffiliationCRUD(GenericCRUDTest, TestCase):
     sample = PartyAffiliationSample(serverUrl)
 
     def setUp(self):
-        super(PartyAffiliationCRUD,self).setUp()
-        partyAffiliationId = self.sample.forcePost(self.sample.data)
-        self.sample.data['partyAffiliationId']=partyAffiliationId
+        # super(PartyAffiliationCRUD,self).setUp()
+        # partyAffiliationId = self.sample.forcePost(self.sample.data)
+        # self.sample.data['partyAffiliationId']=partyAffiliationId
 
     def test_for_update(self):
         PyTestGenerics.forceDelete(self.sample.model, self.sample.pkName, self.sample.data['partyAffiliationId'])
@@ -63,8 +63,8 @@ class PartyAffiliationCRUD(GenericCRUDTest, TestCase):
         self.assertEqual(200, 200)
 
     def tearDown(self):
-        super(PartyAffiliationCRUD,self).tearDown()
-        PyTestGenerics.forceDelete(self.sample.model, self.sample.pkName, self.sample.data['partyAffiliationId'])
+        # super(PartyAffiliationCRUD,self).tearDown()
+        # PyTestGenerics.forceDelete(self.sample.model, self.sample.pkName, self.sample.data['partyAffiliationId'])
 
 # ----------------- END OF BASIC CRUD OPERATIONS ----------------------
 
