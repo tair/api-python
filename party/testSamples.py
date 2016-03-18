@@ -2,7 +2,7 @@ import django
 import unittest
 import sys, getopt
 from unittest import TestCase
-from party.models import Party, IpRange
+from party.models import Party, IpRange, PartyAffiliation
 from partner.models import Partner
 
 import copy
@@ -61,8 +61,14 @@ class PartyAffiliationSample():
     path = 'parties/affiliations/'
     url = None
     data = {
-        'parentPartyId': 2,
-        'childPartyId' : 33390,
+        'parentPartyId': Party.objects.all().get(partyId=33342),
+        'childPartyId' : Party.objects.all().get(partyId=33343),
     }
+    pkName = 'partyAffiliationId';
+    model = PartyAffiliation
     def __init__(self, serverUrl):
         self.url = serverUrl+self.path
+
+    def forcePost(self,data):
+        return genericForcePost(self.model, self.pkName, data)
+
