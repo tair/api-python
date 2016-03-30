@@ -25,7 +25,7 @@ for entry in createAccountsData:
     data['username'] = entry[0].split(',')[3]
     password = entry[0].split(',')[4]
     data['password'] = hashlib.sha1(password).hexdigest()
-    serializer = CredentialSerializer(data=data)
+    serializer = CredentialSerializer(data=data, partial=True)
     if serializer.is_valid():
         serializer.save()
         print "user record loaded: " + serializer.data
