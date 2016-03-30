@@ -2,6 +2,7 @@ import django
 import os
 import csv
 import hashlib
+import json
 
 os.sys.path.append('../')
 os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'paywall2.settings')
@@ -29,7 +30,8 @@ for entry in createAccountsData:
     serializer = CredentialSerializer(data=data, partial=True)
     if serializer.is_valid():
         serializer.save()
-        print "user record loaded: " + serializer.data
+        print "user record loaded: "
+        print json.dump(serializer.data)
     else:
         print "user record not added: "
         print serializer.errors
