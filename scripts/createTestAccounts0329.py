@@ -30,5 +30,5 @@ for entry in createAccountsData:
         serializer.save()
         print "user record loaded: " + serializer.data
     else:
-        print "user record not added"
+        print "user record not added: " + serializer.errors
 
