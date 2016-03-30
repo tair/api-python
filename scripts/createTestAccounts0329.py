@@ -31,7 +31,7 @@ for entry in createAccountsData:
     if serializer.is_valid():
         serializer.save()
         print "user record loaded: "
-        print json.dump(serializer.data)
+        print json.dumps(serializer.data)
     else:
         print "user record not added: "
         print serializer.errors
