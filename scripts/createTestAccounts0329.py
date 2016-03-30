@@ -29,4 +29,6 @@ for entry in createAccountsData:
     if serializer.is_valid():
         serializer.save()
         print "user record loaded: " + serializer.data
+    else:
+        print "user record not added"
 
