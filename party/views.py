@@ -103,10 +103,11 @@ class Usage(APIView):
         subject = "Institution Usage Request For %s" % (data['institution'])
         message = "Partner: %s\n" \
                   "Institution: %s\n" \
+                  "User: %s\n" \
                   "Start date: %s\n" \
                   "End date: %s\n" \
                   "Comments: %s\n" \
-                  % (data['partner'], data['institution'], data['startDate'], data['endDate'], data['comments'])
+                  % (data['partner'], data['institution'], data['name'], data['startDate'], data['endDate'], data['comments'])
         from_email = "info@arabidopsis.org"
         recipient_list = ["info@arabidopsis.org"]
         send_mail(subject=subject, message=message, from_email=from_email, recipient_list=recipient_list)
