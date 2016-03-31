@@ -23,3 +23,6 @@ settings.py
 
 #unkown from my (Andrey) machine
 /.myumldata
+
+#PW-215 log in logs
+/authentication/logs
