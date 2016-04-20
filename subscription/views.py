@@ -307,15 +307,7 @@ class RenewSubscription(generics.GenericAPIView):
         if not isPhoenix(request):
            return HttpResponse(status=400)
         data = request.data
-        partyName = ''
-        partyTypeName = ''
-        if data['institution']:
-            partyName = data['institution']
-            partyTypeName = 'Institution Name'
-        elif data['consortium']:
-            partyName = data['consortium']
-            partyTypeName = 'Consortium Name'
-        subject = "%s Subscription Renewal Request For %s" % (data('partnerName'), partyName)
+        subject = "%s Subscription Renewal Request For %s" % (data['partnerName'], data['partyName'])
         message = "\n" \
                   "\n" \
                   "Please contact me about a subscription renewal. My information is below.\n" \
@@ -324,7 +316,7 @@ class RenewSubscription(generics.GenericAPIView):
                   "%s: %s \n" \
                   "Comments: %s \n" \
                   "\n" \
-                  % (data('partnerName'), data('email'), partyTypeName, partyName, data('comments'))
+                  % (data['partnerName'], data['email'], data['partyType'], data['partyName'], data['comments'])
         from_email = "info@phoenixbioinformatics.org"
         recipient_list = ["qianli1987@phoenixbioinformatics.org"]
         send_mail(subject=subject, message=message, from_email=from_email, recipient_list=recipient_list)
@@ -337,15 +329,7 @@ class RequestSubscription(generics.GenericAPIView):
         if not isPhoenix(request):
            return HttpResponse(status=400)
         data = request.data
-        partyName = ''
-        partyTypeName = ''
-        if data['institution']:
-            partyName = data['institution']
-            partyTypeName = 'Institution Name'
-        elif data['consortium']:
-            partyName = data['consortium']
-            partyTypeName = 'Consortium Name'
-        subject = "%s Subscription Request For %s" % (data('partnerName'), partyName)
+        subject = "%s Subscription Request For %s" % (data['partnerName'], data['partyName'])
         message = "\n" \
                   "\n" \
                   "Please contact me about a subscription request. My information is below.\n" \
@@ -354,7 +338,7 @@ class RequestSubscription(generics.GenericAPIView):
                   "%s: %s \n" \
                   "Comments: %s \n" \
                   "\n" \
-                  % (data('partnerName'), data('email'), partyTypeName, partyName, data('comments'))
+                  % (data['partnerName'], data['email'], data['partyType'], data['partyName'], data['comments'])
         from_email = "info@phoenixbioinformatics.org"
         recipient_list = ["qianli1987@phoenixbioinformatics.org"]
         send_mail(subject=subject, message=message, from_email=from_email, recipient_list=recipient_list)
