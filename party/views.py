@@ -100,6 +100,8 @@ class Usage(APIView):
         if not isPhoenix(request):
             return HttpResponse(status=400)
         data = request.data
+        partyName = ''
+        partyTypeName = ''
         if data['institution']:
             partyName = data['institution']
             partyTypeName = 'Institution'
