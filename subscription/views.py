@@ -306,18 +306,24 @@ class RenewSubscription(generics.GenericAPIView):
     def post(self, request):
         if not isPhoenix(request):
            return HttpResponse(status=400)
-        subject = "%s Subscription Renewal Request For %s" % (request.POST.get('partnerName'), request.POST.get('institution'))
+        if request.POST.get['institution']:
+            partyName = request.POST.get['institution']
+            partyTypeName = 'Institution Name'
+        elif request.POST.get['consortium']:
+            partyName = request.POST.get['consortium']
+            partyTypeName = 'Consortium Name'
+        subject = "%s Subscription Renewal Request For %s" % (request.POST.get('partnerName'), partyName)
         message = "\n" \
                   "\n" \
                   "Please contact me about a subscription renewal. My information is below.\n" \
                   "Product: %s\n" \
                   "Email: %s \n" \
-                  "Institution Name: %s \n" \
+                  "%s: %s \n" \
                   "Comments: %s \n" \
                   "\n" \
-                  % (request.POST.get('partnerName'), request.POST.get('email'), request.POST.get('institution'), request.POST.get('comments'))
+                  % (request.POST.get('partnerName'), request.POST.get('email'), partyTypeName, partyName, request.POST.get('comments'))
         from_email = "info@phoenixbioinformatics.org"
-        recipient_list = ["info@phoenixbioinformatics.org"]
+        recipient_list = ["qianli1987@phoenixbioinformatics.org"]
         send_mail(subject=subject, message=message, from_email=from_email, recipient_list=recipient_list)
         return HttpResponse(json.dumps({'message':'success'}), content_type="application/json")
 
@@ -327,16 +333,22 @@ class RequestSubscription(generics.GenericAPIView):
     def post(self, request):
         if not isPhoenix(request):
            return HttpResponse(status=400)
-        subject = "%s Subscription Request For %s" % (request.POST.get('partnerName'), request.POST.get('institution'))
+        if request.POST.get['institution']:
+            partyName = request.POST.get['institution']
+            partyTypeName = 'Institution Name'
+        elif request.POST.get['consortium']:
+            partyName = request.POST.get['consortium']
+            partyTypeName = 'Consortium Name'
+        subject = "%s Subscription Request For %s" % (request.POST.get('partnerName'), partyName)
         message = "\n" \
                   "\n" \
                   "Please contact me about a subscription request. My information is below.\n" \
                   "Product: %s\n" \
                   "Email: %s \n" \
-                  "Institution Name: %s \n" \
+                  "%s: %s \n" \
                   "Comments: %s \n" \
                   "\n" \
-                  % (request.POST.get('partnerName'), request.POST.get('email'), request.POST.get('institution'), request.POST.get('comments'))
+                  % (request.POST.get('partnerName'), request.POST.get('email'), partyTypeName, partyName, request.POST.get('comments'))
         from_email = "info@phoenixbioinformatics.org"
         recipient_list = ["info@phoenixbioinformatics.org"]
         send_mail(subject=subject, message=message, from_email=from_email, recipient_list=recipient_list)
