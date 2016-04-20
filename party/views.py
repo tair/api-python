@@ -100,16 +100,22 @@ class Usage(APIView):
         if not isPhoenix(request):
             return HttpResponse(status=400)
         data = request.data
-        subject = "Institution Usage Request For %s" % (data['institution'])
+        if data['institution']:
+            partyName = data['institution']
+            partyTypeName = 'Institution'
+        else if data['consortium']:
+            partyName = data['consortium']
+            partyTypeName = 'Consortium'
+        subject = "Institution Usage Request For %s" % (partyName)
         message = "Partner: %s\n" \
-                  "Institution: %s\n" \
+                  partyTypeName+ ": %s\n" \
                   "User: %s\n" \
                   "Start date: %s\n" \
                   "End date: %s\n" \
                   "Comments: %s\n" \
-                  % (data['partner'], data['institution'], data['name'], data['startDate'], data['endDate'], data['comments'])
+                  % (data['partner'], partyName, data['name'], data['startDate'], data['endDate'], data['comments'])
         from_email = "info@arabidopsis.org"
-        recipient_list = ["info@arabidopsis.org"]
+        recipient_list = ["qianli1987@arabidopsis.org"]
         send_mail(subject=subject, message=message, from_email=from_email, recipient_list=recipient_list)
         return HttpResponse(json.dumps({'message': 'success'}), status=200)
 
