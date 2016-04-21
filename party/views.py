@@ -550,9 +550,9 @@ class AffiliationCRUD(GenericCRUDView):
            return Response({'error':'parentParty does not exist'},status=status.HTTP_400_BAD_REQUEST)
        if Party.objects.all().get(partyId = childPartyId):
            childParty=Party.objects.all().get(partyId=childPartyId)
-       PartyAffiliation.objects.create(childPartyId=childParty,parentPartyId=parentParty)
        else:
            return Response({'error':'childParty does not exist'},status=status.HTTP_400_BAD_REQUEST)
+       PartyAffiliation.objects.create(childPartyId=childParty,parentPartyId=parentParty)
        serializer = serializer_class(childParty)
        return Response(serializer.data)
 
