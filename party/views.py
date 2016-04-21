@@ -558,7 +558,7 @@ class AffiliationCRUD(GenericCRUDView):
        if not isPhoenix(self.request):
            return HttpResponse(status=400)
        serializer_class = self.get_serializer_class()
-       params = request.DELETE.get
+       params = request.GET
        if not params['parentPartyId'] or not params['childPartyId']:
            return Response({'error':'does not allow deletion without query parameters'})
        parentPartyId = params['parentPartyId']
