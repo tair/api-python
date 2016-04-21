@@ -558,7 +558,7 @@ class AffiliationCRUD(GenericCRUDView):
        if not isPhoenix(self.request):
            return HttpResponse(status=400)
        serializer_class = self.get_serializer_class()
-       params = request.data
+       params = request.DELETE.get
        if not params['parentPartyId'] or not params['childPartyId']:
            return Response({'error':'does not allow deletion without query parameters'})
        parentPartyId = params['parentPartyId']
@@ -575,6 +575,6 @@ class AffiliationCRUD(GenericCRUDView):
        serializer = serializer_class(childParty)
        return Response(serializer.data)
 
-    def put(self, request):
+    def put(self, request, format=None):
         return Response({'error':'put function is unavailable'}, status=status.HTTP_400_BAD_REQUEST)
 # TODO: "post" is still a security vulnerability -SC
