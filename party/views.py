@@ -541,16 +541,18 @@ class AffiliationCRUD(GenericCRUDView):
        serializer_class = self.get_serializer_class()
        params = request.data
        if not params['parentPartyId'] or not params['childPartyId']:
-           return Response({'error':'does not allow creation without parentPartyId or childPartyId'})
+           return Response({'error':'does not allow creation without parentPartyId or childPartyId'},status=status.HTTP_400_BAD_REQUEST)
        parentPartyId = params['parentPartyId']
        childPartyId = params['childPartyId']
        if Party.objects.all().get(partyId = parentPartyId):
            parentParty = Party.objects.all().get(partyId=parentPartyId)
        else:
-           return Response({'error':'parentParty does not exist'})
+           return Response({'error':'parentParty does not exist'},status=status.HTTP_400_BAD_REQUEST)
        if Party.objects.all().get(partyId = childPartyId):
            childParty=Party.objects.all().get(partyId=childPartyId)
        PartyAffiliation.objects.create(childPartyId=childParty,parentPartyId=parentParty)
+       else:
+           return Response({'error':'childParty does not exist'},status=status.HTTP_400_BAD_REQUEST)
        serializer = serializer_class(childParty)
        return Response(serializer.data)
 
