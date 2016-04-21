@@ -563,8 +563,14 @@ class AffiliationCRUD(GenericCRUDView):
            return Response({'error':'does not allow deletion without query parameters'})
        parentPartyId = params['parentPartyId']
        childPartyId = params['childPartyId']
-       parentParty = Party.objects.all().get(partyId=parentPartyId)
-       childParty=Party.objects.all().get(partyId=childPartyId)
+       if Party.objects.all().get(partyId=parentPartyId):
+           parentParty = Party.objects.all().get(partyId=parentPartyId)
+       else:
+           return Response({'error':'cannot find parent party'}, status=status.HTTP_400_BAD_REQUEST)
+       if Party.objects.all().get(partyId=childPartyId):
+           childParty=Party.objects.all().get(partyId=childPartyId)
+       else:
+           return Response({'error':'cannot find child party'}, status=status.HTTP_400_BAD_REQUEST)
        PartyAffiliation.objects.filter(childPartyId=childParty, parentPartyId=parentParty).delete()
        serializer = serializer_class(childParty)
        return Response(serializer.data)
