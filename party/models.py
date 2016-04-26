@@ -31,7 +31,7 @@ class Party(models.Model):
         db_table = "Party"
 
 class PartyAffiliation(models.Model):
-    partyAffiliationId = models.AutoField(primary_key=True)
+    partyAffiliationId = models.AutoField(verbose_name='ID', serialize=False, auto_created=True, primary_key=True)
     childPartyId = models.ForeignKey(Party, related_name="childPartyId", db_column="childPartyId")
     parentPartyId = models.ForeignKey(Party, related_name="parentPartyId", db_column="parentPartyId")
 
