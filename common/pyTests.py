@@ -41,8 +41,9 @@ class GenericCRUDTest(GenericTest):
         url = sample.url
         credentialId = 2
         secretKey = '7DgskfEF7jeRGn1h+5iDCpvIkRA='
-        if self.apiKey:
-            url = url+'?apiKey=%s' % (self.apiKey)+'&credentialId='+credentialId+'&secretKey='+secretKey
+        # if self.apiKey:
+        #     url = url+'?apiKey=%s' % (self.apiKey)+'&credentialId='+credentialId+'&secretKey='+secretKey
+        url = url+'&credentialId='+credentialId+'&secretKey='+secretKey
         cookies = {'apiKey':self.apiKey}
         req = requests.post(url, data=sample.data, cookies=cookies)
 
