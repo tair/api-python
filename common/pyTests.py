@@ -39,8 +39,8 @@ class GenericCRUDTest(GenericTest):
     def test_for_create(self):
         sample = self.sample
         url = sample.url
-        credentialId = '2'
-        secretKey = '7DgskfEF7jeRGn1h+5iDCpvIkRA='
+        credentialId = "2"
+        secretKey = "7DgskfEF7jeRGn1h%2B5iDCpvIkRA%3D"
         # if self.apiKey:
         #     url = url+'?apiKey=%s' % (self.apiKey)+'&credentialId='+credentialId+'&secretKey='+secretKey
         url = url+'?credentialId='+credentialId+'&secretKey='+secretKey
