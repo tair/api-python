@@ -541,7 +541,7 @@ class AffiliationCRUD(GenericCRUDView):
        childParty=Party.objects.all().get(partyId=childPartyId)
        PartyAffiliation.objects.create(childPartyId=childParty,parentPartyId=parentParty)
        serializer = serializer_class(childParty)
-       return Response(serializer.data)
+       return Response(serializer.data, status=status.HTTP_201_CREATED)
 
     def delete(self, request, format=None):
        if not isPhoenix(self.request):
