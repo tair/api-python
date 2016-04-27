@@ -61,8 +61,10 @@ class PartyAffiliationSample():
     path = 'parties/affiliations/'
     url = None
     data = {
-        'parentPartyId': Party.objects.all().get(partyId=33342),
-        'childPartyId' : Party.objects.all().get(partyId=33343),
+        # 'parentPartyId': Party.objects.all().get(partyId=33342),
+        # 'childPartyId' : Party.objects.all().get(partyId=33343),
+        'parentPartyId': 33342,
+        'childPartyId' : 33343,
     }
     pkName = 'partyAffiliationId';
     model = PartyAffiliation
