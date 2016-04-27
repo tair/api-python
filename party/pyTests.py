@@ -49,8 +49,8 @@ class PartyAffiliationCRUD(GenericCRUDTest, TestCase):
     def test_for_get_all(self):
         pass
 
-    def test_for_create(self):
-        pass
+    # def test_for_create(self):
+    #     pass
 
     def test_for_delete(self):
         pass
