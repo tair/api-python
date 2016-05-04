@@ -92,7 +92,7 @@ class SubscriptionCRUD(GenericCRUDView):
             serializer = self.serializer_class(data=request.data)
             if serializer.is_valid():
                 subscription = serializer.save()
-                transaction = SubscriptionTransaction.createFromSubscription(subscription, 'Initial')
+                transaction = SubscriptionTransaction.createFromSubscription(subscription, 'create')
                 returnData = serializer.data
                 returnData['subscriptionTransactionId']=transaction.subscriptionTransactionId
                 return Response(returnData, status=status.HTTP_201_CREATED)
@@ -123,7 +123,7 @@ class SubscriptionRenewal(generics.GenericAPIView):
         serializer = SubscriptionSerializer(subscription, data=request.data)
         if serializer.is_valid():
             subscription = serializer.save()
-            transaction = SubscriptionTransaction.createFromSubscription(subscription, 'Renewal')
+            transaction = SubscriptionTransaction.createFromSubscription(subscription, 'renew')
             returnData = serializer.data
             returnData['subscriptionTransactionId']=transaction.subscriptionTransactionId
             return Response(returnData)

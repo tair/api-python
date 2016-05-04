@@ -77,14 +77,14 @@ class SubscriptionTransactionSample():
         'transactionDate':'2012-04-12T00:00:00Z',
         'startDate':'2012-04-12T00:00:00Z',
         'endDate':'2018-04-12T00:00:00Z',
-        'transactionType':'Initial',
+        'transactionType':'create',
     }
     updateData = {
         'subscriptionId':1,
         'transactionDate':'2014-02-12T00:00:00Z',
         'startDate':'2012-04-12T00:00:00Z',
         'endDate':'2018-04-12T00:00:00Z',
-        'transactionType':'Renew',
+        'transactionType':'renew',
     }
     pkName = 'subscriptionTransactionId'
     model = SubscriptionTransaction

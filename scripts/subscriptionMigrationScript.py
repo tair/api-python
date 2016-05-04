@@ -151,7 +151,7 @@ for entry in organizationData:
         'startDate':startDate,
         'endDate':endDate,
         'transactionDate':startDate,
-        'transactionType':'initial',
+        'transactionType':'create',
     }
     serializer = SubscriptionTransactionSerializer(data=data)
     if serializer.is_valid():
