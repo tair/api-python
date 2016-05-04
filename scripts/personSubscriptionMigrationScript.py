@@ -84,7 +84,7 @@ for entry in personData:
         'startDate':startDate,
         'endDate':endDate,
         'transactionDate':startDate,
-        'transactionType':'initial',
+        'transactionType':'create',
     }
     serializer = SubscriptionTransactionSerializer(data=data)
     if serializer.is_valid():

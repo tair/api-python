@@ -45,7 +45,7 @@ class SubscriptionControl():
             subscription.startDate = now
             subscription.endDate = now+datetime.timedelta(days=period)
 
-            transactionType = 'Initial'
+            transactionType = 'create'
             transactionStartDate = subscription.startDate
             transactionEndDate = subscription.endDate
         else:
@@ -53,13 +53,13 @@ class SubscriptionControl():
             if (endDate<now):
                 # case2: expired subscription
                 subscription.endDate = now + datetime.timedelta(days=period)
-                transactionType = 'Renew'
+                transactionType = 'renew'
                 transactionStartDate = now
                 transactionEndDate = subscription.endDate
             else:
                 # case3: active subscription
                 subscription.endDate = endDate + datetime.timedelta(days=period)
-                transactionType = 'Renew'
+                transactionType = 'renew'
                 transactionStartDate = endDate
                 transactionEndDate = subscription.endDate
         
