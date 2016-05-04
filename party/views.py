@@ -100,17 +100,25 @@ class Usage(APIView):
         if not isPhoenix(request):
             return HttpResponse(status=400)
         data = request.data
-        subject = "Institution Usage Request For %s" % (data['institution'])
+        partyName = ''
+        partyTypeName = ''
+        if data['institution']:
+            partyName = data['institution']
+            partyTypeName = 'Institution'
+        elif data['consortium']:
+            partyName = data['consortium']
+            partyTypeName = 'Consortium'
+        subject = "Institution Usage Request For %s" % (partyName)
         message = "Partner: %s\n" \
-                  "Institution: %s\n" \
+                  "%s: %s\n" \
                   "User: %s\n" \
                   "Email: %s\n" \
                   "Start date: %s\n" \
                   "End date: %s\n" \
                   "Comments: %s\n" \
-                  % (data['partner'], data['institution'], data['name'], data['email'], data['startDate'], data['endDate'], data['comments'])
+                  % (data['partner'], partyTypeName, partyName, data['name'], data['email'], data['startDate'], data['endDate'], data['comments'])
         from_email = "info@arabidopsis.org"
-        recipient_list = ["info@arabidopsis.org"]
+        recipient_list = ["qianli1987@arabidopsis.org"]
         send_mail(subject=subject, message=message, from_email=from_email, recipient_list=recipient_list)
         return HttpResponse(json.dumps({'message': 'success'}), status=200)
 
@@ -534,11 +542,17 @@ class AffiliationCRUD(GenericCRUDView):
        serializer_class = self.get_serializer_class()
        params = request.data
        if not params['parentPartyId'] or not params['childPartyId']:
-           return Response({'error':'does not allow creation without query parameters'})
+           return Response({'error':'does not allow creation without parentPartyId or childPartyId'},status=status.HTTP_400_BAD_REQUEST)
        parentPartyId = params['parentPartyId']
        childPartyId = params['childPartyId']
-       parentParty = Party.objects.all().get(partyId=parentPartyId)
-       childParty=Party.objects.all().get(partyId=childPartyId)
+       if Party.objects.all().get(partyId = parentPartyId):
+           parentParty = Party.objects.all().get(partyId=parentPartyId)
+       else:
+           return Response({'error':'parentParty does not exist'},status=status.HTTP_400_BAD_REQUEST)
+       if Party.objects.all().get(partyId = childPartyId):
+           childParty=Party.objects.all().get(partyId=childPartyId)
+       else:
+           return Response({'error':'childParty does not exist'},status=status.HTTP_400_BAD_REQUEST)
        PartyAffiliation.objects.create(childPartyId=childParty,parentPartyId=parentParty)
        serializer = serializer_class(childParty)
        return Response(serializer.data, status=status.HTTP_201_CREATED)
@@ -547,17 +561,23 @@ class AffiliationCRUD(GenericCRUDView):
        if not isPhoenix(self.request):
            return HttpResponse(status=400)
        serializer_class = self.get_serializer_class()
-       params = request.data
+       params = request.GET
        if not params['parentPartyId'] or not params['childPartyId']:
            return Response({'error':'does not allow deletion without query parameters'})
        parentPartyId = params['parentPartyId']
        childPartyId = params['childPartyId']
-       parentParty = Party.objects.all().get(partyId=parentPartyId)
-       childParty=Party.objects.all().get(partyId=childPartyId)
+       if Party.objects.all().get(partyId=parentPartyId):
+           parentParty = Party.objects.all().get(partyId=parentPartyId)
+       else:
+           return Response({'error':'cannot find parent party'}, status=status.HTTP_400_BAD_REQUEST)
+       if Party.objects.all().get(partyId=childPartyId):
+           childParty=Party.objects.all().get(partyId=childPartyId)
+       else:
+           return Response({'error':'cannot find child party'}, status=status.HTTP_400_BAD_REQUEST)
        PartyAffiliation.objects.filter(childPartyId=childParty, parentPartyId=parentParty).delete()
        serializer = serializer_class(childParty)
        return Response(serializer.data)
 
-    def put(self, request):
+    def put(self, request, format=None):
         return Response({'error':'put function is unavailable'}, status=status.HTTP_400_BAD_REQUEST)
 # TODO: "post" is still a security vulnerability -SC
