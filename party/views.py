@@ -108,7 +108,7 @@ class Usage(APIView):
         elif data['consortium']:
             partyName = data['consortium']
             partyTypeName = 'Consortium'
-        subject = "Institution Usage Request For %s" % (partyName)
+        subject = "%s Usage Request For %s" % (partyTypeName,partyName)
         message = "Partner: %s\n" \
                   "%s: %s\n" \
                   "User: %s\n" \
