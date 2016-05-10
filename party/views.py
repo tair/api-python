@@ -118,7 +118,7 @@ class Usage(APIView):
                   "Comments: %s\n" \
                   % (data['partner'], partyTypeName, partyName, data['name'], data['email'], data['startDate'], data['endDate'], data['comments'])
         from_email = "info@arabidopsis.org"
-        recipient_list = ["qianli1987@arabidopsis.org"]
+        recipient_list = ["info@arabidopsis.org"]
         send_mail(subject=subject, message=message, from_email=from_email, recipient_list=recipient_list)
         return HttpResponse(json.dumps({'message': 'success'}), status=200)
 

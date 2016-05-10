@@ -68,7 +68,7 @@ class SubscriptionControl():
 class PaymentControl():
 
     @staticmethod
-    def tryCharge(secret_key, stripe_token, priceToCharge, chargeDescription, termId, quantity, emailAddress, firstname, lastname, institute, street, city, state, country, zip, hostname, redirect):
+    def tryCharge(secret_key, stripe_token, priceToCharge, chargeDescription, termId, quantity, emailAddress, firstname, lastname, institute, street, city, state, country, zip, hostname, redirect, vat):
         message = {}
         message['price'] = priceToCharge
         message['termId'] = termId
@@ -83,11 +83,11 @@ class PaymentControl():
             amount=int(priceToCharge*100), # stripe takes in cents; UI passes in dollars. multiply by 100 to convert.
             currency="usd",
             source=stripe_token,
-            description=chargeDescription,
-            metadata = {'Email': emailAddress, 'Institute': institute}
+            description=chargeDescription, #PW-248
+            metadata = {'Email': emailAddress, 'Institute': institute, 'VAT': vat}
             )
         activationCodes = PaymentControl.postPaymentHandling(termId, quantity)
-        emailInfo = PaymentControl.getEmailInfo(activationCodes, termId, quantity, priceToCharge, charge.id, emailAddress, firstname, lastname, institute, street, city, state, country, zip, hostname, redirect)
+        emailInfo = PaymentControl.getEmailInfo(activationCodes, termId, quantity, priceToCharge, charge.id, emailAddress, firstname, lastname, institute, street, city, state, country, zip, hostname, redirect, vat)
         PaymentControl.emailReceipt(emailInfo)
         status = True
         message['activationCodes'] = activationCodes
@@ -113,7 +113,7 @@ class PaymentControl():
         return message
 
     @staticmethod
-    def getEmailInfo(activationCodes, termId, quantity, payment, transactionId, email, firstname, lastname, institute, street, city, state, country, zip, hostname, redirect):
+    def getEmailInfo(activationCodes, termId, quantity, payment, transactionId, email, firstname, lastname, institute, street, city, state, country, zip, hostname, redirect, vat):
         #PW-253 hardcode prod URLs for tair. 
         #   pros:HLP-47737, HLP-48801 and alike won't occur
         #   cons: 1) user won't be returnd to his starting point (the page where he was doing the suscribtion flom
@@ -164,6 +164,7 @@ class PaymentControl():
             "recipientEmails": recipientEmails,
             "senderEmail": senderEmail,
             "subject":"Thank You For Subscribing",
+            "vat": vat,
         }
 
     @staticmethod
@@ -193,6 +194,7 @@ class PaymentControl():
                 kwargs['subscriptionQuantity'],
                 kwargs['payment'],
                 kwargs['transactionId'],
+                kwargs['vat'],#PW-248
                 """
                 """+kwargs['addr1']+""",<br>
                 """+kwargs['addr2']+""",<br>
