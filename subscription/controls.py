@@ -194,7 +194,7 @@ class PaymentControl():
                 kwargs['subscriptionQuantity'],
                 kwargs['payment'],
                 kwargs['transactionId'],
-                kwargs['vat'],#PW-248
+                kwargs['vat'],
                 """
                 """+kwargs['addr1']+""",<br>
                 """+kwargs['addr2']+""",<br>
