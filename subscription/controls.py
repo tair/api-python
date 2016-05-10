@@ -158,13 +158,13 @@ class PaymentControl():
             "subscriptionQuantity": quantity,
             "payment": payment,
             "transactionId": transactionId,
+            "vat": vat,
             "addr1": "Phoenix Bioinformatics Corporation",
             "addr2": "643 Bair Island Road Suite 403",
             "addr3": "Redwood City, CA 94063",
             "recipientEmails": recipientEmails,
             "senderEmail": senderEmail,
             "subject":"Thank You For Subscribing",
-            "vat": vat,
         }
 
     @staticmethod
