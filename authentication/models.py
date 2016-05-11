@@ -9,7 +9,7 @@ class Credential(models.Model):
   #usernameClean = models.CharField(max_length=32, db_index=True, db_column='username').lower().strip()#PW-215 ?
   username = models.CharField(max_length=32, db_index=True)
   password = models.CharField(max_length=64)
-  email = models.CharField(max_length=128, null=True)
+  email = models.CharField(max_length=128, null=True, unique=True)
   institution = models.CharField(max_length=200, null=True)#PW-254
   partyId = models.ForeignKey(Party, db_column='partyId')
   partnerId = models.ForeignKey(Partner, db_column='partnerId')
