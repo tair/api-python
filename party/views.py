@@ -406,7 +406,7 @@ class InstitutionCRUD(GenericCRUDView):
 
         if 'email' in request.data:
             if Credential.objects.all().filter(email=request.data['email']).exists():
-                return HttpResponse({'error': 'duplicate email'}, status=status.HTTP_400_BAD_REQUEST)
+                return Response({'error': 'duplicate email'}, status=status.HTTP_400_BAD_REQUEST)
 
         out = []
         if partySerializer.is_valid():
