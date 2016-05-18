@@ -115,6 +115,7 @@ class ActivationCodeCRUD(GenericCRUDView):
 
 # /<pk>/renewal/
 class SubscriptionRenewal(generics.GenericAPIView):
+    requireApiKey = False
     queryset = Subscription.objects.all()
     serializer_class = SubscriptionSerializer
 
