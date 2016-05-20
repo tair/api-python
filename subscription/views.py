@@ -302,7 +302,7 @@ class ActiveSubscriptions(generics.GenericAPIView):
         return HttpResponse(json.dumps(ret), status=200)
 
 # /allsubscriptions/<partyId>
-class ActiveSubscriptions(generics.GenericAPIView):
+class AllSubscriptions(generics.GenericAPIView):
     requireApiKey = False
     def get(self, request, partyId):
         allSubscriptions = Subscription.objects.all().filter(partyId=partyId)
