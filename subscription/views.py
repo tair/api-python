@@ -301,6 +301,18 @@ class ActiveSubscriptions(generics.GenericAPIView):
             ret[s['partnerId']] = dict(s)
         return HttpResponse(json.dumps(ret), status=200)
 
+# /allsubscriptions/<partyId>
+class ActiveSubscriptions(generics.GenericAPIView):
+    requireApiKey = False
+    def get(self, request, partyId):
+        allSubscriptions = Subscription.objects.all().filter(partyId=partyId)
+	serializer = SubscriptionSerializer(allSubscriptions, many=True)
+	#return HttpResponse(json.dumps(dict(serializer.data)))
+        ret = {}
+        for s in serializer.data:
+            ret[s['partnerId']] = dict(s)
+        return HttpResponse(json.dumps(ret), status=200)
+
 # /renew/
 class RenewSubscription(generics.GenericAPIView):
     requireApiKey = False
