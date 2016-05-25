@@ -164,13 +164,13 @@ class SubscriptionsPayment(APIView):
         zip = request.POST['zip']
         hostname = request.META.get("HTTP_ORIGIN")
         redirect = request.POST['redirect']
-
+        vat = request.POST['vat'] #PW-248. Let it be in two places - in descriptionPartnerDuration and in email body
         #PW-204 requirement: "TAIR 1-year subscription" would suffice.
         descriptionDuration = SubscriptionTerm.objects.get(subscriptionTermId=termId).description
         partnerName = SubscriptionTerm.objects.get(subscriptionTermId=termId).partnerId.name
-        descriptionPartnerDuration = partnerName+" "+descriptionDuration +" subscription"
+        descriptionPartnerDuration = partnerName+" "+descriptionDuration +" subscription"+" vat:"+vat
         
-        message = PaymentControl.tryCharge(stripe_api_secret_test_key, token, price, descriptionPartnerDuration, termId, quantity, email, firstname, lastname, institute, street, city, state, country, zip, hostname, redirect)
+        message = PaymentControl.tryCharge(stripe_api_secret_test_key, token, price, descriptionPartnerDuration, termId, quantity, email, firstname, lastname, institute, street, city, state, country, zip, hostname, redirect, vat)
         #PW-120 vet
         status = 200
         if 'message' in message:
