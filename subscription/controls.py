@@ -161,7 +161,7 @@ class PaymentControl():
             "vat": vat,
             "addr1": "Phoenix Bioinformatics Corporation",
             "addr2": "643 Bair Island Road Suite 403",
-            "addr3": "Redwood City, CA 94063",
+            "addr3": "Redwood City, CA, 94063, USA",
             "recipientEmails": recipientEmails,
             "senderEmail": senderEmail,
             "subject":"Thank You For Subscribing",
