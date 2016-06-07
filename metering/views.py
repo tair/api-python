@@ -19,6 +19,7 @@ from django.db.models import F
 
 # /
 class IpAddressCountCRUD(GenericCRUDView):
+    requireApiKey = False
     queryset = IpAddressCount.objects.all()
     serializer_class = IpAddressCountSerializer
 
