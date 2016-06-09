@@ -215,6 +215,11 @@ class ConsortiumCRUD(GenericCRUDView):
         #get credential
         credential = Credential.objects.get(partyId = consortiumId)
 
+        if 'email' in data:
+            email = data['email']
+            if Credential.objects.all().filter(email=email).exists():
+                return Response({'email':'This field must be unique.'}, status=status.HTTP_400_BAD_REQUEST)
+
         if 'password' in request.data:
             if (not data['password'] or data['password'] == ""):
                 return Response({'error': 'PUT parties/consortiums/ password must not be empty'}, status=status.HTTP_400_BAD_REQUEST)
@@ -257,6 +262,11 @@ class ConsortiumCRUD(GenericCRUDView):
             return Response({'error': 'POST method needs partyType'}, status=status.HTTP_400_BAD_REQUEST)
         if data['partyType'] != "consortium":
             return Response({'error': 'POST parties/consortiums/. patyType must be consortium'}, status=status.HTTP_400_BAD_REQUEST)
+
+        if 'email' in data:
+            email = data['email']
+            if Credential.objects.all().filter(email=email).exists():
+                return Response({'email':'This field must be unique.'}, status=status.HTTP_400_BAD_REQUEST)
         # if password is being passed and value of it is empty then error
         # not passing password in form data of POST is allowed - credential will be created with empty pwd in such case
         # boolean in pythin http://stackoverflow.com/questions/12644075/how-to-set-python-variables-to-true-or-false
@@ -394,6 +404,11 @@ class InstitutionCRUD(GenericCRUDView):
         #get credential
         credential = Credential.objects.get(partyId = institutionId)
 
+        if 'email' in data:
+            email = data['email']
+            if Credential.objects.all().filter(email=email).exists():
+                return Response({'email':'This field must be unique.'}, status=status.HTTP_400_BAD_REQUEST)
+
         if 'password' in request.data:
             if (not data['password'] or data['password'] == ""):
                 return Response({'error': 'PUT parties/institutions/ password must not be empty'}, status=status.HTTP_400_BAD_REQUEST)
@@ -435,6 +450,11 @@ class InstitutionCRUD(GenericCRUDView):
             return Response({'error': 'POST method needs partyType'}, status=status.HTTP_400_BAD_REQUEST)
         if data['partyType'] != "organization":
             return Response({'error': 'POST method. patyType must be organization'}, status=status.HTTP_400_BAD_REQUEST)
+
+        if 'email' in data:
+            email = data['email']
+            if Credential.objects.all().filter(email=email).exists():
+                return Response({'email':'This field must be unique.'}, status=status.HTTP_400_BAD_REQUEST)
         # if password is being passed and value of it is empty then error
         # not passing password in form data of POST is allowed - credential will be created with empty pwd in such case
         # boolean in pythin http://stackoverflow.com/questions/12644075/how-to-set-python-variables-to-true-or-false
