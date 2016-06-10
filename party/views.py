@@ -215,6 +215,11 @@ class ConsortiumCRUD(GenericCRUDView):
         #get credential
         credential = Credential.objects.get(partyId = consortiumId)
 
+        if 'email' in data:
+            email = data['email']
+            if Credential.objects.all().filter(email=email).exists():
+                return Response({'email':'This field must be unique.'}, status=status.HTTP_400_BAD_REQUEST)
+
         if 'password' in request.data:
             if (not data['password'] or data['password'] == ""):
                 return Response({'error': 'PUT parties/consortiums/ password must not be empty'}, status=status.HTTP_400_BAD_REQUEST)
@@ -257,6 +262,11 @@ class ConsortiumCRUD(GenericCRUDView):
             return Response({'error': 'POST method needs partyType'}, status=status.HTTP_400_BAD_REQUEST)
         if data['partyType'] != "consortium":
             return Response({'error': 'POST parties/consortiums/. patyType must be consortium'}, status=status.HTTP_400_BAD_REQUEST)
+
+        if 'email' in data:
+            email = data['email']
+            if email != '' and Credential.objects.all().filter(email=email).exists():
+                return Response({'email':'This field must be unique.'}, status=status.HTTP_400_BAD_REQUEST)
         # if password is being passed and value of it is empty then error
         # not passing password in form data of POST is allowed - credential will be created with empty pwd in such case
         # boolean in pythin http://stackoverflow.com/questions/12644075/how-to-set-python-variables-to-true-or-false
@@ -305,15 +315,16 @@ class ConsortiumCRUD(GenericCRUDView):
           return HttpResponse({'error':'DELETE parties/consortiums/ credentialId and secretKey query parameters missing or invalid'},status=status.HTTP_400_BAD_REQUEST)
 
         params = request.GET
-        data = request.data
+        # data = request.data #body in delete request is not supported by some browsers
 
         if not params:
             return Response({'error':'does not allow delete without query parameters'},status=status.HTTP_400_BAD_REQUEST)
 
-        if 'partyId' not in request.data:
+        if 'partyId' not in params:
             return Response({'error':'partyId required'},status=status.HTTP_400_BAD_REQUEST)
 
-        consortiumId = request.data['partyId']
+        # consortiumId = request.data['partyId'] #body in delete request is not supported by some browsers
+        consortiumId = params['partyId']
 
         #get party
         if Party.objects.filter(partyId = consortiumId).exists():
@@ -394,6 +405,11 @@ class InstitutionCRUD(GenericCRUDView):
         #get credential
         credential = Credential.objects.get(partyId = institutionId)
 
+        if 'email' in data:
+            email = data['email']
+            if Credential.objects.all().filter(email=email).exists():
+                return Response({'email':'This field must be unique.'}, status=status.HTTP_400_BAD_REQUEST)
+
         if 'password' in request.data:
             if (not data['password'] or data['password'] == ""):
                 return Response({'error': 'PUT parties/institutions/ password must not be empty'}, status=status.HTTP_400_BAD_REQUEST)
@@ -435,6 +451,11 @@ class InstitutionCRUD(GenericCRUDView):
             return Response({'error': 'POST method needs partyType'}, status=status.HTTP_400_BAD_REQUEST)
         if data['partyType'] != "organization":
             return Response({'error': 'POST method. patyType must be organization'}, status=status.HTTP_400_BAD_REQUEST)
+
+        if 'email' in data:
+            email = data['email']
+            if email != '' and Credential.objects.all().filter(email=email).exists():
+                return Response({'email':'This field must be unique.'}, status=status.HTTP_400_BAD_REQUEST)
         # if password is being passed and value of it is empty then error
         # not passing password in form data of POST is allowed - credential will be created with empty pwd in such case
         # boolean in pythin http://stackoverflow.com/questions/12644075/how-to-set-python-variables-to-true-or-false
@@ -483,15 +504,16 @@ class InstitutionCRUD(GenericCRUDView):
            return HttpResponse({'error':'credentialId and secretKey query parameters missing or invalid'},status=status.HTTP_400_BAD_REQUEST)
 
         params = request.GET
-        data = request.data
+        # data = request.data #body in delete request is not supported by some browsers
 
         if not params:
             return Response({'error':'does not allow update without query parameters'},status=status.HTTP_400_BAD_REQUEST)
 
-        if 'partyId' not in request.data:
+        if 'partyId' not in params:
             return Response({'error':'partyId (aka institutionId) required'},status=status.HTTP_400_BAD_REQUEST)
 
-        institutionId = request.data['partyId']
+        # institutionId = request.data['partyId'] #body in delete request is not supported by some browsers
+        institutionId = params['partyId']
 
         #get party
         if Party.objects.filter(partyId = institutionId).exists():

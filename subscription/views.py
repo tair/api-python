@@ -115,6 +115,7 @@ class ActivationCodeCRUD(GenericCRUDView):
 
 # /<pk>/renewal/
 class SubscriptionRenewal(generics.GenericAPIView):
+    requireApiKey = False
     queryset = Subscription.objects.all()
     serializer_class = SubscriptionSerializer
 
@@ -294,6 +295,18 @@ class ActiveSubscriptions(generics.GenericAPIView):
 	now = datetime.datetime.now()
         activeSubscriptions = Subscription.objects.all().filter(partyId=partyId).filter(endDate__gt=now).filter(startDate__lt=now)
 	serializer = SubscriptionSerializer(activeSubscriptions, many=True)
+	#return HttpResponse(json.dumps(dict(serializer.data)))
+        ret = {}
+        for s in serializer.data:
+            ret[s['partnerId']] = dict(s)
+        return HttpResponse(json.dumps(ret), status=200)
+
+# /allsubscriptions/<partyId>
+class AllSubscriptions(generics.GenericAPIView):
+    requireApiKey = False
+    def get(self, request, partyId):
+        allSubscriptions = Subscription.objects.all().filter(partyId=partyId)
+	serializer = SubscriptionSerializer(allSubscriptions, many=True)
 	#return HttpResponse(json.dumps(dict(serializer.data)))
         ret = {}
         for s in serializer.data:
