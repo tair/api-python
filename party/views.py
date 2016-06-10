@@ -265,7 +265,7 @@ class ConsortiumCRUD(GenericCRUDView):
 
         if 'email' in data:
             email = data['email']
-            if Credential.objects.all().filter(email=email).exists():
+            if email != '' and Credential.objects.all().filter(email=email).exists():
                 return Response({'email':'This field must be unique.'}, status=status.HTTP_400_BAD_REQUEST)
         # if password is being passed and value of it is empty then error
         # not passing password in form data of POST is allowed - credential will be created with empty pwd in such case
@@ -454,7 +454,7 @@ class InstitutionCRUD(GenericCRUDView):
 
         if 'email' in data:
             email = data['email']
-            if Credential.objects.all().filter(email=email).exists():
+            if email != '' and Credential.objects.all().filter(email=email).exists():
                 return Response({'email':'This field must be unique.'}, status=status.HTTP_400_BAD_REQUEST)
         # if password is being passed and value of it is empty then error
         # not passing password in form data of POST is allowed - credential will be created with empty pwd in such case
