@@ -107,7 +107,7 @@ def login(request):
 
     ip = request.META.get('REMOTE_ADDR')
     #vet PW-223
-    browser = request.META['HTTP_USER_AGENT']
+    browser = request.META.get('HTTP_USER_AGENT')
     logging.error("===")
     logging.error("Receiving request from %s: Client browser %s:" % (ip, browser))
     #logging.error("Client browser %s:" % browser)
