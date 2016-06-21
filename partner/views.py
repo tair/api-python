@@ -14,6 +14,8 @@ from common.views import GenericCRUDView
 from rest_framework import status
 from rest_framework.response import Response
 
+import re
+
 # top level: /partners/
 
 
@@ -30,6 +32,14 @@ class PartnerCRUD(GenericCRUDView):
         params = request.GET
         if request.GET.get('authority')=='admin':
             partnerList = Partner.objects.all()
+            serializer = PartnerSerializer(partnerList, many=True)
+            return Response(serializer.data)
+        if 'uriPattern' in params:
+            partnerList = []
+            pattern = re.compile(params['uriPattern'])
+            for url in PartnerPattern.objects.all():
+                if pattern.search(url):
+                    partnerList.append(url)
             serializer = PartnerSerializer(partnerList, many=True)
             return Response(serializer.data)
         if 'uri' in params:
