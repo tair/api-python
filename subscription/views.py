@@ -325,7 +325,7 @@ class ConsActSubscriptions(generics.GenericAPIView):
                 consortiumActiveSubscriptions = Subscription.objects.all().filter(partyId=consortium.partyId).filter(endDate__gt=now).filter(startDate__lt=now)
                 serializer = SubscriptionSerializer(consortiumActiveSubscriptions, many=True)
                 for s in serializer.data:
-                    if ret[s['partnerId']]:
+                    if s['partnerId'] in ret:
                         ret[s['partnerId']].append(consortium.name)
                     else:
                         ret[s['partnerId']] = []
