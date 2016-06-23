@@ -313,6 +313,23 @@ class AllSubscriptions(generics.GenericAPIView):
             ret[s['partnerId']] = dict(s)
         return HttpResponse(json.dumps(ret), status=200)
 
+# /consactsubscriptions/<partyId>
+class ConsActSubscriptions(generics.GenericAPIView):
+    requireApiKey = False
+    def get(self, request, partyId):
+        ret = {}
+        if Party.objects.all().get(partyId=partyId):
+            consortiums = Party.objects.all().get(partyId=partyId).consortiums
+            for consortium in consortiums:
+                consortiumActiveSubscriptions = Subscription.objects.all().filter(partyId=consortium.partyId).filter(endDate__gt=now).filter(startDate__lt=now)
+                for consortiumActiveSubscription in consortiumActiveSubscriptions:
+                    if ret[consortiumActiveSubscription['partnerId']]:
+                        ret[consortiumActiveSubscription['partnerId']].append(consortium.name)
+                    else:
+                        ret[consortiumActiveSubscription['partnerId']] = []
+                        ret[consortiumActiveSubscription['partnerId']].append(consortium.name)
+        return HttpResponse(json.dumps(ret), status=200)
+
 # /renew/
 class RenewSubscription(generics.GenericAPIView):
     requireApiKey = False
