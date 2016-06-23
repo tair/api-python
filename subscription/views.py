@@ -323,12 +323,13 @@ class ConsActSubscriptions(generics.GenericAPIView):
             consortiums = Party.objects.all().get(partyId=partyId).consortiums.all()
             for consortium in consortiums:
                 consortiumActiveSubscriptions = Subscription.objects.all().filter(partyId=consortium.partyId).filter(endDate__gt=now).filter(startDate__lt=now)
-                for consortiumActiveSubscription in consortiumActiveSubscriptions:
-                    if ret[consortiumActiveSubscription.partnerId]:
-                        ret[consortiumActiveSubscription.partnerId].append(consortium.name)
+                serializer = SubscriptionSerializer(consortiumActiveSubscriptions, many=True)
+                for s in serializer.data:
+                    if ret[s['partnerId']]:
+                        ret[s['partnerId']].append(consortium.name)
                     else:
-                        ret[consortiumActiveSubscription.partnerId] = []
-                        ret[consortiumActiveSubscription.partnerId].append(consortium.name)
+                        ret[s['partnerId']] = []
+                        ret[s['partnerId']].append(consortium.name)
         return HttpResponse(json.dumps(ret), status=200)
 
 # /renew/
