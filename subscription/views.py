@@ -318,6 +318,7 @@ class ConsActSubscriptions(generics.GenericAPIView):
     requireApiKey = False
     def get(self, request, partyId):
         ret = {}
+        now = datetime.datetime.now()
         if Party.objects.all().get(partyId=partyId):
             consortiums = Party.objects.all().get(partyId=partyId).consortiums.all()
             for consortium in consortiums:
