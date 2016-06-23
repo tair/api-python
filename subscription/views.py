@@ -319,7 +319,7 @@ class ConsActSubscriptions(generics.GenericAPIView):
     def get(self, request, partyId):
         ret = {}
         if Party.objects.all().get(partyId=partyId):
-            consortiums = Party.objects.all().get(partyId=partyId).consortiums
+            consortiums = Party.objects.all().get(partyId=partyId).consortiums.all()
             for consortium in consortiums:
                 consortiumActiveSubscriptions = Subscription.objects.all().filter(partyId=consortium.partyId).filter(endDate__gt=now).filter(startDate__lt=now)
                 for consortiumActiveSubscription in consortiumActiveSubscriptions:
