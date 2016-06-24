@@ -37,11 +37,11 @@ class PartnerCRUD(GenericCRUDView):
         if 'uri' in params:
             partnerList = []
             pattern = re.compile(params['uri'])
-            serializer = PartnerSerializer(PartnerPattern.objects.all(), many=True)
+            serializer = PartnerPatternSerializer(PartnerPattern.objects.all(), many=True)
             for url in serializer.data:
                 if pattern.search(url['sourceUri']):
                     partnerList.append(url)
-            serializer = PartnerSerializer(partnerList, many=True)
+            serializer = PartnerPatternSerializer(partnerList, many=True)
             return Response(serializer.data)
         serializer = self.serializer_class(obj, many=True)
         return Response(serializer.data)
