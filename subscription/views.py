@@ -326,10 +326,10 @@ class ConsActSubscriptions(generics.GenericAPIView):
                 serializer = SubscriptionSerializer(consortiumActiveSubscriptions, many=True)
                 for s in serializer.data:
                     if s['partnerId'] in ret:
-                        ret[s['partnerId']].append(consortium.name)
+                        ret[s['partnerId']].append(consortium)
                     else:
                         ret[s['partnerId']] = []
-                        ret[s['partnerId']].append(consortium.name)
+                        ret[s['partnerId']].append(consortium)
         return HttpResponse(json.dumps(ret), status=200)
 
 # /renew/
