@@ -8,6 +8,7 @@ from subscription.serializers import SubscriptionSerializer, SubscriptionTransac
 
 from partner.models import Partner, SubscriptionTerm
 from party.models import Party
+from party.serializers import PartySerializer
 from authentication.models import Credential
 from authentication.serializers import CredentialSerializer
 
@@ -324,12 +325,13 @@ class ConsActSubscriptions(generics.GenericAPIView):
             for consortium in consortiums:
                 consortiumActiveSubscriptions = Subscription.objects.all().filter(partyId=consortium.partyId).filter(endDate__gt=now).filter(startDate__lt=now)
                 serializer = SubscriptionSerializer(consortiumActiveSubscriptions, many=True)
+                partySerializer = PartySerializer(consortium)
                 for s in serializer.data:
                     if s['partnerId'] in ret:
-                        ret[s['partnerId']].append(consortium)
+                        ret[s['partnerId']].append(partySerializer.data)
                     else:
                         ret[s['partnerId']] = []
-                        ret[s['partnerId']].append(consortium)
+                        ret[s['partnerId']].append(partySerializer.data)
         return HttpResponse(json.dumps(ret), status=200)
 
 # /renew/
