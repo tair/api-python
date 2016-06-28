@@ -213,7 +213,11 @@ class ConsortiumCRUD(GenericCRUDView):
         partySerializer = PartySerializer(party, data=data)
 
         #get credential
-        credential = Credential.objects.get(partyId = consortiumId)
+        if Credential.objects.get(partyId = consortiumId):
+            credential = Credential.objects.get(partyId = consortiumId)
+        else:
+            credential = Credential(partyId = consortiumId)
+            credential.save()
 
         if 'email' in data:
             email = data['email']
