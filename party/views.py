@@ -223,10 +223,10 @@ class ConsortiumCRUD(GenericCRUDView):
             else:
                 newPwd = data['password']
                 data['password'] = hashlib.sha1(newPwd).hexdigest()
-                if Credential.objects.get(partyId=party):
+                try:
                     credential = Credential.objects.get(partyId=party)
                     credentialSerializer = CredentialSerializer(credential, data=data)
-                else:
+                except Credential.DoesNotExist:
                     credentialSerializer = CredentialSerializer(data=data)
 
         else:
