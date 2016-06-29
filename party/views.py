@@ -419,7 +419,12 @@ class InstitutionCRUD(GenericCRUDView):
             else:
                 newPwd = data['password']
                 data['password'] = hashlib.sha1(newPwd).hexdigest()
-                credentialSerializer = CredentialSerializer(credential, data=data)
+                try:
+                    credential = Credential.objects.get(partyId=party)
+                    credentialSerializer = CredentialSerializer(credential, data=data)
+                except Credential.DoesNotExist:
+                    data['partnerId'] = 'phoenix'
+                    credentialSerializer = CredentialSerializer(data=data)
         else:
             credentialSerializer = CredentialSerializerNoPassword(credential, data=data, partial=True) #??
 
