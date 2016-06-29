@@ -227,6 +227,7 @@ class ConsortiumCRUD(GenericCRUDView):
                     credential = Credential.objects.get(partyId=party)
                     credentialSerializer = CredentialSerializer(credential, data=data)
                 except Credential.DoesNotExist:
+                    data['partnerId'] = 'phoenix'
                     credentialSerializer = CredentialSerializer(data=data)
 
         else:
