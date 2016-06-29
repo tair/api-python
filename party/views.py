@@ -405,9 +405,6 @@ class InstitutionCRUD(GenericCRUDView):
         party = Party.objects.get(partyId = institutionId)
         partySerializer = PartySerializer(party, data=data)
 
-        #get credential
-        credential = Credential.objects.get(partyId = institutionId)
-
         if 'email' in data:
             email = data['email']
             if Credential.objects.all().filter(email=email).exists():
