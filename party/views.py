@@ -212,9 +212,6 @@ class ConsortiumCRUD(GenericCRUDView):
         party = Party.objects.get(partyId = consortiumId)
         partySerializer = PartySerializer(party, data=data)
 
-        #get credential
-        credential = Credential.objects.get_or_create(partyId = party)
-
         if 'email' in data:
             email = data['email']
             if Credential.objects.all().filter(email=email).exists():
@@ -226,7 +223,12 @@ class ConsortiumCRUD(GenericCRUDView):
             else:
                 newPwd = data['password']
                 data['password'] = hashlib.sha1(newPwd).hexdigest()
-                credentialSerializer = CredentialSerializer(credential, data=data)
+                if Credential.objects.get(partyId=party):
+                    credential = Credential.objects.get(partyId=party)
+                    credentialSerializer = CredentialSerializer(credential, data=data)
+                else:
+                    credentialSerializer = CredentialSerializer(data=data)
+
         else:
             credentialSerializer = CredentialSerializerNoPassword(credential, data=data, partial=True) #??
 
