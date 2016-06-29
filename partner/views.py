@@ -43,6 +43,8 @@ class PartnerCRUD(GenericCRUDView):
                     partnerList.append(url)
             # serializer = PartnerPatternSerializer(partnerList, many=True)
             return Response(partnerList)
+        else:
+            return Response({'error':'get method needs sourceUri.'}, status=status.HTTP_400_BAD_REQUEST)
         serializer = self.serializer_class(obj, many=True)
         return Response(serializer.data)
 
