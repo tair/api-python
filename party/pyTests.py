@@ -98,9 +98,6 @@ class PartyAffiliationCRUD(GenericCRUDTest, TestCase):
     def test_for_update(self):
         pass
 
-    def test_for_get(self):
-        pass
-
     def test_for_get_all(self):
         pass
 
