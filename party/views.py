@@ -21,6 +21,7 @@ from common.permissions import isPhoenix
 
 from common.permissions import ApiKeyPermission
 import hashlib
+import datetime
 from authentication.serializers import CredentialSerializer, CredentialSerializerNoPassword
 from genericpath import exists
 # top level: /parties/
@@ -67,7 +68,8 @@ class OrganizationView(APIView):
 
         partyList = []
         #SELECT partyId FROM phoenix_api.Subscription where partnerId = 'tair';
-        objs = Subscription.objects.all().filter(partnerId=partnerId).values('partyId')
+        now =datetime.datetime.now()
+        objs = Subscription.objects.all().filter(partnerId=partnerId).filter(startDate__lte=now).filter(endDate__gte=now).values('partyId')
         for entry in objs:
             partyList.append(entry['partyId'])
             #SELECT * from Party where partId in () and display=True and partyType='organization'
