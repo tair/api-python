@@ -21,6 +21,8 @@ from common.permissions import isPhoenix
 
 from common.permissions import ApiKeyPermission
 import hashlib
+
+import datetime
 from authentication.serializers import CredentialSerializer, CredentialSerializerNoPassword
 from genericpath import exists
 # top level: /parties/
@@ -60,6 +62,7 @@ class IpRangeCRUD(GenericCRUDView):
 
 class OrganizationView(APIView):
     requireApiKey = False
+    now = datetime.datetime.now()
     def get(self, request, format=None):
         partnerId = request.GET.get('partnerId')
         if not Partner.objects.all().filter(partnerId=partnerId).exists():
@@ -73,14 +76,15 @@ class OrganizationView(APIView):
             #SELECT * from Party where partId in () and display=True and partyType='organization'
         obj = Party.objects.all().filter(partyId__in=partyList) \
                                  .filter(display=True) \
-                                 .filter(partyType="organization")
+                                 .filter(partyType="organization") \
         out = []
         for entry in obj:
             if not entry.country or not entry.country.name:#pw-265
                 countryName = "not defined"
             else:
                 countryName = entry.country.name
-            out.append((entry.name, countryName))
+            if Subscription.objects.all().filter(partyId=entry.partyId).filter(startDate_lte=now).filter(endDate_gte=now).exists():
+                out.append((entry.name, countryName))
         return HttpResponse(json.dumps(out), content_type="application/json")
 
 class CountryView(APIView):
