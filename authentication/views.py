@@ -45,6 +45,10 @@ class listcreateuser(GenericCRUDView):
       serializer_class = self.get_serializer_class()
       data = request.data
       data['password'] = hashlib.sha1(data['password']).hexdigest()
+      if 'partyId' in data:
+        partyId = data['partyId']
+        if Credential.objects.all().filter(partyId=partyId).exists():
+            return Response({"non_field_errors": ["There is an existing credential for the user, use PUT to update the credential."]}, status=status.HTTP_400_BAD_REQUEST)
       if 'partyId' not in data:
         name = data['name']
         if 'display' not in data:#PW-272 
