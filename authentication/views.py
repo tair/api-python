@@ -48,8 +48,7 @@ class listcreateuser(GenericCRUDView):
       if 'partyId' in data:
         partyId = data['partyId']
         if Credential.objects.all().filter(partyId=partyId).exists():
-            return Response({'partyId already exists. There is an existing credential for the user, use PUT to update the credential'}, status=status.HTTP_400_BAD_REQUEST)
-     
+            return Response({"non_field_errors": ["There is an existing credential for the user, use PUT to update the credential."]}, status=status.HTTP_400_BAD_REQUEST)
       if 'partyId' not in data:
         name = data['name']
         if 'display' not in data:#PW-272 
