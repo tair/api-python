@@ -69,7 +69,7 @@ class OrganizationView(APIView):
         partyList = []
         #SELECT partyId FROM phoenix_api.Subscription where partnerId = 'tair';
         now =datetime.datetime.now()
-        objs = Subscription.objects.all().filter(partnerId=partnerId).filter(startDate_lte=now).filter(endDate_gte=now).values('partyId')
+        objs = Subscription.objects.all().filter(partnerId=partnerId).filter(startDate__lte=now).filter(endDate__gte=now).values('partyId')
         for entry in objs:
             partyList.append(entry['partyId'])
             #SELECT * from Party where partId in () and display=True and partyType='organization'
