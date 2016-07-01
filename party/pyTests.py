@@ -42,7 +42,8 @@ class PartyAffiliationCRUD(GenericCRUDTest, TestCase):
 
     def setUp(self):
         super(PartyAffiliationCRUD,self).setUp()
-        PartyAffiliation.objects.filter(partyAffiliationId=self.sample.data['partyAffiliationId']).delete()
+        filter = self.sample.data
+        PartyAffiliation.objects.filter(**filter).delete()
         self.partyAffiliationId = self.sample.forcePost(self.sample.data)
 
     def tearDown(self):
