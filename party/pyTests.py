@@ -10,6 +10,9 @@ import json
 from testSamples import PartySample, IpRangeSample, PartyAffiliationSample
 from common.pyTests import PyTestGenerics, GenericCRUDTest, GenericTest
 
+from models import PartyAffiliation
+
+genericForceDelete = PyTestGenerics.forceDelete
 
 # Create your tests here.                                                                                                                                                                                 
 django.setup()
@@ -36,6 +39,15 @@ class IpRangeCRUD(GenericCRUDTest, TestCase):
 
 class PartyAffiliationCRUD(GenericCRUDTest, TestCase):
     sample = PartyAffiliationSample(serverUrl)
+
+    def setUp(self):
+        super(PartyAffiliationCRUD,self).setUp()
+        PartyAffiliation.objects.filter(partyAffiliationId=self.sample.data['partyAffiliationId']).delete()
+        self.partyAffiliationId = self.sample.forcePost(self.sample.data)
+
+    def tearDown(self):
+        super(PartyAffiliationCRUD,self).tearDown()
+        genericForceDelete(self.sample.model, self.sample.pkName, self.partyAffiliationId)
 
     def test_for_update(self):
         pass
