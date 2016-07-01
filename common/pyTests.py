@@ -10,19 +10,19 @@ class GenericTest(object):
     apiKeySample = CommonApiKeySample()
     apiKey = None
     def setUp(self):
-        sample = self.sample
+        # sample = self.sample
         #delete possible entries that we use as test case
         ApiKey.objects.filter(apiKey=self.apiKeySample.data['apiKey']).delete()
         self.apiKeyId = self.apiKeySample.forcePost(self.apiKeySample.data)
         self.apiKey = self.apiKeySample.data['apiKey']
-        filter = sample.data
-        Partner.objects.filter(**filter).delete()
-        self.pk = self.sample.forcePost(self.sample.data)
+        # filter = sample.data
+        # Partner.objects.filter(**filter).delete()
+        # self.pk = self.sample.forcePost(self.sample.data)
 
     def tearDown(self):
-        sample = self.sample
+        # sample = self.sample
         PyTestGenerics.forceDelete(self.apiKeySample.model, self.apiKeySample.pkName, self.apiKeyId)
-        PyTestGenerics.forceDelete(sample.model, sample.pkName, self.pk)
+        # PyTestGenerics.forceDelete(sample.model, sample.pkName, self.pk)
 
 # This function checks if sampleData is within the array of data retrieved
 # from API call.
