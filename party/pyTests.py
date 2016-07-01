@@ -92,9 +92,6 @@ class IpRangeCRUD(GenericCRUDTest, TestCase):
 class PartyAffiliationCRUD(GenericCRUDTest, TestCase):
     sample = PartyAffiliationSample(serverUrl)
 
-    def setUp(self):
-        pass
-
     def test_for_update(self):
         pass
 
@@ -105,9 +102,6 @@ class PartyAffiliationCRUD(GenericCRUDTest, TestCase):
     #     pass
 
     def test_for_delete(self):
-        pass
-
-    def tearDown(self):
         pass
 
 # ----------------- END OF BASIC CRUD OPERATIONS ----------------------
