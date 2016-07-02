@@ -99,11 +99,13 @@ class PartyAffiliationCRUD(GenericCRUDTest, TestCase):
         super(PartyAffiliationCRUD,self).setUp()
         filter = self.sample.data
         PartyAffiliation.objects.filter(**filter).delete()
-        self.partyAffiliationId = self.sample.forcePost(self.sample.data)
+        # self.partyAffiliationId = self.sample.forcePost(self.sample.data)
 
     def tearDown(self):
         super(PartyAffiliationCRUD,self).tearDown()
-        genericForceDelete(self.sample.model, self.sample.pkName, self.partyAffiliationId)
+        filter = self.sample.data
+        PartyAffiliation.objects.filter(**filter).delete()
+        # genericForceDelete(self.sample.model, self.sample.pkName, self.partyAffiliationId)
 
     def test_for_update(self):
         pass
