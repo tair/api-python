@@ -8,8 +8,8 @@ import base64, hmac, hashlib
 class Credential(models.Model):
   #usernameClean = models.CharField(max_length=32, db_index=True, db_column='username').lower().strip()#PW-215 ?
   username = models.CharField(max_length=32, db_index=True)
-  firstName = models.CharField(max_length=32)
-  lastName = models.CharField(max_length=32)
+  firstName = models.CharField(max_length=32, null=True)
+  lastName = models.CharField(max_length=32, null=True)
   password = models.CharField(max_length=64)
   email = models.CharField(max_length=128, null=True)
   institution = models.CharField(max_length=200, null=True)#PW-254
