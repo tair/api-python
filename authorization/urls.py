@@ -11,7 +11,7 @@ urlpatterns = [
     # Basic CRUDs
     url(r'^accessTypes/$', views.AccessTypeCRUD.as_view()),
     url(r'^accessRules/$', views.AccessRuleCRUD.as_view()),
-    url(r'^patterns/$', views.UriPatternCRUD.as_view()),
+    url(r'^patterns/$', views.URIAccess.as_view()),
 
     # Specific queries
     url(r'^access/$', views.Access.as_view()),
