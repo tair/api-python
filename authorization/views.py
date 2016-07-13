@@ -11,6 +11,8 @@ from partner.models import Partner
 from authentication.models import Credential
 from common.views import GenericCRUDView
 
+from rest_framework.response import Response
+
 import json
 import re
 import urllib
