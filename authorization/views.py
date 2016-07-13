@@ -12,7 +12,7 @@ from authentication.models import Credential
 from common.views import GenericCRUDView
 
 import json
-
+import re
 import urllib
 
 # top level: /authorizations/
@@ -71,6 +71,24 @@ class AuthenticationsAccess(APIView):
         }
         return HttpResponse(json.dumps(response), content_type="application/json")
 
+class URIAccess(APIView):
+    
+    def put(self, request, pk):
+        pattern = UriPattern.objects.get(patternId=pk)
+        serializer = UriPatternSerializer(pattern,data=request.data)
+        if isRegExpValid(request.data) and serializer.is_valid():
+            pattern.save();
+            returnData = serializer.data
+            return Response(returnData)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+    
+    def post(self,request, format=None):
+        serializer = UriPatternSerializer(pattern,data=request.data)
+        if isRegExpValid(request.data) and serializer.is_valid():
+          serializer.save()
+          return Response(serializer.data, status=status.HTTP_201_CREATED)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
 # Basic CRUD operation for AccessType, AccessRule, and UriPattern
 
 # /accessTypes/
@@ -96,3 +114,11 @@ def getHostUrlFromRequest(request):
     else:
         protocol = 'http'
     return "%s://%s" % (protocol, request.get_host())
+
+def isRegExpValid(inString):
+    try:
+        re.compile(inString)
+        is_valid = True
+    except re.error:
+        is_valid = False
+    return is_valid
