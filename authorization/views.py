@@ -77,8 +77,13 @@ class AuthenticationsAccess(APIView):
 class URIAccess(APIView):
     
     def put(self, request, format=None):
-        pattern = UriPattern.objects.get(patternId=request.GET.get('patternId'))
-        serializer = UriPatternSerializer(pattern,data=request.data)
+        params = request.GET
+        if 'patternId' not in params:
+            return Response({'error': 'Put method needs patterId'}, status=status.HTTP_400_BAD_REQUEST)
+        patternIdFromRequest = request.data['patternId']
+        patternFromRequest = request.data.copy()
+        pattern = UriPattern.objects.get(patternId=patternIdFromRequest)
+        serializer = UriPatternSerializer(pattern,data=patternFromRequest)
         if serializer.is_valid():
             pattern.save();
             returnData = serializer.data
@@ -87,9 +92,10 @@ class URIAccess(APIView):
     
     def post(self,request, format=None):
         #data = request.data.copy()
-        data = request.data
-        serializer = UriPatternSerializer(data=data)
-        if serializer.is_valid():
+        dataFromRequest = request.data
+        patternFromRequest = request.data['pattern']
+        serializer = UriPatternSerializer(data=dataFromRequest)
+        if isRegExpValid(patternFromRequest) and serializer.is_valid():
           serializer.save()
           return Response(serializer.data, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
