@@ -80,10 +80,17 @@ class URIAccess(APIView):
         params = request.GET
         if 'patternId' not in params:
             return Response({'error': 'Put method needs patternId'}, status=status.HTTP_400_BAD_REQUEST)
+        
+        data = request.data.copy()
+        if 'pattern' in data:
+            patternFromRequest = data['pattern']
+      
         patternIdFromRequest = request.GET.get('patternId') #URL PARAM
-        patternFromRequest = request.data['pattern'] #FORM DATA/BODY
+
         pattern = UriPattern.objects.get(patternId=patternIdFromRequest)
-        serializer = UriPatternSerializer(pattern,data=patternFromRequest)
+        
+        serializer = UriPatternSerializer(pattern,data=data)
+        
         if serializer.is_valid():
             pattern.save();
             returnData = serializer.data
@@ -134,6 +141,8 @@ def getHostUrlFromRequest(request):
     return "%s://%s" % (protocol, request.get_host())
 
 def isRegExpValid(inString):
+    if not inString:
+        return False
     try:
         re.compile(inString)
         is_valid = True
