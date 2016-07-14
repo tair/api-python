@@ -80,7 +80,7 @@ class URIAccess(APIView):
         params = request.GET
         if 'patternId' not in params:
             return Response({'error': 'Put method needs patternId'}, status=status.HTTP_400_BAD_REQUEST)
-        patternIdFromRequest = params['patternId']
+        patternIdFromRequest = request.GET.get('patternId') #URL PARAM
         patternFromRequest = request.data['pattern'] #FORM DATA/BODY
         pattern = UriPattern.objects.get(patternId=patternIdFromRequest)
         serializer = UriPatternSerializer(pattern,data=patternFromRequest)
