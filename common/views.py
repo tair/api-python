@@ -3,7 +3,7 @@ from rest_framework import generics, status
 
 class GenericCRUDView(generics.GenericAPIView):
 
-    requireApiKey = True
+    # requireApiKey = True
     def get_queryset(self):
         queryset = super(GenericCRUDView, self).get_queryset()
         params = self.request.GET
