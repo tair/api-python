@@ -77,21 +77,32 @@ class AuthenticationsAccess(APIView):
 class URIAccess(APIView):
     
     def get(self, request, format=None):
-        serializer_class = UriPatternSerializer
         params = request.GET
-        obj = UriPattern.objects.all()
-        serializer = serializer_class(obj, many=True)
-        return Response(serializer.data)
+        if 'patternId' not in params:
+            obj = UriPattern.objects.all()
+        else:
+            requestPatternId = params['patternId']
+            if UriPattern.objects.filter(patternId = requestPatternId).exists():
+                obj = UriPattern.objects.get(patternId = requestPatternId)
+            else:
+                return Response({'GET error: patternId' + requestPatternId + ' not found'})
+        
+        serializer = UriPatternSerializer(obj, many=True)
+        return Response(serializer.data, status=status.HTTP_200_OK)
     
     def delete(self, request, format=None):
         params = request.GET
-        # does not allow user to delete everything, too dangerous
-        if not params:
-            return Response({'DELETE error':'does not allow delete without query parameters'})
-        obj = UriPattern.objects.all()
-        for entry in obj:
-            entry.delete()
-        return Response({'DELETE success':'delete complete'})
+        if 'patternId' not in params:
+            return Response({'DELETE error':'patternId required'},status=status.HTTP_400_BAD_REQUEST)
+        
+        requestPatternId = params['patternId']
+        if UriPattern.objects.filter(patternId = requestPatternId).exists():
+            pattern = UriPattern.objects.get(patternId = requestPatternId)
+            pattern.delete()
+            return Response({'DELETE success':'delete of patternId '+requestPatternId+' completed'},status=status.HTTP_200_OK)
+        else:
+            return Response({'DELETE error':'delete of patternId '+requestPatternId+' failed. patternId not found'},status=status.HTTP_400_BAD_REQUEST)
+           
         
     def put(self, request, format=None):
         params = request.GET
@@ -128,6 +139,7 @@ class URIAccess(APIView):
         
         serializer = UriPatternSerializer(data=data)
         if serializer.is_valid():
+            serializer.save()
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         else:
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
