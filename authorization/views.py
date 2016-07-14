@@ -81,7 +81,7 @@ class URIAccess(APIView):
         if 'patternId' not in params:
             return Response({'error': 'Put method needs patternId'}, status=status.HTTP_400_BAD_REQUEST)
         
-        data = request.data.copy()
+        data = request.data
         if 'pattern' in data:
             patternFromRequest = data['pattern']
       
