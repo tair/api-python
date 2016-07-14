@@ -76,6 +76,23 @@ class AuthenticationsAccess(APIView):
 
 class URIAccess(APIView):
     
+    def get(self, request, format=None):
+        serializer_class = UriPatternSerializer
+        params = request.GET
+        obj = UriPattern.objects.all()
+        serializer = serializer_class(obj, many=True)
+        return Response(serializer.data)
+    
+    def delete(self, request, format=None):
+        params = request.GET
+        # does not allow user to delete everything, too dangerous
+        if not params:
+            return Response({'DELETE error':'does not allow delete without query parameters'})
+        obj = UriPattern.objects.all()
+        for entry in obj:
+            entry.delete()
+        return Response({'DELETE success':'delete complete'})
+        
     def put(self, request, format=None):
         params = request.GET
         if 'patternId' not in params:
@@ -100,18 +117,19 @@ class URIAccess(APIView):
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
     
     def post(self,request, format=None):
-        dataFromRequest = request.data
-        patternFromRequest = request.data['pattern']
-        serializer = UriPatternSerializer(data=dataFromRequest)
+        data = request.data
+        if 'pattern' not in data:
+            return Response({'error':'POST method:pattern is required as form-data'}, status=status.HTTP_400_BAD_REQUEST)
+        
+        patternFromRequest = data['pattern']
         isREValid = isRegExpValid(patternFromRequest)
-
+        if not isREValid:
+            return Response({'error':'POST method:patern '+patternFromRequest+' is not valid regexp'}, status=status.HTTP_400_BAD_REQUEST)
+        
+        serializer = UriPatternSerializer(data=data)
         if serializer.is_valid():
-            if isREValid:
-                serializer.save()
-                return Response(serializer.data, status=status.HTTP_201_CREATED)
-            else:
-                return Response({'error':'POST method:patern '+patternFromRequest+' is not valid regexp'}, status=status.HTTP_400_BAD_REQUEST)
-        else:   
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+        else:
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 # Basic CRUD operation for AccessType, AccessRule, and UriPattern
