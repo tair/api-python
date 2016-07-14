@@ -79,39 +79,39 @@ class URIAccess(APIView):
     def put(self, request, format=None):
         params = request.GET
         if 'patternId' not in params:
-            return Response({'error': 'Put method needs patternId'}, status=status.HTTP_400_BAD_REQUEST)
+            return Response({'error': 'PUT method:patternId is required as URL parameter'}, status=status.HTTP_400_BAD_REQUEST)
+        data = request.data
+        if 'pattern' not in data:
+            return Response({'error':'PUT method:pattern is required as form-data'}, status=status.HTTP_400_BAD_REQUEST)
         
-        data = request.data.copy()
-        if 'pattern' in data:
-            patternFromRequest = data['pattern']
-      
-        patternIdFromRequest = request.GET.get('patternId') #URL PARAM
+        patternFromRequest = data['pattern']
+        isREValid = isRegExpValid(patternFromRequest)
+        if not isREValid:
+            return Response({'error':'PUT method:patern '+patternFromRequest+' is not valid regexp'}, status=status.HTTP_400_BAD_REQUEST)
 
+        patternIdFromRequest = request.GET.get('patternId')        
         pattern = UriPattern.objects.get(patternId=patternIdFromRequest)
-        
         serializer = UriPatternSerializer(pattern,data=data)
-        
+
         if serializer.is_valid():
-            pattern.save();
-            returnData = serializer.data
-            return Response(returnData, status=status.HTTP_200_OK)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+            serializer.save();
+            return Response(serializer.data, status=status.HTTP_200_OK)
+        else:
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
     
     def post(self,request, format=None):
-        #data = request.data.copy()
         dataFromRequest = request.data
         patternFromRequest = request.data['pattern']
         serializer = UriPatternSerializer(data=dataFromRequest)
         isREValid = isRegExpValid(patternFromRequest)
-        
+
         if serializer.is_valid():
-            
             if isREValid:
                 serializer.save()
                 return Response(serializer.data, status=status.HTTP_201_CREATED)
             else:
-                return Response({'error':'RE invalid'}, status=status.HTTP_400_BAD_REQUEST)
-            
+                return Response({'error':'POST method:patern '+patternFromRequest+' is not valid regexp'}, status=status.HTTP_400_BAD_REQUEST)
+        else:   
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 # Basic CRUD operation for AccessType, AccessRule, and UriPattern
