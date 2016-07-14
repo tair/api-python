@@ -75,7 +75,6 @@ class AuthenticationsAccess(APIView):
         return HttpResponse(json.dumps(response), content_type="application/json")
 
 class URIAccess(APIView):
-    
 #    def get(self, request, format=None):
 #        params = request.GET
 #        if 'patternId' not in params:
@@ -91,22 +90,21 @@ class URIAccess(APIView):
 #                return Response(serializer.data, status=status.HTTP_200_OK)
 #            else:
 #                return Response({'GET error: patternId' + requestPatternId + ' not found'})
+#        
+#    
+#    def delete(self, request, format=None):
+#       params = request.GET
+#       if 'patternId' not in params:
+#           return Response({'DELETE error':'patternId required'},status=status.HTTP_400_BAD_REQUEST)
         
-    
-    def delete(self, request, format=None):
-        params = request.GET
-        if 'patternId' not in params:
-            return Response({'DELETE error':'patternId required'},status=status.HTTP_400_BAD_REQUEST)
-        
-        requestPatternId = params['patternId']
-        if UriPattern.objects.filter(patternId = requestPatternId).exists():
-            pattern = UriPattern.objects.get(patternId = requestPatternId)
-            pattern.delete()
-            return Response({'DELETE success':'delete of patternId '+requestPatternId+' completed'},status=status.HTTP_200_OK)
-        else:
-            return Response({'DELETE error':'delete of patternId '+requestPatternId+' failed. patternId not found'},status=status.HTTP_400_BAD_REQUEST)
-           
-        
+#       requestPatternId = params['patternId']
+#       if UriPattern.objects.filter(patternId = requestPatternId).exists():
+#           pattern = UriPattern.objects.get(patternId = requestPatternId)
+#           pattern.delete()
+#           return Response({'DELETE success':'delete of patternId '+requestPatternId+' completed'},status=status.HTTP_200_OK)
+#       else:
+#           return Response({'DELETE error':'delete of patternId '+requestPatternId+' failed. patternId not found'},status=status.HTTP_400_BAD_REQUEST)
+#          
     def put(self, request, format=None):
         params = request.GET
         if 'patternId' not in params:
