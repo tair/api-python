@@ -77,18 +77,22 @@ class AuthenticationsAccess(APIView):
 class URIAccess(APIView):
     
     def get(self, request, format=None):
+
         params = request.GET
         if 'patternId' not in params:
             obj = UriPattern.objects.all()
+            serializer = UriPatternSerializer(obj, many=True)
+            return Response(serializer.data, status=status.HTTP_200_OK)
         else:
-            requestPatternId = params['patternId']
+            #requestPatternId = params['patternId']
+            requestPatternId = request.GET.get('patternId')
             if UriPattern.objects.filter(patternId = requestPatternId).exists():
                 obj = UriPattern.objects.get(patternId = requestPatternId)
+                serializer = UriPatternSerializer(obj, many=True)
+                return Response(serializer.data, status=status.HTTP_200_OK)
             else:
                 return Response({'GET error: patternId' + requestPatternId + ' not found'})
         
-        serializer = UriPatternSerializer(obj, many=True)
-        return Response(serializer.data, status=status.HTTP_200_OK)
     
     def delete(self, request, format=None):
         params = request.GET
