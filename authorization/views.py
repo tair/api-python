@@ -87,7 +87,7 @@ class URIAccess(APIView):
         if serializer.is_valid():
             pattern.save();
             returnData = serializer.data
-            return Response(returnData)
+            return Response(returnData, status=status.HTTP_200_OK)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
     
     def post(self,request, format=None):
@@ -96,10 +96,16 @@ class URIAccess(APIView):
         patternFromRequest = request.data['pattern']
         serializer = UriPatternSerializer(data=dataFromRequest)
         isREValid = isRegExpValid(patternFromRequest)
-        if isREValid and serializer.is_valid():
-          serializer.save()
-          return Response(serializer.data, status=status.HTTP_201_CREATED)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        
+        if serializer.is_valid():
+            
+            if isREValid:
+                serializer.save()
+                return Response(serializer.data, status=status.HTTP_201_CREATED)
+            else:
+                return Response({'error':'RE invalid'}, status=status.HTTP_400_BAD_REQUEST)
+            
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 # Basic CRUD operation for AccessType, AccessRule, and UriPattern
 
