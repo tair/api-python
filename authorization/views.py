@@ -115,9 +115,12 @@ class URIAccess(APIView):
         patternFromRequest = data['pattern']
         isREValid = isRegExpValid(patternFromRequest)
         if not isREValid:
-            return Response({'error':'PUT method:patern '+patternFromRequest+' is not valid regexp'}, status=status.HTTP_400_BAD_REQUEST)
+            return Response({'error':'PUT method:pattern '+patternFromRequest+' is not valid regexp'}, status=status.HTTP_400_BAD_REQUEST)
 
-        patternIdFromRequest = request.GET.get('patternId')        
+        patternIdFromRequest = request.GET.get('patternId')
+        if not UriPattern.objects.filter(patternId = patternIdFromRequest).exists():
+            return Response({'error':'PUT method:patternId '+patternIdFromRequest+' not found'}, status=status.HTTP_400_BAD_REQUEST)
+              
         pattern = UriPattern.objects.get(patternId=patternIdFromRequest)
         serializer = UriPatternSerializer(pattern,data=data)
 
@@ -135,7 +138,7 @@ class URIAccess(APIView):
         patternFromRequest = data['pattern']
         isREValid = isRegExpValid(patternFromRequest)
         if not isREValid:
-            return Response({'error':'POST method:patern '+patternFromRequest+' is not valid regexp'}, status=status.HTTP_400_BAD_REQUEST)
+            return Response({'error':'POST method:pattern '+patternFromRequest+' is not valid regexp'}, status=status.HTTP_400_BAD_REQUEST)
         
         serializer = UriPatternSerializer(data=data)
         if serializer.is_valid():
