@@ -79,9 +79,9 @@ class URIAccess(APIView):
     def put(self, request, format=None):
         params = request.GET
         if 'patternId' not in params:
-            return Response({'error': 'Put method needs patterId'}, status=status.HTTP_400_BAD_REQUEST)
-        patternIdFromRequest = request.data['patternId']
-        patternFromRequest = request.data.copy()
+            return Response({'error': 'Put method needs patternId'}, status=status.HTTP_400_BAD_REQUEST)
+        patternIdFromRequest = params['patternId']
+        patternFromRequest = request.data['pattern'] #FORM DATA/BODY
         pattern = UriPattern.objects.get(patternId=patternIdFromRequest)
         serializer = UriPatternSerializer(pattern,data=patternFromRequest)
         if serializer.is_valid():
@@ -95,7 +95,8 @@ class URIAccess(APIView):
         dataFromRequest = request.data
         patternFromRequest = request.data['pattern']
         serializer = UriPatternSerializer(data=dataFromRequest)
-        if isRegExpValid(patternFromRequest) and serializer.is_valid():
+        isREValid = isRegExpValid(patternFromRequest)
+        if isREValid and serializer.is_valid():
           serializer.save()
           return Response(serializer.data, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
