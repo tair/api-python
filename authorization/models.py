@@ -35,10 +35,13 @@ class AccessType(models.Model):
 
         accessRules = AccessRule.objects.all().filter(partnerId=partnerId)
         for rule in accessRules:
-            pattern = re.compile(rule.patternId.pattern)
-            if pattern.search(url) and rule.accessTypeId.name == accessTypeName:
+            try:
+                pattern = re.compile(rule.patternId.pattern)
+                isPatternValid = True
+            except re.error:
+                isPatternValid = False   
+            if isPatternValid and pattern.search(url) and rule.accessTypeId.name == accessTypeName:
                 return True
-
         # no match url.
         return False
 
