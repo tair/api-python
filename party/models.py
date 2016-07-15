@@ -25,7 +25,17 @@ class Party(models.Model):
         ipRanges = IpRange.getByIp(ipAddress)
         for ipRange in ipRanges:
             partyId = ipRange.partyId
+            consortiums = Party.objects.all().get(partyId = partyId).consortiums.values_list('partyId', flat=True)
             partyList.append(partyId)
+            partyList.extend(consortiums)
+        return partyList
+
+    @staticmethod
+    def getById(partyId):
+        partyList = []
+        consortiums = Party.objects.all().get(partyId = partyId).consortiums.values_list('partyId', flat=True)
+        partyList.append(partyId)
+        partyList.extend(consortiums)
         return partyList
 
     class Meta:
