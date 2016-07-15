@@ -24,6 +24,11 @@ class Subscription(models.Model):
         return Subscription.objects.filter(partyId__in=parties)
 
     @staticmethod
+    def getById(partyId):
+        parties = Party.getById(partyId)
+        return Subscription.objects.filter(partyId_in=parties)
+
+    @staticmethod
     def filterActive(subscriptionQuerySet):
         now = timezone.now()
         return subscriptionQuerySet.filter(endDate__gt=now) \
@@ -31,8 +36,7 @@ class Subscription(models.Model):
 
     @staticmethod
     def getActiveById(partyId, partnerId):
-        subscriptionQuerySet = Subscription.objects.all() \
-                                                   .filter(partyId=partyId) \
+        subscriptionQuerySet = Subscription.getById(partyId) \
                                                    .filter(partnerId=partnerId)
         return Subscription.filterActive(subscriptionQuerySet)
 
