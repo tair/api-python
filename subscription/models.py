@@ -26,7 +26,7 @@ class Subscription(models.Model):
     @staticmethod
     def getById(partyId):
         parties = Party.getById(partyId)
-        return Subscription.objects.filter(partyId_in=parties)
+        return Subscription.objects.filter(partyId__in=parties)
 
     @staticmethod
     def filterActive(subscriptionQuerySet):
