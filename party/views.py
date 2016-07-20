@@ -22,6 +22,9 @@ from common.permissions import isPhoenix
 from common.permissions import ApiKeyPermission
 import hashlib
 from authentication.serializers import CredentialSerializer, CredentialSerializerNoPassword
+
+from rest_framework.permissions import IsAuthenticated
+from rest_framework_jwt.authentication import JSONWebTokenAuthentication
 from genericpath import exists
 # top level: /parties/
 
@@ -32,6 +35,8 @@ class PartyCRUD(GenericCRUDView):
     requireApiKey = False
     queryset = Party.objects.all()
     serializer_class = PartySerializer
+    permission_classes = (IsAuthenticated,)
+    authentication_classes = (JSONWebTokenAuthentication,)
 
     def get_queryset(self):
         if isPhoenix(self.request):
