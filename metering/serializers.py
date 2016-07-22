@@ -15,4 +15,4 @@ class IpAddressCountSerializer(serializers.ModelSerializer):
 class LimitValueSerializer(serializers.ModelSerializer):
     class Meta:
         model = LimitValue
-        fields = ('limitId', 'val', 'partnerId')
+        fields = ('limitId', 'val', 'partnerId', 'pattern')
