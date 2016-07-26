@@ -113,7 +113,7 @@ class PaymentControl():
         return message
 
     @staticmethod
-    def getEmailInfo(activationCodes, termId, quantity, payment, transactionId, email, firstname, lastname, institute, street, city, state, country, zip, hostname, redirect, vat, partnerName):
+    def getEmailInfo(activationCodes, termId, quantity, payment, transactionId, email, firstname, lastname, institute, street, city, state, country, zip, hostname, redirect, vat):
         
         termObj = SubscriptionTerm.objects.get(subscriptionTermId=termId)
         partnerObj = termObj.partnerId
