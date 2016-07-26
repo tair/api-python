@@ -167,9 +167,3 @@ EMAIL_PORT = 25
 # For AWS SES, this will be the username/password of the IAM created for SES.
 EMAIL_HOST_USER = None
 EMAIL_HOST_PASSWORD = None
-
-TAIR_LOGIN_URL = 'https://www.arabidopsis.org/jsp/community/welcome.jsp'
-TAIR_REGISTRATION_URL = 'https://www.arabidopsis.org/community/abrc-new-register.faces'
-
-GIRI_LOGIN_URL = 'TBD'
-GIRI_REGISTRATION_URL = 'TBD'

@@ -114,23 +114,13 @@ class PaymentControl():
 
     @staticmethod
     def getEmailInfo(activationCodes, termId, quantity, payment, transactionId, email, firstname, lastname, institute, street, city, state, country, zip, hostname, redirect, vat):
-        #PW-253 hardcode prod URLs for tair. 
-        #   pros:HLP-47737, HLP-48801 and alike won't occur
-        #   cons: 1) user won't be returnd to his starting point (the page where he was doing the suscribtion flom
-        #         2) demo env will have prod URL in the subscription email
-        # If it's not tair then urls values are TBD for now. 
-        # Note, we can check partnerObj.partnerId insted of checking arabidopsis substring in redirect string to determine partner
-        if "arabidopsis" in redirect:
-            #if tair user is already logged in he will get to welcome page
-            #if user is not logged-in welcome url will redirect user to login page and after login he'll get to welcome page
-            loginURL = settings.TAIR_LOGIN_URL #".../jsp/community/welcome.jsp"
-            registerURL = settings.TAIR_REGISTRATION_URL #".../community/abrc-new-register.faces"
-        else: #TODO
-            loginURL = settings.GIRI_LOGIN_URL #"TBD"
-            registerURL = settings.GIRI_LOGIN_URL #"TBD"
-            
+        
         termObj = SubscriptionTerm.objects.get(subscriptionTermId=termId)
         partnerObj = termObj.partnerId
+        
+        loginURL = partnerObj.loginLink
+        registerURL = partnerObj.registerLink
+        
         name = firstname+" "+lastname
         institute = institute
         address = street
