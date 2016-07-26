@@ -13,6 +13,8 @@ class Partner(models.Model):
     homeUri = models.CharField(max_length=200, null=True)
     termOfServiceUri = models.CharField(max_length=200)
     description = models.CharField(max_length=300, null=True)
+    loginLink = models.CharField(max_length=200, null=True)
+    registerLink = models.CharField(max_length=200, null=True)
     class Meta:
         db_table = "Partner"
 
