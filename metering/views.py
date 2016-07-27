@@ -1,8 +1,8 @@
 #Copyright 2015 Phoenix Bioinformatics Corporation. All rights reserved.
 
-from metering.models import IpAddressCount, LimitValue
+from metering.models import IpAddressCount, LimitValue, MeterBlacklist
 from django.db.models import Max
-from metering.serializers import IpAddressCountSerializer, LimitValueSerializer
+from metering.serializers import IpAddressCountSerializer, LimitValueSerializer, MeterBlacklistSerializer
 from rest_framework import generics
 import json
 from django.shortcuts import redirect
@@ -28,6 +28,7 @@ class LimitValueCRUD(GenericCRUDView):
     queryset = LimitValue.objects.all()
     serializer_class = LimitValueSerializer
 
+# /meterblacklist
 class MeterBlacklistCRUD(GenericCRUDView):
     queryset = MeterBlacklist.objects.all()
     serializer_class = MeterBlacklistSerializer
@@ -63,7 +64,12 @@ class increment(APIView):
 class check_limit(APIView):
     def get(self, request, ip, format=None):
         partnerId = request.GET.get('partnerId')
-        uri = request.GET.get('URI')
+        
+        """
+         Change the check_limit() function to get the patterns for the specified partner by partnerId 
+         and iterate through them to find any matches, 
+         returning status: Block if matched and going on to the current logic if not matched.
+        """
         if IpAddressCount.objects.filter(ip=ip).filter(partnerId=partnerId).exists():
             currIp = IpAddressCount.objects.get(ip=ip,partnerId=partnerId)
             if (currIp.count >= LimitValue.objects.filter(partnerId=partnerId).aggregate(Max('val'))['val__max']):
