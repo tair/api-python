@@ -28,6 +28,10 @@ class LimitValueCRUD(GenericCRUDView):
     queryset = LimitValue.objects.all()
     serializer_class = LimitValueSerializer
 
+class MeterBlacklistCRUD(GenericCRUDView):
+    queryset = MeterBlacklist.objects.all()
+    serializer_class = MeterBlacklistSerializer
+
 #Increment request for an IP
 # /ip/<pk>/increment/
 class increment(APIView):
@@ -59,6 +63,7 @@ class increment(APIView):
 class check_limit(APIView):
     def get(self, request, ip, format=None):
         partnerId = request.GET.get('partnerId')
+        uri = request.GET.get('URI')
         if IpAddressCount.objects.filter(ip=ip).filter(partnerId=partnerId).exists():
             currIp = IpAddressCount.objects.get(ip=ip,partnerId=partnerId)
             if (currIp.count >= LimitValue.objects.filter(partnerId=partnerId).aggregate(Max('val'))['val__max']):
