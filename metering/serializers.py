@@ -4,7 +4,7 @@
 
 
 
-from metering.models import IpAddressCount, LimitValue, MeterBlacklistS
+from metering.models import IpAddressCount, LimitValue, MeterBlacklist
 from rest_framework import serializers
 
 class IpAddressCountSerializer(serializers.ModelSerializer):
