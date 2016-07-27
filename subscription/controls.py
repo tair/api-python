@@ -117,10 +117,8 @@ class PaymentControl():
         
         termObj = SubscriptionTerm.objects.get(subscriptionTermId=termId)
         partnerObj = termObj.partnerId
-        
-        loginURL = partnerObj.loginLink
-        registerURL = partnerObj.registerLink
-        
+        loginURL = partnerObj.loginUri
+        registerURL = partnerObj.registerUri
         name = firstname+" "+lastname
         institute = institute
         address = street
@@ -136,9 +134,6 @@ class PaymentControl():
             "name": name,
             "partnerName": partnerObj.name,
             "accessCodes": activationCodes,
-            # https://demoui.arabidopsis.org/#/contentaccess/login?partnerId=tair&redirect=https:%2F%2Fdemotair.arabidopsis.org%2Fjsp%2Fcommunity%2Fwelcome.jsp 
-            # http://demotair.arabidopsis.org/jsp/community/welcome.jsp
-            #"loginUrl": hostname+"/#/login?partnerId="+partnerObj.partnerId+"&redirect="+redirect,
             "loginUrl": loginURL,
             "registerUrl": registerURL,
             "partnerId": partnerObj.partnerId,
