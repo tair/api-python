@@ -64,12 +64,17 @@ class increment(APIView):
 class check_limit(APIView):
     def get(self, request, ip, format=None):
         partnerId = request.GET.get('partnerId')
-        
-        """
+        uri = request.GET.get('uri')
+        """PW-287
          Change the check_limit() function to get the patterns for the specified partner by partnerId 
          and iterate through them to find any matches, 
          returning status: Block if matched and going on to the current logic if not matched.
         """
+        for aPattern in MeterBlacklist.objects.filter(partnerId=partnerId):
+            if aPattern.pattern == uri:
+                ret = {'status': "Block"}
+                return HttpResponse(json.dumps(ret), content_type="application/json", status=200)
+            
         if IpAddressCount.objects.filter(ip=ip).filter(partnerId=partnerId).exists():
             currIp = IpAddressCount.objects.get(ip=ip,partnerId=partnerId)
             if (currIp.count >= LimitValue.objects.filter(partnerId=partnerId).aggregate(Max('val'))['val__max']):
