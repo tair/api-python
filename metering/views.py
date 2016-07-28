@@ -80,8 +80,14 @@ class check_limit(APIView):
             while search checks for a match anywhere in the string (this is what Perl does by default).
             re.search(pattern, string, flags=0)
         """
-        for patternFromDB in MeterBlacklist.objects.filter(partnerId=partnerId):
-            searchObj = re.search(patternFromDB.pattern, uri)
+        for meterBlackListRecord in MeterBlacklist.objects.filter(partnerId=partnerId):
+            """
+            re.M Makes $ match the end of a line (not just the end of the string) and 
+                makes ^ match the start of any line (not just the start of the string).
+            re.I Performs case-insensitive matching.   
+            """
+            flags = re.M|re.I   
+            searchObj = re.search(meterBlackListRecord.pattern, uri, flags)
             if searchObj:
                 ret = {'status': "BlackListBlock"}
                 return HttpResponse(json.dumps(ret), content_type="application/json", status=200)
