@@ -17,6 +17,8 @@ from common.views import GenericCRUDView
 
 from django.db.models import F
 
+import re
+
 # /
 class IpAddressCountCRUD(GenericCRUDView):
     requireApiKey = False
@@ -70,9 +72,18 @@ class check_limit(APIView):
          and iterate through them to find any matches, 
          returning status: Block if matched and going on to the current logic if not matched.
         """
-        for aPattern in MeterBlacklist.objects.filter(partnerId=partnerId):
-            if aPattern.pattern == uri:
-                ret = {'status': "Block"}
+        
+        """
+        Matching Versus Searching http://www.tutorialspoint.com/python/python_reg_expressions.htm
+            Python offers two different primitive operations based on regular expressions: 
+            match checks for a match only at the beginning of the string, 
+            while search checks for a match anywhere in the string (this is what Perl does by default).
+            re.search(pattern, string, flags=0)
+        """
+        for patternFromDB in MeterBlacklist.objects.filter(partnerId=partnerId):
+            searchObj = re.search(patternFromDB.pattern, uri)
+            if searchObj:
+                ret = {'status': "BlackListBlock"}
                 return HttpResponse(json.dumps(ret), content_type="application/json", status=200)
             
         if IpAddressCount.objects.filter(ip=ip).filter(partnerId=partnerId).exists():
