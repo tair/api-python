@@ -13,6 +13,9 @@ class Partner(models.Model):
     homeUri = models.CharField(max_length=200, null=True)
     termOfServiceUri = models.CharField(max_length=200)
     description = models.CharField(max_length=300, null=True)
+    loginUri = models.CharField(max_length=200, null=True)
+    registerUri = models.CharField(max_length=200, null=True)
+    subscriptionListDesc = models.CharField(max_length=1000, null=True)
     class Meta:
         db_table = "Partner"
 
