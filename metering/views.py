@@ -86,8 +86,8 @@ class check_limit(APIView):
                 makes ^ match the start of any line (not just the start of the string).
             re.I Performs case-insensitive matching.   
             """
-            flags = re.M|re.I   
-            searchObj = re.search(meterBlackListRecord.pattern, uri, flags)
+            #flags = re.M|re.I   
+            searchObj = re.search(meterBlackListRecord.pattern, uri)
             if searchObj:
                 ret = {'status': "BlackListBlock"}
                 return HttpResponse(json.dumps(ret), content_type="application/json", status=200)
