@@ -20,3 +20,12 @@ class LimitValue(models.Model):
         db_table = "LimitValue"
     def __str__(self):
         return self.limitId
+
+class MeterBlacklist(models.Model):
+    meterBlackListId = models.AutoField(primary_key=True)
+    partnerId = models.CharField(max_length=200, default='')
+    pattern = models.CharField(max_length=5000, default='')#PW-287 length is 5000 like in UriPattern table
+    class Meta:
+        db_table = "MeterBlacklist"
+    def __str__(self):
+        return self.meterBlackListId
