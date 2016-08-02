@@ -95,7 +95,7 @@ class SubscriptionTransaction(models.Model):
         db_table = "SubscriptionTransaction"
 
 class SubscriptionRequest(models.Model):
-     subscriptionRequestId = models.AutoField(primaryKey=True)
+     subscriptionRequestId = models.AutoField(primary_key=True)
      requestDate = models.DateTimeField(default=now)
      firstName = models.CharField(max_length=32)
      lastName = models.CharField(max_length=32)
