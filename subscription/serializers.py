@@ -1,7 +1,7 @@
 #Copyright 2015 Phoenix Bioinformatics Corporation. All rights reserved.
 
 
-from subscription.models import Subscription, SubscriptionTransaction, ActivationCode
+from subscription.models import Subscription, SubscriptionTransaction, ActivationCode, SubscriptionRequest
 from rest_framework import serializers
 from partner.models import Partner
 
