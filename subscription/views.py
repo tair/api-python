@@ -436,10 +436,10 @@ class InstitutionSubscription1(APIView):
 
 # /subscriptionrequest
 class SubscriptionRequestCRUD(GenericCRUDView):
-    queryset = SubscriptionRequest.objects.all()
     serializer_class = SubscriptionRequestSerializer
     requireApiKey = False
 
     def get(self, request):
-        serializer = self.serializer_class(self.queryset, many=True)
+        allSubscriptionRequests = SubscriptionRequest.objects.all()
+        serializer = self.serializer_class(allSubscriptionRequests, many=True)
         return Response(serializer.data)
