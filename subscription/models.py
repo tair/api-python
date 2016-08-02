@@ -94,3 +94,17 @@ class SubscriptionTransaction(models.Model):
     class Meta:
         db_table = "SubscriptionTransaction"
 
+class SubscriptionRequest(models.Model):
+     subscriptionRequestId = models.AutoField(primaryKey=True)
+     requestDate = models.DateTimeField(default=now)
+     firstName = models.CharField(max_length=32)
+     lastName = models.CharField(max_length=32)
+     email = models.CharField(max_length=128)
+     institution = models.CharField(max_length=200)
+     librarianName = models.CharField(max_length=100)
+     librarianEmail = models.CharField(max_length=128)
+     comments = models.CharField(max_length=5000)
+     partnerId = models.ForeignKey('partner.Partner', max_length=200, db_column="partnerId")
+
+     class Meta:
+        db_table = "SubscriptionRequest"
