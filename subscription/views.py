@@ -3,8 +3,8 @@
 from django.http import HttpResponse
 
 from subscription.controls import PaymentControl, SubscriptionControl
-from subscription.models import Subscription, SubscriptionTransaction, ActivationCode
-from subscription.serializers import SubscriptionSerializer, SubscriptionTransactionSerializer, ActivationCodeSerializer
+from subscription.models import Subscription, SubscriptionTransaction, ActivationCode, SubscriptionRequest
+from subscription.serializers import SubscriptionSerializer, SubscriptionTransactionSerializer, ActivationCodeSerializer, SubscriptionRequestSerializer
 
 from partner.models import Partner, SubscriptionTerm
 from party.models import Party
@@ -433,3 +433,12 @@ class InstitutionSubscription1(APIView):
             return HttpResponse(json.dumps({'message':'success'}), content_type="application/json")
         else:
             return Response({'error':'Cannot find registered email address.'},status=status.HTTP_400_BAD_REQUEST)
+
+class SubscriptionRequestCRUD(GenericCRUDView):
+    queryset = SubscriptionRequest.objects.all()
+    serializer_class = SubscriptionRequestSerializer
+    requireApiKey = False
+
+    def getAll(self, request):
+        serializer = self.serializer_class(self.queryset, Many=True)
+        return Response(serializer.data)
