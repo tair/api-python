@@ -420,5 +420,5 @@ class SubscriptionRequestCRUD(GenericCRUDView):
     requireApiKey = False
 
     def get(self, request):
-        serializer = self.serializer_class(self.queryset, Many=True)
+        serializer = self.serializer_class(self.queryset, many=True)
         return Response(serializer.data)
