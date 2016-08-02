@@ -5,7 +5,7 @@ from django.db import connection
 from django.utils import timezone
 from party.models import Party
 
-import datetime
+from datetime import datetime
 
 # Create your models here.
 class NumericField(models.Field):
@@ -98,7 +98,7 @@ class SubscriptionTransaction(models.Model):
 
 class SubscriptionRequest(models.Model):
      subscriptionRequestId = models.AutoField(primary_key=True)
-     requestDate = models.DateTimeField(default=datetime.datetime.now())
+     requestDate = models.DateTimeField(default=datetime.now)
      firstName = models.CharField(max_length=32)
      lastName = models.CharField(max_length=32)
      email = models.CharField(max_length=128)
