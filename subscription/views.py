@@ -413,6 +413,7 @@ class InstitutionSubscription1(APIView):
         else:
             return Response({'error':'Cannot find registered email address.'},status=status.HTTP_400_BAD_REQUEST)
 
+# /subscriptionrequest
 class SubscriptionRequestCRUD(GenericCRUDView):
     queryset = SubscriptionRequest.objects.all()
     serializer_class = SubscriptionRequestSerializer
