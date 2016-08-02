@@ -19,3 +19,8 @@ class ActivationCodeSerializer(serializers.ModelSerializer):
     class Meta:
         model = ActivationCode
         fields = ('activationCodeId', 'activationCode', 'partnerId', 'partyId', 'period', 'purchaseDate')
+
+class SubscriptionRequestSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = SubscriptionRequest
+        fields = ('subscriptionRequestId','requestDate','firstName','lastName','email','institution','librarianName','comments','partnerId')
