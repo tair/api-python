@@ -443,3 +443,9 @@ class SubscriptionRequestCRUD(GenericCRUDView):
         allSubscriptionRequests = SubscriptionRequest.objects.all()
         serializer = self.serializer_class(allSubscriptionRequests, many=True)
         return Response(serializer.data)
+
+    def post(self, request):
+        serializer = self.serializer_class(data=request.data)
+        if serializer.is_valid():
+            serializer.save()
+        return Response(serializer.data)
