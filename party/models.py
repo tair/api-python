@@ -5,6 +5,8 @@ from django.db import connection
 from netaddr import IPAddress
 from django.utils import timezone
 
+import logging
+
 # Create your models here.
 class NumericField(models.Field):
     def db_type(self, connection):
@@ -62,8 +64,10 @@ class IpRange(models.Model):
         objList = []
         objs = IpRange.objects.all()
         inputIpAddress = IPAddress(ipAddress)
+        logging.basicConfig(filename="%s/logs/iprange.log" % dirname, format='%(asctime)s %(message)s')
         # for detail on comparison between IPAddress objects, see Python netaddr module.
         for obj in objs:
+            logging.error("Comparing IPs %s and %s:" % (obj.start, obj.end))
             start = IPAddress(obj.start)
             end = IPAddress(obj.end)
             if inputIpAddress >= start and inputIpAddress <= end:
