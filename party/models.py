@@ -69,11 +69,11 @@ class IpRange(models.Model):
         logging.basicConfig(filename="%s/logs/iprange.log" % dirname, format='%(asctime)s %(message)s')
         # for detail on comparison between IPAddress objects, see Python netaddr module.
         for obj in objs:
-            logging.error("Comparing IPs %s and %s:" % (obj.start, obj.end))
             start = IPAddress(obj.start)
             end = IPAddress(obj.end)
             if inputIpAddress >= start and inputIpAddress <= end:
                 objList.append(obj)
+        logging.error("Returning ranges %s" % (objList))
         return objList
 
     class Meta:
