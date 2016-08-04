@@ -1,6 +1,6 @@
 #Copyright 2015 Phoenix Bioinformatics Corporation. All rights reserved.
 
-from django.http import HttpResponse
+from django.http import HttpResponse, StreamingHttpResponse
 
 from subscription.controls import PaymentControl, SubscriptionControl
 from subscription.models import Subscription, SubscriptionTransaction, ActivationCode, SubscriptionRequest
@@ -25,8 +25,8 @@ import stripe
 import json
 import random, string
 import hashlib
-
 import datetime
+import csv
 
 from django.conf import settings
 
@@ -434,6 +434,15 @@ class InstitutionSubscription1(APIView):
         else:
             return Response({'error':'Cannot find registered email address.'},status=status.HTTP_400_BAD_REQUEST)
 
+
+class Echo(object):
+    """An object that implements just the write method of the file-like
+    interface.
+    """
+    def write(self, value):
+        """Write the value by returning it, instead of storing in a buffer."""
+        return value
+
 # /subscriptionrequest
 class SubscriptionRequestCRUD(GenericCRUDView):
     serializer_class = SubscriptionRequestSerializer
@@ -442,10 +451,23 @@ class SubscriptionRequestCRUD(GenericCRUDView):
     def get(self, request):
         allSubscriptionRequests = SubscriptionRequest.objects.all()
         serializer = self.serializer_class(allSubscriptionRequests, many=True)
-        return Response(serializer.data)
+        # This part comes from django documentation on large csv file generation:
+        # https://docs.djangoproject.com/en/1.10/howto/outputting-csv/#streaming-large-csv-files
+        requestJSONList = serializer.data
+        rows = [request.values() for request in requestJSONList]
+        header = requestJSONList[0].keys()
+        rows.insert(0, header)
+        pseudo_buffer = Echo()
+        writer = csv.writer(pseudo_buffer)
+        response = StreamingHttpResponse((writer.writerow(row) for row in rows),content_type="text/csv")
+        now = datetime.datetime.now()
+        response['Content-Disposition'] = 'attachment; filename="requests_report_{:%Y-%m-%d_%H:%M}.csv"'.format(now)
+        return response
 
     def post(self, request):
         serializer = self.serializer_class(data=request.data)
         if serializer.is_valid():
             serializer.save()
-        return Response(serializer.data)
+            return Response(serializer.data)
+        else:
+            return Response({'error':'serializer error'}, status=status.HTTP_400_BAD_REQUEST)
