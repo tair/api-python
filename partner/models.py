@@ -18,7 +18,8 @@ class Partner(models.Model):
     subscriptionListDesc = models.CharField(max_length=1000, null=True)
     registerText = models.CharField(max_length=50, null=True)
     forgotUserNameEmailTo = models.CharField(max_length=128, null=True)
-    forgotUserNameEmailSubject = models.CharField(max_length=100, null=True) 
+    forgotUserNameEmailSubject = models.CharField(max_length=100, null=True)
+    forgotUserNameEmailBody = models.CharField(max_length=1000, null=True) 
     class Meta:
         db_table = "Partner"
 
