@@ -425,6 +425,7 @@ class Echo(object):
 
 # /subscriptionrequest
 class SubscriptionRequestCRUD(GenericCRUDView):
+    queryset = SubscriptionRequest.objects.all()
     serializer_class = SubscriptionRequestSerializer
     requireApiKey = False
 
@@ -452,3 +453,4 @@ class SubscriptionRequestCRUD(GenericCRUDView):
             return Response(serializer.data)
         else:
             return Response({'error':'serializer error'}, status=status.HTTP_400_BAD_REQUEST)
+
