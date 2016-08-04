@@ -68,12 +68,15 @@ class IpRange(models.Model):
         dirname = os.path.dirname(os.path.realpath(__file__))
         logging.basicConfig(filename="%s/logs/iprange.log" % dirname, format='%(asctime)s %(message)s')
         # for detail on comparison between IPAddress objects, see Python netaddr module.
-        for obj in objs:
-            start = IPAddress(obj.start)
-            end = IPAddress(obj.end)
-            if inputIpAddress >= start and inputIpAddress <= end:
-                objList.append(obj)
-        logging.error("Returning ranges %s" % (objList))
+        try:
+            for obj in objs:
+                start = IPAddress(obj.start)
+                end = IPAddress(obj.end)
+                if inputIpAddress >= start and inputIpAddress <= end:
+                    objList.append(obj)
+        except Exception, e:
+            logging.error("Unexpected exception: %s" % (e))
+            return "Unexpected exception: %s" % (e)
         return objList
 
     class Meta:
