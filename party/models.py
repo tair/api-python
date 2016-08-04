@@ -64,6 +64,8 @@ class IpRange(models.Model):
         objList = []
         objs = IpRange.objects.all()
         inputIpAddress = IPAddress(ipAddress)
+        import os
+        dirname = os.path.dirname(os.path.realpath(__file__))
         logging.basicConfig(filename="%s/logs/iprange.log" % dirname, format='%(asctime)s %(message)s')
         # for detail on comparison between IPAddress objects, see Python netaddr module.
         for obj in objs:
