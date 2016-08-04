@@ -17,6 +17,8 @@ class Partner(models.Model):
     registerUri = models.CharField(max_length=200, null=True)
     subscriptionListDesc = models.CharField(max_length=1000, null=True)
     registerText = models.CharField(max_length=50, null=True)
+    forgotUserNameEmailTo = models.CharField(max_length=128, null=True)
+    forgotUserNameEmailSubject = models.CharField(max_length=100, null=True) 
     class Meta:
         db_table = "Partner"
 
