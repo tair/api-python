@@ -463,7 +463,7 @@ class SubscriptionRequestCRUD(GenericCRUDView):
         response = StreamingHttpResponse((writer.writerow(row) for row in rows),content_type="text/csv")
         now = datetime.datetime.now()
         response['Content-Disposition'] = 'attachment; filename="requests_report_{:%Y-%m-%d_%H:%M}.csv"'.format(now)
-        response['X-Sendfile'] = smart_str(path_to_file)
+        response['X-Sendfile'] = smart_str('/Downloads')
         return response
 
     def post(self, request):
