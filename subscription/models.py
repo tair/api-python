@@ -107,6 +107,7 @@ class SubscriptionRequest(models.Model):
      librarianEmail = models.CharField(max_length=128)
      comments = models.CharField(max_length=5000)
      partnerId = models.ForeignKey('partner.Partner', max_length=200, db_column="partnerId")
+     requestType = models.CharField(max_length=32)
 
      class Meta:
         db_table = "SubscriptionRequest"
