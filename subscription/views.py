@@ -20,6 +20,7 @@ from common.permissions import isPhoenix
 from common.common import getRemoteIpAddress
 
 from django.shortcuts import render
+from django.utils.encoding import smart_str
 import stripe
 import json
 import random, string
@@ -441,6 +442,7 @@ class SubscriptionRequestCRUD(GenericCRUDView):
         response = StreamingHttpResponse((writer.writerow(row) for row in rows),content_type="text/csv")
         now = datetime.datetime.now()
         response['Content-Disposition'] = 'attachment; filename="requests_report_{:%Y-%m-%d_%H:%M}.csv"'.format(now)
+        response['X-Sendfile'] = smart_str(path_to_file)
         return response
 
     def post(self, request):
