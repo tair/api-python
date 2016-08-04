@@ -436,7 +436,10 @@ class SubscriptionRequestCRUD(GenericCRUDView):
         # https://docs.djangoproject.com/en/1.10/howto/outputting-csv/#streaming-large-csv-files
         requestJSONList = serializer.data
         rows = [request.values() for request in requestJSONList]
-        header = requestJSONList[0].keys()
+        try:
+            header = requestJSONList[0].keys()
+        except:
+            return Response("requestJSONList[0] index out of range")
         rows.insert(0, header)
         pseudo_buffer = Echo()
         writer = csv.writer(pseudo_buffer)
