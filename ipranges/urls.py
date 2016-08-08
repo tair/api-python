@@ -5,7 +5,8 @@ from cookies import views
 from rest_framework.urlpatterns import format_suffix_patterns
 
 urlpatterns = [ 
-    url(r'^validIpAddress/$', views.validateip, name='validateip'),
+    url(r'^validateip/$', views.validateip, name='validateip'),
+    #url(r'^get/$', views.getcookie, name='getcookie'),
 ]
 
 urlpatterns = format_suffix_patterns(urlpatterns)
