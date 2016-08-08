@@ -145,7 +145,7 @@ def is_valid_ip(ip_str):
 
 
 class validateip(APIView):
-    def get(self, request, ip, format=None):
+    def get(self, request, format=None):
         ip = request.GET.get('ip')
         try:
             if is_valid_ip(ip):
