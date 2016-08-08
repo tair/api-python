@@ -24,5 +24,5 @@ urlpatterns = patterns('',
     url(r'^apikeys/', include('apikey.urls')),
     url(r'^cookies/', include('cookies.urls')),
     url(r'^api-token-auth/', obtain_jwt_token),
-    url(r'^valideateip/', include('metering.urls')),
+    url(r'^ipranges/', include('ipranges.urls')),
 )
