@@ -5,8 +5,7 @@ from ipranges import views
 from rest_framework.urlpatterns import format_suffix_patterns
 
 urlpatterns = [ 
-    url(r'^validateip/$', views.validateip, name='validateip'),
-    #url(r'^get/$', views.getcookie, name='getcookie'),
+    url(r'^validateip/$', views.validateip.as_view()),
 ]
 
 urlpatterns = format_suffix_patterns(urlpatterns)
