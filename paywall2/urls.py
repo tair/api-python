@@ -22,5 +22,5 @@ urlpatterns = patterns('',
     url(r'^credentials/', include('authentication.urls', namespace="authentication")),
     url(r'^apikeys/', include('apikey.urls')),
     url(r'^cookies/', include('cookies.urls')),
-    url(r'^valideateip/', include('metering.urls')),
+    url(r'^ipranges/', include('ipranges.urls')),
 )
