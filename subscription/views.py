@@ -151,7 +151,7 @@ class SubscriptionsPayment(APIView):
 
     def post(self, request):
         stripe_api_secret_test_key = settings.STRIPE_PRIVATE_KEY
-        stripe.api_key = stripe_api_secret_test_key 
+        stripe.api_key = stripe_api_secret_test_key
         token = request.POST['stripeToken']
         price = float(request.POST['price'])
         termId = request.POST['termId']
@@ -172,7 +172,7 @@ class SubscriptionsPayment(APIView):
         descriptionDuration = SubscriptionTerm.objects.get(subscriptionTermId=termId).description
         partnerName = SubscriptionTerm.objects.get(subscriptionTermId=termId).partnerId.name
         descriptionPartnerDuration = partnerName+" "+descriptionDuration +" subscription"+" vat:"+vat
-        
+
         message = PaymentControl.tryCharge(stripe_api_secret_test_key, token, price, descriptionPartnerDuration, termId, quantity, email, firstname, lastname, institute, street, city, state, country, zip, hostname, redirect, vat)
         #PW-120 vet
         status = 200
@@ -452,13 +452,13 @@ class SubscriptionRequestCRUD(GenericCRUDView):
 
     def get(self, request):
         allSubscriptionRequests = SubscriptionRequest.objects.all()
-        # preprocessing time format PW-339
-        for subscriptionRequest in allSubscriptionRequests:
-            subscriptionRequest.requestDate = subscriptionRequest.requestDate.strftime('%m/%d/%Y')
         serializer = self.serializer_class(allSubscriptionRequests, many=True)
         # This part comes from django documentation on large csv file generation:
         # https://docs.djangoproject.com/en/1.10/howto/outputting-csv/#streaming-large-csv-files
         requestJSONList = serializer.data
+        # preprocessing requestDate
+        for request in requestJSONList:
+            request['requestDate'] = request['requestDate'].strftime('%m/%d/%Y')
         rows = [request.values() for request in requestJSONList]
         try:
             header = requestJSONList[0].keys()
