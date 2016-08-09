@@ -458,7 +458,7 @@ class SubscriptionRequestCRUD(GenericCRUDView):
         requestJSONList = serializer.data
         # preprocessing requestDate
         for request in requestJSONList:
-            request['requestDate'] = request['requestDate'].format('%m/%d/%Y')
+            request['requestDate'] = datetime.datetime.strptime(request['requestDate'], '%Y-%m-%dT%H:%M:%S.%fZ').strftime('%m/%d/%Y')
         rows = [request.values() for request in requestJSONList]
         try:
             header = requestJSONList[0].keys()
