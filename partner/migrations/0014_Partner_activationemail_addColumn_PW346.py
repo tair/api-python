@@ -14,6 +14,6 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='partner',
             name='activationEmailInstructionText',
-            field=models.CharField(max_length=1000, null=True),
+            field=models.CharField(max_length=9000, null=True),
         ),
     ]
