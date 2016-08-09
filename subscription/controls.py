@@ -88,7 +88,7 @@ class PaymentControl():
             )
         activationCodes = PaymentControl.postPaymentHandling(termId, quantity)
         emailInfo = PaymentControl.getEmailInfo(activationCodes, termId, quantity, priceToCharge, charge.id, emailAddress, firstname, lastname, institute, street, city, state, country, zip, hostname, redirect, vat)
-        PaymentControl.emailReceipt(emailInfo)
+        PaymentControl.emailReceipt(emailInfo, termId)
         status = True
         message['activationCodes'] = activationCodes
         try:
@@ -153,7 +153,7 @@ class PaymentControl():
         }
 
     @staticmethod
-    def emailReceipt(emailInfo):
+    def emailReceipt(emailInfo, termId):
         kwargs = emailInfo
         listr = '<ul style="font-size: 16px; color: #b9ca32; font-family: Arial, Helvetica, sans-serif; -webkit-font-smoothing: antialiased;">'
         for l in kwargs['accessCodes']:
@@ -187,7 +187,9 @@ class PaymentControl():
                 """+kwargs['addr3']+"""<br>
                 """)
        '''     
-        partnerObj = Partner.objects.get(partnerId=emailInfo.partnerId)
+        termObj = SubscriptionTerm.objects.get(subscriptionTermId=termId)
+        partnerObj = termObj.partnerId
+        
         html_message = partnerObj.activationEmailInstructionText % ( 
                 kwargs['partnerLogo'],
                 kwargs['name'],
