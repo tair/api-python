@@ -160,33 +160,6 @@ class PaymentControl():
             listr += "<li>"+l+"</li><br>"
         listr += "</ul>"
 
-        '''
-        import os
-        module_dir = os.path.dirname(__file__)  # get current directory
-        file_path = os.path.join(module_dir, 'individualEmail.html')
-        with open(file_path, 'r,') as myfile:
-            html_message = myfile.read() % (
-                kwargs['partnerLogo'],
-                kwargs['name'],
-                kwargs['partnerName'],
-                listr,
-                kwargs['loginUrl'],
-                kwargs['partnerName'],
-                kwargs['partnerName'],
-                kwargs['registerUrl'],
-                kwargs['subscriptionDescription'],
-                kwargs['institute'],
-                kwargs['subscriptionTerm'],
-                kwargs['subscriptionQuantity'],
-                kwargs['payment'],
-                kwargs['transactionId'],
-                kwargs['vat'],
-                """
-                """+kwargs['addr1']+""",<br>
-                """+kwargs['addr2']+""",<br>
-                """+kwargs['addr3']+"""<br>
-                """)
-       '''     
         termObj = SubscriptionTerm.objects.get(subscriptionTermId=termId)
         partnerObj = termObj.partnerId
         
