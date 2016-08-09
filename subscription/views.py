@@ -454,7 +454,7 @@ class SubscriptionRequestCRUD(GenericCRUDView):
         allSubscriptionRequests = SubscriptionRequest.objects.all()
         # preprocessing time format PW-339
         for subscriptionRequest in allSubscriptionRequests:
-            subscriptionRequest.requestDate = subscriptionRequest.requestDate.format('%m/%d/%Y')
+            subscriptionRequest.requestDate = subscriptionRequest.requestDate.strftime('%m/%d/%Y')
         serializer = self.serializer_class(allSubscriptionRequests, many=True)
         # This part comes from django documentation on large csv file generation:
         # https://docs.djangoproject.com/en/1.10/howto/outputting-csv/#streaming-large-csv-files
