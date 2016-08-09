@@ -17,6 +17,9 @@ class validateip(APIView):
                 obj = ipaddress.ip_address(ip)
                 ret = {'ip version': obj.version}
                 return HttpResponse(json.dumps(ret), content_type="application/json", status=200)
+            else:
+                ret = {'ip': "invalid"}
+                return HttpResponse(json.dumps(ret), content_type="application/json", status=200)
         except ValueError:
             ret = {'ip':"error"}
             return HttpResponse(json.dumps(ret), content_type="application/json", status=200)
