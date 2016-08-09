@@ -160,6 +160,7 @@ class PaymentControl():
             listr += "<li>"+l+"</li><br>"
         listr += "</ul>"
 
+        '''
         import os
         module_dir = os.path.dirname(__file__)  # get current directory
         file_path = os.path.join(module_dir, 'individualEmail.html')
@@ -185,6 +186,31 @@ class PaymentControl():
                 """+kwargs['addr2']+""",<br>
                 """+kwargs['addr3']+"""<br>
                 """)
+       '''     
+        partnerObj = Partner.objects.get(partnerId=emailInfo.partnerId)
+        html_message = partnerObj.activationEmailInstructionText % ( 
+                kwargs['partnerLogo'],
+                kwargs['name'],
+                kwargs['partnerName'],
+                listr,
+                kwargs['loginUrl'],
+                kwargs['partnerName'],
+                kwargs['partnerName'],
+                kwargs['registerUrl'],
+                kwargs['subscriptionDescription'],
+                kwargs['institute'],
+                kwargs['subscriptionTerm'],
+                kwargs['subscriptionQuantity'],
+                kwargs['payment'],
+                kwargs['transactionId'],
+                kwargs['vat'],
+                """
+                """+kwargs['addr1']+""",<br>
+                """+kwargs['addr2']+""",<br>
+                """+kwargs['addr3']+"""<br>
+                """)
+        
+        
         subject = kwargs['subject']
         from_email = kwargs['senderEmail']
         recipient_list = kwargs['recipientEmails']
