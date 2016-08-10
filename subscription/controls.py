@@ -88,7 +88,7 @@ class PaymentControl():
             )
         activationCodes = PaymentControl.postPaymentHandling(termId, quantity)
         emailInfo = PaymentControl.getEmailInfo(activationCodes, termId, quantity, priceToCharge, charge.id, emailAddress, firstname, lastname, institute, street, city, state, country, zip, hostname, redirect, vat)
-        PaymentControl.emailReceipt(emailInfo)
+        PaymentControl.emailReceipt(emailInfo, termId)
         status = True
         message['activationCodes'] = activationCodes
         try:
@@ -153,18 +153,17 @@ class PaymentControl():
         }
 
     @staticmethod
-    def emailReceipt(emailInfo):
+    def emailReceipt(emailInfo, termId):
         kwargs = emailInfo
         listr = '<ul style="font-size: 16px; color: #b9ca32; font-family: Arial, Helvetica, sans-serif; -webkit-font-smoothing: antialiased;">'
         for l in kwargs['accessCodes']:
             listr += "<li>"+l+"</li><br>"
         listr += "</ul>"
 
-        import os
-        module_dir = os.path.dirname(__file__)  # get current directory
-        file_path = os.path.join(module_dir, 'individualEmail.html')
-        with open(file_path, 'r,') as myfile:
-            html_message = myfile.read() % (
+        termObj = SubscriptionTerm.objects.get(subscriptionTermId=termId)
+        partnerObj = termObj.partnerId
+        
+        html_message = partnerObj.activationEmailInstructionText % ( 
                 kwargs['partnerLogo'],
                 kwargs['name'],
                 kwargs['partnerName'],
@@ -185,6 +184,8 @@ class PaymentControl():
                 """+kwargs['addr2']+""",<br>
                 """+kwargs['addr3']+"""<br>
                 """)
+        
+        
         subject = kwargs['subject']
         from_email = kwargs['senderEmail']
         recipient_list = kwargs['recipientEmails']
