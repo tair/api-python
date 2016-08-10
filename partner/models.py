@@ -19,9 +19,11 @@ class Partner(models.Model):
     registerText = models.CharField(max_length=50, null=True)
     forgotUserNameEmailTo = models.CharField(max_length=128, null=True)
     forgotUserNameEmailSubject = models.CharField(max_length=100, null=True)
-    forgotUserNameEmailBody = models.CharField(max_length=1000, null=True)
-    activationEmailInstructionText = models.CharField(max_length=9000, null=True)
+    forgotUserNameEmailBody = models.CharField(max_length=1000, null=True) 
     forgotUserNameText = models.CharField(max_length=200, null=True) 
+    activationEmailInstructionText = models.CharField(max_length=9000, null=True)
+    loginUserNameFieldPrompt = models.CharField(max_length=20, default='Username')
+    loginPasswordFieldPrompt = models.CharField(max_length=20, default='Password')
 
     class Meta:
         db_table = "Partner"
