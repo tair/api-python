@@ -5,6 +5,8 @@ from django.db import connection
 from django.utils import timezone
 from party.models import Party
 
+from datetime import datetime
+
 # Create your models here.
 class NumericField(models.Field):
     def db_type(self, connection):
@@ -94,3 +96,18 @@ class SubscriptionTransaction(models.Model):
     class Meta:
         db_table = "SubscriptionTransaction"
 
+class SubscriptionRequest(models.Model):
+     subscriptionRequestId = models.AutoField(primary_key=True)
+     requestDate = models.DateTimeField(default=datetime.now)
+     firstName = models.CharField(max_length=32)
+     lastName = models.CharField(max_length=32)
+     email = models.CharField(max_length=128)
+     institution = models.CharField(max_length=200)
+     librarianName = models.CharField(max_length=100)
+     librarianEmail = models.CharField(max_length=128)
+     comments = models.CharField(max_length=5000)
+     partnerId = models.ForeignKey('partner.Partner', max_length=200, db_column="partnerId")
+     requestType = models.CharField(max_length=32)
+
+     class Meta:
+        db_table = "SubscriptionRequest"

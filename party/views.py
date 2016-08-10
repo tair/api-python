@@ -21,6 +21,7 @@ from common.permissions import isPhoenix
 
 from common.permissions import ApiKeyPermission
 import hashlib
+import datetime
 from authentication.serializers import CredentialSerializer, CredentialSerializerNoPassword
 from genericpath import exists
 # top level: /parties/
@@ -67,7 +68,8 @@ class OrganizationView(APIView):
 
         partyList = []
         #SELECT partyId FROM phoenix_api.Subscription where partnerId = 'tair';
-        objs = Subscription.objects.all().filter(partnerId=partnerId).values('partyId')
+        now =datetime.datetime.now()
+        objs = Subscription.objects.all().filter(partnerId=partnerId).filter(startDate__lte=now).filter(endDate__gte=now).values('partyId')
         for entry in objs:
             partyList.append(entry['partyId'])
             #SELECT * from Party where partId in () and display=True and partyType='organization'
@@ -128,10 +130,10 @@ class ConsortiumInstitutions(APIView):
         # security vulnerability: consortiumId should come from partyId in cookie that's been validated via isPhoenix -SC
         if not isPhoenix(request):
             return HttpResponse(status=400)
-	institutions = Party.objects.get(partyId=consortiumId).party_set.all()
+        institutions = Party.objects.get(partyId=consortiumId).party_set.all()
         serializer = PartySerializer(institutions, many=True)
         ret = [dict(s) for s in serializer.data]
-	#for s in serializer.data:
+    #for s in serializer.data:
         #    ret_tmp = dict(s)
         #    ret_tmp['id'] = ret_tmp['partyId']
         #    ret_tmp['state'] = None
@@ -212,9 +214,6 @@ class ConsortiumCRUD(GenericCRUDView):
         party = Party.objects.get(partyId = consortiumId)
         partySerializer = PartySerializer(party, data=data)
 
-        #get credential
-        credential = Credential.objects.get(partyId = consortiumId)
-
         if 'email' in data:
             email = data['email']
             if Credential.objects.all().filter(email=email).exists():
@@ -226,7 +225,13 @@ class ConsortiumCRUD(GenericCRUDView):
             else:
                 newPwd = data['password']
                 data['password'] = hashlib.sha1(newPwd).hexdigest()
-                credentialSerializer = CredentialSerializer(credential, data=data)
+                try:
+                    credential = Credential.objects.get(partyId=party)
+                    credentialSerializer = CredentialSerializer(credential, data=data)
+                except Credential.DoesNotExist:
+                    data['partnerId'] = 'phoenix'
+                    credentialSerializer = CredentialSerializer(data=data)
+
         else:
             credentialSerializer = CredentialSerializerNoPassword(credential, data=data, partial=True) #??
 
@@ -402,9 +407,6 @@ class InstitutionCRUD(GenericCRUDView):
         party = Party.objects.get(partyId = institutionId)
         partySerializer = PartySerializer(party, data=data)
 
-        #get credential
-        credential = Credential.objects.get(partyId = institutionId)
-
         if 'email' in data:
             email = data['email']
             if Credential.objects.all().filter(email=email).exists():
@@ -416,7 +418,12 @@ class InstitutionCRUD(GenericCRUDView):
             else:
                 newPwd = data['password']
                 data['password'] = hashlib.sha1(newPwd).hexdigest()
-                credentialSerializer = CredentialSerializer(credential, data=data)
+                try:
+                    credential = Credential.objects.get(partyId=party)
+                    credentialSerializer = CredentialSerializer(credential, data=data)
+                except Credential.DoesNotExist:
+                    data['partnerId'] = 'phoenix'
+                    credentialSerializer = CredentialSerializer(data=data)
         else:
             credentialSerializer = CredentialSerializerNoPassword(credential, data=data, partial=True) #??
 
@@ -577,7 +584,7 @@ class AffiliationCRUD(GenericCRUDView):
            return Response({'error':'childParty does not exist'},status=status.HTTP_400_BAD_REQUEST)
        PartyAffiliation.objects.create(childPartyId=childParty,parentPartyId=parentParty)
        serializer = serializer_class(childParty)
-       return Response(serializer.data)
+       return Response(serializer.data, status=status.HTTP_201_CREATED)
 
     def delete(self, request, format=None):
        if not isPhoenix(self.request):

@@ -1,7 +1,7 @@
 #Copyright 2015 Phoenix Bioinformatics Corporation. All rights reserved.
 
 
-from subscription.models import Subscription, SubscriptionTransaction, ActivationCode
+from subscription.models import Subscription, SubscriptionTransaction, ActivationCode, SubscriptionRequest
 from rest_framework import serializers
 from partner.models import Partner
 
@@ -19,3 +19,8 @@ class ActivationCodeSerializer(serializers.ModelSerializer):
     class Meta:
         model = ActivationCode
         fields = ('activationCodeId', 'activationCode', 'partnerId', 'partyId', 'period', 'purchaseDate')
+
+class SubscriptionRequestSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = SubscriptionRequest
+        fields = ('subscriptionRequestId','requestDate','firstName','lastName','email','institution','librarianName','librarianEmail','comments','partnerId','requestType')
