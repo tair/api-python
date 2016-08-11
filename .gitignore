@@ -26,3 +26,6 @@ settings.py
 
 #PW-215 log in logs
 /authentication/logs
+
+# PyCharm settings
+.idea
