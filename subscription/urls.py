@@ -20,6 +20,7 @@ urlpatterns = [
     url(r'^enddate/$', views.EndDate.as_view()),
     url(r'^activesubscriptions/(?P<partyId>.+)/$', views.ActiveSubscriptions.as_view()),
     url(r'^allsubscriptions/(?P<partyId>.+)/$', views.AllSubscriptions.as_view()),
+    url(r'^consactsubscriptions/(?P<partyId>.+)/$', views.ConsActSubscriptions.as_view()),
     url(r'^request/$', views.RequestSubscription.as_view()),
     url(r'^renew/$', views.RenewSubscription.as_view()),
     # url(r'^getall/$', views.GetAllSubscription.as_view()),
