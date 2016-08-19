@@ -16,7 +16,7 @@ def connect():
     host = 'phoenix-api-test.cwyjt5kql77y.us-west-2.rds.amazonaws.com'
     user="phoenix"
     password="phoenix123"
-    dbName="demo1"
+    dbName="phoenix_api"
     
     conn = MySQLdb.connect(host=host,
                          user=user,
@@ -34,7 +34,7 @@ def create_signature(password):
 # Begin main program:
 
 # Step1: Open the source CSV file and load into memory.
-with open('community.csv', 'rb') as f:
+with open('users.txt', 'rb') as f:
     reader = csv.reader(f)
     data = list(reader)
 
@@ -42,34 +42,29 @@ with open('community.csv', 'rb') as f:
 (conn, cur) = connect()
 
 # Sample queries.
-newUserSql = "INSERT INTO Credential (username, password, email, partyId, partnerId, userIdentifier) VALUES (%s, %s, %s, %s, %s, %s)"
-partySql = "INSERT INTO Party (partyType, name, display, countryId) VALUES ('user', %s, %s, %s)"
+newUserSql = "INSERT INTO Credential (username, password, email, partyId, partnerId, userIdentifier, firstName, lastName) VALUES (%s, %s, %s, %s, %s, %s, %s, %s)"
+partySql = "INSERT INTO Party (partyType, name, display) VALUES ('user', %s, %s)"
 
-partnerId = 'tair'
+partnerId = 'biocyc'
 totalCount = 0
 batchCount = 0
 # Step 3: Main loop
 for entry in data:
-    communityId = entry[0]
-    communityType = entry[1]
-    email = entry[2]
-    username = entry[4]
-    digestedPw = create_signature(entry[5])
-    isObsolete = entry[6]
-    if not communityId.isdigit():
-        continue
-    if not communityType == 'person':
-        continue
+    userIdentifier = entry[0]
+    username = entry[1]
+    email = entry[1]
+    digestedPw = create_signature(entry[2])
+    fullName = entry[3]
+    firstName = entry[4]
+    lastName = entry[5]
     if username.rstrip() == '':
-        continue
-    if isObsolete == 'T':
         continue
     totalCount += 1
     batchCount += 1
     try: 
-        cur.execute(partySql, (username, True, 10))
+        cur.execute(partySql, (fullName, False))
         partyId = conn.insert_id()
-        cur.execute(newUserSql, (username, digestedPw, email, partyId, partnerId, communityId))
+        cur.execute(newUserSql, (username, digestedPw, email, partyId, partnerId, userIdentifier, firstName, lastName))
     except:
         print username
 
