@@ -15,7 +15,7 @@ import MySQLdb
 def connect():
     host = 'phoenix-api-test.cwyjt5kql77y.us-west-2.rds.amazonaws.com'
     user="phoenix"
-    password="phoenix123"
+    password="xrXbTZfrHdwmS7VC"
     dbName="phoenix_api"
     
     conn = MySQLdb.connect(host=host,
