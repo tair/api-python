@@ -7,7 +7,7 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('partner', '0014_PartnerUIDPWDPlaceHoldersPW348'),
+        ('partner', '0015_partner_forgotusernametext'),
     ]
 
     operations = [
