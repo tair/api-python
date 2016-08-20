@@ -1,7 +1,0 @@
-2016-08-09 22:27:12,954 ===
-2016-08-09 22:27:12,954 Receiving request from 67.170.218.66: Client browser Mozilla/5.0 (Macintosh; Intel Mac OS X 10_11_0) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/50.0.2661.102 Safari/537.36:
-2016-08-09 22:27:12,963 2 USER(S) WITH PWD biocyc1 FOUND:
-2016-08-09 22:27:12,963 dbUser kvnli118@gmail.com requestUser info@phoenixbioinformatics.org pwd biocyc1
-2016-08-09 22:27:12,963   USER NOT MATCH. i=0 continue...
-2016-08-09 22:27:12,963 dbUser info@phoenixbioinformatics.org requestUser info@phoenixbioinformatics.org pwd biocyc1
-2016-08-09 22:27:12,965   USER AND PWD MATCH. dbUser=info@phoenixbioinformatics.org requestUser=info@phoenixbioinformatics.org requestPwd=biocyc1
