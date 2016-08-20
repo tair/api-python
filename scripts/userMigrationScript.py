@@ -63,9 +63,9 @@ for line in data:
     totalCount += 1
     batchCount += 1
     try: 
-        cur.execute(partySql, (fullName,))
+        cur.execute(partySql%(fullName,))
         partyId = conn.insert_id()
-        cur.execute(newUserSql, (username, digestedPw, email, partyId, partnerId, userIdentifier, firstName, lastName))
+        cur.execute(newUserSql%(username, digestedPw, email, partyId, partnerId, userIdentifier, firstName, lastName))
     except:
         print username
 
