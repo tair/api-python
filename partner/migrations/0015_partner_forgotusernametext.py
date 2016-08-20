@@ -7,7 +7,7 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('partner', '0014_Partner_activationemail_addColumn_PW346'),
+        ('partner', '0014_PartnerUIDPWDPlaceHoldersPW348'),
     ]
 
     operations = [
