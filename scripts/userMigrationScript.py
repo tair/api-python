@@ -34,7 +34,9 @@ def create_signature(password):
 
 # Step1: Open the source CSV file and load into memory.
 with open('users.txt', 'rb') as f:
-    data = f
+    data = []
+    for line in f:
+        data.append(line)
 
 # Step2: Initialize database.
 (conn, cur) = connect()
