@@ -1,11 +1,12 @@
 #!/usr/bin/python
 import hashlib
 import MySQLdb
+import sys
+import warnings
 
-# This is a very crude script that takes in a CSV file downloaded from the Community
-# table of TAIR's Oracle database, and upload to API's database. The following formats are assumed
-# for the CSV file:
-# communityId,email,username,password
+# This is a very crude script that takes in a tab-delimtied file of users and uploads to API's database. 
+# The following formats are assumed for the file:
+# userIdentifier,email,username,password,fullname,firstName,lastName
 # 
 # The source password is assuemd to be in plain text, and will be hashed before uploading to API
 # server's database.
@@ -32,7 +33,9 @@ def create_signature(password):
 
 # Begin main program:
 
-# Step1: Open the source CSV file and load into memory.
+warnings.filterwarnings("error")
+
+# Step1: Open the source tab-delimited file and load into memory.
 with open('users.txt', 'rb') as f:
     data = []
     for line in f:
@@ -51,7 +54,7 @@ batchCount = 0
 # Step 3: Main loop
 for line in data:
     if "'" in line:
-        line.replace("'","''")
+        line = line.replace("'","''")
     entry = line.split('\t')
     userIdentifier = entry[0]
     username = entry[1]
@@ -69,8 +72,7 @@ for line in data:
         partyId = conn.insert_id()
         cur.execute(newUserSql%(username, digestedPw, email, partyId, partnerId, userIdentifier, firstName, lastName))
     except:
-        print username
-
+        print "{} -- exception: {}".format(username, sys.exc_info()[0])
 
     # Does 500 queries per transaction for performance improvement.
     if batchCount >= 500:
@@ -78,5 +80,6 @@ for line in data:
         conn.commit()
         batchCount = 0
 
-    
 conn.commit()
+
+print "total users migrated: %s" %totalCount
