@@ -42,14 +42,15 @@ with open('users.txt', 'rb') as f:
 (conn, cur) = connect()
 
 # Sample queries.
-newUserSql = "INSERT INTO Credential (username, password, email, partyId, partnerId, userIdentifier, firstName, lastName) VALUES (%s, %s, %s, %s, %s, %s, %s, %s)"
-partySql = "INSERT INTO Party (partyType, name, display) VALUES ('user', %s, %s)"
+newUserSql = "INSERT INTO Credential (username, password, email, partyId, partnerId, userIdentifier, firstName, lastName) VALUES ('%s', '%s', '%s', %s, '%s', '%s', '%s', '%s');"
+partySql = "INSERT INTO Party (partyType, name, display, countryId, label) VALUES ('user', '%s', False, NULL, NULL);"
 
 partnerId = 'biocyc'
 totalCount = 0
 batchCount = 0
 # Step 3: Main loop
-for entry in data:
+for line in data:
+    entry = line[0].split('\t')
     userIdentifier = entry[0]
     username = entry[1]
     email = entry[1]
@@ -62,7 +63,7 @@ for entry in data:
     totalCount += 1
     batchCount += 1
     try: 
-        cur.execute(partySql, (fullName, False))
+        cur.execute(partySql, (fullName,))
         partyId = conn.insert_id()
         cur.execute(newUserSql, (username, digestedPw, email, partyId, partnerId, userIdentifier, firstName, lastName))
     except:
