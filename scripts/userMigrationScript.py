@@ -1,5 +1,4 @@
 #!/usr/bin/python
-import csv
 import hashlib
 import MySQLdb
 
@@ -35,8 +34,7 @@ def create_signature(password):
 
 # Step1: Open the source CSV file and load into memory.
 with open('users.txt', 'rb') as f:
-    reader = csv.reader(f)
-    data = list(reader)
+    data = f
 
 # Step2: Initialize database.
 (conn, cur) = connect()
@@ -50,7 +48,7 @@ totalCount = 0
 batchCount = 0
 # Step 3: Main loop
 for line in data:
-    entry = line[0].split('\t')
+    entry = line.split('\t')
     userIdentifier = entry[0]
     username = entry[1]
     email = entry[1]
