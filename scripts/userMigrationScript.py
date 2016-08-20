@@ -50,6 +50,8 @@ totalCount = 0
 batchCount = 0
 # Step 3: Main loop
 for line in data:
+    if "'" in line:
+        line.replace("'","''")
     entry = line.split('\t')
     userIdentifier = entry[0]
     username = entry[1]
