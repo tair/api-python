@@ -1,22 +1,22 @@
 #!/usr/bin/python
-import csv
 import hashlib
 import MySQLdb
+import sys
+import warnings
 
-# This is a very crude script that takes in a CSV file downloaded from the Community
-# table of TAIR's Oracle database, and upload to API's database. The following formats are assumed
-# for the CSV file:
-# communityId,email,username,password
+# This is a very crude script that takes in a tab-delimtied file of users and uploads to API's database. 
+# The following formats are assumed for the file:
+# userIdentifier,email,username,password,fullname,firstName,lastName
 # 
 # The source password is assuemd to be in plain text, and will be hashed before uploading to API
 # server's database.
 
 # function to connect to api database.
 def connect():
-    host = 'phoenix-api-test.cwyjt5kql77y.us-west-2.rds.amazonaws.com'
+    host = 'phoenix-api.cwyjt5kql77y.us-west-2.rds.amazonaws.com'
     user="phoenix"
-    password="phoenix123"
-    dbName="demo1"
+    password="xrXbTZfrHdwmS7VC"
+    dbName="phoenix_api"
     
     conn = MySQLdb.connect(host=host,
                          user=user,
@@ -33,46 +33,46 @@ def create_signature(password):
 
 # Begin main program:
 
-# Step1: Open the source CSV file and load into memory.
-with open('community.csv', 'rb') as f:
-    reader = csv.reader(f)
-    data = list(reader)
+#warnings.filterwarnings("error")
+
+# Step1: Open the source tab-delimited file and load into memory.
+with open('users.txt', 'rb') as f:
+    data = []
+    for line in f:
+        data.append(line)
 
 # Step2: Initialize database.
 (conn, cur) = connect()
 
 # Sample queries.
-newUserSql = "INSERT INTO Credential (username, password, email, partyId, partnerId, userIdentifier) VALUES (%s, %s, %s, %s, %s, %s)"
-partySql = "INSERT INTO Party (partyType, name, display, countryId) VALUES ('user', %s, %s, %s)"
+newUserSql = "INSERT INTO Credential (username, password, email, partyId, partnerId, userIdentifier, firstName, lastName) VALUES ('%s', '%s', '%s', %s, '%s', '%s', '%s', '%s');"
+partySql = "INSERT INTO Party (partyType, name, display, countryId, label) VALUES ('user', '%s', False, NULL, NULL);"
 
-partnerId = 'tair'
+partnerId = 'biocyc'
 totalCount = 0
 batchCount = 0
 # Step 3: Main loop
-for entry in data:
-    communityId = entry[0]
-    communityType = entry[1]
-    email = entry[2]
-    username = entry[4]
-    digestedPw = create_signature(entry[5])
-    isObsolete = entry[6]
-    if not communityId.isdigit():
-        continue
-    if not communityType == 'person':
-        continue
+for line in data:
+    if "'" in line:
+        line = line.replace("'","''")
+    entry = line.split('\t')
+    userIdentifier = entry[0]
+    username = entry[1]
+    email = entry[1]
+    digestedPw = create_signature(entry[2])
+    fullName = entry[3]
+    firstName = entry[4]
+    lastName = entry[5]
     if username.rstrip() == '':
-        continue
-    if isObsolete == 'T':
         continue
     totalCount += 1
     batchCount += 1
     try: 
-        cur.execute(partySql, (username, True, 10))
+        cur.execute(partySql%(fullName,))
         partyId = conn.insert_id()
-        cur.execute(newUserSql, (username, digestedPw, email, partyId, partnerId, communityId))
+        cur.execute(newUserSql%(username, digestedPw, email, partyId, partnerId, userIdentifier, firstName, lastName))
     except:
-        print username
-
+        print "{} -- exception: {}".format(username, sys.exc_info()[0])
 
     # Does 500 queries per transaction for performance improvement.
     if batchCount >= 500:
@@ -80,5 +80,6 @@ for entry in data:
         conn.commit()
         batchCount = 0
 
-    
 conn.commit()
+
+print "total users migrated: %s" %totalCount

@@ -70,7 +70,7 @@ class listcreateuser(GenericCRUDView):
   def put(self, request, format=None):
     # TODO: security risk here, get username based on the partyId verified in isPhoenix -SC
     if not isPhoenix(self.request):
-      return Response(status=status.HTTP_400_BAD_REQUEST)
+      return Response({'error': 'isPhoenix false'}, status=status.HTTP_400_BAD_REQUEST)
     # http://stackoverflow.com/questions/12611345/django-why-is-the-request-post-object-immutable
     serializer_class = self.get_serializer_class()
     params = request.GET
@@ -98,7 +98,7 @@ class listcreateuser(GenericCRUDView):
         #data['password'] = generateSecretKey(str(obj.partyId.partyId), data['password'])#PW-254 and YM: TAIR-2493
         data['loginKey'] = generateSecretKey(str(obj.partyId.partyId), data['password'])
       return Response(data, status=status.HTTP_200_OK)
-    return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+    return Response({'error': 'Serializer error'}, status=status.HTTP_400_BAD_REQUEST)
 
 #/credentials/login/
 def login(request):
@@ -199,7 +199,8 @@ def resetPwd(request):
     requestUsername = request.GET.get('user')
     requestPartner = request.GET.get('partnerId')
     user = Credential.objects.filter(partnerId=requestPartner).filter(username__iexact=requestUsername)#PW-125 TODO
-    
+    partnerObj = Partner.objects.get(partnerId=requestPartner)
+    #partnerObj = Partner.objects.get(partnerId=user.partnerId)
     if user: 
       user = user.first()
       password = ''.join(random.choice(string.ascii_uppercase + string.digits) for _ in range(8))
@@ -207,10 +208,15 @@ def resetPwd(request):
       user.save()
       
       subject = "Temporary password for %s (%s)" % (user.username, user.email)#PW-215 unlikely
+      '''
       message = "username: %s (%s)\n\nYour temp password is %s \n\n" \
                 "Please log on to your account and change your password." \
                 % (user.username, user.email, password)#PW-215
+      '''          
+      message = partnerObj.resetPasswordEmailBody % (user.username, user.email, password)
+                
       from_email = "info@phoenixbioinformatics.org"
+      
       recipient_list = [user.email]
       send_mail(subject=subject, message=message, from_email=from_email, recipient_list=recipient_list)
             

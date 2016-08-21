@@ -24,7 +24,8 @@ class Partner(models.Model):
     activationEmailInstructionText = models.CharField(max_length=9000, null=True)
     loginUserNameFieldPrompt = models.CharField(max_length=20, default='Username')
     loginPasswordFieldPrompt = models.CharField(max_length=20, default='Password')
-    
+    resetPasswordEmailBody = models.CharField(max_length=2000, null=True)
+
     class Meta:
         db_table = "Partner"
 

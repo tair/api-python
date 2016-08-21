@@ -10,13 +10,19 @@ class GenericTest(object):
     apiKeySample = CommonApiKeySample()
     apiKey = None
     def setUp(self):
+        # sample = self.sample
         #delete possible entries that we use as test case
         ApiKey.objects.filter(apiKey=self.apiKeySample.data['apiKey']).delete()
         self.apiKeyId = self.apiKeySample.forcePost(self.apiKeySample.data)
         self.apiKey = self.apiKeySample.data['apiKey']
+        # filter = sample.data
+        # Partner.objects.filter(**filter).delete()
+        # self.pk = self.sample.forcePost(self.sample.data)
 
     def tearDown(self):
+        # sample = self.sample
         PyTestGenerics.forceDelete(self.apiKeySample.model, self.apiKeySample.pkName, self.apiKeyId)
+        # PyTestGenerics.forceDelete(sample.model, sample.pkName, self.pk)
 
 # This function checks if sampleData is within the array of data retrieved
 # from API call.
@@ -39,8 +45,11 @@ class GenericCRUDTest(GenericTest):
     def test_for_create(self):
         sample = self.sample
         url = sample.url
-        if self.apiKey:
-            url = url+'?apiKey=%s' % (self.apiKey)
+        credentialId = "2"
+        secretKey = "7DgskfEF7jeRGn1h%2B5iDCpvIkRA%3D"
+        # if self.apiKey:
+        #     url = url+'?apiKey=%s' % (self.apiKey)+'&credentialId='+credentialId+'&secretKey='+secretKey
+        url = url+'?credentialId='+credentialId+'&secretKey='+secretKey
         cookies = {'apiKey':self.apiKey}
         req = requests.post(url, data=sample.data, cookies=cookies)
 

@@ -15,7 +15,7 @@ pid=$!
 sleep 5
 
 hasError=0
-
+'''
 python -m metering.pyTests $1 $2
 if [ $? != 0 ]
 then
@@ -39,13 +39,13 @@ if [ $? != 0 ]
 then
     hasError=1
 fi
-
+'''
 python -m party.pyTests $1 $2
 if [ $? != 0 ]
 then
     hasError=1
 fi
-
+'''
 python -m loggingapp.pyTests $1 $2
 if [ $? != 0 ]
 then
@@ -57,7 +57,7 @@ if [ $? != 0 ]
 then
     hasError=1
 fi
-
+'''
 pkill -TERM -P $pid
 
 if [ $hasError == 1 ]
