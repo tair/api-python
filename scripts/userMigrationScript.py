@@ -13,7 +13,7 @@ import warnings
 
 # function to connect to api database.
 def connect():
-    host = 'phoenix-api-test.cwyjt5kql77y.us-west-2.rds.amazonaws.com'
+    host = 'phoenix-api.cwyjt5kql77y.us-west-2.rds.amazonaws.com'
     user="phoenix"
     password="xrXbTZfrHdwmS7VC"
     dbName="phoenix_api"
@@ -33,7 +33,7 @@ def create_signature(password):
 
 # Begin main program:
 
-warnings.filterwarnings("error")
+#warnings.filterwarnings("error")
 
 # Step1: Open the source tab-delimited file and load into memory.
 with open('users.txt', 'rb') as f:
