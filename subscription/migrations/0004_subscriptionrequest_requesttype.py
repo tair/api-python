@@ -14,7 +14,7 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='subscriptionrequest',
             name='requestType',
-            field=models.CharField(default='', max_length=32),
+            field=models.CharField(default='institution', max_length=32),
             preserve_default=False,
         ),
     ]
