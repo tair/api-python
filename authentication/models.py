@@ -7,11 +7,12 @@ import base64, hmac, hashlib
 
 class Credential(models.Model):
   #usernameClean = models.CharField(max_length=32, db_index=True, db_column='username').lower().strip()#PW-215 ?
-  username = models.CharField(max_length=32, db_index=True)
+  # PW-351: expand username/email fields to max email size 254
+  username = models.CharField(max_length=254, db_index=True)
   firstName = models.CharField(max_length=32, null=True)
   lastName = models.CharField(max_length=32, null=True)
   password = models.CharField(max_length=64)
-  email = models.CharField(max_length=128, null=True)
+  email = models.CharField(max_length=254, null=True)
   institution = models.CharField(max_length=200, null=True)#PW-254
   partyId = models.ForeignKey(Party, db_column='partyId')
   partnerId = models.ForeignKey(Partner, db_column='partnerId')
