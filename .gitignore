@@ -29,3 +29,8 @@ settings.py
 
 # PyCharm settings
 .idea
+
+# data files
+*.csv
+*.txt
+
