@@ -6,7 +6,11 @@ from rest_framework import serializers
 class PartnerSerializer(serializers.ModelSerializer):
     class Meta:
         model = Partner
-        fields = ('partnerId','name','logoUri','homeUri','termOfServiceUri', 'description','loginUri','registerUri', 'subscriptionListDesc', 'registerText', 'forgotUserNameEmailTo', 'forgotUserNameEmailSubject', 'forgotUserNameEmailBody', 'forgotUserNameText', 'activationEmailInstructionText', 'loginUserNameFieldPrompt', 'loginPasswordFieldPrompt', 'resetPasswordEmailBody')
+        fields = ('partnerId','name','logoUri','homeUri','termOfServiceUri', 'description','loginUri',
+                  'registerUri', 'subscriptionListDesc', 'registerText', 'forgotUserNameEmailTo', 
+                  'forgotUserNameEmailSubject', 'forgotUserNameEmailBody', 'forgotUserNameText', 
+                  'activationEmailInstructionText', 'loginUserNameFieldPrompt', 'loginPasswordFieldPrompt', 
+                  'resetPasswordEmailBody', 'loginRedirectErrorText')
 
 class PartnerPatternSerializer(serializers.ModelSerializer):
     class Meta:
