@@ -15,6 +15,9 @@ from rest_framework import status
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework import generics
+from rest_framework.permissions import IsAuthenticated
+from rest_framework_jwt.authentication import JSONWebTokenAuthentication
+
 from common.views import GenericCRUDView
 from common.permissions import isPhoenix
 from common.common import getRemoteIpAddress
@@ -39,6 +42,8 @@ import logging
 
 # /
 class SubscriptionCRUD(GenericCRUDView):
+    permission_classes = (IsAuthenticated,)
+    authentication_classes = (JSONWebTokenAuthentication,)
     queryset = Subscription.objects.all()
     serializer_class = SubscriptionSerializer
     requireApiKey = False
