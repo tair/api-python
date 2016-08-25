@@ -3,6 +3,7 @@ from rest_framework import generics, status
 
 class GenericCRUDView(generics.GenericAPIView):
 
+    authentication_classes = (JSONWebTokenAuthentication,)
     # requireApiKey = True
     def get_queryset(self):
         queryset = super(GenericCRUDView, self).get_queryset()
