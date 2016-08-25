@@ -5,6 +5,7 @@ from django.db import connection
 from netaddr import IPAddress
 from django.utils import timezone
 import logging
+import os
 # Create your models here.
 class NumericField(models.Field):
     def db_type(self, connection):
