@@ -18,6 +18,22 @@ import json
 import re
 import urllib
 
+import logging
+
+# Get an instance of a logger
+logger = logging.getLogger(__name__)
+'''
+authorization  access  should contain these elements:
+
+timestamp (current date and time, required) +
+IP address (required) +
+party id (may be null) +
+user identifier (may be null) 
+partner id (required) 
+complete URI (required) 
+status (required) 
+'''
+
 # top level: /authorizations/
 
 
@@ -25,16 +41,35 @@ import urllib
 # service outputs access control status such as "OK", "Warn", "BlockBySubscription".
 
 # /access/
+    
 class Access(APIView):
+    #another way w/o LOGGING in settings.py
+    #import os
+    #dirname = os.path.dirname(os.path.realpath(__file__))
+    #logging.basicConfig(filename="%s/logs/authorization_access.log" % dirname,
+    #                    format='%(asctime)s %(message)s')
+    
     def get(self, request, format=None):
+        
         partyId = request.COOKIES.get('credentialId')
+        logger.info("VET PARTYID:"+partyId);
+        
         loginKey = request.COOKIES.get('secretKey')
+        
         ip = request.GET.get('ip')
+        logger.debug("VET IP:"+ip);
+        
         url = request.GET.get('url').decode('utf8')
+        logger.info("VET URL:"+url);
+        
         partnerId = request.GET.get('partnerId')
+        logger.info("VET PARTNERID:"+partnerId);
+        
         apiKey = request.COOKIES.get('apiKey')
 
-        status = Authorization.getAccessStatus(loginKey, ip, partyId, url, partnerId, getHostUrlFromRequest(request), apiKey)        
+        status = Authorization.getAccessStatus(loginKey, ip, partyId, url, partnerId, getHostUrlFromRequest(request), apiKey)
+        logger.info("VET STATUS:"+status)
+             
         userIdentifier = None
         if partyId and partyId.isdigit() and Credential.objects.all().filter(partyId=partyId).exists():
             userIdentifier = Credential.objects.all().get(partyId=partyId).userIdentifier
