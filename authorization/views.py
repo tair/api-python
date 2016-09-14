@@ -52,23 +52,23 @@ class Access(APIView):
     def get(self, request, format=None):
         
         partyId = request.COOKIES.get('credentialId')
-        logger.info("VET PARTYID:"+partyId);
+        logging.info("%s, %s" % (partyId, "PARTYID"))
         
         loginKey = request.COOKIES.get('secretKey')
         
         ip = request.GET.get('ip')
-        logger.debug("VET IP:"+ip);
+        logging.info("%s, %s" % (ip, "ip"))
         
         url = request.GET.get('url').decode('utf8')
-        logger.info("VET URL:"+url);
+        logging.info("%s, %s" % (url, "url"))
         
         partnerId = request.GET.get('partnerId')
-        logger.info("VET PARTNERID:"+partnerId);
+        logging.info("%s, %s" % (partnerId, "partnerId"))
         
         apiKey = request.COOKIES.get('apiKey')
 
         status = Authorization.getAccessStatus(loginKey, ip, partyId, url, partnerId, getHostUrlFromRequest(request), apiKey)
-        logger.info("VET STATUS:"+status)
+        logging.info("%s, %s" % (status, "status"))
              
         userIdentifier = None
         if partyId and partyId.isdigit() and Credential.objects.all().filter(partyId=partyId).exists():
