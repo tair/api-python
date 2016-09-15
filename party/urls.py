@@ -18,5 +18,6 @@ urlpatterns = [
     url(r'^consortiums/$', views.ConsortiumCRUD.as_view()),
     url(r'^institutions/$', views.InstitutionCRUD.as_view()),#PW-161
     url(r'^affiliations/$', views.AffiliationCRUD.as_view()),
+    url(r'^restricted/$', views.RestrictedView.as_view()),#PW-267
 ]
 urlpatterns = format_suffix_patterns(urlpatterns)

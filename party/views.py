@@ -610,3 +610,14 @@ class AffiliationCRUD(GenericCRUDView):
     def put(self, request, format=None):
         return Response({'error':'put function is unavailable'}, status=status.HTTP_400_BAD_REQUEST)
 # TODO: "post" is still a security vulnerability -SC
+
+class RestrictedView(APIView):
+    permission_classes = (IsAuthenticated, )
+    authentication_classes = (JSONWebTokenAuthentication, )
+
+    def get(self, request):
+        data = {
+            'foo': 'bar'
+        }
+
+        return Response(data)
