@@ -64,6 +64,8 @@ class IpRangeCRUD(GenericCRUDView):
 #------------------- End of Basic CRUD operations --------------
 
 class OrganizationView(APIView):
+    permission_classes = (IsAuthenticated,)
+    authentication_classes = (JSONWebTokenAuthentication,)
     requireApiKey = False
     def get(self, request, format=None):
         partnerId = request.GET.get('partnerId')
