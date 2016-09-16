@@ -19,20 +19,7 @@ import re
 import urllib
 
 import logging
-
-# Get an instance of a logger
-logger = logging.getLogger(__name__)
-'''
-authorization  access  should contain these elements:
-
-timestamp (current date and time, required) +
-IP address (required) +
-party id (may be null) +
-user identifier (may be null) 
-partner id (required) 
-complete URI (required) 
-status (required) 
-'''
+import os
 
 # top level: /authorizations/
 
@@ -43,33 +30,18 @@ status (required)
 # /access/
     
 class Access(APIView):
-    #another way w/o LOGGING in settings.py
-    #import os
-    #dirname = os.path.dirname(os.path.realpath(__file__))
-    #logging.basicConfig(filename="%s/logs/authorization_access.log" % dirname,
-    #                    format='%(asctime)s %(message)s')
+    dirname = os.path.dirname(os.path.realpath(__file__))
+    logging.basicConfig(filename="%s/logs/authorization_access.log" % dirname,
+                        format='%(asctime)s %(message)s')
     
     def get(self, request, format=None):
-        
         partyId = request.COOKIES.get('credentialId')
-        logging.info("%s, %s" % (partyId, "PARTYID"))
-        
         loginKey = request.COOKIES.get('secretKey')
-        
         ip = request.GET.get('ip')
-        logging.info("%s, %s" % (ip, "ip"))
-        
         url = request.GET.get('url').decode('utf8')
-        logging.info("%s, %s" % (url, "url"))
-        
         partnerId = request.GET.get('partnerId')
-        logging.info("%s, %s" % (partnerId, "partnerId"))
-        
         apiKey = request.COOKIES.get('apiKey')
-
         status = Authorization.getAccessStatus(loginKey, ip, partyId, url, partnerId, getHostUrlFromRequest(request), apiKey)
-        logging.info("%s, %s" % (status, "status"))
-             
         userIdentifier = None
         if partyId and partyId.isdigit() and Credential.objects.all().filter(partyId=partyId).exists():
             userIdentifier = Credential.objects.all().get(partyId=partyId).userIdentifier
@@ -77,7 +49,17 @@ class Access(APIView):
             "status":status,
             "userIdentifier":userIdentifier,
         }
-
+        '''
+        authorization  access  should contain these elements:
+            timestamp (current date and time, required) +
+            IP address (required) +
+            party id (may be null) +
+            user identifier (may be null) 
+            partner id (required) 
+            complete URI (required) 
+            status (required)
+        '''
+        logging.info("%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s" % ("ip:",ip,"partyId:",partyId,"userIdentifier:",userIdentifier,"partnerId:",partnerId,"url:",url,"status:",status))
         return HttpResponse(json.dumps(response), content_type="application/json")
 
 # /subscriptions/
