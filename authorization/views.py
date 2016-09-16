@@ -59,7 +59,7 @@ class Access(APIView):
             complete URI (required) 
             status (required)
         '''
-        logging.info("%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s" % ("ip:",ip,"partyId:",partyId,"userIdentifier:",userIdentifier,"partnerId:",partnerId,"url:",url,"status:",status))
+        logging.error("%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s" % ("ip:",ip,"partyId:",partyId,"userIdentifier:",userIdentifier,"partnerId:",partnerId,"url:",url,"status:",status))
         return HttpResponse(json.dumps(response), content_type="application/json")
 
 # /subscriptions/
