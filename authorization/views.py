@@ -59,15 +59,14 @@ class Access(APIView):
             complete URI (required) 
             status (required)
         '''
-        logging.error("%s %s %s %s %s %s %s %s %s %s %s %s" % ("ip:",ip,"partyId:",partyId,"userIdentifier:",userIdentifier,"partnerId:",partnerId,"url:",url,"status:",status))
+        logging.error("%s%s %s%s %s%s %s%s %s%s %s%s" % ("ip:",ip,"partyId:",partyId,"userIdentifier:",userIdentifier,"partnerId:",partnerId,"url:",url,"status:",status))
         return HttpResponse(json.dumps(response), content_type="application/json")
 
 # /subscriptions/
 # https://demoapi.arabidopsis.org/authorizations/subscriptions/
 class SubscriptionsAccess(APIView):
-    dirname = os.path.dirname(os.path.realpath(__file__))
-    logging.basicConfig(filename="%s/logs/subscriptions_access.log" % dirname,
-                        format='%(asctime)s %(message)s')
+    #dirname = os.path.dirname(os.path.realpath(__file__))
+    #logging.basicConfig(filename="%s/logs/subscriptions_access.log" % dirname, format='%(asctime)s %(message)s')
     def get(self, request, format=None):
         ip = request.GET.get('ip')
         url = request.GET.get('url')
@@ -78,14 +77,13 @@ class SubscriptionsAccess(APIView):
         response = {
             "access":access,
         }
-        logging.error("%s %s %s %s %s %s %s %s %s %s" % ("ip:",ip,"partyId:",partyId,"partnerId:",partnerId,"url:",url,"access:",access))
+        logging.error("%s%s %s%s %s%s %s%s %s%s" % ("ip:",ip,"partyId:",partyId,"partnerId:",partnerId,"url:",url,"access:",access))
         return HttpResponse(json.dumps(response), content_type="application/json")
 
 # /authentications/
 class AuthenticationsAccess(APIView):
-    dirname = os.path.dirname(os.path.realpath(__file__))
-    logging.basicConfig(filename="%s/logs/authentications_access.log" % dirname,
-                        format='%(asctime)s %(message)s')
+    #dirname = os.path.dirname(os.path.realpath(__file__))
+    #logging.basicConfig(filename="%s/logs/authentications_access.log" % dirname, format='%(asctime)s %(message)s')
     def get(self, request, format=None):
         credentialId = request.COOKIES.get('credentialId')
         loginKey = request.COOKIES.get('secretKey')
@@ -97,18 +95,18 @@ class AuthenticationsAccess(APIView):
         response = {
             "access":access,
         }
-        logging.error("%s %s %s %s %s %s %s %s" % ("hostUrl:",hostUrl,"partnerId:",partnerId,"url:",url,"access:",access))
+        logging.error("%s%s %s%s %s%s %s%s" % ("hostUrl:",hostUrl,"partnerId:",partnerId,"url:",url,"access:",access))
         return HttpResponse(json.dumps(response), content_type="application/json")
 
 class URIAccess(APIView):
-    dirname = os.path.dirname(os.path.realpath(__file__))
-    logging.basicConfig(filename="%s/logs/uri_access.log" % dirname, format='%(asctime)s %(message)s')    
+    #dirname = os.path.dirname(os.path.realpath(__file__))
+    #logging.basicConfig(filename="%s/logs/uri_access.log" % dirname, format='%(asctime)s %(message)s')    
     def get(self, request, format=None):
         params = request.GET
         if 'patternId' not in params:
             obj = UriPattern.objects.all()
             serializer = UriPatternSerializer(obj, many=True)
-            logging.error("%s %s %s %s" % ("serializer.data:",serializer.data,"status:",status.HTTP_200_OK))
+            logging.error("%s%s %s%s" % ("serializer.data:",serializer.data,"status:",status.HTTP_200_OK))
             return Response(serializer.data, status=status.HTTP_200_OK)
         else:
             #requestPatternId = params['patternId']
@@ -116,10 +114,10 @@ class URIAccess(APIView):
             if UriPattern.objects.filter(patternId = requestPatternId).exists():
                 obj = UriPattern.objects.get(patternId = requestPatternId)
                 serializer = UriPatternSerializer(obj, many=True)
-                logging.error("%s %s %s %s %s %s" % ("requestPatternId:",requestPatternId,"serializer.data:",serializer.data,"status:",status.HTTP_200_OK))
+                logging.error("%s%s %s%s %s%s" % ("requestPatternId:",requestPatternId,"serializer.data:",serializer.data,"status:",status.HTTP_200_OK))
                 return Response(serializer.data, status=status.HTTP_200_OK)
             else:
-                logging.error("%s %s %s" % ("GET URIAccess error: requestPatternId:",requestPatternId," not found"))
+                logging.error("%s%s %s" % ("GET URIAccess error: requestPatternId:",requestPatternId,"not found"))
                 return Response({'GET error: patternId' + requestPatternId + ' not found'})
         
     def delete(self, request, format=None):
