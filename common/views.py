@@ -1,8 +1,14 @@
 from rest_framework.response import Response
 from rest_framework import generics, status
 
+import logging
+import os
+
 class GenericCRUDView(generics.GenericAPIView):
 
+    dirname = os.path.dirname(os.path.realpath(__file__))
+    logging.basicConfig(filename="%s/logs/api.log" % dirname, format='%(asctime)s %(message)s')
+   
     requireApiKey = True
     def get_queryset(self):
         queryset = super(GenericCRUDView, self).get_queryset()
