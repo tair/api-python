@@ -6,8 +6,7 @@ import os
 
 class GenericCRUDView(generics.GenericAPIView):
 
-    dirname = os.path.dirname(os.path.realpath(__file__))
-    logging.basicConfig(filename="%s/logs/api.log" % dirname, format='%(asctime)s %(message)s')
+    logging.basicConfig(filename="/var/log/api/api.log", format='%(asctime)s %(message)s')
    
     requireApiKey = True
     def get_queryset(self):
