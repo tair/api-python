@@ -18,6 +18,8 @@ import json
 import re
 import urllib
 
+import logging
+
 # top level: /authorizations/
 
 
@@ -25,6 +27,7 @@ import urllib
 # service outputs access control status such as "OK", "Warn", "BlockBySubscription".
 
 # /access/
+# https://demoapi.arabidopsis.org/authorizations/access/?partnerId=tair&url=http%3A%2F%2Fwww.arabidopsis.org%2Fcgi-bin%2Fbulk%2Fsequences%2F&ip=203.255.24.127
 class Access(APIView):
     def get(self, request, format=None):
         partyId = request.COOKIES.get('credentialId')
@@ -33,8 +36,7 @@ class Access(APIView):
         url = request.GET.get('url').decode('utf8')
         partnerId = request.GET.get('partnerId')
         apiKey = request.COOKIES.get('apiKey')
-
-        status = Authorization.getAccessStatus(loginKey, ip, partyId, url, partnerId, getHostUrlFromRequest(request), apiKey)        
+        status = Authorization.getAccessStatus(loginKey, ip, partyId, url, partnerId, getHostUrlFromRequest(request), apiKey)
         userIdentifier = None
         if partyId and partyId.isdigit() and Credential.objects.all().filter(partyId=partyId).exists():
             userIdentifier = Credential.objects.all().get(partyId=partyId).userIdentifier
@@ -42,10 +44,21 @@ class Access(APIView):
             "status":status,
             "userIdentifier":userIdentifier,
         }
-
+        '''
+        authorization  access  should contain these elements:
+            timestamp (current date and time, required) +
+            IP address (required) +
+            party id (may be null) +
+            user identifier (may be null) 
+            partner id (required) 
+            complete URI (required) 
+            status (required)
+        '''
+        logging.error("Authorization Access %s%s %s%s %s%s %s%s %s%s %s%s" % ("ip:",ip,"partyId:",partyId,"userIdentifier:",userIdentifier,"partnerId:",partnerId,"url:",url,"status:",status))
         return HttpResponse(json.dumps(response), content_type="application/json")
 
 # /subscriptions/
+# https://demoapi.arabidopsis.org/authorizations/subscriptions/
 class SubscriptionsAccess(APIView):
     def get(self, request, format=None):
         ip = request.GET.get('ip')
@@ -57,6 +70,7 @@ class SubscriptionsAccess(APIView):
         response = {
             "access":access,
         }
+        logging.error("Authorization SubscriptionsAccess %s%s %s%s %s%s %s%s %s%s" % ("ip:",ip,"partyId:",partyId,"partnerId:",partnerId,"url:",url,"access:",access))
         return HttpResponse(json.dumps(response), content_type="application/json")
 
 # /authentications/
@@ -72,6 +86,7 @@ class AuthenticationsAccess(APIView):
         response = {
             "access":access,
         }
+        logging.error("Authorization AuthenticationsAccess %s%s %s%s %s%s %s%s" % ("hostUrl:",hostUrl,"partnerId:",partnerId,"url:",url,"access:",access))
         return HttpResponse(json.dumps(response), content_type="application/json")
 
 class URIAccess(APIView):
@@ -80,6 +95,7 @@ class URIAccess(APIView):
         if 'patternId' not in params:
             obj = UriPattern.objects.all()
             serializer = UriPatternSerializer(obj, many=True)
+            logging.error("Authorization URIAccess %s%s %s%s" % ("serializer.data:",serializer.data,"status:",status.HTTP_200_OK))
             return Response(serializer.data, status=status.HTTP_200_OK)
         else:
             #requestPatternId = params['patternId']
@@ -87,8 +103,10 @@ class URIAccess(APIView):
             if UriPattern.objects.filter(patternId = requestPatternId).exists():
                 obj = UriPattern.objects.get(patternId = requestPatternId)
                 serializer = UriPatternSerializer(obj, many=True)
+                logging.error("Authorization URIAccess %s%s %s%s %s%s" % ("requestPatternId:",requestPatternId,"serializer.data:",serializer.data,"status:",status.HTTP_200_OK))
                 return Response(serializer.data, status=status.HTTP_200_OK)
             else:
+                logging.error("Authorization URIAccess %s%s %s" % ("GET URIAccess error: requestPatternId:",requestPatternId,"not found"))
                 return Response({'GET error: patternId' + requestPatternId + ' not found'})
         
     def delete(self, request, format=None):

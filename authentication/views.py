@@ -103,30 +103,24 @@ class listcreateuser(GenericCRUDView):
 #/credentials/login/
 def login(request):
   if request.method == 'POST':
-    import os
-    dirname = os.path.dirname(os.path.realpath(__file__))
-    logging.basicConfig(filename="%s/logs/login.log" % dirname,
-                        format='%(asctime)s %(message)s'
-    )
-
     ip = request.META.get('REMOTE_ADDR')
     #vet PW-223
     browser = request.META.get('HTTP_USER_AGENT')
-    logging.error("===")
-    logging.error("Receiving request from %s: Client browser %s:" % (ip, browser))
+    logging.error("Authentication Login ===")
+    logging.error("Authentication Login Receiving request from %s: Client browser %s:" % (ip, browser))
     #logging.error("Client browser %s:" % browser)
 
     if not 'user' in request.POST:
       msg = "No username provided"
-      logging.error("%s, %s" % (ip, msg))
+      logging.error("Authentication Login %s, %s" % (ip, msg))
       return HttpResponse(json.dumps({"message": msg}), status=400)
     if not 'password' in request.POST:
       msg = "No password provided"
-      logging.error("%s, %s" % (ip, msg))
+      logging.error("Authentication Login %s, %s" % (ip, msg))
       return HttpResponse(json.dumps({"message": msg}), status=400)
     if not 'partnerId' in request.GET:
       msg = "No partnerId provided"
-      logging.error("%s, %s" % (ip, msg))
+      logging.error("Authentication Login %s, %s" % (ip, msg))
       return HttpResponse(json.dumps({"message": msg}), status=400)
 
     #   msg = "Incorrect password"
@@ -153,20 +147,20 @@ def login(request):
     if not dbUserList.exists():
 
         msg = "PWD NOT FOUND IN DB. username existance unknown"
-        logging.error("%s, %s: %s %s %s" % (ip, msg, requestUser, requestPassword, request.GET['partnerId']))
+        logging.error("Authentication Login %s, %s: %s %s %s" % (ip, msg, requestUser, requestPassword, request.GET['partnerId']))
         return HttpResponse(json.dumps({"message":msg}), status=401)
 
     else:
 
-        logging.error("%s USER(S) WITH PWD %s FOUND:" %(len(dbUserList), requestPassword))
+        logging.error("Authentication Login %s USER(S) WITH PWD %s FOUND:" %(len(dbUserList), requestPassword))
 
         for dbUser in dbUserList:
 
-            logging.error("dbUser %s requestUser %s pwd %s" % (dbUser.username,requestUser,requestPassword))
+            logging.error("Authentication Login dbUser %s requestUser %s pwd %s" % (dbUser.username,requestUser,requestPassword))
 
             #if user not found then continue
             if dbUser.username.lower() != requestUser.lower():
-                msg = "  USER NOT MATCH. i=%s continue..." % (i)
+                msg = " Authentication Login USER NOT MATCH. i=%s continue..." % (i)
                 logging.error(msg)
                 i = i+1
                 continue
@@ -179,15 +173,15 @@ def login(request):
                      "role":"librarian",
                      "username": dbUser.username,
                 }), status=200)
-                msg="  USER AND PWD MATCH. dbUser=%s requestUser=%s requestPwd=%s" % (dbUser.username, requestUser, requestPassword)
+                msg=" Authentication Login USER AND PWD MATCH. dbUser=%s requestUser=%s requestPwd=%s" % (dbUser.username, requestUser, requestPassword)
                 logging.error(msg)
                 return response
 
-        logging.error("end of loop")
+        logging.error("Authentication Login end of loop")
     #}end of if not empty list
     #if we did not return from above and we are here, then it's an error.
     #print last error msg from the loop and return 401 response
-    logging.error("%s, %s: \n %s %s %s" % (ip, msg, requestUser, requestPassword, request.GET['partnerId']))
+    logging.error("Authentication Login %s, %s: \n %s %s %s" % (ip, msg, requestUser, requestPassword, request.GET['partnerId']))
     return HttpResponse(json.dumps({"message":msg}), status=401)
 
 def resetPwd(request):

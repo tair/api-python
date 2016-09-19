@@ -5,7 +5,7 @@ from django.db import connection
 from netaddr import IPAddress
 from django.utils import timezone
 import logging
-import os
+
 # Create your models here.
 class NumericField(models.Field):
     def db_type(self, connection):
@@ -60,27 +60,24 @@ class IpRange(models.Model):
 
     @staticmethod
     def getByIp(ipAddress):
-        dirname = os.path.dirname(os.path.realpath(__file__))
-        logging.basicConfig(filename="%s/logs/invalidIP.log" % dirname,
-                            format='%(asctime)s %(message)s')
         objList = []
         objs = IpRange.objects.all()
         try:
             inputIpAddress = IPAddress(ipAddress)
         except ValueError:
-            logging.error("%s, %s" % (ipAddress, "invalid ip"))
+            logging.error("Party IpRange %s, %s" % (ipAddress, "invalid ip"))
             pass
         # for detail on comparison between IPAddress objects, see Python netaddr module.
         for obj in objs:
             try:
                 start = IPAddress(obj.start)
             except ValueError:
-                logging.error("%s, %s" % (obj.start, "invalid start ip"))
+                logging.error("Party IpRange %s, %s" % (obj.start, "invalid start ip"))
                 pass
             try:
                 end = IPAddress(obj.end)
             except ValueError:
-                logging.error("%s, %s" % (obj.end, "invalid end ip"))
+                logging.error("Party IpRange %s, %s" % (obj.end, "invalid end ip"))
                 pass
             
             if inputIpAddress >= start and inputIpAddress <= end:
