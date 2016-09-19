@@ -20,9 +20,8 @@ from django.db.models import F
 import re
 import socket
 import ipaddress
-
 import logging
-import os
+
 # /
 class IpAddressCountCRUD(GenericCRUDView):
     requireApiKey = False
@@ -68,8 +67,6 @@ class increment(APIView):
 #Return limit status of IP
 # /ip/<pk>/limit/
 class check_limit(APIView):
-    dirname = os.path.dirname(os.path.realpath(__file__))
-    logging.basicConfig(filename="%s/logs/metering_check_limit.log" % dirname, format='%(asctime)s %(message)s')
     '''
     timestamp (current date and time, required)
     IP address (required)
@@ -103,7 +100,7 @@ class check_limit(APIView):
             searchObj = re.search(meterBlackListRecord.pattern, uri)
             if searchObj:
                 ret = {'status': "BlackListBlock"}
-                logging.error("%s%s %s%s %s%s %s" % ("ip:",ip,"partnerId:",partnerId,"uri:",uri,ret))
+                logging.error("Metering check_limit %s%s %s%s %s%s %s" % ("ip:",ip,"partnerId:",partnerId,"uri:",uri,ret))
                 return HttpResponse(json.dumps(ret), content_type="application/json", status=200)
             
         if IpAddressCount.objects.filter(ip=ip).filter(partnerId=partnerId).exists():
@@ -117,5 +114,5 @@ class check_limit(APIView):
         else:
             # IP address not in database. not block by IP.
             ret = {'status': "OK"}
-        logging.error("%s%s %s%s %s%s %s" % ("ip:",ip,"partnerId:",partnerId,"uri:",uri,ret))
+        logging.error("Metering check_limit %s%s %s%s %s%s %s" % ("ip:",ip,"partnerId:",partnerId,"uri:",uri,ret))
         return HttpResponse(json.dumps(ret), content_type="application/json", status=200)
