@@ -50,6 +50,7 @@ class PartnerCRUD(GenericCRUDView):
 class PartnerPatternCRUD(GenericCRUDView):
     queryset = PartnerPattern.objects.all()
     serializer_class = PartnerPatternSerializer
+    requireApiKey = False
 
     def get(self, request, format=None):
         params = request.GET
