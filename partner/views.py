@@ -34,15 +34,6 @@ class PartnerCRUD(GenericCRUDView):
             partnerList = Partner.objects.all()
             serializer = PartnerSerializer(partnerList, many=True)
             return Response(serializer.data)
-        if 'sourceUri' in params:
-            partnerList = []
-            serializer = PartnerPatternSerializer(PartnerPattern.objects.all(), many=True)
-            for url in serializer.data:
-                pattern = re.compile(url['sourceUri'])
-                if pattern.search(params['sourceUri']):
-                    partnerList.append(url)
-            # serializer = PartnerPatternSerializer(partnerList, many=True)
-            return Response(partnerList)
         serializer = self.serializer_class(obj, many=True)
         return Response(serializer.data)
 
@@ -59,6 +50,19 @@ class PartnerCRUD(GenericCRUDView):
 class PartnerPatternCRUD(GenericCRUDView):
     queryset = PartnerPattern.objects.all()
     serializer_class = PartnerPatternSerializer
+
+    def get(self, request, format=None):
+        params = request.GET
+        if 'sourceUri' not in params:
+            return Response({'error':'sourceUri field is required'}, status=status.HTTP_400_BAD_REQUEST)
+        partnerList = []
+        serializer = self.serializer_class(self.queryset, many=True)
+        for url in serializer.data:
+            pattern = re.compile(url['sourceUri'])
+            if pattern.search(params['sourceUri']):
+                partnerList.append(url)
+        # serializer = PartnerPatternSerializer(partnerList, many=True)
+        return Response(partnerList)
 
 # /terms/
 class TermsCRUD(GenericCRUDView):
