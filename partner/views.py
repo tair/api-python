@@ -57,7 +57,7 @@ class PartnerPatternCRUD(GenericCRUDView):
         if 'sourceUri' not in params:
             return Response({'error':'sourceUri field is required'}, status=status.HTTP_400_BAD_REQUEST)
         partnerList = []
-        serializer = self.serializer_class(self.queryset, many=True)
+        serializer = self.serializer_class(PartnerPattern.objects.all(), many=True)
         for url in serializer.data:
             pattern = re.compile(url['sourceUri'])
             if pattern.search(params['sourceUri']):
