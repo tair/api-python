@@ -14,6 +14,7 @@ class Partner(models.Model):
     termOfServiceUri = models.CharField(max_length=200)
     description = models.CharField(max_length=300, null=True)
     loginUri = models.CharField(max_length=200, null=True)
+    defaultLoginRedirect = models.CharField(max_length=200, null=True)
     uiUri = models.CharField(max_length=200, null=True)
     uiMeterUri = models.CharField(max_length=200, null=True)
     registerUri = models.CharField(max_length=200, null=True)
