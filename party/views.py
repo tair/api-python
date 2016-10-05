@@ -35,8 +35,6 @@ class PartyCRUD(GenericCRUDView):
     requireApiKey = False
     queryset = Party.objects.all()
     serializer_class = PartySerializer
-    permission_classes = (IsAuthenticated,)
-    authentication_classes = (JSONWebTokenAuthentication,)
 
     def get_queryset(self):
         if isPhoenix(self.request):
