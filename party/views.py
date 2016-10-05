@@ -608,6 +608,7 @@ class AffiliationCRUD(GenericCRUDView):
 # TODO: "post" is still a security vulnerability -SC
 
 class RestrictedView(APIView):
+    requireApiKey = False
     permission_classes = (IsAuthenticated, )
     authentication_classes = (JSONWebTokenAuthentication, )
 
