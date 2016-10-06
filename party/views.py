@@ -610,7 +610,7 @@ class AffiliationCRUD(GenericCRUDView):
 class RestrictedView(APIView):
     requireApiKey = False
     permission_classes = (IsAuthenticated, )
-    authentication_classes = (JSONWebTokenAuthentication, )
+    #authentication_classes = (JSONWebTokenAuthentication, )
 
     def get(self, request):
         data = {
