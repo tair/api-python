@@ -57,7 +57,7 @@ class PartyCRUD(GenericCRUDView):
         ip = request.GET.get('ip')
         queryStr = 'select * from Party where partyId = (SELECT partyId FROM IpRange WHERE (INET_ATON("%s") BETWEEN INET_ATON(start) AND INET_ATON(end))) and (partyType="organization" or partyType="consortium")'
         out = []
-        obg = Party.objects.raw(queryStr,[ip])
+        obj = Party.objects.raw(queryStr,[ip])
         return HttpResponse(json.dumps({"name:":obj.name}), content_type="application/json")
 
 # /ipranges/
