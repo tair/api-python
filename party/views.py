@@ -25,6 +25,7 @@ import datetime
 from authentication.serializers import CredentialSerializer, CredentialSerializerNoPassword
 from genericpath import exists
 from django.db import connection
+from collections import namedtuple
 # top level: /parties/
 
 # Basic CRUD operation for Party and IpRange
@@ -45,14 +46,35 @@ class PartyCRUD(GenericCRUDView):
                 return super(PartyCRUD, self).get_queryset().filter(partyType=partyType)
         return []
     
+    def namedtuplefetchall(self,cursor):
+        #Return all rows from a cursor as a namedtuple
+        desc = cursor.description
+        nt_result = namedtuple('Result', [col[0] for col in desc])
+        return [nt_result(*row) for row in cursor.fetchall()]
+    
     #https://demoapi.arabidopsis.org/parties/?ip=131.204.0.0&credentialId=33197&secretKey=kZ5yK8hdSbncXwD4%2F2DJOxqFUds%3D
     #Auburn University
     def get(self, request, format=None):
         ip = request.GET.get('ip')
+        if (ip is None):
+            return HttpResponse("")
+        
         cursor = connection.cursor()
-        cursor.execute('select name from Party where partyId = (SELECT partyId FROM IpRange WHERE (INET_ATON("'+ip+'") BETWEEN INET_ATON(start) AND INET_ATON(end))) and (partyType="organization" or partyType="consortium")')
-        row = cursor.fetchone()
-        return HttpResponse(row)
+        cursor.execute('select partyId, name from Party where partyId = (SELECT partyId FROM IpRange WHERE (INET_ATON("'+ip+'") BETWEEN INET_ATON(start) AND INET_ATON(end))) and (partyType="organization" or partyType="consortium")')
+        results = self.namedtuplefetchall(cursor)
+        if (len(results)>0):
+            partyId = results[0].partyId
+            partyName = results[0].name
+            ''' check if party is subscribed'''
+            if ((partyId>0) and (partyId!='None')):
+                cursor.execute('SELECT (endDate>= NOW()) as subscribed FROM Subscription where partnerId = "tair" and partyId ='+str(partyId))
+                row = cursor.fetchone()
+                if ((row is not None) and (str(row[0])=="1")):
+                    return HttpResponse(partyName)
+                else:
+                    return HttpResponse("")
+        else:
+            return HttpResponse("")
 
 # /ipranges/
 class IpRangeCRUD(GenericCRUDView):
