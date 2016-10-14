@@ -58,23 +58,27 @@ class PartyCRUD(GenericCRUDView):
         ip = request.GET.get('ip')
         if (ip is None):
             return HttpResponse("")
-        
-        cursor = connection.cursor()
-        cursor.execute('select partyId, name from Party where partyId = (SELECT partyId FROM IpRange WHERE (INET_ATON("'+ip+'") BETWEEN INET_ATON(start) AND INET_ATON(end))) and (partyType="organization" or partyType="consortium")')
-        results = self.namedtuplefetchall(cursor)
-        if (len(results)>0):
-            partyId = results[0].partyId
-            partyName = results[0].name
-            ''' check if party is subscribed'''
-            if ((partyId>0) and (partyId!='None')):
-                cursor.execute('SELECT (endDate>= NOW()) as subscribed FROM Subscription where partnerId = "tair" and partyId ='+str(partyId))
-                row = cursor.fetchone()
-                if ((row is not None) and (str(row[0])=="1")):
-                    return HttpResponse(partyName)
-                else:
-                    return HttpResponse("")
-        else:
-            return HttpResponse("")
+        try:
+            cursor = connection.cursor()
+            cursor.execute('select partyId, name from Party where partyId = (SELECT partyId FROM IpRange WHERE (INET_ATON("'+ip+'") BETWEEN INET_ATON(start) AND INET_ATON(end))) and (partyType="organization" or partyType="consortium")')
+            results = self.namedtuplefetchall(cursor)
+            if (len(results)>0):
+                partyId = results[0].partyId
+                partyName = results[0].name
+                ''' check if party is subscribed'''
+                if ((partyId>0) and (partyId!='None')):
+                    cursor.execute('SELECT (endDate>= NOW()) as subscribed FROM Subscription where partnerId = "tair" and partyId ='+str(partyId))
+                    row = cursor.fetchone()
+                    if ((row is not None) and (str(row[0])=="1")):
+                        return HttpResponse(partyName)
+                    else:
+                        return HttpResponse("")
+            else:
+                return HttpResponse("")
+        finally:
+            if cursor:
+                cursor.close()
+                connection.close()
 
 # /ipranges/
 class IpRangeCRUD(GenericCRUDView):
