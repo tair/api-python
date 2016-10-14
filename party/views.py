@@ -52,7 +52,7 @@ class PartyCRUD(GenericCRUDView):
         cursor = connection.cursor()
         cursor.execute('select name from Party where partyId = (SELECT partyId FROM IpRange WHERE (INET_ATON("'+ip+'") BETWEEN INET_ATON(start) AND INET_ATON(end))) and (partyType="organization" or partyType="consortium")')
         row = cursor.fetchone()
-        return HttpResponse(json.dumps(row), content_type="application/json")
+        return HttpResponse(row)
 
 # /ipranges/
 class IpRangeCRUD(GenericCRUDView):
