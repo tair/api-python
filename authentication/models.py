@@ -39,7 +39,7 @@ class Credential(models.Model):
 
   class Meta:
     db_table = "Credential"
-    unique_together = ("username","partnerId")
+    unique_together = (("username","partnerId"),("email","partnerId"))
 
 class GooglePartyAffiliation(models.Model):
   gmail = models.CharField(max_length=128, db_index=True)
