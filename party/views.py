@@ -24,6 +24,8 @@ import hashlib
 import datetime
 from authentication.serializers import CredentialSerializer, CredentialSerializerNoPassword
 from genericpath import exists
+from django.db import connection
+from collections import namedtuple
 # top level: /parties/
 
 # Basic CRUD operation for Party and IpRange
@@ -43,6 +45,40 @@ class PartyCRUD(GenericCRUDView):
                 partyType = self.request.GET.get('partyType')
                 return super(PartyCRUD, self).get_queryset().filter(partyType=partyType)
         return []
+    
+    def namedtuplefetchall(self,cursor):
+        #Return all rows from a cursor as a namedtuple
+        desc = cursor.description
+        nt_result = namedtuple('Result', [col[0] for col in desc])
+        return [nt_result(*row) for row in cursor.fetchall()]
+    
+    #https://demoapi.arabidopsis.org/parties/?ip=131.204.0.0&credentialId=33197&secretKey=kZ5yK8hdSbncXwD4%2F2DJOxqFUds%3D
+    #Auburn University
+    def get(self, request, format=None):
+        ip = request.GET.get('ip')
+        if (ip is None):
+            return HttpResponse("")
+        try:
+            cursor = connection.cursor()
+            cursor.execute('select partyId, name from Party where partyId = (SELECT partyId FROM IpRange WHERE (INET_ATON("'+ip+'") BETWEEN INET_ATON(start) AND INET_ATON(end))) and (partyType="organization" or partyType="consortium")')
+            results = self.namedtuplefetchall(cursor)
+            if (len(results)>0):
+                partyId = results[0].partyId
+                partyName = results[0].name
+                ''' check if party is subscribed'''
+                if ((partyId>0) and (partyId!='None')):
+                    cursor.execute('SELECT (endDate>= NOW()) as subscribed FROM Subscription where partnerId = "tair" and partyId ='+str(partyId))
+                    row = cursor.fetchone()
+                    if ((row is not None) and (str(row[0])=="1")):
+                        return HttpResponse(partyName)
+                    else:
+                        return HttpResponse("")
+            else:
+                return HttpResponse("")
+        finally:
+            if cursor:
+                cursor.close()
+                connection.close()
 
 # /ipranges/
 class IpRangeCRUD(GenericCRUDView):
@@ -214,11 +250,6 @@ class ConsortiumCRUD(GenericCRUDView):
         party = Party.objects.get(partyId = consortiumId)
         partySerializer = PartySerializer(party, data=data)
 
-        if 'email' in data:
-            email = data['email']
-            if Credential.objects.all().filter(email=email).exists():
-                return Response({'email':'This field must be unique.'}, status=status.HTTP_400_BAD_REQUEST)
-
         if 'password' in request.data:
             if (not data['password'] or data['password'] == ""):
                 return Response({'error': 'PUT parties/consortiums/ password must not be empty'}, status=status.HTTP_400_BAD_REQUEST)
@@ -268,10 +299,7 @@ class ConsortiumCRUD(GenericCRUDView):
         if data['partyType'] != "consortium":
             return Response({'error': 'POST parties/consortiums/. patyType must be consortium'}, status=status.HTTP_400_BAD_REQUEST)
 
-        if 'email' in data:
-            email = data['email']
-            if email != '' and Credential.objects.all().filter(email=email).exists():
-                return Response({'email':'This field must be unique.'}, status=status.HTTP_400_BAD_REQUEST)
+
         # if password is being passed and value of it is empty then error
         # not passing password in form data of POST is allowed - credential will be created with empty pwd in such case
         # boolean in pythin http://stackoverflow.com/questions/12644075/how-to-set-python-variables-to-true-or-false
@@ -407,10 +435,6 @@ class InstitutionCRUD(GenericCRUDView):
         party = Party.objects.get(partyId = institutionId)
         partySerializer = PartySerializer(party, data=data)
 
-        if 'email' in data:
-            email = data['email']
-            if Credential.objects.all().filter(email=email).exists():
-                return Response({'email':'This field must be unique.'}, status=status.HTTP_400_BAD_REQUEST)
 
         if 'password' in request.data:
             if (not data['password'] or data['password'] == ""):
@@ -459,10 +483,7 @@ class InstitutionCRUD(GenericCRUDView):
         if data['partyType'] != "organization":
             return Response({'error': 'POST method. patyType must be organization'}, status=status.HTTP_400_BAD_REQUEST)
 
-        if 'email' in data:
-            email = data['email']
-            if email != '' and Credential.objects.all().filter(email=email).exists():
-                return Response({'email':'This field must be unique.'}, status=status.HTTP_400_BAD_REQUEST)
+
         # if password is being passed and value of it is empty then error
         # not passing password in form data of POST is allowed - credential will be created with empty pwd in such case
         # boolean in pythin http://stackoverflow.com/questions/12644075/how-to-set-python-variables-to-true-or-false
