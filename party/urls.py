@@ -23,7 +23,7 @@ urlpatterns = [
     
     #PW-277 - accept IP, returns organization
     #https://demoapi.arabidopsis.org/parties/institutions/?IP=31627&credentialId=33197&secretKey=kZ5yK8hdSbncXwD4%2F2DJOxqFUds%3D
-    url(r'^org/$', views.PartyCRUD.as_view()),
+    url(r'^org/$', views.PartyOrgCRUD.as_view()),
     
 ]
 urlpatterns = format_suffix_patterns(urlpatterns)
