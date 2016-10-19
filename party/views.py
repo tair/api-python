@@ -45,13 +45,18 @@ class PartyCRUD(GenericCRUDView):
                 partyType = self.request.GET.get('partyType')
                 return super(PartyCRUD, self).get_queryset().filter(partyType=partyType)
         return []
-    
+
+
+# /org/
+class PartyOrgCRUD(GenericCRUDView):
+    requireApiKey = False
+
     def namedtuplefetchall(self,cursor):
         #Return all rows from a cursor as a namedtuple
         desc = cursor.description
         nt_result = namedtuple('Result', [col[0] for col in desc])
         return [nt_result(*row) for row in cursor.fetchall()]
-    
+
     #https://demoapi.arabidopsis.org/parties/?ip=131.204.0.0&credentialId=33197&secretKey=kZ5yK8hdSbncXwD4%2F2DJOxqFUds%3D
     #Auburn University
     def get(self, request, format=None):
