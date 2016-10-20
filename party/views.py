@@ -214,7 +214,7 @@ class ConsortiumCRUD(GenericCRUDView):
         party = Party.objects.get(partyId = consortiumId)
         partySerializer = PartySerializer(party, data=data)
         if 'email' in data:
-            for partyId in Credential.objects.all().filter(email=data['email']).filter(partnerId='phoenix').values('partyId'):
+            for partyId in Credential.objects.all().filter(email=data['email']).filter(partnerId='phoenix').values_list('partyId', flat=True):
                 if Party.objects.all().filter(partyId=partyId).filter(partyType=data['partyType']).exists():
                     return Response({'error':'This email is already used by another consortium'}, status=status.HTTP_400_BAD_REQUEST)
         if 'password' in request.data:
@@ -266,7 +266,7 @@ class ConsortiumCRUD(GenericCRUDView):
         if data['partyType'] != "consortium":
             return Response({'error': 'POST parties/consortiums/. patyType must be consortium'}, status=status.HTTP_400_BAD_REQUEST)
         if 'email' in data:
-            for partyId in Credential.objects.all().filter(email=data['email']).filter(partnerId='phoenix').values('partyId'):
+            for partyId in Credential.objects.all().filter(email=data['email']).filter(partnerId='phoenix').values_list('partyId', flat=True):
                 if Party.objects.all().filter(partyId=partyId).filter(partyType=data['partyType']).exists():
                     return Response({'error':'This email is already used by another consortium'}, status=status.HTTP_400_BAD_REQUEST)
 
@@ -405,7 +405,7 @@ class InstitutionCRUD(GenericCRUDView):
         party = Party.objects.get(partyId = institutionId)
         partySerializer = PartySerializer(party, data=data)
         if 'email' in data:
-            for partyId in Credential.objects.all().filter(email=data['email']).filter(partnerId='phoenix').values('partyId'):
+            for partyId in Credential.objects.all().filter(email=data['email']).filter(partnerId='phoenix').values_list('partyId', flat=True):
                 if Party.objects.all().filter(partyId=partyId).filter(partyType=data['partyType']).exists():
                     return Response({'error':'This email is already used by another institution'}, status=status.HTTP_400_BAD_REQUEST)
 
@@ -456,7 +456,7 @@ class InstitutionCRUD(GenericCRUDView):
         if data['partyType'] != "organization":
             return Response({'error': 'POST method. patyType must be organization'}, status=status.HTTP_400_BAD_REQUEST)
         if 'email' in data:
-            for partyId in Credential.objects.all().filter(email=data['email']).filter(partnerId='phoenix').values('partyId'):
+            for partyId in Credential.objects.all().filter(email=data['email']).filter(partnerId='phoenix').values_list('partyId', flat=True):
                 if Party.objects.all().filter(partyId=partyId).filter(partyType=data['partyType']).exists():
                     return Response({'error':'This email is already used by another institution'}, status=status.HTTP_400_BAD_REQUEST)
 
