@@ -216,7 +216,7 @@ class ConsortiumCRUD(GenericCRUDView):
         if 'email' in data:
             for partyId in Credential.objects.all().filter(email=data['email']).filter(partnerId='phoenix').values_list('partyId', flat=True):
                 if Party.objects.all().filter(partyId=partyId).filter(partyType=data['partyType']).exists():
-                    return Response({'error':'This email is already used by another consortium'}, status=status.HTTP_400_BAD_REQUEST)
+                    return Response({'error':'This email is already used by another consortium.'}, status=status.HTTP_400_BAD_REQUEST)
         if 'password' in request.data:
             if (not data['password'] or data['password'] == ""):
                 return Response({'error': 'PUT parties/consortiums/ password must not be empty'}, status=status.HTTP_400_BAD_REQUEST)
@@ -268,7 +268,7 @@ class ConsortiumCRUD(GenericCRUDView):
         if 'email' in data:
             for partyId in Credential.objects.all().filter(email=data['email']).filter(partnerId='phoenix').values_list('partyId', flat=True):
                 if Party.objects.all().filter(partyId=partyId).filter(partyType=data['partyType']).exists():
-                    return Response({'error':'This email is already used by another consortium'}, status=status.HTTP_400_BAD_REQUEST)
+                    return Response({'error':'This email is already used by another consortium.'}, status=status.HTTP_400_BAD_REQUEST)
 
         # if password is being passed and value of it is empty then error
         # not passing password in form data of POST is allowed - credential will be created with empty pwd in such case
@@ -407,7 +407,7 @@ class InstitutionCRUD(GenericCRUDView):
         if 'email' in data:
             for partyId in Credential.objects.all().filter(email=data['email']).filter(partnerId='phoenix').values_list('partyId', flat=True):
                 if Party.objects.all().filter(partyId=partyId).filter(partyType=data['partyType']).exists():
-                    return Response({'error':'This email is already used by another institution'}, status=status.HTTP_400_BAD_REQUEST)
+                    return Response({'error':'This email is already used by another institution.'}, status=status.HTTP_400_BAD_REQUEST)
 
         if 'password' in request.data:
             if (not data['password'] or data['password'] == ""):
@@ -458,7 +458,7 @@ class InstitutionCRUD(GenericCRUDView):
         if 'email' in data:
             for partyId in Credential.objects.all().filter(email=data['email']).filter(partnerId='phoenix').values_list('partyId', flat=True):
                 if Party.objects.all().filter(partyId=partyId).filter(partyType=data['partyType']).exists():
-                    return Response({'error':'This email is already used by another institution'}, status=status.HTTP_400_BAD_REQUEST)
+                    return Response({'error':'This email is already used by another institution.'}, status=status.HTTP_400_BAD_REQUEST)
 
         # if password is being passed and value of it is empty then error
         # not passing password in form data of POST is allowed - credential will be created with empty pwd in such case
