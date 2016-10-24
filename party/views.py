@@ -255,6 +255,11 @@ class ConsortiumCRUD(GenericCRUDView):
         party = Party.objects.get(partyId = consortiumId)
         partySerializer = PartySerializer(party, data=data)
 
+        if 'email' in data:
+            email = data['email']
+            if Credential.objects.all().filter(email=email).exists():
+                return Response({'email':'This field must be unique.'}, status=status.HTTP_400_BAD_REQUEST)
+
         if 'password' in request.data:
             if (not data['password'] or data['password'] == ""):
                 return Response({'error': 'PUT parties/consortiums/ password must not be empty'}, status=status.HTTP_400_BAD_REQUEST)
@@ -440,6 +445,10 @@ class InstitutionCRUD(GenericCRUDView):
         party = Party.objects.get(partyId = institutionId)
         partySerializer = PartySerializer(party, data=data)
 
+        if 'email' in data:
+            email = data['email']
+            if Credential.objects.all().filter(email=email).exists():
+                return Response({'email':'This field must be unique.'}, status=status.HTTP_400_BAD_REQUEST)
 
         if 'password' in request.data:
             if (not data['password'] or data['password'] == ""):
