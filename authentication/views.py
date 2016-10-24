@@ -271,7 +271,7 @@ class getUsernameCRUD(GenericCRUDView):
             return Response({'error':'email param is required.'}, status=status.HTTP_400_BAD_REQUEST)
         if not Credential.objects.all().filter(email=params['email']).filter(partnerId='phoenix').exists():
             return Response({'error':'no username found.'}, status=status.HTTP_400_BAD_REQUEST)
-        usernames = Credential.objects.all().filter(email=params['email'])
+        usernames = Credential.objects.all().filter(email=params['email']).filter(partnerId='phoenix')
         credentialSerializer = CredentialSerializerNoPassword(usernames, many=True)
 
         userList = ''
