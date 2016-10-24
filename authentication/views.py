@@ -267,7 +267,7 @@ class getUsernameCRUD(GenericCRUDView):
 
     def get(self, request):
         params = request.GET
-        if not params['email']:
+        if 'email' not in params:
             return Response({'error':'email param is required.'}, status=status.HTTP_400_BAD_REQUEST)
         if not Credential.objects.all().filter(email=params['email']).exists():
             return Response({'error':'no username found.'}, status=status.HTTP_400_BAD_REQUEST)
