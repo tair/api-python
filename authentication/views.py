@@ -260,3 +260,17 @@ class profile(GenericCRUDView):
             partySerializer.save()
       return Response(data, status=status.HTTP_201_CREATED)
     return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+# getUsernames/
+class getUsernameCRUD(GenericCRUDView):
+    requireApiKey = False
+
+    def get(self, request):
+        params = request.GET
+        if not params['email']:
+            return Response({'error':'email param is required.'}, status=status.HTTP_400_BAD_REQUEST)
+        if not Credential.objects.all().filter(email=params['email']).exists():
+            return Response({'error':'no username found.'}, status=status.HTTP_400_BAD_REQUEST)
+        usernames = Credential.objects.all().filter(email=params['email'])
+        credentialSerializer = CredentialSerializerNoPassword(usernames, many=True)
+        return Response(credentialSerializer.data, status=status.HTTP_200_OK)
