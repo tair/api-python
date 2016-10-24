@@ -276,7 +276,7 @@ class getUsernameCRUD(GenericCRUDView):
 
         userList = ''
         for user in credentialSerializer.data:
-            userList += user.username + '\n'
+            userList += user['username'] + '\n'
 
         #send email
         subject = "Usernames for %s" % params['email']
