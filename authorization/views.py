@@ -29,6 +29,7 @@ import logging
 # /access/
 # https://demoapi.arabidopsis.org/authorizations/access/?partnerId=tair&url=http%3A%2F%2Fwww.arabidopsis.org%2Fcgi-bin%2Fbulk%2Fsequences%2F&ip=203.255.24.127
 class Access(APIView):
+    requireApiKey = False
     def get(self, request, format=None):
         partyId = request.COOKIES.get('credentialId')
         loginKey = request.COOKIES.get('secretKey')

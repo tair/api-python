@@ -274,6 +274,7 @@ class CommercialSubscription(APIView):
 # Among all the subscriptions to a given partner, looks for the effective subscription that either covers the given IP address or belongs to the given party.
 # Upon success, returns the expiration date of the found subscription and 'subscribed' status as True; otherwise, the returned expiration date is null and status is False.
 class EndDate(generics.GenericAPIView):
+    requireApiKey = False
     def get(self, request):
         partnerId=request.GET.get("partnerId")
         ipAddress=request.GET.get("ipAddress")
@@ -283,7 +284,7 @@ class EndDate(generics.GenericAPIView):
         sub = Subscription.getActiveByIp(ipAddress, partnerId)
         if len(sub)==0:
             if Credential.objects.filter(userIdentifier=userIdentifier).filter(partnerId=partnerId).exists():
-                partyId = Credential.objects.filter(userIdentifier=userIdentifier)[0].partyId.partyId
+                partyId = Credential.objects.filter(partnerId=partnerId).filter(userIdentifier=userIdentifier)[0].partyId.partyId
                 sub = Subscription.getActiveById(partyId, partnerId)
         if len(sub)>0:
             expDate = SubscriptionSerializer(sub[0]).data['endDate']
