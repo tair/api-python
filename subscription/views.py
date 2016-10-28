@@ -284,7 +284,7 @@ class EndDate(generics.GenericAPIView):
         sub = Subscription.getActiveByIp(ipAddress, partnerId)
         if len(sub)==0:
             if Credential.objects.filter(userIdentifier=userIdentifier).filter(partnerId=partnerId).exists():
-                partyId = Credential.objects.filter(userIdentifier=userIdentifier)[0].partyId.partyId
+                partyId = Credential.objects.filter(partnerId=partnerId).filter(userIdentifier=userIdentifier)[0].partyId.partyId
                 sub = Subscription.getActiveById(partyId, partnerId)
         if len(sub)>0:
             expDate = SubscriptionSerializer(sub[0]).data['endDate']
