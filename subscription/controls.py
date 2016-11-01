@@ -68,7 +68,7 @@ class SubscriptionControl():
 class PaymentControl():
 
     @staticmethod
-    def tryCharge(secret_key, stripe_token, priceToCharge, chargeDescription, termId, quantity, emailAddress, firstname, lastname, institute, street, city, state, country, zip, hostname, redirect, vat):
+    def tryCharge(secret_key, stripe_token, priceToCharge, chargeDescription, termId, quantity, emailAddress, firstname, lastname, institute, street, city, state, country, zip, hostname, redirect, vat, domain):
         message = {}
         message['price'] = priceToCharge
         message['termId'] = termId
@@ -87,7 +87,7 @@ class PaymentControl():
             metadata = {'Email': emailAddress, 'Institute': institute, 'VAT': vat}
             )
         activationCodes = PaymentControl.postPaymentHandling(termId, quantity)
-        emailInfo = PaymentControl.getEmailInfo(activationCodes, termId, quantity, priceToCharge, charge.id, emailAddress, firstname, lastname, institute, street, city, state, country, zip, hostname, redirect, vat)
+        emailInfo = PaymentControl.getEmailInfo(activationCodes, termId, quantity, priceToCharge, charge.id, emailAddress, firstname, lastname, institute, street, city, state, country, zip, hostname, redirect, vat, domain)
         PaymentControl.emailReceipt(emailInfo, termId)
         status = True
         message['activationCodes'] = activationCodes
@@ -113,11 +113,11 @@ class PaymentControl():
         return message
 
     @staticmethod
-    def getEmailInfo(activationCodes, termId, quantity, payment, transactionId, email, firstname, lastname, institute, street, city, state, country, zip, hostname, redirect, vat):
+    def getEmailInfo(activationCodes, termId, quantity, payment, transactionId, email, firstname, lastname, institute, street, city, state, country, zip, hostname, redirect, vat, domain):
         
         termObj = SubscriptionTerm.objects.get(subscriptionTermId=termId)
         partnerObj = termObj.partnerId
-        loginURL = partnerObj.loginUri
+        loginURL = domain + partnerObj.loginUri
         registerURL = partnerObj.registerUri
         name = firstname+" "+lastname
         institute = institute
