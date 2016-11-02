@@ -17,6 +17,8 @@ import logging
 
 from django.conf import settings
 
+import urllib
+
 class SubscriptionControl():
 
     @staticmethod
@@ -117,7 +119,7 @@ class PaymentControl():
         
         termObj = SubscriptionTerm.objects.get(subscriptionTermId=termId)
         partnerObj = termObj.partnerId
-        loginURL = domain + partnerObj.loginUri
+        loginURL = domain + partnerObj.loginUri + "?redirect=" + urllib.quote(domain + "/activation.html", safe='~')
         registerURL = partnerObj.registerUri
         name = firstname+" "+lastname
         institute = institute
