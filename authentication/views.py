@@ -172,6 +172,7 @@ def login(request):
                      "email": dbUser.email,
                      "role":"librarian",
                      "username": dbUser.username,
+                     "userIdentifier": dbUser.userIdentifier,
                 }), status=200)
                 msg=" Authentication Login USER AND PWD MATCH. dbUser=%s requestUser=%s requestPwd=%s" % (dbUser.username, requestUser, requestPassword)
                 logging.error(msg)
