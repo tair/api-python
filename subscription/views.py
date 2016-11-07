@@ -286,10 +286,10 @@ class EndDate(generics.GenericAPIView):
         if Credential.objects.filter(userIdentifier=userIdentifier).filter(partnerId=partnerId).exists():
             partyId = Credential.objects.filter(partnerId=partnerId).filter(userIdentifier=userIdentifier)[0].partyId.partyId
             idSub = Subscription.getActiveById(partyId, partnerId)
-        subList = SubscriptionSerializer(ipSub, many=True)+SubscriptionSerializer(idSub, many=True)
+        subList = SubscriptionSerializer(ipSub, many=True).data+SubscriptionSerializer(idSub, many=True).data
         if subList != []:
             subscribed = True
-            expDate = max(sub.data['endDate'] for sub in subList)
+            expDate = max(sub['endDate'] for sub in subList)
         return HttpResponse(json.dumps({'expDate':expDate, 'subscribed':subscribed}), content_type="application/json")
 
 # /activesubscriptions/<partyId>
