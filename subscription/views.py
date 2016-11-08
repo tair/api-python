@@ -500,6 +500,11 @@ class SubscriptionActiveCRUD(APIView):
             partyId = Credential.objects.filter(partnerId=partnerId).filter(userIdentifier=userIdentifier)[0].partyId.partyId
             idSub = Subscription.getActiveById(partyId, partnerId)
         subList = SubscriptionSerializer(ipSub, many=True).data+SubscriptionSerializer(idSub, many=True).data
+        for sub in subList:
+            if Party.objects.filter(partyId = sub['patyId']).exists():
+                party = Party.objects.get(partyId = sub['patyId']).data
+                sub['partyType'] = party['partyType']
+                sub['name'] = party['name']
         return HttpResponse(json.dumps(subList), content_type="application/json")
 
 
