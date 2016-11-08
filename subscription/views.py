@@ -483,3 +483,23 @@ class SubscriptionRequestCRUD(GenericCRUDView):
         else:
             return Response({'error':'serializer error'}, status=status.HTTP_400_BAD_REQUEST)
 
+#active/
+class SubscriptionActiveCRUD(APIView):
+    queryset = Subscription.objects.all()
+    serializer_class = SubscriptionSerializer
+    requireApiKey = False
+
+    def get(self,request):
+        params = request.GET
+        partnerId = params['partnerId']
+        ipAddress = params['ipAddress']
+        userIdentifier = params['userIdentifier']
+
+        ipSub = Subscription.getActiveByIp(ipAddress, partnerId)
+        if Credential.objects.filter(userIdentifier=userIdentifier).filter(partnerId=partnerId).exists():
+            partyId = Credential.objects.filter(partnerId=partnerId).filter(userIdentifier=userIdentifier)[0].partyId.partyId
+            idSub = Subscription.getActiveById(partyId, partnerId)
+        subList = SubscriptionSerializer(ipSub, many=True).data+SubscriptionSerializer(idSub, many=True).data
+        return HttpResponse(json.dumps(subList), content_type="application/json")
+
+
