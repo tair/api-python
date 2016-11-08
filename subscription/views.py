@@ -46,11 +46,30 @@ class SubscriptionCRUD(GenericCRUDView):
     requireApiKey = False
 
     def get(self, request):
+        params = request.GET
         if 'subscriptionId' in request.GET:
             subscriptionId = request.GET.get('subscriptionId')
             subscription = Subscription.objects.all().get(subscriptionId=subscriptionId)
             serializer = SubscriptionSerializer(subscription)
             return Response(serializer.data)
+        elif all(param in params for param in ['partnerId', 'ipAddress', 'userIdentifier']):
+            partnerId = params['partnerId']
+            ipAddress = params['ipAddress']
+            userIdentifier = params['userIdentifier']
+
+            ipSub = Subscription.getByIp(ipAddress).filter(partnerId=partnerId)
+            if Credential.objects.filter(userIdentifier=userIdentifier).filter(partnerId=partnerId).exists():
+                partyId = Credential.objects.filter(partnerId=partnerId).filter(userIdentifier=userIdentifier)[0].partyId.partyId
+                idSub = Subscription.getById(partyId)
+            subList = SubscriptionSerializer(ipSub, many=True).data+SubscriptionSerializer(idSub, many=True).data
+            for sub in subList:
+                if Party.objects.filter(partyId = sub['partyId']).exists():
+                    party = PartySerializer(Party.objects.get(partyId = sub['partyId'])).data
+                    sub['partyType'] = party['partyType']
+                    sub['name'] = party['name']
+            return HttpResponse(json.dumps(subList), content_type="application/json")
+        else:
+            return Response({"error":"Essential parameters needed."}, status=status.HTTP_400_BAD_REQUEST)
 
     def get_queryset(self):
         if isPhoenix(self.request):
