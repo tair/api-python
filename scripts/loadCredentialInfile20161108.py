@@ -9,12 +9,14 @@ django.setup()
 
 from party.models import Party
 from authentication.models import Credential
+from partner.models import Partner
 
 #Function to add one credential
 def createCredential(partyId, username, password):
     party = Party.objects.get(partyId = partyId)
     password = hashlib.sha1(password).hexdigest()
-    Credential.objects.create(partyId=party,username=username, password=password, partnerId='phoenix')
+    partner = Partner.objects.get(partnerId='phoenix')
+    Credential.objects.create(partyId=party,username=username, password=password, partnerId=partner)
 
 # Begin main program:
 
