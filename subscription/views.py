@@ -46,11 +46,30 @@ class SubscriptionCRUD(GenericCRUDView):
     requireApiKey = False
 
     def get(self, request):
+        params = request.GET
         if 'subscriptionId' in request.GET:
             subscriptionId = request.GET.get('subscriptionId')
             subscription = Subscription.objects.all().get(subscriptionId=subscriptionId)
             serializer = SubscriptionSerializer(subscription)
             return Response(serializer.data)
+        elif all(param in params for param in ['partnerId', 'ipAddress', 'userIdentifier']):
+            partnerId = params['partnerId']
+            ipAddress = params['ipAddress']
+            userIdentifier = params['userIdentifier']
+
+            ipSub = Subscription.getByIp(ipAddress).filter(partnerId=partnerId)
+            if Credential.objects.filter(userIdentifier=userIdentifier).filter(partnerId=partnerId).exists():
+                partyId = Credential.objects.filter(partnerId=partnerId).filter(userIdentifier=userIdentifier)[0].partyId.partyId
+                idSub = Subscription.getById(partyId)
+            subList = SubscriptionSerializer(ipSub, many=True).data+SubscriptionSerializer(idSub, many=True).data
+            for sub in subList:
+                if Party.objects.filter(partyId = sub['partyId']).exists():
+                    party = PartySerializer(Party.objects.get(partyId = sub['partyId'])).data
+                    sub['partyType'] = party['partyType']
+                    sub['name'] = party['name']
+            return HttpResponse(json.dumps(subList), content_type="application/json")
+        else:
+            return Response({"error":"Essential parameters needed."}, status=status.HTTP_400_BAD_REQUEST)
 
     def get_queryset(self):
         if isPhoenix(self.request):
@@ -282,14 +301,14 @@ class EndDate(generics.GenericAPIView):
         userIdentifier=request.GET.get("userIdentifier")
         expDate = ""
         subscribed = False
-        sub = Subscription.getActiveByIp(ipAddress, partnerId)
-        if len(sub)==0:
-            if Credential.objects.filter(userIdentifier=userIdentifier).filter(partnerId=partnerId).exists():
-                partyId = Credential.objects.filter(partnerId=partnerId).filter(userIdentifier=userIdentifier)[0].partyId.partyId
-                sub = Subscription.getActiveById(partyId, partnerId)
-        if len(sub)>0:
-            expDate = SubscriptionSerializer(sub[0]).data['endDate']
+        ipSub = Subscription.getActiveByIp(ipAddress, partnerId)
+        if Credential.objects.filter(userIdentifier=userIdentifier).filter(partnerId=partnerId).exists():
+            partyId = Credential.objects.filter(partnerId=partnerId).filter(userIdentifier=userIdentifier)[0].partyId.partyId
+            idSub = Subscription.getActiveById(partyId, partnerId)
+        subList = SubscriptionSerializer(ipSub, many=True).data+SubscriptionSerializer(idSub, many=True).data
+        if subList != []:
             subscribed = True
+            expDate = max(sub['endDate'] for sub in subList)
         return HttpResponse(json.dumps({'expDate':expDate, 'subscribed':subscribed}), content_type="application/json")
 
 # /activesubscriptions/<partyId>
@@ -482,4 +501,29 @@ class SubscriptionRequestCRUD(GenericCRUDView):
             return Response(serializer.data)
         else:
             return Response({'error':'serializer error'}, status=status.HTTP_400_BAD_REQUEST)
+
+#active/
+class SubscriptionActiveCRUD(APIView):
+    queryset = Subscription.objects.all()
+    serializer_class = SubscriptionSerializer
+    requireApiKey = False
+
+    def get(self,request):
+        params = request.GET
+        partnerId = params['partnerId']
+        ipAddress = params['ipAddress']
+        userIdentifier = params['userIdentifier']
+
+        ipSub = Subscription.getActiveByIp(ipAddress, partnerId)
+        if Credential.objects.filter(userIdentifier=userIdentifier).filter(partnerId=partnerId).exists():
+            partyId = Credential.objects.filter(partnerId=partnerId).filter(userIdentifier=userIdentifier)[0].partyId.partyId
+            idSub = Subscription.getActiveById(partyId, partnerId)
+        subList = SubscriptionSerializer(ipSub, many=True).data+SubscriptionSerializer(idSub, many=True).data
+        for sub in subList:
+            if Party.objects.filter(partyId = sub['partyId']).exists():
+                party = PartySerializer(Party.objects.get(partyId = sub['partyId'])).data
+                sub['partyType'] = party['partyType']
+                sub['name'] = party['name']
+        return HttpResponse(json.dumps(subList), content_type="application/json")
+
 
