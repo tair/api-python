@@ -320,10 +320,10 @@ class EndDate(generics.GenericAPIView):
 class ActiveSubscriptions(generics.GenericAPIView):
     requireApiKey = False
     def get(self, request, partyId):
-	now = datetime.datetime.now()
+        now = datetime.datetime.now()
         activeSubscriptions = Subscription.objects.all().filter(partyId=partyId).filter(endDate__gt=now).filter(startDate__lt=now)
-	serializer = SubscriptionSerializer(activeSubscriptions, many=True)
-	#return HttpResponse(json.dumps(dict(serializer.data)))
+        serializer = SubscriptionSerializer(activeSubscriptions, many=True)
+    #return HttpResponse(json.dumps(dict(serializer.data)))
         ret = {}
         for s in serializer.data:
             ret[s['partnerId']] = dict(s)
@@ -334,8 +334,8 @@ class AllSubscriptions(generics.GenericAPIView):
     requireApiKey = False
     def get(self, request, partyId):
         allSubscriptions = Subscription.objects.all().filter(partyId=partyId)
-	serializer = SubscriptionSerializer(allSubscriptions, many=True)
-	#return HttpResponse(json.dumps(dict(serializer.data)))
+        serializer = SubscriptionSerializer(allSubscriptions, many=True)
+        #return HttpResponse(json.dumps(dict(serializer.data)))
         ret = {}
         for s in serializer.data:
             ret[s['partnerId']] = dict(s)
@@ -427,40 +427,6 @@ class SubscriptionEdit(generics.GenericAPIView):#TODO: act only as admin
             returnData = serializer.data
             return Response(returnData)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-
-# /institutions1/
-class InstitutionSubscription1(APIView):
-    requireApiKey = False
-    def post (self, request):
-        data = request.data
-        to_email = data.get('email')
-        subject = "Phoenix Bioinformatics Password Reset"
-
-        length = 8
-        chars = string.ascii_letters + string.digits + '!@#$%^&*()'
-        temp_password = ''.join(random.choice(chars) for i in range(length))
-        data['password'] = hashlib.sha1(temp_password).hexdigest()
-
-        if Credential.objects.all().filter(email=to_email,partnerId='phoenix'):
-            credential = Credential.objects.all().filter(email=to_email,partnerId='phoenix')[0]
-            serializer = CredentialSerializer(credential, data=data, partial=True)
-            if serializer.is_valid():
-                serializer.save()
-            username = serializer.data['username']
-
-            message = 'Username: '+username + '(' + to_email + ')\n'
-            message += "Your temporary password is: " + temp_password + '\n'
-            message += "Please log on to your account and change your password."
-
-            from_email = "info@phoenixbioinformatics.org"
-            recipient_list = []
-            recipient_list.append(to_email)
-            send_mail(subject=subject, message=message, from_email=from_email, recipient_list=recipient_list)
-
-            return HttpResponse(json.dumps({'message':'success'}), content_type="application/json")
-        else:
-            return Response({'error':'Cannot find registered email address.'},status=status.HTTP_400_BAD_REQUEST)
-
 
 class Echo(object):
     """An object that implements just the write method of the file-like
