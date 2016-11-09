@@ -25,7 +25,8 @@ with open('loadCredentialInfile20161108.csv', 'rU') as f:
 
 # Step2: Call function
 for entry in credentialData:
-    partyId = entry[0]
-    username = entry[1]
-    password = entry[2]
+    list = entry[0].split(',')
+    partyId = list[0]
+    username = list[1]
+    password = list[2]
     createCredential(partyId, username, password)
