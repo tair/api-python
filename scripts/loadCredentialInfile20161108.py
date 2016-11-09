@@ -14,7 +14,7 @@ from authentication.models import Credential
 def createCredential(partyId, username, password):
     party = Party.objects.get(partyId = partyId)
     password = hashlib.sha1(password).hexdigest()
-    Credential.objects.create(partyId=party,username=username, password=password)
+    Credential.objects.create(partyId=party,username=username, password=password, partnerId='phoenix')
 
 # Begin main program:
 
