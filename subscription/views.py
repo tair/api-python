@@ -46,11 +46,32 @@ class SubscriptionCRUD(GenericCRUDView):
     requireApiKey = False
 
     def get(self, request):
+        params = request.GET
         if 'subscriptionId' in request.GET:
             subscriptionId = request.GET.get('subscriptionId')
             subscription = Subscription.objects.all().get(subscriptionId=subscriptionId)
             serializer = SubscriptionSerializer(subscription)
             return Response(serializer.data)
+        elif all(param in params for param in ['partnerId', 'ipAddress', 'userIdentifier']):
+            partnerId = params['partnerId']
+            ipAddress = params['ipAddress']
+            userIdentifier = params['userIdentifier']
+            idSub = None #Pw-418
+            subList = [] #Pw-418
+            ipSub = Subscription.getByIp(ipAddress).filter(partnerId=partnerId)
+            if Credential.objects.filter(userIdentifier=userIdentifier).filter(partnerId=partnerId).exists():
+                partyId = Credential.objects.filter(partnerId=partnerId).filter(userIdentifier=userIdentifier)[0].partyId.partyId
+                idSub = Subscription.getById(partyId)
+            if (idSub):
+                subList = SubscriptionSerializer(ipSub, many=True).data+SubscriptionSerializer(idSub, many=True).data
+            for sub in subList:
+                if Party.objects.filter(partyId = sub['partyId']).exists():
+                    party = PartySerializer(Party.objects.get(partyId = sub['partyId'])).data
+                    sub['partyType'] = party['partyType']
+                    sub['name'] = party['name']
+            return HttpResponse(json.dumps(subList), content_type="application/json")
+        else:
+            return Response({"error":"Essential parameters needed."}, status=status.HTTP_400_BAD_REQUEST)
 
     def get_queryset(self):
         if isPhoenix(self.request):
@@ -282,24 +303,27 @@ class EndDate(generics.GenericAPIView):
         userIdentifier=request.GET.get("userIdentifier")
         expDate = ""
         subscribed = False
-        sub = Subscription.getActiveByIp(ipAddress, partnerId)
-        if len(sub)==0:
-            if Credential.objects.filter(userIdentifier=userIdentifier).filter(partnerId=partnerId).exists():
-                partyId = Credential.objects.filter(partnerId=partnerId).filter(userIdentifier=userIdentifier)[0].partyId.partyId
-                sub = Subscription.getActiveById(partyId, partnerId)
-        if len(sub)>0:
-            expDate = SubscriptionSerializer(sub[0]).data['endDate']
+        ipSub = Subscription.getActiveByIp(ipAddress, partnerId)
+        idSub = None #Pw-418
+        subList = [] #Pw-418
+        if Credential.objects.filter(userIdentifier=userIdentifier).filter(partnerId=partnerId).exists():
+            partyId = Credential.objects.filter(partnerId=partnerId).filter(userIdentifier=userIdentifier)[0].partyId.partyId
+            idSub = Subscription.getActiveById(partyId, partnerId)
+        if (idSub):
+            subList = SubscriptionSerializer(ipSub, many=True).data+SubscriptionSerializer(idSub, many=True).data
+        if subList != []:
             subscribed = True
+            expDate = max(sub['endDate'] for sub in subList)
         return HttpResponse(json.dumps({'expDate':expDate, 'subscribed':subscribed}), content_type="application/json")
 
 # /activesubscriptions/<partyId>
 class ActiveSubscriptions(generics.GenericAPIView):
     requireApiKey = False
     def get(self, request, partyId):
-	now = datetime.datetime.now()
+        now = datetime.datetime.now()
         activeSubscriptions = Subscription.objects.all().filter(partyId=partyId).filter(endDate__gt=now).filter(startDate__lt=now)
-	serializer = SubscriptionSerializer(activeSubscriptions, many=True)
-	#return HttpResponse(json.dumps(dict(serializer.data)))
+        serializer = SubscriptionSerializer(activeSubscriptions, many=True)
+    #return HttpResponse(json.dumps(dict(serializer.data)))
         ret = {}
         for s in serializer.data:
             ret[s['partnerId']] = dict(s)
@@ -310,8 +334,8 @@ class AllSubscriptions(generics.GenericAPIView):
     requireApiKey = False
     def get(self, request, partyId):
         allSubscriptions = Subscription.objects.all().filter(partyId=partyId)
-	serializer = SubscriptionSerializer(allSubscriptions, many=True)
-	#return HttpResponse(json.dumps(dict(serializer.data)))
+        serializer = SubscriptionSerializer(allSubscriptions, many=True)
+        #return HttpResponse(json.dumps(dict(serializer.data)))
         ret = {}
         for s in serializer.data:
             ret[s['partnerId']] = dict(s)
@@ -404,40 +428,6 @@ class SubscriptionEdit(generics.GenericAPIView):#TODO: act only as admin
             return Response(returnData)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
-# /institutions1/
-class InstitutionSubscription1(APIView):
-    requireApiKey = False
-    def post (self, request):
-        data = request.data
-        to_email = data.get('email')
-        subject = "Phoenix Bioinformatics Password Reset"
-
-        length = 8
-        chars = string.ascii_letters + string.digits + '!@#$%^&*()'
-        temp_password = ''.join(random.choice(chars) for i in range(length))
-        data['password'] = hashlib.sha1(temp_password).hexdigest()
-
-        if Credential.objects.all().filter(email=to_email,partnerId='phoenix'):
-            credential = Credential.objects.all().filter(email=to_email,partnerId='phoenix')[0]
-            serializer = CredentialSerializer(credential, data=data, partial=True)
-            if serializer.is_valid():
-                serializer.save()
-            username = serializer.data['username']
-
-            message = 'Username: '+username + '(' + to_email + ')\n'
-            message += "Your temporary password is: " + temp_password + '\n'
-            message += "Please log on to your account and change your password."
-
-            from_email = "info@phoenixbioinformatics.org"
-            recipient_list = []
-            recipient_list.append(to_email)
-            send_mail(subject=subject, message=message, from_email=from_email, recipient_list=recipient_list)
-
-            return HttpResponse(json.dumps({'message':'success'}), content_type="application/json")
-        else:
-            return Response({'error':'Cannot find registered email address.'},status=status.HTTP_400_BAD_REQUEST)
-
-
 class Echo(object):
     """An object that implements just the write method of the file-like
     interface.
@@ -482,4 +472,31 @@ class SubscriptionRequestCRUD(GenericCRUDView):
             return Response(serializer.data)
         else:
             return Response({'error':'serializer error'}, status=status.HTTP_400_BAD_REQUEST)
+
+#active/
+class SubscriptionActiveCRUD(APIView):
+    queryset = Subscription.objects.all()
+    serializer_class = SubscriptionSerializer
+    requireApiKey = False
+
+    def get(self,request):
+        params = request.GET
+        partnerId = params['partnerId']
+        ipAddress = params['ipAddress']
+        userIdentifier = params['userIdentifier']
+        idSub = None #Pw-418
+        subList = [] #Pw-418
+        ipSub = Subscription.getActiveByIp(ipAddress, partnerId)
+        if Credential.objects.filter(userIdentifier=userIdentifier).filter(partnerId=partnerId).exists():
+            partyId = Credential.objects.filter(partnerId=partnerId).filter(userIdentifier=userIdentifier)[0].partyId.partyId
+            idSub = Subscription.getActiveById(partyId, partnerId)
+        if (idSub):
+            subList = SubscriptionSerializer(ipSub, many=True).data+SubscriptionSerializer(idSub, many=True).data
+        for sub in subList:
+            if Party.objects.filter(partyId = sub['partyId']).exists():
+                party = PartySerializer(Party.objects.get(partyId = sub['partyId'])).data
+                sub['partyType'] = party['partyType']
+                sub['name'] = party['name']
+        return HttpResponse(json.dumps(subList), content_type="application/json")
+
 

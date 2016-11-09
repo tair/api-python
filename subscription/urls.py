@@ -15,7 +15,6 @@ urlpatterns = [
     url(r'^(?P<pk>[0-9.]+)/renewal/$', views.SubscriptionRenewal.as_view()),
     url(r'^payments/$', views.SubscriptionsPayment.as_view()),
     url(r'^institutions/$', views.InstitutionSubscription.as_view()),
-    url(r'^institutions1/$', views.InstitutionSubscription1.as_view()),
     url(r'^commercials/$', views.CommercialSubscription.as_view()),
     url(r'^enddate/$', views.EndDate.as_view()),
     url(r'^activesubscriptions/(?P<partyId>.+)/$', views.ActiveSubscriptions.as_view()),
@@ -26,6 +25,7 @@ urlpatterns = [
     # url(r'^getall/$', views.GetAllSubscription.as_view()),
     url(r'^edit/$', views.SubscriptionEdit.as_view()),
     url(r'^subscriptionrequest/$', views.SubscriptionRequestCRUD.as_view()),
+    url(r'^active/$', views.SubscriptionActiveCRUD.as_view()),
 
     # Templates
     url(r'^templates/block/$', TemplateView.as_view(template_name="subscription/block.html")),
