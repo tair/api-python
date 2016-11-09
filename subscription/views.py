@@ -56,12 +56,14 @@ class SubscriptionCRUD(GenericCRUDView):
             partnerId = params['partnerId']
             ipAddress = params['ipAddress']
             userIdentifier = params['userIdentifier']
-
+            idSub = None #Pw-418
+            subList = [] #Pw-418
             ipSub = Subscription.getByIp(ipAddress).filter(partnerId=partnerId)
             if Credential.objects.filter(userIdentifier=userIdentifier).filter(partnerId=partnerId).exists():
                 partyId = Credential.objects.filter(partnerId=partnerId).filter(userIdentifier=userIdentifier)[0].partyId.partyId
                 idSub = Subscription.getById(partyId)
-            subList = SubscriptionSerializer(ipSub, many=True).data+SubscriptionSerializer(idSub, many=True).data
+            if (idSub):
+                subList = SubscriptionSerializer(ipSub, many=True).data+SubscriptionSerializer(idSub, many=True).data
             for sub in subList:
                 if Party.objects.filter(partyId = sub['partyId']).exists():
                     party = PartySerializer(Party.objects.get(partyId = sub['partyId'])).data
@@ -302,10 +304,13 @@ class EndDate(generics.GenericAPIView):
         expDate = ""
         subscribed = False
         ipSub = Subscription.getActiveByIp(ipAddress, partnerId)
+        idSub = None #Pw-418
+        subList = [] #Pw-418
         if Credential.objects.filter(userIdentifier=userIdentifier).filter(partnerId=partnerId).exists():
             partyId = Credential.objects.filter(partnerId=partnerId).filter(userIdentifier=userIdentifier)[0].partyId.partyId
             idSub = Subscription.getActiveById(partyId, partnerId)
-        subList = SubscriptionSerializer(ipSub, many=True).data+SubscriptionSerializer(idSub, many=True).data
+        if (idSub):
+            subList = SubscriptionSerializer(ipSub, many=True).data+SubscriptionSerializer(idSub, many=True).data
         if subList != []:
             subscribed = True
             expDate = max(sub['endDate'] for sub in subList)
@@ -513,12 +518,14 @@ class SubscriptionActiveCRUD(APIView):
         partnerId = params['partnerId']
         ipAddress = params['ipAddress']
         userIdentifier = params['userIdentifier']
-
+        idSub = None #Pw-418
+        subList = [] #Pw-418
         ipSub = Subscription.getActiveByIp(ipAddress, partnerId)
         if Credential.objects.filter(userIdentifier=userIdentifier).filter(partnerId=partnerId).exists():
             partyId = Credential.objects.filter(partnerId=partnerId).filter(userIdentifier=userIdentifier)[0].partyId.partyId
             idSub = Subscription.getActiveById(partyId, partnerId)
-        subList = SubscriptionSerializer(ipSub, many=True).data+SubscriptionSerializer(idSub, many=True).data
+        if (idSub):
+            subList = SubscriptionSerializer(ipSub, many=True).data+SubscriptionSerializer(idSub, many=True).data
         for sub in subList:
             if Party.objects.filter(partyId = sub['partyId']).exists():
                 party = PartySerializer(Party.objects.get(partyId = sub['partyId'])).data
