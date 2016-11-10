@@ -311,6 +311,8 @@ class EndDate(generics.GenericAPIView):
             idSub = Subscription.getActiveById(partyId, partnerId)
         if (idSub):
             subList = SubscriptionSerializer(ipSub, many=True).data+SubscriptionSerializer(idSub, many=True).data
+        else:
+            subList = SubscriptionSerializer(ipSub, many=True).data
         if subList != []:
             subscribed = True
             expDate = max(sub['endDate'] for sub in subList)
