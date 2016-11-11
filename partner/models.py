@@ -29,6 +29,7 @@ class Partner(models.Model):
     loginPasswordFieldPrompt = models.CharField(max_length=20, default='Password')
     resetPasswordEmailBody = models.CharField(max_length=2000, null=True)
     loginRedirectErrorText = models.CharField(max_length=100, null=True)
+    guideUri = models.CharField(max_length=200, null=True)
     
     class Meta:
         db_table = "Partner"

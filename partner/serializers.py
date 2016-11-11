@@ -10,7 +10,7 @@ class PartnerSerializer(serializers.ModelSerializer):
                   'registerUri', 'subscriptionListDesc', 'registerText', 'forgotUserNameEmailTo', 
                   'forgotUserNameEmailSubject', 'forgotUserNameEmailBody', 'forgotUserNameText', 
                   'activationEmailInstructionText', 'loginUserNameFieldPrompt', 'loginPasswordFieldPrompt', 
-                  'resetPasswordEmailBody', 'loginRedirectErrorText')
+                  'resetPasswordEmailBody', 'loginRedirectErrorText', 'guideUri')
 
 class PartnerPatternSerializer(serializers.ModelSerializer):
     class Meta:
