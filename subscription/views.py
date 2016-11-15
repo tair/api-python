@@ -274,7 +274,7 @@ class CommercialSubscription(APIView):
 
         if data.get('individualLicense') == 'true':
             message += "Individual Licenses\n"
-        if data.get('commercialLicense') == 'true':
+        if data.get('companyLicense') == 'true':
             message += "Commercial Licenses\n"
 
         message += "\nSubmitter's public IP Address: " + getRemoteIpAddress(request)
