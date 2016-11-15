@@ -272,9 +272,9 @@ class CommercialSubscription(APIView):
                   "I am interested in: \n" \
                   % dataTuple
 
-        if data.get('individualLicense'):
+        if data.get('individualLicense') == 'true':
             message += "Individual Licenses\n"
-        if data.get('commercialLicense'):
+        if data.get('commercialLicense') == 'true':
             message += "Commercial Licenses\n"
 
         message += "\nSubmitter's public IP Address: " + getRemoteIpAddress(request)
