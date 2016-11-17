@@ -61,9 +61,11 @@ class SubscriptionCRUD(GenericCRUDView):
             ipSub = Subscription.getByIp(ipAddress).filter(partnerId=partnerId)
             if Credential.objects.filter(userIdentifier=userIdentifier).filter(partnerId=partnerId).exists():
                 partyId = Credential.objects.filter(partnerId=partnerId).filter(userIdentifier=userIdentifier)[0].partyId.partyId
-                idSub = Subscription.getById(partyId)
+                idSub = Subscription.getById(partyId).filter(partnerId=partnerId)
             if (idSub):
                 subList = SubscriptionSerializer(ipSub, many=True).data+SubscriptionSerializer(idSub, many=True).data
+            else:
+                subList = SubscriptionSerializer(ipSub, many=True).data
             for sub in subList:
                 if Party.objects.filter(partyId = sub['partyId']).exists():
                     party = PartySerializer(Party.objects.get(partyId = sub['partyId'])).data
@@ -494,6 +496,8 @@ class SubscriptionActiveCRUD(APIView):
             idSub = Subscription.getActiveById(partyId, partnerId)
         if (idSub):
             subList = SubscriptionSerializer(ipSub, many=True).data+SubscriptionSerializer(idSub, many=True).data
+        else:
+            subList = SubscriptionSerializer(ipSub, many=True).data
         for sub in subList:
             if Party.objects.filter(partyId = sub['partyId']).exists():
                 party = PartySerializer(Party.objects.get(partyId = sub['partyId'])).data
