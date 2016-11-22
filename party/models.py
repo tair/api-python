@@ -64,19 +64,19 @@ class IpRange(models.Model):
         objs = IpRange.objects.all()
         try:
             inputIpAddress = IPAddress(ipAddress)
-        except ValueError:
+        except Exception:
             logging.error("Party IpRange %s, %s" % (ipAddress, "invalid ip"))
             pass
         # for detail on comparison between IPAddress objects, see Python netaddr module.
         for obj in objs:
             try:
                 start = IPAddress(obj.start)
-            except ValueError:
+            except Exception:
                 logging.error("Party IpRange %s, %s" % (obj.start, "invalid start ip"))
                 pass
             try:
                 end = IPAddress(obj.end)
-            except ValueError:
+            except Exception:
                 logging.error("Party IpRange %s, %s" % (obj.end, "invalid end ip"))
                 pass
             
