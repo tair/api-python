@@ -80,6 +80,8 @@ class PartyOrgCRUD(GenericCRUDView):
                         return HttpResponse("")
             else:
                 return HttpResponse("")
+        except:
+            return HttpResponse("")
         finally:
             if cursor:
                 cursor.close()
