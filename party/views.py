@@ -69,7 +69,6 @@ class PartyOrgCRUD(GenericCRUDView):
         if (ip is None):
             return HttpResponse("")
         try:
-            logging.error("/parties/org/?ip=%s" % (ip))
             cursor = connection.cursor()
             cursor.execute('select partyId, name from Party where partyId = (SELECT partyId FROM IpRange WHERE (INET_ATON("'+ip+'") BETWEEN INET_ATON(start) AND INET_ATON(end))) and (partyType="organization" or partyType="consortium")')
             results = self.namedtuplefetchall(cursor)
