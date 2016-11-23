@@ -26,6 +26,12 @@ from authentication.serializers import CredentialSerializer, CredentialSerialize
 from genericpath import exists
 from django.db import connection
 from collections import namedtuple
+
+#below three added by Andrey for PW-277
+import logging
+import traceback
+#import sys
+
 # top level: /parties/
 
 # Basic CRUD operation for Party and IpRange
@@ -57,8 +63,7 @@ class PartyOrgCRUD(GenericCRUDView):
         nt_result = namedtuple('Result', [col[0] for col in desc])
         return [nt_result(*row) for row in cursor.fetchall()]
 
-    #https://demoapi.arabidopsis.org/parties/?ip=131.204.0.0&credentialId=33197&secretKey=kZ5yK8hdSbncXwD4%2F2DJOxqFUds%3D
-    #Auburn University
+    #https://demoapi.arabidopsis.org/parties/?ip=131.204.0.0  returns Auburn University
     def get(self, request, format=None):
         ip = request.GET.get('ip')
         if (ip is None):
@@ -75,11 +80,16 @@ class PartyOrgCRUD(GenericCRUDView):
                     cursor.execute('SELECT (endDate>= NOW()) as subscribed FROM Subscription where partnerId = "tair" and partyId ='+str(partyId))
                     row = cursor.fetchone()
                     if ((row is not None) and (str(row[0])=="1")):
+                        logging.error("Success in /parties/org/?ip=%s, %s" % (ip, partyName))
                         return HttpResponse(partyName)
                     else:
                         return HttpResponse("")
             else:
                 return HttpResponse("")
+        except Exception as e:
+            logging.error("Exception in /parties/org/?ip=%s, %s" % (ip, traceback.format_exc()))
+            #logging.error(sys.exc_info()[0])
+            return HttpResponse("")
         finally:
             if cursor:
                 cursor.close()
