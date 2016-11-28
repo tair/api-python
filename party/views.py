@@ -71,7 +71,7 @@ class PartyOrgCRUD(GenericCRUDView):
         try:
             cursor = connection.cursor()
             sqlStatement = 'select p.partyId, p.name, (s.endDate>= NOW()) as subscribed from Party p, Subscription s where p.partyId in (SELECT ipr.partyId FROM IpRange ipr WHERE (INET_ATON("'+ip+'") BETWEEN INET_ATON(ipr.start) AND INET_ATON(ipr.end))) and (p.partyType="organization" or p.partyType="consortium") and s.partyId = p.partyId and s.partnerId = "tair" '
-            logging.error("/parties/org/?ip=%s, %s" % (ip, sqlStatement))
+            #logging.error("/parties/org/?ip=%s, %s" % (ip, sqlStatement))
             cursor.execute(sqlStatement)
             results = self.namedtuplefetchall(cursor)
             out = []
