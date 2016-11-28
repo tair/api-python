@@ -76,8 +76,8 @@ class PartyOrgCRUD(GenericCRUDView):
             results = self.namedtuplefetchall(cursor)
             out = []
             for entry in results:
-                out.append((results.partyId, results.name, results.subscribed))
-                logging.error("/parties/org/?ip=%s, partyId=%s, name=%s, subscribed=%s" % (ip, results.partyId, results.name, results.subscribed))
+                out.append((entry.partyId, entry.name, entry.subscribed))
+                logging.error("/parties/org/?ip=%s, partyId=%s, name=%s, subscribed=%s" % (ip, entry.partyId, entry.name, entry.subscribed))
             return HttpResponse(json.dumps(out), content_type="application/json")
         except Exception as e:
             logging.error("Exception in /parties/org/?ip=%s, %s" % (ip, traceback.format_exc()))
