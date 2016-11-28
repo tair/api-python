@@ -67,25 +67,18 @@ class PartyOrgCRUD(GenericCRUDView):
     def get(self, request, format=None):
         ip = request.GET.get('ip')
         if (ip is None):
-            return HttpResponse("")
+            return HttpResponse("Error. ip not provided")
         try:
             cursor = connection.cursor()
-            cursor.execute('select partyId, name from Party where partyId = (SELECT partyId FROM IpRange WHERE (INET_ATON("'+ip+'") BETWEEN INET_ATON(start) AND INET_ATON(end))) and (partyType="organization" or partyType="consortium")')
+            sqlStatement = 'select p.partyId, p.name, (s.endDate>= NOW()) as subscribed from Party p, Subscription s where p.partyId in (SELECT ipr.partyId FROM IpRange ipr WHERE (INET_ATON("'+ip+'") BETWEEN INET_ATON(ipr.start) AND INET_ATON(ipr.end))) and (p.partyType="organization" or p.partyType="consortium") and s.partyId = p.partyId and s.partnerId = "tair" '
+            logging.error("/parties/org/?ip=%s, %s" % (ip, sqlStatement))
+            cursor.execute(sqlStatement)
             results = self.namedtuplefetchall(cursor)
-            if (len(results)>0):
-                partyId = results[0].partyId
-                partyName = results[0].name
-                ''' check if party is subscribed'''
-                if ((partyId>0) and (partyId!='None')):
-                    cursor.execute('SELECT (endDate>= NOW()) as subscribed FROM Subscription where partnerId = "tair" and partyId ='+str(partyId))
-                    row = cursor.fetchone()
-                    if ((row is not None) and (str(row[0])=="1")):
-                        logging.error("Success in /parties/org/?ip=%s, %s" % (ip, partyName))
-                        return HttpResponse(partyName)
-                    else:
-                        return HttpResponse("")
-            else:
-                return HttpResponse("")
+            out = []
+            for entry in obj:
+                out.append((results.partyId, results.name, results.subscribed))
+                logging.error("/parties/org/?ip=%s, partyId=%s, name=%s, subscribed=%s" % (ip, results.partyId, results.name, results.subscribed))
+            return HttpResponse(json.dumps(out), content_type="application/json")
         except Exception as e:
             logging.error("Exception in /parties/org/?ip=%s, %s" % (ip, traceback.format_exc()))
             #logging.error(sys.exc_info()[0])
