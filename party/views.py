@@ -79,7 +79,7 @@ class PartyOrgCRUD(GenericCRUDView):
             out = []
             for entry in results:
                 #out.append("{'partyId':'%s','partyName':'%s','subscribed':'%s'}" % (str(entry.partyId), str(entry.name), str(entry.subscribed)))
-                out.append(str(entry.name))
+                out.append(str(entry.name)+";")
                 logging.error("/parties/org/?ip=%s, partyId=%s, name=%s, subscribed=%s" % (ip, entry.partyId, entry.name, entry.subscribed))
             return HttpResponse(out, content_type="application/json")
 
