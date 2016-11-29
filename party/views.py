@@ -81,8 +81,11 @@ class PartyOrgCRUD(GenericCRUDView):
                 #out.append("{'partyId':'%s','partyName':'%s','subscribed':'%s'}" % (str(entry.partyId), str(entry.name), str(entry.subscribed)))
                 out.append(str(entry.name)+"; ")
                 logging.error("/parties/org/?ip=%s, partyId=%s, name=%s, subscribed=%s" % (ip, entry.partyId, entry.name, entry.subscribed))
-            out = out[:-2]   
-            return HttpResponse(out)
+            s = str(out)
+            logging.error("s:" % (s))
+            s = s[:-2]
+            logging.error("s1:" % (s))
+            return HttpResponse(s)
 
         except Exception as e:
             logging.error("Exception in /parties/org/?ip=%s, %s" % (ip, traceback.format_exc()))
