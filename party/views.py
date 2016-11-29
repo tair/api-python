@@ -53,6 +53,7 @@ class PartyCRUD(GenericCRUDView):
         return []
 
 
+
 # /org/
 class PartyOrgCRUD(GenericCRUDView):
     requireApiKey = False
@@ -78,7 +79,7 @@ class PartyOrgCRUD(GenericCRUDView):
             for entry in results:
                 #out.append('{"partyId":'+str(entry.partyId)+', "partyName":'+entry.name+', "subscribed":'+str(entry.subscribed)+'}')
                 out.append('partyId'+':'+str(entry.partyId))
-                out.append('partyName'+':'+str(entry.partyName))
+                out.append('partyName'+':'+str(entry.name))
                 
                 logging.error("/parties/org/?ip=%s, partyId=%s, name=%s, subscribed=%s" % (ip, entry.partyId, entry.name, entry.subscribed))
             return HttpResponse(json.dumps(out), content_type="application/json")
@@ -90,6 +91,7 @@ class PartyOrgCRUD(GenericCRUDView):
             if cursor:
                 cursor.close()
                 connection.close()
+
 
 # /ipranges/
 class IpRangeCRUD(GenericCRUDView):
