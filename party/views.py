@@ -71,15 +71,14 @@ class PartyOrgCRUD(GenericCRUDView):
             return HttpResponse("Error. ip not provided")
         try:
             cursor = connection.cursor()
-            sqlStatement = 'select p.partyId, p.name, (s.endDate>= NOW()) as subscribed from Party p, Subscription s where p.partyId in (SELECT ipr.partyId FROM IpRange ipr WHERE (INET_ATON("'+ip+'") BETWEEN INET_ATON(ipr.start) AND INET_ATON(ipr.end))) and (p.partyType="organization" or p.partyType="consortium") and s.partyId = p.partyId and s.partnerId = "tair" '
+            sqlStatement = 'select p.partyId, p.name, (s.endDate>= NOW()) as subscribed from Party p, Subscription s where p.partyId in (SELECT ipr.partyId FROM IpRange ipr WHERE (INET_ATON("'+ip+'") BETWEEN INET_ATON(ipr.start) AND INET_ATON(ipr.end))) and (p.partyType="organization" or p.partyType="consortium") and s.partyId = p.partyId and s.partnerId = "tair" and (s.endDate>= NOW()) is true'
             #logging.error("/parties/org/?ip=%s, %s" % (ip, sqlStatement))
             cursor.execute(sqlStatement)
             results = self.namedtuplefetchall(cursor)
             out = []
             for entry in results:
-                out.append("{'partyId':'%s','partyName':'%s','subscribed':'%s'}" % (str(entry.partyId), str(entry.name), str(entry.subscribed)))
-                #out.append('{"partyId":"%s","partyName":"%s","subscribed":"%s"}' % (str(entry.partyId), str(entry.name), str(entry.subscribed)))
-                
+                #out.append("{'partyId':'%s','partyName':'%s','subscribed':'%s'}" % (str(entry.partyId), str(entry.name), str(entry.subscribed)))
+                out.append('{"partyName":"%s"}' % str(entry.name))
                 logging.error("/parties/org/?ip=%s, partyId=%s, name=%s, subscribed=%s" % (ip, entry.partyId, entry.name, entry.subscribed))
             return HttpResponse(json.dumps(out), content_type="application/json")
         except Exception as e:
