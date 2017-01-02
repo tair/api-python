@@ -120,15 +120,18 @@ class OrganizationView(APIView):
         partyList = []
         #SELECT partyId FROM phoenix_api.Subscription where partnerId = 'tair';
         now =datetime.datetime.now()
-        objs = Subscription.objects.all().filter(partnerId=partnerId).filter(startDate__lte=now).filter(endDate__gte=now).values('partyId')
-        for entry in objs:
-            partyList.append(entry['partyId'])
-            #SELECT * from Party where partId in () and display=True and partyType='organization'
-        obj = Party.objects.all().filter(partyId__in=partyList) \
-                                 .filter(display=True) \
-                                 .filter(partyType="organization")
+        institutions = Party.objects.all().filter(display=True).filter(partyType='organization')
+        for inst in institutions:
+            if Subscription.objects.all().filter(partnerId=partnerId).filter(startDate__lte=now)\
+                .filter(endDate__gte=now).filter(partyId=inst.partyId).exists():
+                partyList.append(inst)
+            else:
+                for cons in inst.consortiums:
+                    if Subscription.objects.all().filter(partnerId=partnerId).filter(startDate__lte=now)\
+                        .filter(endDate__gte=now).filter(partyId=cons.partyId).exists():
+                        partyList.append(inst)
         out = []
-        for entry in obj:
+        for entry in partyList:
             if not entry.country or not entry.country.name:#pw-265
                 countryName = "not defined"
             else:
