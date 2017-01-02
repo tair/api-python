@@ -120,18 +120,23 @@ class OrganizationView(APIView):
         partyList = []
         #SELECT partyId FROM phoenix_api.Subscription where partnerId = 'tair';
         now =datetime.datetime.now()
-        institutions = Party.objects.all().filter(display=True).filter(partyType='organization')
-        for inst in institutions:
-            if Subscription.objects.all().filter(partnerId=partnerId).filter(startDate__lte=now)\
-                .filter(endDate__gte=now).filter(partyId=inst.partyId).exists():
-                partyList.append(inst)
-            else:
-                for cons in inst.consortiums:
-                    if Subscription.objects.all().filter(partnerId=partnerId).filter(startDate__lte=now)\
-                        .filter(endDate__gte=now).filter(partyId=cons.partyId).exists():
-                        partyList.append(inst)
+        objs = Subscription.objects.all().filter(partnerId=partnerId).filter(startDate__lte=now).filter(endDate__gte=now).values('partyId')
+        for entry in objs:
+            partyList.append(entry['partyId'])
+
+        #added consortium subscription
+        consSubList = Subscription.objects.all().filter(partnerId=partnerId).filter(startDate__lte=now).filter(endDate__gte=now)
+        for cons in consSubList:
+            for ins in cons.PartyAffiliation.all():
+                if ins.partyId not in partyList:
+                    partyList.append(ins.partyId)
+
+            #SELECT * from Party where partId in () and display=True and partyType='organization'
+        obj = Party.objects.all().filter(partyId__in=partyList) \
+                                 .filter(display=True) \
+                                 .filter(partyType="organization")
         out = []
-        for entry in partyList:
+        for entry in obj:
             if not entry.country or not entry.country.name:#pw-265
                 countryName = "not defined"
             else:
