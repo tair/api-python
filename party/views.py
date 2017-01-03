@@ -151,6 +151,13 @@ class OrganizationView(APIView):
             else:
                 countryName = entry.country.name
             out.append((entry.name, countryName))
+
+        for entry in insInCons:
+            if not entry.country or not entry.country.name:#pw-265
+                countryName = "not defined"
+            else:
+                countryName = entry.country.name
+            out.append((entry.name, countryName))
         return HttpResponse(json.dumps(out), content_type="application/json")
 
 class CountryView(APIView):
