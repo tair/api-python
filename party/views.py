@@ -124,13 +124,6 @@ class OrganizationView(APIView):
         for entry in objs:
             partyList.append(entry['partyId'])
 
-        #added consortium subscription
-        # consSubList = Subscription.objects.all().filter(partnerId=partnerId).filter(startDate__lte=now).filter(endDate__gte=now).values('partyId')
-        # for cons in consSubList:
-        #     for ins in cons.PartyAffiliation.all():
-        #         if ins.partyId not in partyList:
-        #             partyList.append(ins.partyId)
-
             #SELECT * from Party where partId in () and display=True and partyType='organization'
         obj = Party.objects.all().filter(partyId__in=partyList) \
                                  .filter(display=True) \
