@@ -123,12 +123,29 @@ class OrganizationView(APIView):
         objs = Subscription.objects.all().filter(partnerId=partnerId).filter(startDate__lte=now).filter(endDate__gte=now).values('partyId')
         for entry in objs:
             partyList.append(entry['partyId'])
+
             #SELECT * from Party where partId in () and display=True and partyType='organization'
         obj = Party.objects.all().filter(partyId__in=partyList) \
                                  .filter(display=True) \
                                  .filter(partyType="organization")
+
+        insInCons = []
+        consSubList = Party.objects.all().filter(partyId__in=partyList) \
+                                 .filter(partyType="consortium")
+        for cons in consSubList:
+            for ins in cons.PartyAffiliation.all():
+                if ins not in obj:
+                    insInCons.append(ins)
+
         out = []
         for entry in obj:
+            if not entry.country or not entry.country.name:#pw-265
+                countryName = "not defined"
+            else:
+                countryName = entry.country.name
+            out.append((entry.name, countryName))
+
+        for entry in insInCons:
             if not entry.country or not entry.country.name:#pw-265
                 countryName = "not defined"
             else:
