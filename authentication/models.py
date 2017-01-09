@@ -2,6 +2,7 @@ from django.db import models
 from party.models import Party
 from partner.models import Partner
 import base64, hmac, hashlib
+from django.contrib.auth.models import User
 
 # Create your models here.
 
@@ -18,7 +19,8 @@ class Credential(models.Model):
   partnerId = models.ForeignKey(Partner, db_column='partnerId')
   userIdentifier = models.CharField(max_length=32, null=True)
   #name = models.CharField(max_length=64, null=True) vet PW-161
-  
+  user = models.OneToOneField(User, on_delete=models.CASCADE, unique=True)
+
   @staticmethod
   def validate(partyId, secretKey):
     if partyId and secretKey and partyId.isdigit() and Party.objects.filter(partyId=partyId).exists():
