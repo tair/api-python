@@ -7,6 +7,7 @@
 from django.conf.urls import patterns, include, url
 from django.contrib import admin
 from rest_framework import routers
+from rest_framework_jwt.views import obtain_jwt_token
 
 router = routers.DefaultRouter()
 
@@ -23,4 +24,5 @@ urlpatterns = patterns('',
     url(r'^apikeys/', include('apikey.urls')),
     url(r'^cookies/', include('cookies.urls')),
     url(r'^ipranges/', include('ipranges.urls')),
+    url(r'^api-token-auth/', obtain_jwt_token),
 )
