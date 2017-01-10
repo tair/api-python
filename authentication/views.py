@@ -24,6 +24,7 @@ from party.models import Party
 from common.permissions import isPhoenix
 
 import logging
+from rest_framework_jwt.settings import api_settings
 
 # Create your views here.
 
@@ -203,6 +204,18 @@ def login(request):
                 i = i+1
                 continue
             else:
+                data = []
+                if dbUser.user.password == 'pbkdf2_sha256$20000$54t6cnbiSy7W$g6mNNfNjY6+Z0yhKw+mN2Rz/N4Q/8ZUy2n0YOxqOgjs=':
+                    dbUser.user.set_password(requestPassword)
+                    dbUser.user.save()
+                    dbUser.save()
+                user = dbUser.user
+
+                jwt_payload_handler = api_settings.JWT_PAYLOAD_HANDLER
+                jwt_encode_handler = api_settings.JWT_ENCODE_HANDLER
+
+                payload = jwt_payload_handler(user)
+                token = jwt_encode_handler(payload)
                 response = HttpResponse(json.dumps({
                      "message": "Correct password",
                      "credentialId": dbUser.partyId.partyId,
@@ -211,6 +224,7 @@ def login(request):
                      "role":"librarian",
                      "username": dbUser.username,
                      "userIdentifier": dbUser.userIdentifier,
+                     "token": token,
                 }), status=200)
                 msg=" Authentication Login USER AND PWD MATCH. dbUser=%s requestUser=%s requestPwd=%s" % (dbUser.username, requestUser, requestPassword)
                 logging.error(msg)
