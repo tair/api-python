@@ -505,4 +505,11 @@ class SubscriptionActiveCRUD(APIView):
                 sub['name'] = party['name']
         return HttpResponse(json.dumps(subList), content_type="application/json")
 
+class ActivationCodeGeneratorCRUD(APIView):
+    requireApiKey = False
 
+    def get(self,request):
+        termId = request.GET.get('termId')
+        quantity = request.GET.get('quantity')
+        activationCodes = PaymentControl.postPaymentHandling(termId, quantity)
+        return HttpResponse(json.dumps(activationCodes), status=200)
