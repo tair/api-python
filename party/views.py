@@ -16,6 +16,10 @@ from rest_framework.views import APIView
 from rest_framework import status
 from rest_framework.response import Response
 
+from rest_framework.authentication import SessionAuthentication, BasicAuthentication
+from rest_framework.permissions import IsAuthenticated
+from rest_framework_jwt.authentication import JSONWebTokenAuthentication
+
 from django.core.mail import send_mail
 from common.permissions import isPhoenix
 
@@ -38,6 +42,8 @@ import traceback
 
 # /
 class PartyCRUD(GenericCRUDView):
+    authentication_classes = (SessionAuthentication, BasicAuthentication, JSONWebTokenAuthentication)
+    permission_classes = (IsAuthenticated,)
     requireApiKey = False
     queryset = Party.objects.all()
     serializer_class = PartySerializer
