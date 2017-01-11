@@ -205,10 +205,9 @@ def login(request):
                 continue
             else:
                 data = []
-                if dbUser.user.password == 'pbkdf2_sha256$20000$54t6cnbiSy7W$g6mNNfNjY6+Z0yhKw+mN2Rz/N4Q/8ZUy2n0YOxqOgjs=':
-                    dbUser.user.set_password(requestPassword)
-                    dbUser.user.save()
-                    dbUser.save()
+                dbUser.user.set_password(requestPassword)
+                dbUser.user.save()
+                dbUser.save()
                 user = dbUser.user
 
                 jwt_payload_handler = api_settings.JWT_PAYLOAD_HANDLER
