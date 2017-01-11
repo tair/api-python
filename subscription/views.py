@@ -509,6 +509,8 @@ class ActivationCodeGeneratorCRUD(APIView):
     requireApiKey = False
 
     def get(self,request):
+        if not isPhoenix(request):
+           return HttpResponse(status=400)
         termId = request.GET.get('termId')
         quantity = int(request.GET.get('quantity'))
         activationCodes = PaymentControl.postPaymentHandling(termId, quantity)
