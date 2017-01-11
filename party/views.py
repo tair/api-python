@@ -135,7 +135,7 @@ class OrganizationView(APIView):
                                  .filter(partyType="consortium")
         for cons in consSubList:
             for ins in cons.PartyAffiliation.all():
-                if ins not in obj:
+                if ins.disply==True and ins not in obj:
                     insInCons.append(ins)
 
         out = []
