@@ -42,7 +42,7 @@ import traceback
 
 # /
 class PartyCRUD(GenericCRUDView):
-    authentication_classes = (SessionAuthentication, BasicAuthentication, JSONWebTokenAuthentication)
+    authentication_classes = (JSONWebTokenAuthentication,)
     permission_classes = (IsAuthenticated,)
     requireApiKey = False
     queryset = Party.objects.all()
