@@ -517,9 +517,9 @@ class ActivationCodeGeneratorCRUD(APIView):
            return HttpResponse(status=400)
 
         quantity = int(request.GET.get('quantity'))
-        period = request.GET.get('period')
+        period = int(request.GET.get('period'))
         partnerId = request.GET.get('partnerId')
-        partnerObj = Partner.objects.get(patnerId=partnerId)
+        partnerObj = Partner.objects.get(partnerId=partnerId)
 
         if quantity > 99:
             return []
