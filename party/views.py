@@ -50,7 +50,7 @@ class PartyCRUD(GenericCRUDView):
 
     def get_queryset(self):
         if not self.getPermission(self.request, ['organization', 'consortium', 'staff']):
-            return Response({'error':'user role not allowed'}, status=status.HTTP_400_BAD_REQUEST)
+            return []
         if isPhoenix(self.request):
             if 'partyId' in self.request.GET:
                 partyId = self.request.GET.get('partyId')
