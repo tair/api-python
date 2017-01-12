@@ -1,7 +1,8 @@
 from rest_framework.response import Response
 from rest_framework import generics, status
-
-import logging
+from rest_framework_jwt.utils import jwt_decode_handler
+from authentication.models import Credential
+from party.models import Party
 
 class GenericCRUDView(generics.GenericAPIView):
     logging.basicConfig(filename="/var/log/api/api.log", format='%(asctime)s %(message)s')
@@ -58,3 +59,22 @@ class GenericCRUDView(generics.GenericAPIView):
         for entry in obj:
             entry.delete()
         return Response({'success':'delete complete'})
+
+    def getPermission(self, request, roleList):
+        token = ''
+        for item in request.META.items():
+            if item[0] == 'HTTP_AUTHORIZATION':
+                token = item[1].split(' ')[1]
+        decode = jwt_decode_handler(token)
+        user_id = decode['user_id']
+        partyId = None
+        partyType = ''
+        if Credential.objects.all().filter(user_id=user_id).exists():
+            partyId = Credential.objects.get(user_id=user_id).partyId.partyId
+            partyType = Party.objects.all().get(partyId=partyId).partyType
+
+        for role in roleList:
+            if partyType == role:
+                return True
+        return False
+
