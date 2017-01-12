@@ -33,6 +33,10 @@ from django.conf import settings
 
 from django.core.mail import send_mail
 
+from django.utils import timezone
+
+import uuid
+
 import logging
 
 # top level: /subscriptions/
@@ -511,7 +515,33 @@ class ActivationCodeGeneratorCRUD(APIView):
     def get(self,request):
         if not isPhoenix(request):
            return HttpResponse(status=400)
-        termId = request.GET.get('termId')
+
         quantity = int(request.GET.get('quantity'))
-        activationCodes = PaymentControl.postPaymentHandling(termId, quantity)
+        period = request.GET.get('period')
+        partnerId = request.GET.get('partnerId')
+        partnerObj = Partner.objects.get(patnerId=partnerId)
+
+        if quantity > 99:
+            return []
+
+        now = timezone.now()
+
+        activationCodes = []
+
+        for i in xrange(quantity):
+            # create an activation code based on partnerId and period.
+            activationCodeObj = ActivationCode()
+            activationCodeObj.activationCode=str(uuid.uuid4())
+            activationCodeObj.partnerId=partnerObj
+            activationCodeObj.period=period
+            activationCodeObj.partyId=None
+            activationCodeObj.purchaseDate=now
+            activationCodeObj.save()
+            activationCodes.append(activationCodeObj.activationCode)
+
         return HttpResponse(json.dumps(activationCodes), status=200)
+
+
+
+
+
