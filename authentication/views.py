@@ -137,7 +137,18 @@ class listcreateuser(GenericCRUDView):
     #http://stackoverflow.com/questions/18930234/django-modifying-the-request-object PW-123
     data = request.data.copy() # PW-123
     if 'password' in data:
+      #update django user
+      obj.user.set_password(data['password'])
+      obj.user.save()
+      obj.save()
+
       data['password'] = hashlib.sha1(data['password']).hexdigest()
+    if 'username' in data:
+      #update django user
+      obj.user.username = data['username'] + '_' + data['partnerId']
+      obj.user.save()
+      obj.save()
+
     serializer = serializer_class(obj, data=data, partial=True)
     if serializer.is_valid():
       serializer.save()
