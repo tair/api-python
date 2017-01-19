@@ -38,6 +38,10 @@ class listcreateuser(GenericCRUDView):
       return CredentialSerializerNoPassword
     return CredentialSerializer
 
+  def get(self, request, format=None):
+      if self.getPermission(request, ['staff', 'consortium', 'institution']):
+        super(listcreateuser, self).get(request)
+
   def get_queryset(self):
     params = self.request.GET
     #get by userIdentifier
