@@ -26,6 +26,8 @@ from common.permissions import isPhoenix
 import logging
 from rest_framework_jwt.settings import api_settings
 
+from django.contrib.auth.models import User
+
 # Create your views here.
 
 #/credentials/
@@ -88,6 +90,15 @@ class listcreateuser(GenericCRUDView):
       serializer_class = self.get_serializer_class()
       data = request.data
       data['password'] = hashlib.sha1(data['password']).hexdigest()
+      username = data['username']
+      partnerId = data['partnerId']
+      password = data['password']
+      try:
+        user = User.objects.create_user(username=username+'_'+partnerId, password=password)
+        user.save()
+      except Exception:
+        return HttpResponse({'error:create django user error'}, status=status.HTTP_400_BAD_REQUEST)
+      data['user'] = user
       if 'partyId' in data:
         partyId = data['partyId']
         if Credential.objects.all().filter(partyId=partyId).exists():
