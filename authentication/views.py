@@ -39,10 +39,10 @@ class listcreateuser(GenericCRUDView):
     return CredentialSerializer
 
   def get(self, request, format=None):
-      roleList = ['staff', 'consortium', 'institution']
-      roleListStr = ','.join(roleList)
-      if not self.getPermission(request, roleList):
-          return HttpResponse({'error':'roles needed: '+roleListStr}, status=status.HTTP_400_BAD_REQUEST)
+      # roleList = ['staff', 'consortium', 'institution']
+      # roleListStr = ','.join(roleList)
+      # if not self.getPermission(request, roleList):
+      #     return HttpResponse({'error':'roles needed: '+roleListStr}, status=status.HTTP_400_BAD_REQUEST)
       super(listcreateuser, self).get(request)
 
   def get_queryset(self):
