@@ -67,9 +67,10 @@ class GenericCRUDView(generics.GenericAPIView):
         for item in request.META.items():
             if item[0] == 'HTTP_AUTHORIZATION':
                 token = item[1].split(' ')[1]
+        if token == '':
+            return False
         decode = jwt_decode_handler(token)
         user_id = decode['user_id']
-        partyId = None
         partyType = ''
         if Credential.objects.all().filter(user_id=user_id).exists():
             partyId = Credential.objects.get(user_id=user_id).partyId.partyId
