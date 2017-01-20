@@ -618,6 +618,10 @@ class AffiliationCRUD(GenericCRUDView):
         return []
 
     def get(self, request, format=None):
+       roleList = ['staff', 'consortium', 'organization']
+       roleListStr = ','.join(roleList)
+       if not self.getPermission(request, roleList):
+          return HttpResponse({'error':'roles needed: '+roleListStr}, status=status.HTTP_400_BAD_REQUEST)
        serializer_class = self.get_serializer_class()
        params = request.GET
        if not params['partyId']:
@@ -639,6 +643,10 @@ class AffiliationCRUD(GenericCRUDView):
        return HttpResponse(json.dumps(out), content_type="application/json")
 
     def post(self, request, format=None):
+       roleList = ['staff', 'consortium', 'organization']
+       roleListStr = ','.join(roleList)
+       if not self.getPermission(request, roleList):
+          return HttpResponse({'error':'roles needed: '+roleListStr}, status=status.HTTP_400_BAD_REQUEST)
        if not isPhoenix(self.request):
            return HttpResponse(status=400)
        serializer_class = self.get_serializer_class()
@@ -660,6 +668,10 @@ class AffiliationCRUD(GenericCRUDView):
        return Response(serializer.data, status=status.HTTP_201_CREATED)
 
     def delete(self, request, format=None):
+       roleList = ['staff', 'consortium', 'organization']
+       roleListStr = ','.join(roleList)
+       if not self.getPermission(request, roleList):
+           return HttpResponse({'error':'roles needed: '+roleListStr}, status=status.HTTP_400_BAD_REQUEST)
        if not isPhoenix(self.request):
            return HttpResponse(status=400)
        serializer_class = self.get_serializer_class()
