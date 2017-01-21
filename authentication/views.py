@@ -44,7 +44,7 @@ class listcreateuser(GenericCRUDView):
       roleList = ['staff', 'consortium', 'organization']
       roleListStr = ','.join(roleList)
       if not self.getPermission(request, roleList):
-          return HttpResponse({'error':'roles needed: '+roleListStr}, status=status.HTTP_400_BAD_REQUEST)
+          return Response({'error':'roles needed: '+roleListStr}, status=status.HTTP_400_BAD_REQUEST)
       return super(listcreateuser, self).get(request)
 
   def get_queryset(self):
