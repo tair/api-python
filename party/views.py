@@ -114,7 +114,34 @@ class IpRangeCRUD(GenericCRUDView):
             partyId = self.request.GET.get('partyId')
             return super(IpRangeCRUD, self).get_queryset().filter(partyId=partyId)
         return []
-# TODO: "post" is still a security vulnerability -SC
+
+    def get(self, request, format=None):
+      roleList = ['staff', 'consortium', 'organization']
+      roleListStr = ','.join(roleList)
+      if not self.getPermission(request, roleList):
+          return Response({'error':'roles needed: '+roleListStr}, status=status.HTTP_400_BAD_REQUEST)
+      return super(IpRangeCRUD, self).get(request)
+
+    def post(self, request, format=None):
+      roleList = ['staff', 'consortium', 'organization']
+      roleListStr = ','.join(roleList)
+      if not self.getPermission(request, roleList):
+          return Response({'error':'roles needed: '+roleListStr}, status=status.HTTP_400_BAD_REQUEST)
+      return super(IpRangeCRUD, self).post(request)
+
+    def put(self, request, format=None):
+      roleList = ['staff', 'consortium', 'organization']
+      roleListStr = ','.join(roleList)
+      if not self.getPermission(request, roleList):
+          return Response({'error':'roles needed: '+roleListStr}, status=status.HTTP_400_BAD_REQUEST)
+      return super(IpRangeCRUD, self).put(request)
+
+    def delete(self, request, format=None):
+      roleList = ['staff', 'consortium', 'organization']
+      roleListStr = ','.join(roleList)
+      if not self.getPermission(request, roleList):
+          return Response({'error':'roles needed: '+roleListStr}, status=status.HTTP_400_BAD_REQUEST)
+      return super(IpRangeCRUD, self).delete(request)
 
 #------------------- End of Basic CRUD operations --------------
 
