@@ -17,7 +17,7 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework import generics
 from common.views import GenericCRUDView
-from common.permissions import isPhoenix
+from common.permissions import isPhoenix, rolePermission
 from common.common import getRemoteIpAddress
 
 from django.shortcuts import render
@@ -172,7 +172,7 @@ class SubscriptionRenewal(generics.GenericAPIView):
     def put(self, request, pk):
         roleList = ['staff',]
         roleListStr = ','.join(roleList)
-        if not self.getPermission(request, roleList):
+        if not rolePermission(request, roleList):
            return Response({'error':'roles needed: '+roleListStr}, status=status.HTTP_400_BAD_REQUEST)
         subscription = Subscription.objects.get(subscriptionId=pk)
         serializer = SubscriptionSerializer(subscription, data=request.data)

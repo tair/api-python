@@ -7,6 +7,7 @@ from partner.models import Partner
 from django.db.models import Q
 
 from common.views import GenericCRUDView
+from common.permissions import rolePermission
 
 from authentication.models import Credential
 
@@ -49,7 +50,7 @@ class PartyCRUD(GenericCRUDView):
     serializer_class = PartySerializer
 
     def get_queryset(self):
-        if not self.getPermission(self.request, ['organization', 'consortium', 'staff']):
+        if not rolePermission(self.request, ['organization', 'consortium', 'staff']):
             return []
         if isPhoenix(self.request):
             if 'partyId' in self.request.GET:
@@ -118,28 +119,28 @@ class IpRangeCRUD(GenericCRUDView):
     def get(self, request, format=None):
       roleList = ['staff', 'consortium', 'organization']
       roleListStr = ','.join(roleList)
-      if not self.getPermission(request, roleList):
+      if not rolePermission(request, roleList):
           return Response({'error':'roles needed: '+roleListStr}, status=status.HTTP_400_BAD_REQUEST)
       return super(IpRangeCRUD, self).get(request)
 
     def post(self, request, format=None):
       roleList = ['staff', 'consortium', 'organization']
       roleListStr = ','.join(roleList)
-      if not self.getPermission(request, roleList):
+      if not rolePermission(request, roleList):
           return Response({'error':'roles needed: '+roleListStr}, status=status.HTTP_400_BAD_REQUEST)
       return super(IpRangeCRUD, self).post(request)
 
     def put(self, request, format=None):
       roleList = ['staff', 'consortium', 'organization']
       roleListStr = ','.join(roleList)
-      if not self.getPermission(request, roleList):
+      if not rolePermission(request, roleList):
           return Response({'error':'roles needed: '+roleListStr}, status=status.HTTP_400_BAD_REQUEST)
       return super(IpRangeCRUD, self).put(request)
 
     def delete(self, request, format=None):
       roleList = ['staff', 'consortium', 'organization']
       roleListStr = ','.join(roleList)
-      if not self.getPermission(request, roleList):
+      if not rolePermission(request, roleList):
           return Response({'error':'roles needed: '+roleListStr}, status=status.HTTP_400_BAD_REQUEST)
       return super(IpRangeCRUD, self).delete(request)
 
@@ -203,7 +204,7 @@ class Usage(APIView):
     def post(self, request, format=None):
         roleList = ['consortium', 'organization']
         roleListStr = ','.join(roleList)
-        if not self.getPermission(request, roleList):
+        if not rolePermission(request, roleList):
           return Response({'error':'roles needed: '+roleListStr}, status=status.HTTP_400_BAD_REQUEST)
         # security vulnerability: consortiumId should come from partyId in cookie that's been validated via isPhoenix -SC
         if not isPhoenix(request):
@@ -274,7 +275,7 @@ class ConsortiumCRUD(GenericCRUDView):
     def get(self, request, format=None):
         roleList = ['staff', 'consortium']
         roleListStr = ','.join(roleList)
-        if not self.getPermission(request, roleList):
+        if not rolePermission(request, roleList):
            return Response({'error':'roles needed: '+roleListStr}, status=status.HTTP_400_BAD_REQUEST)
         if not isPhoenix(request):
            return HttpResponse({'error':'credentialId and secretKey query parameters missing or invalid'},status=status.HTTP_400_BAD_REQUEST)
@@ -309,7 +310,7 @@ class ConsortiumCRUD(GenericCRUDView):
     def put(self, request, format=None):
         roleList = ['staff', 'consortium',]
         roleListStr = ','.join(roleList)
-        if not self.getPermission(request, roleList):
+        if not rolePermission(request, roleList):
            return Response({'error':'roles needed: '+roleListStr}, status=status.HTTP_400_BAD_REQUEST)
         if not isPhoenix(request):
            return HttpResponse({'error':'PUT parties/consortiums/ credentialId and secretKey query parameters missing or invalid'},status=status.HTTP_400_BAD_REQUEST)
@@ -373,7 +374,7 @@ class ConsortiumCRUD(GenericCRUDView):
     def post(self, request, format=None):
         roleList = ['staff',]
         roleListStr = ','.join(roleList)
-        if not self.getPermission(request, roleList):
+        if not rolePermission(request, roleList):
            return Response({'error':'roles needed: '+roleListStr}, status=status.HTTP_400_BAD_REQUEST)
         if not isPhoenix(request):
            return HttpResponse({'error':'POST parties/consortiums/ credentialId and secretKey query parameters missing or invalid'},status=status.HTTP_400_BAD_REQUEST)
@@ -435,7 +436,7 @@ class ConsortiumCRUD(GenericCRUDView):
     def delete(self, request, format=None):
         roleList = ['staff',]
         roleListStr = ','.join(roleList)
-        if not self.getPermission(request, roleList):
+        if not rolePermission(request, roleList):
            return Response({'error':'roles needed: '+roleListStr}, status=status.HTTP_400_BAD_REQUEST)
         if not isPhoenix(request):
           return HttpResponse({'error':'DELETE parties/consortiums/ credentialId and secretKey query parameters missing or invalid'},status=status.HTTP_400_BAD_REQUEST)
@@ -481,7 +482,7 @@ class InstitutionCRUD(GenericCRUDView):
     def get(self, request, format=None):
         roleList = ['staff', 'consortium', 'organization']
         roleListStr = ','.join(roleList)
-        if not self.getPermission(request, roleList):
+        if not rolePermission(request, roleList):
            return Response({'error':'roles needed: '+roleListStr}, status=status.HTTP_400_BAD_REQUEST)
         if not isPhoenix(request):
            return HttpResponse({'error':'credentialId and secretKey query parameters missing or invalid'},status=status.HTTP_400_BAD_REQUEST)
@@ -517,7 +518,7 @@ class InstitutionCRUD(GenericCRUDView):
     def put(self, request, format=None):
         roleList = ['staff', 'consortium', 'organization']
         roleListStr = ','.join(roleList)
-        if not self.getPermission(request, roleList):
+        if not rolePermission(request, roleList):
            return Response({'error':'roles needed: '+roleListStr}, status=status.HTTP_400_BAD_REQUEST)
         if not isPhoenix(request):
            return HttpResponse({'error':'credentialId and secretKey query parameters missing or invalid'},status=status.HTTP_400_BAD_REQUEST)
@@ -580,7 +581,7 @@ class InstitutionCRUD(GenericCRUDView):
     def post(self, request, format=None):
         roleList = ['staff', 'consortium',]
         roleListStr = ','.join(roleList)
-        if not self.getPermission(request, roleList):
+        if not rolePermission(request, roleList):
            return Response({'error':'roles needed: '+roleListStr}, status=status.HTTP_400_BAD_REQUEST)
         if not isPhoenix(request):
            return HttpResponse({'error':'POST parties/institutions/ credentialId and secretKey query parameters missing or invalid'},status=status.HTTP_400_BAD_REQUEST)
@@ -641,7 +642,7 @@ class InstitutionCRUD(GenericCRUDView):
     def delete(self, request, format=None):
         roleList = ['staff',]
         roleListStr = ','.join(roleList)
-        if not self.getPermission(request, roleList):
+        if not rolePermission(request, roleList):
            return Response({'error':'roles needed: '+roleListStr}, status=status.HTTP_400_BAD_REQUEST)
         if not isPhoenix(request):
            return HttpResponse({'error':'credentialId and secretKey query parameters missing or invalid'},status=status.HTTP_400_BAD_REQUEST)
@@ -683,7 +684,7 @@ class AffiliationCRUD(GenericCRUDView):
     def get(self, request, format=None):
        roleList = ['staff', 'consortium', 'organization']
        roleListStr = ','.join(roleList)
-       if not self.getPermission(request, roleList):
+       if not rolePermission(request, roleList):
           return Response({'error':'roles needed: '+roleListStr}, status=status.HTTP_400_BAD_REQUEST)
        serializer_class = self.get_serializer_class()
        params = request.GET
@@ -708,7 +709,7 @@ class AffiliationCRUD(GenericCRUDView):
     def post(self, request, format=None):
        roleList = ['staff', 'consortium', 'organization']
        roleListStr = ','.join(roleList)
-       if not self.getPermission(request, roleList):
+       if not rolePermission(request, roleList):
           return Response({'error':'roles needed: '+roleListStr}, status=status.HTTP_400_BAD_REQUEST)
        if not isPhoenix(self.request):
            return HttpResponse(status=400)
@@ -733,7 +734,7 @@ class AffiliationCRUD(GenericCRUDView):
     def delete(self, request, format=None):
        roleList = ['staff', 'consortium', 'organization']
        roleListStr = ','.join(roleList)
-       if not self.getPermission(request, roleList):
+       if not rolePermission(request, roleList):
            return Response({'error':'roles needed: '+roleListStr}, status=status.HTTP_400_BAD_REQUEST)
        if not isPhoenix(self.request):
            return HttpResponse(status=400)

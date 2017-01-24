@@ -1,4 +1,7 @@
 from apikey.models import ApiKey
+from rest_framework_jwt.utils import jwt_decode_handler
+from authentication.models import Credential
+from party.models import Party
 
 class ApiKeyPermission():
     @staticmethod
@@ -33,4 +36,23 @@ def isLoggedIn(request):
     secretKey = request.GET.get('secretKey')
     if credentialId and secretKey and Credential.validate(credentialId, secretKey):# and Credential.objects.get(partyId=credentialId).partyId.partyType=='phoenix':
         return True
+    return False
+
+def rolePermission(request, roleList):
+    token = ''
+    for item in request.META.items():
+        if item[0] == 'HTTP_AUTHORIZATION':
+            token = item[1].split(' ')[1]
+    if token == '':
+        return False
+    decode = jwt_decode_handler(token)
+    user_id = decode['user_id']
+    partyType = ''
+    if Credential.objects.all().filter(user_id=user_id).exists():
+        partyId = Credential.objects.get(user_id=user_id).partyId.partyId
+        partyType = Party.objects.all().get(partyId=partyId).partyType
+
+    for role in roleList:
+        if partyType == role:
+            return True
     return False

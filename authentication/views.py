@@ -12,7 +12,7 @@ from rest_framework import generics, status
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from common.views import GenericCRUDView
-from common.permissions import ApiKeyPermission 
+from common.permissions import ApiKeyPermission, rolePermission
 
 from authentication.models import Credential, GooglePartyAffiliation
 from authentication.serializers import CredentialSerializer, CredentialSerializerNoPassword
@@ -43,7 +43,7 @@ class listcreateuser(GenericCRUDView):
   def get(self, request, format=None):
       roleList = ['staff', 'consortium', 'organization']
       roleListStr = ','.join(roleList)
-      if not self.getPermission(request, roleList):
+      if not rolePermission(request, roleList):
           return Response({'error':'roles needed: '+roleListStr}, status=status.HTTP_400_BAD_REQUEST)
       return super(listcreateuser, self).get(request)
 
