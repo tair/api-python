@@ -201,6 +201,10 @@ class CountryView(APIView):
 class Usage(APIView):
     requireApiKey = False
     def post(self, request, format=None):
+        roleList = ['consortium', 'organization']
+        roleListStr = ','.join(roleList)
+        if not self.getPermission(request, roleList):
+          return Response({'error':'roles needed: '+roleListStr}, status=status.HTTP_400_BAD_REQUEST)
         # security vulnerability: consortiumId should come from partyId in cookie that's been validated via isPhoenix -SC
         if not isPhoenix(request):
             return HttpResponse(status=400)
