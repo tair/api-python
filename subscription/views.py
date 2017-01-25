@@ -353,6 +353,10 @@ class EndDate(generics.GenericAPIView):
 class ActiveSubscriptions(generics.GenericAPIView):
     requireApiKey = False
     def get(self, request, partyId):
+        roleList = ['staff', 'consortium', 'organization']
+        roleListStr = ','.join(roleList)
+        if not rolePermission(request, roleList):
+           return Response({'error':'roles needed: '+roleListStr}, status=status.HTTP_400_BAD_REQUEST)
         now = datetime.datetime.now()
         activeSubscriptions = Subscription.objects.all().filter(partyId=partyId).filter(endDate__gt=now).filter(startDate__lt=now)
         serializer = SubscriptionSerializer(activeSubscriptions, many=True)
