@@ -370,6 +370,10 @@ class ActiveSubscriptions(generics.GenericAPIView):
 class AllSubscriptions(generics.GenericAPIView):
     requireApiKey = False
     def get(self, request, partyId):
+        roleList = ['staff', 'consortium', 'organization']
+        roleListStr = ','.join(roleList)
+        if not rolePermission(request, roleList):
+            return Response({'error':'roles needed: '+roleListStr}, status=status.HTTP_400_BAD_REQUEST)
         allSubscriptions = Subscription.objects.all().filter(partyId=partyId)
         serializer = SubscriptionSerializer(allSubscriptions, many=True)
         #return HttpResponse(json.dumps(dict(serializer.data)))
@@ -407,6 +411,10 @@ class ConsortiumSubscriptions(generics.GenericAPIView):
 class ConsActSubscriptions(generics.GenericAPIView):
     requireApiKey = False
     def get(self, request, partyId):
+        roleList = ['staff', 'consortium', 'organization']
+        roleListStr = ','.join(roleList)
+        if not rolePermission(request, roleList):
+            return Response({'error':'roles needed: '+roleListStr}, status=status.HTTP_400_BAD_REQUEST)
         ret = {}
         now = datetime.datetime.now()
         if Party.objects.all().get(partyId=partyId):
