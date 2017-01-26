@@ -490,6 +490,10 @@ class SubscriptionRequestCRUD(GenericCRUDView):
     requireApiKey = False
 
     def get(self, request):
+        roleList = ['staff',]
+        roleListStr = ','.join(roleList)
+        if not rolePermission(request, roleList):
+           return Response({'error':'roles needed: '+roleListStr}, status=status.HTTP_400_BAD_REQUEST)
         allSubscriptionRequests = SubscriptionRequest.objects.all()
         serializer = self.serializer_class(allSubscriptionRequests, many=True)
         # This part comes from django documentation on large csv file generation:
@@ -513,6 +517,10 @@ class SubscriptionRequestCRUD(GenericCRUDView):
         return response
 
     def post(self, request):
+        roleList = ['consortium', 'institution']
+        roleListStr = ','.join(roleList)
+        if not rolePermission(request, roleList):
+           return Response({'error':'roles needed: '+roleListStr}, status=status.HTTP_400_BAD_REQUEST)
         serializer = self.serializer_class(data=request.data)
         if serializer.is_valid():
             serializer.save()
