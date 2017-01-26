@@ -517,7 +517,7 @@ class SubscriptionRequestCRUD(GenericCRUDView):
         return response
 
     def post(self, request):
-        roleList = ['consortium', 'institution']
+        roleList = ['consortium', 'organization']
         roleListStr = ','.join(roleList)
         if not rolePermission(request, roleList):
            return Response({'error':'roles needed: '+roleListStr}, status=status.HTTP_400_BAD_REQUEST)
