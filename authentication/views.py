@@ -77,6 +77,9 @@ class listcreateuser(GenericCRUDView):
     if 'userIdentifier' not in params:
       return Response({'error': 'Put method needs userIdentifier'})
     obj = self.get_queryset().first()
+    # check if credential is user credential
+    if obj.partyId.partyType != 'user':
+        return Response({'error': 'Cannot update credential of parties other than user type.'}, status=status.HTTP_400_BAD_REQUEST)
     #http://stackoverflow.com/questions/18930234/django-modifying-the-request-object PW-123
     data = request.data.copy() # PW-123
     if 'password' in data:
