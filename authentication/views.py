@@ -97,7 +97,7 @@ class listcreateuser(GenericCRUDView):
         user = User.objects.create_user(username=username+'_'+partnerId, password=password)
         user.save()
       except Exception:
-        return HttpResponse({'error:create django user error'}, status=status.HTTP_400_BAD_REQUEST)
+        return HttpResponse({'error':'create django user error'}, status=status.HTTP_400_BAD_REQUEST)
       data['user'] = user.id
       if 'partyId' in data:
         partyId = data['partyId']

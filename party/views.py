@@ -416,11 +416,14 @@ class ConsortiumCRUD(GenericCRUDView):
             data['partyId'] = partySerializer.data['partyId']
 
             #create Django user for credential
+            username = data['username']
+            partnerId = data['partnerId']
+            password = data['password']
             try:
                 user = User.objects.create_user(username=username+'_'+partnerId, password=password)
                 user.save()
             except Exception:
-                return HttpResponse({'error:create django user error'}, status=status.HTTP_400_BAD_REQUEST)
+                return HttpResponse({'error':'create django user error'}, status=status.HTTP_400_BAD_REQUEST)
             data['user'] = user.id
 
             if pwd == True:
