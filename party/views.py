@@ -31,6 +31,7 @@ from authentication.serializers import CredentialSerializer, CredentialSerialize
 from genericpath import exists
 from django.db import connection
 from collections import namedtuple
+from django.contrib.auth.models import User
 
 #below three added by Andrey for PW-277
 import logging
@@ -413,6 +414,14 @@ class ConsortiumCRUD(GenericCRUDView):
             out.append(partyReturnData)
 
             data['partyId'] = partySerializer.data['partyId']
+
+            #create Django user for credential
+            try:
+                user = User.objects.create_user(username=username+'_'+partnerId, password=password)
+                user.save()
+            except Exception:
+                return HttpResponse({'error:create django user error'}, status=status.HTTP_400_BAD_REQUEST)
+            data['user'] = user.id
 
             if pwd == True:
                 newPwd = data['password']
