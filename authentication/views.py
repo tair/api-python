@@ -74,12 +74,11 @@ class listcreateuser(GenericCRUDView):
     # http://stackoverflow.com/questions/12611345/django-why-is-the-request-post-object-immutable
     serializer_class = self.get_serializer_class()
     params = request.GET
-    if 'userIdentifier' not in params:
-      return Response({'error': 'Put method needs userIdentifier'})
     obj = self.get_queryset().first()
     # check if credential is user credential
-    if obj.partyId.partyType != 'user':
-        return Response({'error': 'Cannot update credential of parties other than user type.'}, status=status.HTTP_400_BAD_REQUEST)
+    if 'userIdentifier' in params:
+        if obj.partyId.partyType != 'user':
+            return Response({'error': 'Cannot update credential of parties other than user type.'}, status=status.HTTP_400_BAD_REQUEST)
     #http://stackoverflow.com/questions/18930234/django-modifying-the-request-object PW-123
     data = request.data.copy() # PW-123
     if 'password' in data:
