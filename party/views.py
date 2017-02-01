@@ -334,14 +334,34 @@ class ConsortiumCRUD(GenericCRUDView):
             for partyId in Credential.objects.all().filter(email=data['email']).filter(partnerId='phoenix').values_list('partyId', flat=True):
                 if Party.objects.all().filter(partyId=partyId).filter(partyType='consortium').exists():
                     return Response({'error':'This email is already used by another consortium.'}, status=status.HTTP_400_BAD_REQUEST)
+
+        #get credential
+        credential = Credential.objects.get(partyId=party)
+        #update Django user username for credential
+        if 'username' in request.data:
+            username = data['username']
+            partnerId = credential.partnerId.partnerId
+        try:
+            credential.user.username = username+'_'+partnerId
+            credential.user.save()
+            credential.save()
+        except Exception:
+            return HttpResponse({'error':'update django user username error'}, status=status.HTTP_400_BAD_REQUEST)
         if 'password' in request.data:
+            #update Djanog user password for credential
+            password = data['password']
+            try:
+                credential.user.set_password(password)
+                credential.user.save()
+                credential.save()
+            except Exception:
+                return HttpResponse({'error':'update django user password error'}, status=status.HTTP_400_BAD_REQUEST)
             if (not data['password'] or data['password'] == ""):
                 return Response({'error': 'PUT parties/consortiums/ password must not be empty'}, status=status.HTTP_400_BAD_REQUEST)
             else:
                 newPwd = data['password']
                 data['password'] = hashlib.sha1(newPwd).hexdigest()
                 try:
-                    credential = Credential.objects.get(partyId=party)
                     credentialSerializer = CredentialSerializer(credential, data=data)
                 except Credential.DoesNotExist:
                     data['partnerId'] = 'phoenix'
@@ -553,14 +573,33 @@ class InstitutionCRUD(GenericCRUDView):
                 if Party.objects.all().filter(partyId=partyId).filter(partyType='organization').exists():
                     return Response({'error':'This email is already used by another institution.'}, status=status.HTTP_400_BAD_REQUEST)
 
+        #get credential
+        credential = Credential.objects.get(partyId=party)
+        #update Django user username for credential
+        if 'username' in request.data:
+            username = data['username']
+            partnerId = credential.partnerId.partnerId
+        try:
+            credential.user.username = username+'_'+partnerId
+            credential.user.save()
+            credential.save()
+        except Exception:
+            return HttpResponse({'error':'update django user username error'}, status=status.HTTP_400_BAD_REQUEST)
         if 'password' in request.data:
+            #update Djanog user password for credential
+            password = data['password']
+            try:
+                credential.user.set_password(password)
+                credential.user.save()
+                credential.save()
+            except Exception:
+                return HttpResponse({'error':'update django user password error'}, status=status.HTTP_400_BAD_REQUEST)
             if (not data['password'] or data['password'] == ""):
                 return Response({'error': 'PUT parties/institutions/ password must not be empty'}, status=status.HTTP_400_BAD_REQUEST)
             else:
                 newPwd = data['password']
                 data['password'] = hashlib.sha1(newPwd).hexdigest()
                 try:
-                    credential = Credential.objects.get(partyId=party)
                     credentialSerializer = CredentialSerializer(credential, data=data)
                 except Credential.DoesNotExist:
                     data['partnerId'] = 'phoenix'
@@ -631,6 +670,17 @@ class InstitutionCRUD(GenericCRUDView):
             out.append(partyReturnData)
 
             data['partyId'] = partySerializer.data['partyId']
+
+            #create Django user for credential
+            username = data['username']
+            partnerId = data['partnerId']
+            password = data['password']
+            try:
+                user = User.objects.create_user(username=username+'_'+partnerId, password=password)
+                user.save()
+            except Exception:
+                return HttpResponse({'error':'create django user error'}, status=status.HTTP_400_BAD_REQUEST)
+            data['user'] = user.id
 
             if pwd == True:
                 newPwd = data['password']
