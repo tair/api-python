@@ -104,6 +104,8 @@ class listcreateuser(GenericCRUDView):
     serializer_class = self.get_serializer_class()
     params = request.GET
     obj = self.get_queryset().first()
+    if not obj:
+        return Response({'error': 'cannot find any record.'}, status=status.HTTP_400_BAD_REQUEST)
     #http://stackoverflow.com/questions/18930234/django-modifying-the-request-object PW-123
     data = request.data.copy() # PW-123
     if 'password' in data:
