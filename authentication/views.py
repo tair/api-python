@@ -42,18 +42,18 @@ class listcreateuser(GenericCRUDView):
     #get by userIdentifier
     if 'userIdentifier' in params:
         if 'partnerId' not in params:
-            return Response({'error': 'partnerId is required.'}, status=status.HTTP_400_BAD_REQUEST)
+            return 'partnerId is required.'
         userIdentifier = params['userIdentifier']
         partnerId = params['partnerId']
         queryset = Credential.objects.all().filter(userIdentifier=userIdentifier).filter(partnerId=partnerId)
         # check if credential is user credential
         obj = queryset.first()
         if obj.partyId.partyType != 'user':
-            return Response({'error': 'cannot update credential of parties other than user type.'}, status=status.HTTP_400_BAD_REQUEST)
+            return 'cannot update credential of parties other than user type.'
     #get by username
     elif 'username' in params:
         if 'partnerId' not in params:
-            return Response({'error': 'partnerId is required.'}, status=status.HTTP_400_BAD_REQUEST)
+            return 'partnerId is required.'
         username = params['username']
         partnerId = params['partnerId']
         queryset = Credential.objects.all().filter(username=username).filter(partnerId=partnerId)
@@ -62,7 +62,7 @@ class listcreateuser(GenericCRUDView):
         partyId = params['partyId']
         queryset = Credential.objects.all().filter(partyId=partyId)
     else:
-        return Response({'error': 'invalid query parameters.'}, status=status.HTTP_400_BAD_REQUEST)
+        return 'invalid query parameters.'
 
     return queryset
 
@@ -103,6 +103,9 @@ class listcreateuser(GenericCRUDView):
     # http://stackoverflow.com/questions/12611345/django-why-is-the-request-post-object-immutable
     serializer_class = self.get_serializer_class()
     params = request.GET
+    queryResult = self.get_queryset()
+    if type(queryResult) == str:
+        return Response({'error': queryResult}, status=status.HTTP_400_BAD_REQUEST)
     obj = self.get_queryset().first()
     if not obj:
         return Response({'error': 'cannot find any record.'}, status=status.HTTP_400_BAD_REQUEST)
