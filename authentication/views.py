@@ -108,7 +108,7 @@ class listcreateuser(GenericCRUDView):
         return Response({'error': queryResult}, status=status.HTTP_400_BAD_REQUEST)
     obj = self.get_queryset().first()
     if not obj:
-        return Response({'error': 'cannot find any record.'}, status=status.HTTP_400_BAD_REQUEST)
+        return Response({'error': 'cannot find any record.'}, status=status.HTTP_404_NOT_FOUND)
     #http://stackoverflow.com/questions/18930234/django-modifying-the-request-object PW-123
     data = request.data.copy() # PW-123
     if 'password' in data:
