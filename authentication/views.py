@@ -127,7 +127,6 @@ class listcreateuser(GenericCRUDView):
       return Response(status=status.HTTP_400_BAD_REQUEST)
     # http://stackoverflow.com/questions/12611345/django-why-is-the-request-post-object-immutable
     serializer_class = self.get_serializer_class()
-    params = request.GET
     queryResult = self.get_queryset()
     if type(queryResult) == str:
         return Response({'error': queryResult}, status=status.HTTP_400_BAD_REQUEST)
@@ -145,7 +144,8 @@ class listcreateuser(GenericCRUDView):
       data['password'] = hashlib.sha1(data['password']).hexdigest()
     if 'username' in data:
       #update django user
-      obj.user.username = data['username'] + '_' + data['partnerId']
+      partnerId = obj.partnerId.partnerId
+      obj.user.username = data['username'] + '_' + partnerId
       obj.user.save()
       obj.save()
 
