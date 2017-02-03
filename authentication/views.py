@@ -48,6 +48,9 @@ class listcreateuser(GenericCRUDView):
         queryset = Credential.objects.all().filter(userIdentifier=userIdentifier).filter(partnerId=partnerId)
         # check if credential is user credential
         obj = queryset.first()
+        # if query set is empty set, return it and let the PUT function handle it
+        if not obj:
+            return queryset
         if obj.partyId.partyType != 'user':
             return 'cannot update credential of parties other than user type.'
     #get by username
