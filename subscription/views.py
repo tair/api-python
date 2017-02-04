@@ -413,29 +413,6 @@ class RequestSubscription(generics.GenericAPIView):
         send_mail(subject=subject, message=message, from_email=from_email, recipient_list=recipient_list)
         return HttpResponse(json.dumps({'message':'success'}), content_type="application/json")
 
-# /edit/
-class SubscriptionEdit(generics.GenericAPIView):#TODO: act only as admin
-    requireApiKey = False
-    queryset = Subscription.objects.all()
-    serializer_class = SubscriptionSerializer
-
-    def put(self, request):
-        if not isPhoenix(request):
-           return HttpResponse(status=400)
-        # partnerId = request.GET.get('partnerId')
-        # subscription = Subscription.objects.all().filter(partnerId=partnerId)[0]
-        if 'subscriptionId' in request.GET:
-            subscriptionId = request.GET.get('subscriptionId')
-            subscription = Subscription.objects.all().get(subscriptionId=subscriptionId)
-        else:
-            return Response({'error':'subscriptionId required'})
-        serializer = SubscriptionSerializer(subscription, data=request.data)
-        if serializer.is_valid():
-            subscription = serializer.save()
-            returnData = serializer.data
-            return Response(returnData)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-
 class Echo(object):
     """An object that implements just the write method of the file-like
     interface.
