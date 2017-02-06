@@ -247,7 +247,7 @@ class InstitutionSubscription(APIView):
 #        logging.error("%s" % message)
 
         from_email = "info@phoenixbioinformatics.org"
-        recipient_list = ["yarik@arabidopsis.org", "info@phoenixbioinformatics.org"]
+        recipient_list = ["info@phoenixbioinformatics.org"]
         send_mail(subject=subject, message=message, from_email=from_email, recipient_list=recipient_list)
 #        logging.error("------Done sending institution subscription email------")
 
@@ -293,7 +293,7 @@ class CommercialSubscription(APIView):
 #        logging.error("%s" % message)
 
         from_email = "info@phoenixbioinformatics.org"
-        recipient_list = ["yarik@arabidopsis.org", "info@phoenixbioinformatics.org"]
+        recipient_list = ["info@phoenixbioinformatics.org"]
         send_mail(subject=subject, message=message, from_email=from_email, recipient_list=recipient_list)
 #        logging.error("------Done sending commercial email------")
         return HttpResponse(json.dumps({'message':'success'}), content_type="application/json")
@@ -387,7 +387,7 @@ class RenewSubscription(generics.GenericAPIView):
                   "\n" \
                   % (data['partnerName'], data['email'], data['partyType'], data['partyName'], data['comments'])
         from_email = "info@phoenixbioinformatics.org"
-        recipient_list = ["qianli1987@phoenixbioinformatics.org"]
+        recipient_list = ["info@phoenixbioinformatics.org"]
         send_mail(subject=subject, message=message, from_email=from_email, recipient_list=recipient_list)
         return HttpResponse(json.dumps({'message':'success'}), content_type="application/json")
 
@@ -409,7 +409,7 @@ class RequestSubscription(generics.GenericAPIView):
                   "\n" \
                   % (data['partnerName'], data['email'], data['partyType'], data['partyName'], data['comments'])
         from_email = "info@phoenixbioinformatics.org"
-        recipient_list = ["qianli1987@phoenixbioinformatics.org"]
+        recipient_list = ["info@phoenixbioinformatics.org"]
         send_mail(subject=subject, message=message, from_email=from_email, recipient_list=recipient_list)
         return HttpResponse(json.dumps({'message':'success'}), content_type="application/json")
 
