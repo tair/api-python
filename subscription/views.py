@@ -132,11 +132,6 @@ class SubscriptionTransactionCRUD(GenericCRUDView):
     queryset = SubscriptionTransaction.objects.all()
     serializer_class = SubscriptionTransactionSerializer
 
-# /activationCodes/
-class ActivationCodeCRUD(GenericCRUDView):
-    queryset = ActivationCode.objects.all()
-    serializer_class = ActivationCodeSerializer
-
 #------------------- End of Basic CRUD operations --------------
 
 
@@ -509,7 +504,10 @@ class SubscriptionActiveCRUD(APIView):
                 sub['name'] = party['name']
         return HttpResponse(json.dumps(subList), content_type="application/json")
 
-class ActivationCodeGeneratorCRUD(APIView):
+# /activationCodes/
+class ActivationCodeCRUD(GenericCRUDView):
+    queryset = ActivationCode.objects.all()
+    serializer_class = ActivationCodeSerializer
     requireApiKey = False
 
     def get(self,request):
