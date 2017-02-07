@@ -61,7 +61,7 @@ class ActivationCode(models.Model):
     partyId = models.ForeignKey('party.Party', null=True)
     period = models.IntegerField()
     purchaseDate = models.DateTimeField(default='2001-01-01T00:00:00Z')
-    transactionType = models.CharField(max_length=200)
+    transactionType = models.CharField(max_length=200, null=True)
     class Meta:
         db_table = "ActivationCode"
 
