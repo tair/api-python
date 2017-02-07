@@ -23,7 +23,6 @@ urlpatterns = [
     url(r'^request/$', views.RequestSubscription.as_view()),
     url(r'^renew/$', views.RenewSubscription.as_view()),
     # url(r'^getall/$', views.GetAllSubscription.as_view()),
-    url(r'^edit/$', views.SubscriptionEdit.as_view()),
     url(r'^subscriptionrequest/$', views.SubscriptionRequestCRUD.as_view()),
     url(r'^active/$', views.SubscriptionActiveCRUD.as_view()),
 

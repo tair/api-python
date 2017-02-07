@@ -41,8 +41,9 @@ class listcreateuser(GenericCRUDView):
     params = self.request.GET
     #get by userIdentifier
     if 'userIdentifier' in params:
-        if 'partnerId' not in params:
-            return 'partnerId is required.'
+        #comment out for biocyc compatibility
+        #if 'partnerId' not in params:
+        #    return 'partnerId is required.'
         userIdentifier = params['userIdentifier']
         partnerId = params['partnerId']
         queryset = Credential.objects.all().filter(userIdentifier=userIdentifier).filter(partnerId=partnerId)
