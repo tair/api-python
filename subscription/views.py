@@ -102,6 +102,8 @@ class SubscriptionCRUD(GenericCRUDView):
             # not already have one.
             (subscription, transactionType, transactionStartDate, transactionEndDate) = SubscriptionControl.createOrUpdateSubscription(partyId, partnerId, period)
 
+            # get transactionType from activationCode
+            transactionType = activationCodeObj.transactionType
             subscription.save()
             transaction = SubscriptionTransaction.createFromSubscription(subscription, transactionType, transactionStartDate, transactionEndDate)
 
