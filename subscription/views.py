@@ -68,7 +68,7 @@ class SubscriptionCRUD(GenericCRUDView):
             ret = {}
             for s in serializer.data:
                 ret[s['partnerId']] = dict(s)
-            return HttpResponse(json.dumps(ret), status=200)
+            return Response(ret, status=200)
         elif all(param in params for param in ['partnerId', 'ipAddress', 'userIdentifier']):
             partnerId = params['partnerId']
             ipAddress = params['ipAddress']
