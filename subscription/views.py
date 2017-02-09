@@ -102,6 +102,8 @@ class SubscriptionCRUD(GenericCRUDView):
             # not already have one.
             (subscription, transactionType, transactionStartDate, transactionEndDate) = SubscriptionControl.createOrUpdateSubscription(partyId, partnerId, period)
 
+            # get transactionType from activationCode
+            transactionType = activationCodeObj.transactionType
             subscription.save()
             transaction = SubscriptionTransaction.createFromSubscription(subscription, transactionType, transactionStartDate, transactionEndDate)
 
@@ -131,11 +133,6 @@ class SubscriptionCRUD(GenericCRUDView):
 class SubscriptionTransactionCRUD(GenericCRUDView):
     queryset = SubscriptionTransaction.objects.all()
     serializer_class = SubscriptionTransactionSerializer
-
-# /activationCodes/
-class ActivationCodeCRUD(GenericCRUDView):
-    queryset = ActivationCode.objects.all()
-    serializer_class = ActivationCodeSerializer
 
 #------------------- End of Basic CRUD operations --------------
 
@@ -486,7 +483,10 @@ class SubscriptionActiveCRUD(APIView):
                 sub['name'] = party['name']
         return HttpResponse(json.dumps(subList), content_type="application/json")
 
-class ActivationCodeGeneratorCRUD(APIView):
+# /activationCodes/
+class ActivationCodeCRUD(GenericCRUDView):
+    queryset = ActivationCode.objects.all()
+    serializer_class = ActivationCodeSerializer
     requireApiKey = False
 
     def get(self,request):
@@ -496,6 +496,7 @@ class ActivationCodeGeneratorCRUD(APIView):
         quantity = int(request.GET.get('quantity'))
         period = int(request.GET.get('period'))
         partnerId = request.GET.get('partnerId')
+        transactionType = request.GET.get('transactionType')
         partnerObj = Partner.objects.get(partnerId=partnerId)
 
         if quantity > 99:
@@ -513,6 +514,7 @@ class ActivationCodeGeneratorCRUD(APIView):
             activationCodeObj.period=period
             activationCodeObj.partyId=None
             activationCodeObj.purchaseDate=now
+            activationCodeObj.transactionType=transactionType
             activationCodeObj.save()
             activationCodes.append(activationCodeObj.activationCode)
 

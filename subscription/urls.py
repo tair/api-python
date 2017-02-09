@@ -32,6 +32,5 @@ urlpatterns = [
     # url(r'^templates/login/$', TemplateView.as_view(template_name="subscription/login.html")),
     
     url(r'^templates/warn/$', TemplateView.as_view(template_name="subscription/warn.html")),
-    url(r'^activationCodeGenerator/$', views.ActivationCodeGeneratorCRUD.as_view()),
 ]
 urlpatterns = format_suffix_patterns(urlpatterns)
