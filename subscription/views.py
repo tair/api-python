@@ -56,6 +56,19 @@ class SubscriptionCRUD(GenericCRUDView):
             subscription = Subscription.objects.all().get(subscriptionId=subscriptionId)
             serializer = SubscriptionSerializer(subscription)
             return Response(serializer.data)
+        elif 'partyId' in params:
+            partyId = params['partyId']
+            if 'active' in params and params['active'] == 'true':
+                now = datetime.datetime.now()
+                activeSubscriptions = Subscription.objects.all().filter(partyId=partyId).filter(endDate__gt=now).filter(startDate__lt=now)
+                serializer = SubscriptionSerializer(activeSubscriptions, many=True)
+            else:
+                allSubscriptions = Subscription.objects.all().filter(partyId=partyId)
+                serializer = SubscriptionSerializer(allSubscriptions, many=True)
+            ret = {}
+            for s in serializer.data:
+                ret[s['partnerId']] = dict(s)
+            return HttpResponse(json.dumps(ret), status=200)
         elif all(param in params for param in ['partnerId', 'ipAddress', 'userIdentifier']):
             partnerId = params['partnerId']
             ipAddress = params['ipAddress']
@@ -358,6 +371,31 @@ class AllSubscriptions(generics.GenericAPIView):
         ret = {}
         for s in serializer.data:
             ret[s['partnerId']] = dict(s)
+        return HttpResponse(json.dumps(ret), status=200)
+
+# /consortiums/
+class ConsortiumSubscriptions(generics.GenericAPIView):
+    requireApiKey = False
+    def get(self, request):
+        params = request.GET
+        if not 'partyId' in params:
+            return Response({'error':'partyId is required'}, status=status.HTTP_400_BAD_REQUEST)
+        ret = {}
+        now = datetime.datetime.now()
+        partyId = params['partyId']
+        if 'active' in params and params['active'] == 'true':
+            if Party.objects.all().get(partyId=partyId):
+                consortiums = Party.objects.all().get(partyId=partyId).consortiums.all()
+                for consortium in consortiums:
+                    consortiumActiveSubscriptions = Subscription.objects.all().filter(partyId=consortium.partyId).filter(endDate__gt=now).filter(startDate__lt=now)
+                    serializer = SubscriptionSerializer(consortiumActiveSubscriptions, many=True)
+                    partySerializer = PartySerializer(consortium)
+                    for s in serializer.data:
+                        if s['partnerId'] in ret:
+                            ret[s['partnerId']].append(partySerializer.data)
+                        else:
+                            ret[s['partnerId']] = []
+                            ret[s['partnerId']].append(partySerializer.data)
         return HttpResponse(json.dumps(ret), status=200)
 
 # /consactsubscriptions/<partyId>
