@@ -396,7 +396,7 @@ class ConsortiumSubscriptions(generics.GenericAPIView):
                         else:
                             ret[s['partnerId']] = []
                             ret[s['partnerId']].append(partySerializer.data)
-        return HttpResponse(json.dumps(ret), status=200)
+        return Response(json.dumps(ret), status=200)
 
 # /consactsubscriptions/<partyId>
 class ConsActSubscriptions(generics.GenericAPIView):
