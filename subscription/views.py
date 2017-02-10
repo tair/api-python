@@ -65,10 +65,7 @@ class SubscriptionCRUD(GenericCRUDView):
             else:
                 allSubscriptions = Subscription.objects.all().filter(partyId=partyId)
                 serializer = SubscriptionSerializer(allSubscriptions, many=True)
-            ret = {}
-            for s in serializer.data:
-                ret[s['partnerId']] = dict(s)
-            return Response(ret, status=200)
+            return Response(serializer.data, status=200)
         elif all(param in params for param in ['partnerId', 'ipAddress', 'userIdentifier']):
             partnerId = params['partnerId']
             ipAddress = params['ipAddress']
