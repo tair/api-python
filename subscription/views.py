@@ -94,23 +94,37 @@ class SubscriptionCRUD(GenericCRUDView):
             activationCodeObj = ActivationCode.objects.get(activationCode=request.data['activationCode'])
             if not activationCodeObj.partyId == None:
                 return Response({"message":"activation code is already used"}, status=status.HTTP_400_BAD_REQUEST)
+            try:
+                partyId = request.data['partyId']
+                partnerId = activationCodeObj.partnerId.partnerId
+                period = activationCodeObj.period
+                # retrive and update existing subscription, or creat a new one if partner/party does
+                # not already have one.
+                (subscription, transactionType, transactionStartDate, transactionEndDate) = SubscriptionControl.createOrUpdateSubscription(partyId, partnerId, period)
+            except Exception:
+                return Response('failed to create or update subscription')
+            try:
+                # get transactionType from activationCode
+                transactionType = activationCodeObj.transactionType
+                subscription.save()
+                transaction = SubscriptionTransaction.createFromSubscription(subscription, transactionType, transactionStartDate, transactionEndDate)
+            except Exception:
+                return Response('failed to create transaction')
 
-            partyId = request.data['partyId']
-            partnerId = activationCodeObj.partnerId.partnerId
-            period = activationCodeObj.period
-            # retrive and update existing subscription, or creat a new one if partner/party does
-            # not already have one.
-            (subscription, transactionType, transactionStartDate, transactionEndDate) = SubscriptionControl.createOrUpdateSubscription(partyId, partnerId, period)
+            try:
+                # set activationCodeObj to be used.
+                partyObj = Party.objects.get(partyId=partyId)
+            except Exception:
+                return Response('failed to get partyObj')
+            try:
+                activationCodeObj.partyId = partyObj
+            except Exception:
+                return Response('failed to assign partyObj')
+            try:
+                activationCodeObj.save()
+            except Exception:
+                return Response('failed to save activationCodeObj')
 
-            # get transactionType from activationCode
-            transactionType = activationCodeObj.transactionType
-            subscription.save()
-            transaction = SubscriptionTransaction.createFromSubscription(subscription, transactionType, transactionStartDate, transactionEndDate)
-
-            # set activationCodeObj to be used.
-            partyObj = Party.objects.get(partyId=partyId)
-            activationCodeObj.partyId = partyObj
-            activationCodeObj.save()
             serializer = self.serializer_class(subscription)
             returnData = serializer.data
             returnData['subscriptionTransactionId']=transaction.subscriptionTransactionId
