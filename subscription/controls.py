@@ -245,6 +245,7 @@ class PaymentControl():
             activationCodeObj.period=period
             activationCodeObj.partyId=None
             activationCodeObj.purchaseDate=now
+            activationCodeObj.transactionType='create'
             activationCodeObj.save()
             codeArray.append(activationCodeObj.activationCode)
 
