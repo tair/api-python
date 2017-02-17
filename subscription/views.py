@@ -56,6 +56,16 @@ class SubscriptionCRUD(GenericCRUDView):
             subscription = Subscription.objects.all().get(subscriptionId=subscriptionId)
             serializer = SubscriptionSerializer(subscription)
             return Response(serializer.data)
+        elif 'partyId' in params:
+            partyId = params['partyId']
+            if 'active' in params and params['active'] == 'true':
+                now = datetime.datetime.now()
+                activeSubscriptions = Subscription.objects.all().filter(partyId=partyId).filter(endDate__gt=now).filter(startDate__lt=now)
+                serializer = SubscriptionSerializer(activeSubscriptions, many=True)
+            else:
+                allSubscriptions = Subscription.objects.all().filter(partyId=partyId)
+                serializer = SubscriptionSerializer(allSubscriptions, many=True)
+            return Response(serializer.data, status=200)
         elif all(param in params for param in ['partnerId', 'ipAddress', 'userIdentifier']):
             partnerId = params['partnerId']
             ipAddress = params['ipAddress']
@@ -258,7 +268,7 @@ class InstitutionSubscription(APIView):
 #        logging.error("%s" % message)
 
         from_email = "info@phoenixbioinformatics.org"
-        recipient_list = ["info@phoenixbioinformatics.org"]
+        recipient_list = ["subscriptions@phoenixbioinformatics.org"]
         send_mail(subject=subject, message=message, from_email=from_email, recipient_list=recipient_list)
 #        logging.error("------Done sending institution subscription email------")
 
@@ -304,7 +314,7 @@ class CommercialSubscription(APIView):
 #        logging.error("%s" % message)
 
         from_email = "info@phoenixbioinformatics.org"
-        recipient_list = ["info@phoenixbioinformatics.org"]
+        recipient_list = ["subscriptions@phoenixbioinformatics.org"]
         send_mail(subject=subject, message=message, from_email=from_email, recipient_list=recipient_list)
 #        logging.error("------Done sending commercial email------")
         return HttpResponse(json.dumps({'message':'success'}), content_type="application/json")
@@ -360,6 +370,31 @@ class AllSubscriptions(generics.GenericAPIView):
             ret[s['partnerId']] = dict(s)
         return HttpResponse(json.dumps(ret), status=200)
 
+# /consortiums/
+class ConsortiumSubscriptions(generics.GenericAPIView):
+    requireApiKey = False
+    def get(self, request):
+        params = request.GET
+        if not 'partyId' in params:
+            return Response({'error':'partyId is required'}, status=status.HTTP_400_BAD_REQUEST)
+        ret = {}
+        now = datetime.datetime.now()
+        partyId = params['partyId']
+        if 'active' in params and params['active'] == 'true':
+            if Party.objects.all().get(partyId=partyId):
+                consortiums = Party.objects.all().get(partyId=partyId).consortiums.all()
+                for consortium in consortiums:
+                    consortiumActiveSubscriptions = Subscription.objects.all().filter(partyId=consortium.partyId).filter(endDate__gt=now).filter(startDate__lt=now)
+                    serializer = SubscriptionSerializer(consortiumActiveSubscriptions, many=True)
+                    partySerializer = PartySerializer(consortium)
+                    for s in serializer.data:
+                        if s['partnerId'] in ret:
+                            ret[s['partnerId']].append(partySerializer.data)
+                        else:
+                            ret[s['partnerId']] = []
+                            ret[s['partnerId']].append(partySerializer.data)
+        return Response(ret, status=200)
+
 # /consactsubscriptions/<partyId>
 class ConsActSubscriptions(generics.GenericAPIView):
     requireApiKey = False
@@ -398,7 +433,7 @@ class RenewSubscription(generics.GenericAPIView):
                   "\n" \
                   % (data['partnerName'], data['email'], data['partyType'], data['partyName'], data['comments'])
         from_email = "info@phoenixbioinformatics.org"
-        recipient_list = ["info@phoenixbioinformatics.org"]
+        recipient_list = ["subscriptions@phoenixbioinformatics.org"]
         send_mail(subject=subject, message=message, from_email=from_email, recipient_list=recipient_list)
         return HttpResponse(json.dumps({'message':'success'}), content_type="application/json")
 
@@ -420,7 +455,7 @@ class RequestSubscription(generics.GenericAPIView):
                   "\n" \
                   % (data['partnerName'], data['email'], data['partyType'], data['partyName'], data['comments'])
         from_email = "info@phoenixbioinformatics.org"
-        recipient_list = ["info@phoenixbioinformatics.org"]
+        recipient_list = ["subscriptions@phoenixbioinformatics.org"]
         send_mail(subject=subject, message=message, from_email=from_email, recipient_list=recipient_list)
         return HttpResponse(json.dumps({'message':'success'}), content_type="application/json")
 
