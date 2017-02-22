@@ -42,12 +42,11 @@ class listcreateuser(GenericCRUDView):
     #get by userIdentifier
     if 'userIdentifier' in params:
         #comment out for biocyc compatibility
-        #if 'partnerId' not in params:
-        #    return 'partnerId is required.'
+        if 'partnerId' not in params:
+           return 'partnerId is required.'
         userIdentifier = params['userIdentifier']
-        #partnerId = params['partnerId']
-        queryset = Credential.objects.all().filter(userIdentifier=userIdentifier)
-            #.filter(partnerId=partnerId)
+        partnerId = params['partnerId']
+        queryset = Credential.objects.all().filter(userIdentifier=userIdentifier).filter(partnerId=partnerId)
         # check if credential is user credential
         obj = queryset.first()
         # if query set is empty set, return it and let the PUT function handle it
