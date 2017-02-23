@@ -47,6 +47,8 @@ class listcreateuser(GenericCRUDView):
         userIdentifier = params['userIdentifier']
         partnerId = params['partnerId']
         queryset = Credential.objects.all().filter(userIdentifier=userIdentifier).filter(partnerId=partnerId)
+        if len(queryset) > 1:
+            return "more than one record in result"
         # check if credential is user credential
         obj = queryset.first()
         # if query set is empty set, return it and let the PUT function handle it
