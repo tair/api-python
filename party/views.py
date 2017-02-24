@@ -362,10 +362,10 @@ class ConsortiumCRUD(GenericCRUDView):
                 newPwd = data['password']
                 data['password'] = hashlib.sha1(newPwd).hexdigest()
                 try:
-                    credentialSerializer = CredentialSerializer(credential, data=data)
+                    credentialSerializer = CredentialSerializer(credential, data=data, partial=True)
                 except Credential.DoesNotExist:
                     data['partnerId'] = 'phoenix'
-                    credentialSerializer = CredentialSerializer(data=data)
+                    credentialSerializer = CredentialSerializer(data=data, partial=True)
 
         else:
             credentialSerializer = CredentialSerializerNoPassword(credential, data=data, partial=True) #??
