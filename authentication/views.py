@@ -123,6 +123,11 @@ class listcreateuser(GenericCRUDView):
   
   def put(self, request, format=None):
     # TODO: security risk here, get username based on the partyId verified in isPhoenix -SC
+    if not request.GET('credentialId') and not request.GET('secretKey'):
+        roleList = ['staff', 'consortium', 'organization', 'user']
+        roleListStr = ','.join(roleList)
+        if not rolePermission(request, roleList):
+            return Response({'error': 'roles needed: ' + roleListStr}, status=status.HTTP_400_BAD_REQUEST)
     if not isPhoenix(self.request):
       return Response(status=status.HTTP_400_BAD_REQUEST)
     # http://stackoverflow.com/questions/12611345/django-why-is-the-request-post-object-immutable
