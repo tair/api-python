@@ -123,7 +123,7 @@ class listcreateuser(GenericCRUDView):
   
   def put(self, request, format=None):
     # TODO: security risk here, get username based on the partyId verified in isPhoenix -SC
-    if not request.GET['credentialId'] and not request.GET['secretKey']:
+    if not 'credentialId' in request.GET and not 'secretKey' in request.GET:
         roleList = ['staff', 'consortium', 'organization', 'user']
         roleListStr = ','.join(roleList)
         if not rolePermission(request, roleList):
