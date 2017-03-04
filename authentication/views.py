@@ -128,7 +128,7 @@ class listcreateuser(GenericCRUDView):
         roleListStr = ','.join(roleList)
         if not rolePermission(request, roleList):
             return Response({'error': 'roles needed: ' + roleListStr}, status=status.HTTP_400_BAD_REQUEST)
-    if not isPhoenix(self.request):
+    elif not isPhoenix(self.request):
       return Response(status=status.HTTP_400_BAD_REQUEST)
     # http://stackoverflow.com/questions/12611345/django-why-is-the-request-post-object-immutable
     serializer_class = self.get_serializer_class()
