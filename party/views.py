@@ -70,20 +70,29 @@ class PartyOrgCRUD(GenericCRUDView):
         if (ip is None):
             return HttpResponse("Error. ip not provided")
         try:
-            cursor = connection.cursor()
-            sqlStatement = 'select p.partyId, p.name, (s.endDate>= NOW()) as subscribed from Party p, Subscription s where p.partyId in (SELECT ipr.partyId FROM IpRange ipr WHERE (INET_ATON("'+ip+'") BETWEEN INET_ATON(ipr.start) AND INET_ATON(ipr.end))) and (p.partyType="organization" or p.partyType="consortium") and s.partyId = p.partyId and s.partnerId = "tair" and (s.endDate>= NOW()) is true'
-            #logging.error("/parties/org/?ip=%s, %s" % (ip, sqlStatement))
-            cursor.execute(sqlStatement)
-            results = self.namedtuplefetchall(cursor)
-            #return HttpResponse(json.dumps(results), content_type="application/json")
-            out = []
-            for entry in results:
-                #out.append("{'partyId':'%s','partyName':'%s','subscribed':'%s'}" % (str(entry.partyId), str(entry.name), str(entry.subscribed)))
-                out.append(str(entry.name)+"; ")
-                logging.error("/parties/org/?ip=%s, partyId=%s, name=%s, subscribed=%s" % (ip, entry.partyId, entry.name, entry.subscribed))
-            orgNames = ''.join(out)
-            orgNames = orgNames[:-2]
-            return HttpResponse(orgNames)
+            try:
+                cursor = connection.cursor()
+                sqlStatement = 'select p.partyId, p.name, (s.endDate>= NOW()) as subscribed from Party p, Subscription s where p.partyId in (SELECT ipr.partyId FROM IpRange ipr WHERE (INET_ATON("'+ip+'") BETWEEN INET_ATON(ipr.start) AND INET_ATON(ipr.end))) and (p.partyType="organization" or p.partyType="consortium") and s.partyId = p.partyId and s.partnerId = "tair" and (s.endDate>= NOW()) is true'
+                #logging.error("/parties/org/?ip=%s, %s" % (ip, sqlStatement))
+                cursor.execute(sqlStatement)
+            except Exception:
+                return HttpResponse("execution error")
+            try:
+                results = self.namedtuplefetchall(cursor)
+            except Exception:
+                return HttpResponse("fetching results error")
+                #return HttpResponse(json.dumps(results), content_type="application/json")
+            try:
+                out = []
+                for entry in results:
+                    #out.append("{'partyId':'%s','partyName':'%s','subscribed':'%s'}" % (str(entry.partyId), str(entry.name), str(entry.subscribed)))
+                    out.append(str(entry.name)+"; ")
+                    logging.error("/parties/org/?ip=%s, partyId=%s, name=%s, subscribed=%s" % (ip, entry.partyId, entry.name, entry.subscribed))
+                orgNames = ''.join(out)
+                orgNames = orgNames[:-2]
+                return HttpResponse(orgNames)
+            except Exception:
+                return HttpResponse("returning results error")
 
         except Exception as e:
             logging.error("Exception in /parties/org/?ip=%s, %s" % (ip, traceback.format_exc()))
