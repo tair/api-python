@@ -67,11 +67,13 @@ class PartyOrgCRUD(GenericCRUDView):
     #https://demoapi.arabidopsis.org/parties/?ip=131.204.0.0  returns Auburn University
     def get(self, request, format=None):
         ip = request.GET.get('ip')
-        if (ip is None):
+        if ip is None:
             return HttpResponse("Error. ip not provided")
         try:
             cursor = connection.cursor()
-            sqlStatement = 'select p.partyId, p.name, (s.endDate>= NOW()) as subscribed from Party p, Subscription s where p.partyId in (SELECT ipr.partyId FROM IpRange ipr WHERE (INET_ATON("'+ip+'") BETWEEN INET_ATON(ipr.start) AND INET_ATON(ipr.end))) and (p.partyType="organization" or p.partyType="consortium") and s.partyId = p.partyId and s.partnerId = "tair" and (s.endDate>= NOW()) is true'
+            sqlStatement = 'select p.partyId, p.name from Party p where p.partyId in (\
+            SELECT ipr.partyId FROM IpRange ipr WHERE (INET_ATON("'+ip+'") BETWEEN INET_ATON(ipr.start) \
+            AND INET_ATON(ipr.end))) and (p.partyType="organization" or p.partyType="consortium")'
             #logging.error("/parties/org/?ip=%s, %s" % (ip, sqlStatement))
             cursor.execute(sqlStatement)
             results = self.namedtuplefetchall(cursor)
@@ -80,11 +82,10 @@ class PartyOrgCRUD(GenericCRUDView):
             for entry in results:
                 #out.append("{'partyId':'%s','partyName':'%s','subscribed':'%s'}" % (str(entry.partyId), str(entry.name), str(entry.subscribed)))
                 out.append(str(entry.name)+"; ")
-                logging.error("/parties/org/?ip=%s, partyId=%s, name=%s, subscribed=%s" % (ip, entry.partyId, entry.name, entry.subscribed))
+                logging.error("/parties/org/?ip=%s, partyId=%s, name=%s" % (ip, entry.partyId, entry.name))
             orgNames = ''.join(out)
             orgNames = orgNames[:-2]
             return HttpResponse(orgNames)
-
         except Exception as e:
             logging.error("Exception in /parties/org/?ip=%s, %s" % (ip, traceback.format_exc()))
             #logging.error(sys.exc_info()[0])
