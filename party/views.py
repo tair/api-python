@@ -166,7 +166,7 @@ class CountryView(APIView):
     def get(self, request):
         countryList = Country.objects.all()
         serializer = CountrySerializer(countryList, many=True)
-            return Response(serializer.data)
+        return Response(serializer.data)
 
 # /usage/
 class Usage(APIView):
