@@ -169,7 +169,7 @@ class listcreateuser(GenericCRUDView):
             partySerializer.save()
       if 'password' in data or 'username' in data:
         #data['password'] = generateSecretKey(str(obj.partyId.partyId), data['password'])#PW-254 and YM: TAIR-2493
-        # data['loginKey'] = generateSecretKey(str(obj.partyId.partyId), data['password'])
+        data['loginKey'] = generateSecretKey(str(obj.partyId.partyId), data['password'])
         jwt_payload_handler = api_settings.JWT_PAYLOAD_HANDLER
         jwt_encode_handler = api_settings.JWT_ENCODE_HANDLER
 
