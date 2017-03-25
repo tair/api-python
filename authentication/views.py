@@ -168,14 +168,15 @@ class listcreateuser(GenericCRUDView):
           if partySerializer.is_valid():
             partySerializer.save()
       if 'password' in data or 'username' in data:
-        #data['password'] = generateSecretKey(str(obj.partyId.partyId), data['password'])#PW-254 and YM: TAIR-2493
-        data['loginKey'] = generateSecretKey(str(obj.partyId.partyId), data['password'])
         jwt_payload_handler = api_settings.JWT_PAYLOAD_HANDLER
         jwt_encode_handler = api_settings.JWT_ENCODE_HANDLER
 
         payload = jwt_payload_handler(obj.user)
         token = jwt_encode_handler(payload)
         data['token'] = token
+      if 'password' in data:
+        # data['password'] = generateSecretKey(str(obj.partyId.partyId), data['password'])#PW-254 and YM: TAIR-2493
+        data['loginKey'] = generateSecretKey(str(obj.partyId.partyId), data['password'])
       return Response(data, status=status.HTTP_200_OK)
     return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
