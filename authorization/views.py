@@ -33,11 +33,14 @@ class Access(APIView):
     def get(self, request, format=None):
         partyId = request.COOKIES.get('credentialId')
         loginKey = request.COOKIES.get('secretKey')
+        token = None
+        if 'token' in request.COOKIES:
+            token = request.COOKIES.get('token')
         ip = request.GET.get('ip')
         url = request.GET.get('url').decode('utf8')
         partnerId = request.GET.get('partnerId')
         apiKey = request.COOKIES.get('apiKey')
-        status = Authorization.getAccessStatus(loginKey, ip, partyId, url, partnerId, getHostUrlFromRequest(request), apiKey)
+        status = Authorization.getAccessStatus(token, loginKey, ip, partyId, url, partnerId, getHostUrlFromRequest(request), apiKey)
         userIdentifier = None
         if partyId and partyId.isdigit() and Credential.objects.all().filter(partyId=partyId).exists():
             userIdentifier = Credential.objects.all().get(partyId=partyId).userIdentifier

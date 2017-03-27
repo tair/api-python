@@ -3,6 +3,7 @@ from party.models import Party
 from partner.models import Partner
 import base64, hmac, hashlib
 from django.contrib.auth.models import User
+from rest_framework_jwt.serializers import VerifyJSONWebTokenSerializer
 
 # Create your models here.
 
@@ -22,7 +23,13 @@ class Credential(models.Model):
   user = models.OneToOneField(User, on_delete=models.CASCADE, unique=True)
 
   @staticmethod
-  def validate(partyId, secretKey):
+  def validate(partyId, token, secretKey):
+    # verify jwt token
+    if token:
+        serializer = VerifyJSONWebTokenSerializer(data = {'token': token})
+        if serializer.is_valid():
+            return True
+        return False
     if partyId and secretKey and partyId.isdigit() and Party.objects.filter(partyId=partyId).exists():
       pu = Party.objects.filter(partyId=partyId)
       if Credential.objects.filter(partyId_id__in=pu.values('partyId')).exists():
