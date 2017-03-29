@@ -3,8 +3,6 @@ from party.models import Party
 from partner.models import Partner
 import base64, hmac, hashlib
 from django.contrib.auth.models import User
-from rest_framework_jwt.serializers import VerifyJSONWebTokenSerializer
-from rest_framework_jwt.views import VerifyJSONWebToken
 from rest_framework_jwt.settings import api_settings
 
 # Create your models here.
@@ -26,28 +24,28 @@ class Credential(models.Model):
 
   @staticmethod
   def validate(partyId, token, secretKey):
-    # verify jwt token
-    # if token:
-    #     jwt_decode_handler = api_settings.JWT_DECODE_HANDLER
-    #     jwt_get_username_from_payload = api_settings.JWT_PAYLOAD_GET_USERNAME_HANDLER
-    #
-    #     try:
-    #         payload = jwt_decode_handler(token)
-    #     except Exception:
-    #         return False
-    #
-    #     username = jwt_get_username_from_payload(payload)
-    #
-    #     if not username:
-    #         return False
-    #
-    #     # Make sure user exists
-    #     try:
-    #         user = User.objects.get_by_natural_key(username)
-    #     except User.DoesNotExist:
-    #         return False
-    #
-    #     return True
+    #verify jwt token
+    if token:
+      jwt_decode_handler = api_settings.JWT_DECODE_HANDLER
+      jwt_get_username_from_payload = api_settings.JWT_PAYLOAD_GET_USERNAME_HANDLER
+
+      try:
+        payload = jwt_decode_handler(token)
+      except Exception:
+        return False
+
+      username = jwt_get_username_from_payload(payload)
+
+      if not username:
+        return False
+
+    # Make sure user exists
+      try:
+        user = User.objects.get_by_natural_key(username)
+      except User.DoesNotExist:
+        return False
+
+      return True
         # verify_json_web_token = VerifyJSONWebToken()
         # serializer = verify_json_web_token.get_serializer(data={'token':token})
         # if serializer.is_valid():
