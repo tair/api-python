@@ -26,7 +26,8 @@ def isPhoenix(request):
     from authentication.models import Credential
     credentialId = request.GET.get('credentialId')
     secretKey = request.GET.get('secretKey')
-    if credentialId and secretKey and Credential.validate(credentialId, secretKey):
+    token = None
+    if credentialId and secretKey and Credential.validate(credentialId, token, secretKey):
         return True
     return False
 
@@ -34,7 +35,8 @@ def isLoggedIn(request):
     from authentication.models import Credential
     credentialId = request.GET.get('credentialId')
     secretKey = request.GET.get('secretKey')
-    if credentialId and secretKey and Credential.validate(credentialId, secretKey):# and Credential.objects.get(partyId=credentialId).partyId.partyType=='phoenix':
+    token = None
+    if credentialId and secretKey and Credential.validate(credentialId, token, secretKey):# and Credential.objects.get(partyId=credentialId).partyId.partyType=='phoenix':
         return True
     return False
 

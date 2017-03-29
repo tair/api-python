@@ -86,7 +86,8 @@ class AuthenticationsAccess(APIView):
         partnerId = request.GET.get('partnerId')
         hostUrl = "http://%s" % request.get_host()
         apiKey = request.COOKIES.get('apiKey')
-        access = Authorization.authentication(loginKey, credentialId, url, partnerId, getHostUrlFromRequest(request), apiKey)
+        token = None
+        access = Authorization.authentication(token, loginKey, credentialId, url, partnerId, getHostUrlFromRequest(request), apiKey)
         response = {
             "access":access,
         }
