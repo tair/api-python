@@ -41,7 +41,7 @@ class Credential(models.Model):
         user = User.objects.get_by_natural_key(username)
       except User.DoesNotExist:
         return False
-      logging.info("user authenticated: " + user.username)
+      logging.error("user authenticated: " + user.username)
       return True
     if partyId and secretKey and partyId.isdigit() and Party.objects.filter(partyId=partyId).exists():
       pu = Party.objects.filter(partyId=partyId)
