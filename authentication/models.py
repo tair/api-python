@@ -4,6 +4,8 @@ from partner.models import Partner
 import base64, hmac, hashlib
 from django.contrib.auth.models import User
 from rest_framework_jwt.serializers import VerifyJSONWebTokenSerializer
+from rest_framework_jwt.views import VerifyJSONWebToken
+from rest_framework_jwt.settings import api_settings
 
 # Create your models here.
 
@@ -26,7 +28,14 @@ class Credential(models.Model):
   def validate(partyId, token, secretKey):
     # verify jwt token
     if token:
-        serializer = VerifyJSONWebTokenSerializer(data = {'token': token})
+        # jwt_decode_handler = api_settings.JWT_DECODE_HANDLER
+
+
+        # payload = jwt_payload_handler(user)
+        # token = jwt_encode_handler(payload)
+
+        # payload = jwt_decode_handler(token)
+        serializer = VerifyJSONWebToken.get_serializer(data={'token':token})
         if serializer.is_valid():
             return True
         return False
