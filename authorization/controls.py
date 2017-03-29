@@ -3,6 +3,7 @@
 from models import Status, AccessType
 from subscription.models import Subscription
 from authentication.models import Credential
+import logging
 
 class Authorization:
     @staticmethod
@@ -40,8 +41,10 @@ class Authorization:
     def authentication(token, loginKey, partyId, url, partnerId, hostUrl, apiKey):
         if not AccessType.checkHasAccessRule(url, "Login", partnerId):
             # does not have Login access rule to this url, allow access.
+            logging.info('does not have Login access rule to this url, allow access.')
             return True
         if Credential.validate(partyId, token, loginKey):
             # have authentication, allow access.
+            logging.info('have authentication, allow access.')
             return True
         return False

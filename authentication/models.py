@@ -4,6 +4,7 @@ from partner.models import Partner
 import base64, hmac, hashlib
 from django.contrib.auth.models import User
 from rest_framework_jwt.settings import api_settings
+import logging
 
 # Create your models here.
 
@@ -28,29 +29,20 @@ class Credential(models.Model):
     if token:
       jwt_decode_handler = api_settings.JWT_DECODE_HANDLER
       jwt_get_username_from_payload = api_settings.JWT_PAYLOAD_GET_USERNAME_HANDLER
-
       try:
         payload = jwt_decode_handler(token)
       except Exception:
         return False
-
       username = jwt_get_username_from_payload(payload)
-
       if not username:
         return False
-
     # Make sure user exists
       try:
         user = User.objects.get_by_natural_key(username)
       except User.DoesNotExist:
         return False
-
+      logging.info("user authenticated: " + user.username)
       return True
-        # verify_json_web_token = VerifyJSONWebToken()
-        # serializer = verify_json_web_token.get_serializer(data={'token':token})
-        # if serializer.is_valid():
-        #     return True
-        # return False
     if partyId and secretKey and partyId.isdigit() and Party.objects.filter(partyId=partyId).exists():
       pu = Party.objects.filter(partyId=partyId)
       if Credential.objects.filter(partyId_id__in=pu.values('partyId')).exists():
