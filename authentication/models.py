@@ -35,7 +35,8 @@ class Credential(models.Model):
         # token = jwt_encode_handler(payload)
 
         # payload = jwt_decode_handler(token)
-        serializer = VerifyJSONWebToken.get_serializer(data={'token':token})
+        verify_json_web_token = VerifyJSONWebToken()
+        serializer = verify_json_web_token.get_serializer(data={'token':token})
         if serializer.is_valid():
             return True
         return False
