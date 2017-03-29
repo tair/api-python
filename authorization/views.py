@@ -36,7 +36,6 @@ class Access(APIView):
         token = None
         if 'token' in request.COOKIES:
             token = request.COOKIES.get('token')
-        logging.error('authorizations/access/: token get from COOKIES: ' + token)
         ip = request.GET.get('ip')
         url = request.GET.get('url').decode('utf8')
         partnerId = request.GET.get('partnerId')

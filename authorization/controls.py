@@ -41,10 +41,10 @@ class Authorization:
     def authentication(token, loginKey, partyId, url, partnerId, hostUrl, apiKey):
         if not AccessType.checkHasAccessRule(url, "Login", partnerId):
             # does not have Login access rule to this url, allow access.
-            logging.error('does not have Login access rule to this url, allow access.')
+            # logging.error('does not have Login access rule to this url, allow access.')
             return True
         if Credential.validate(partyId, token, loginKey):
             # have authentication, allow access.
-            logging.error('have authentication, allow access.')
+            # logging.error('have authentication, allow access.')
             return True
         return False
