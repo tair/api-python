@@ -28,18 +28,31 @@ class Credential(models.Model):
   def validate(partyId, token, secretKey):
     # verify jwt token
     if token:
-        # jwt_decode_handler = api_settings.JWT_DECODE_HANDLER
+        jwt_decode_handler = api_settings.JWT_DECODE_HANDLER
+        jwt_get_username_from_payload = api_settings.JWT_PAYLOAD_GET_USERNAME_HANDLER
 
+        try:
+            payload = jwt_decode_handler(token)
+        except Exception:
+            return False
 
-        # payload = jwt_payload_handler(user)
-        # token = jwt_encode_handler(payload)
+        username = jwt_get_username_from_payload(payload)
 
-        # payload = jwt_decode_handler(token)
-        verify_json_web_token = VerifyJSONWebToken()
-        serializer = verify_json_web_token.get_serializer(data={'token':token})
-        if serializer.is_valid():
-            return True
-        return False
+        if not username:
+            return False
+
+        # Make sure user exists
+        try:
+            user = User.objects.get_by_natural_key(username)
+        except User.DoesNotExist:
+            return False
+
+        return True
+        # verify_json_web_token = VerifyJSONWebToken()
+        # serializer = verify_json_web_token.get_serializer(data={'token':token})
+        # if serializer.is_valid():
+        #     return True
+        # return False
     if partyId and secretKey and partyId.isdigit() and Party.objects.filter(partyId=partyId).exists():
       pu = Party.objects.filter(partyId=partyId)
       if Credential.objects.filter(partyId_id__in=pu.values('partyId')).exists():
