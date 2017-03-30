@@ -41,20 +41,16 @@ def isLoggedIn(request):
     return False
 
 def rolePermission(request, roleList):
-    token = ''
-    for item in request.META.items():
-        if item[0] == 'HTTP_AUTHORIZATION':
-            token = item[1].split(' ')[1]
-    if token == '':
-        return False
-    decode = jwt_decode_handler(token)
-    user_id = decode['user_id']
-    partyType = ''
-    if Credential.objects.all().filter(user_id=user_id).exists():
-        partyId = Credential.objects.get(user_id=user_id).partyId.partyId
-        partyType = Party.objects.all().get(partyId=partyId).partyType
+    if request.META.get('HTTP_AUTHORIZATION'):
+        token = request.META.get('HTTP_AUTHORIZATION')
+        payload = jwt_decode_handler(token)
+        user_id = payload['user_id']
+        partyType = ''
+        if Credential.objects.all().filter(user_id=user_id).exists():
+            partyId = Credential.objects.get(user_id=user_id).partyId.partyId
+            partyType = Party.objects.all().get(partyId=partyId).partyType
 
-    for role in roleList:
-        if partyType == role:
-            return True
+        for role in roleList:
+            if partyType == role:
+                return True
     return False
