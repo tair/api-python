@@ -170,7 +170,8 @@ class SubscriptionRenewal(generics.GenericAPIView):
     serializer_class = SubscriptionSerializer
 
     def put(self, request, pk):
-        if not 'credentialId' in request.GET and not 'secretKey' in request.GET:
+        if request.META.get('HTTP_AUTHORIZATION'):
+        # if not 'credentialId' in request.GET and not 'secretKey' in request.GET:
             roleList = ['staff', ]
             roleListStr = ','.join(roleList)
             if not rolePermission(request, roleList):
