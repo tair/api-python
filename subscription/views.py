@@ -175,8 +175,8 @@ class SubscriptionRenewal(generics.GenericAPIView):
             roleListStr = ','.join(roleList)
             if not rolePermission(request, roleList):
                 return Response({'error': 'roles needed: ' + roleListStr}, status=status.HTTP_400_BAD_REQUEST)
-        elif not isPhoenix(self.request):
-            return Response(status=status.HTTP_400_BAD_REQUEST)
+        # elif not isPhoenix(self.request):
+        #     return Response(status=status.HTTP_400_BAD_REQUEST)
 
         subscription = Subscription.objects.get(subscriptionId=pk)
         serializer = SubscriptionSerializer(subscription, data=request.data)
