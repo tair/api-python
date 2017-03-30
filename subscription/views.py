@@ -170,10 +170,14 @@ class SubscriptionRenewal(generics.GenericAPIView):
     serializer_class = SubscriptionSerializer
 
     def put(self, request, pk):
-        # roleList = ['staff',]
-        # roleListStr = ','.join(roleList)
-        # if not rolePermission(request, roleList):
-        #    return Response({'error':'roles needed: '+roleListStr}, status=status.HTTP_400_BAD_REQUEST)
+        if not 'credentialId' in request.GET and not 'secretKey' in request.GET:
+            roleList = ['staff', ]
+            roleListStr = ','.join(roleList)
+            if not rolePermission(request, roleList):
+                return Response({'error': 'roles needed: ' + roleListStr}, status=status.HTTP_400_BAD_REQUEST)
+        elif not isPhoenix(self.request):
+            return Response(status=status.HTTP_400_BAD_REQUEST)
+
         subscription = Subscription.objects.get(subscriptionId=pk)
         serializer = SubscriptionSerializer(subscription, data=request.data)
         if serializer.is_valid():

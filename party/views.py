@@ -44,15 +44,15 @@ import traceback
 
 # /
 class PartyCRUD(GenericCRUDView):
-    authentication_classes = (JSONWebTokenAuthentication,)
-    permission_classes = (IsAuthenticated,)
+    # authentication_classes = (JSONWebTokenAuthentication,)
+    # permission_classes = (IsAuthenticated,)
     requireApiKey = False
     queryset = Party.objects.all()
     serializer_class = PartySerializer
 
     def get_queryset(self):
-        if not rolePermission(self.request, ['organization', 'consortium', 'staff']):
-            return []
+        # if not rolePermission(self.request, ['organization', 'consortium', 'staff']):
+        #     return []
         if isPhoenix(self.request):
             if 'partyId' in self.request.GET:
                 partyId = self.request.GET.get('partyId')
@@ -61,6 +61,37 @@ class PartyCRUD(GenericCRUDView):
                 partyType = self.request.GET.get('partyType')
                 return super(PartyCRUD, self).get_queryset().filter(partyType=partyType)
         return []
+
+    def get(self, request, format=None):
+        roleList = ['staff', 'consortium', 'organization']
+        roleListStr = ','.join(roleList)
+        if not rolePermission(request, roleList):
+            return Response({'error':'roles needed: '+roleListStr}, status=status.HTTP_400_BAD_REQUEST)
+        return super(PartyCRUD, self).get(request)
+
+    def post(self, request, format=None):
+        roleList = ['staff', 'consortium', 'organization']
+        roleListStr = ','.join(roleList)
+        if not rolePermission(request, roleList):
+            return Response({'error':'roles needed: '+roleListStr}, status=status.HTTP_400_BAD_REQUEST)
+        return super(PartyCRUD, self).post(request)
+
+    def put(self, request, format=None):
+        roleList = ['staff', 'consortium', 'organization']
+        roleListStr = ','.join(roleList)
+        if not rolePermission(request, roleList):
+            return Response({'error':'roles needed: '+roleListStr}, status=status.HTTP_400_BAD_REQUEST)
+        return super(PartyCRUD, self).put(request)
+
+    def delete(self, request, format=None):
+        if not 'credentialId' in request.GET and not 'secretKey' in request.GET:
+            roleList = ['staff', 'consortium', 'organization']
+            roleListStr = ','.join(roleList)
+            if not rolePermission(request, roleList):
+                return Response({'error': 'roles needed: ' + roleListStr}, status=status.HTTP_400_BAD_REQUEST)
+        elif not isPhoenix(self.request):
+            return Response(status=status.HTTP_400_BAD_REQUEST)
+        return super(PartyCRUD, self).delete(request)
 
 
 
