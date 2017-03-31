@@ -45,7 +45,7 @@ def rolePermission(request, roleList):
     if 'HTTP_AUTHORIZATION' in request.META:
         token = None
         if ' ' in request.META['HTTP_AUTHORIZATION']:
-            parts = request.META['HTTP_AUTHORIZATION'].split('')
+            parts = request.META['HTTP_AUTHORIZATION'].split(' ')
             token = parts[1]
         try:
             payload = jwt_decode_handler(token)
