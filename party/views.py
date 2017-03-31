@@ -84,7 +84,7 @@ class PartyCRUD(GenericCRUDView):
         return super(PartyCRUD, self).put(request)
 
     def delete(self, request, format=None):
-        if not 'credentialId' in request.GET and not 'secretKey' in request.GET:
+        if 'HTTP_AUTHORIZATION' in request.META:
             roleList = ['staff', 'consortium', 'organization']
             roleListStr = ','.join(roleList)
             if not rolePermission(request, roleList):
