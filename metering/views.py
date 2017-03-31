@@ -38,6 +38,8 @@ class LimitValueCRUD(GenericCRUDView):
 
 # /meterblacklist
 class MeterBlacklistCRUD(GenericCRUDView):
+    authentication_classes = (JSONWebTokenAuthentication,)
+    permission_classes = (IsAuthenticated,)
     queryset = MeterBlacklist.objects.all()
     serializer_class = MeterBlacklistSerializer
 
