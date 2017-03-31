@@ -22,6 +22,9 @@ import socket
 import ipaddress
 import logging
 
+from rest_framework.permissions import IsAuthenticated
+from rest_framework_jwt.authentication import JSONWebTokenAuthentication
+
 # /
 class IpAddressCountCRUD(GenericCRUDView):
     requireApiKey = False
@@ -41,6 +44,8 @@ class MeterBlacklistCRUD(GenericCRUDView):
 #Increment request for an IP
 # /ip/<pk>/increment/
 class increment(APIView):
+    authentication_classes = (JSONWebTokenAuthentication,)
+    permission_classes = (IsAuthenticated,)
     def post(self, request, ip, format=None):
         partnerId = request.GET.get('partnerId')
         if IpAddressCount.objects.filter(ip=ip).filter(partnerId=partnerId).exists():
@@ -74,6 +79,8 @@ class check_limit(APIView):
     complete URI (required)
     status (required)
     '''
+    authentication_classes = (JSONWebTokenAuthentication,)
+    permission_classes = (IsAuthenticated,)
     def get(self, request, ip, format=None):
         partnerId = request.GET.get('partnerId')
         uri = request.GET.get('uri')
