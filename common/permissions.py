@@ -2,6 +2,7 @@ from apikey.models import ApiKey
 from rest_framework_jwt.utils import jwt_decode_handler
 from authentication.models import Credential
 from party.models import Party
+import logging
 
 class ApiKeyPermission():
     @staticmethod
@@ -43,6 +44,7 @@ def isLoggedIn(request):
 def rolePermission(request, roleList):
     if request.META.get('HTTP_AUTHORIZATION'):
         token = request.META.get('HTTP_AUTHORIZATION')
+        logging.error('token: ' + token)
         payload = jwt_decode_handler(token)
         user_id = payload['user_id']
         partyType = ''
