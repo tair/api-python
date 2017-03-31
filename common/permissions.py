@@ -43,9 +43,14 @@ def isLoggedIn(request):
 
 def rolePermission(request, roleList):
     if 'HTTP_AUTHORIZATION' in request.META:
-        token = request.META['HTTP_AUTHORIZATION']
-        logging.error('token: ' + token)
-        payload = jwt_decode_handler(token)
+        token = None
+        if ' ' in request.META['HTTP_AUTHORIZATION']:
+            parts = request.META['HTTP_AUTHORIZATION'].split('')
+            token = parts[1]
+        try:
+            payload = jwt_decode_handler(token)
+        except Exception:
+            return False
         user_id = payload['user_id']
         partyType = ''
         if Credential.objects.all().filter(user_id=user_id).exists():
