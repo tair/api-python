@@ -20,6 +20,9 @@ import urllib
 
 import logging
 
+from rest_framework.permissions import IsAuthenticated
+from rest_framework_jwt.authentication import JSONWebTokenAuthentication
+
 # top level: /authorizations/
 
 
@@ -64,6 +67,8 @@ class Access(APIView):
 # /subscriptions/
 # https://demoapi.arabidopsis.org/authorizations/subscriptions/
 class SubscriptionsAccess(APIView):
+    authentication_classes = (JSONWebTokenAuthentication,)
+    permission_classes = (IsAuthenticated,)
     def get(self, request, format=None):
         ip = request.GET.get('ip')
         url = request.GET.get('url')
@@ -174,16 +179,22 @@ class URIAccess(APIView):
 
 # /accessTypes/
 class AccessTypeCRUD(GenericCRUDView):
+    authentication_classes = (JSONWebTokenAuthentication,)
+    permission_classes = (IsAuthenticated,)
     queryset = AccessType.objects.all()
     serializer_class = AccessTypeSerializer
 
 # /accessRules/
 class AccessRuleCRUD(GenericCRUDView):
+    authentication_classes = (JSONWebTokenAuthentication,)
+    permission_classes = (IsAuthenticated,)
     queryset = AccessRule.objects.all()
     serializer_class = AccessRuleSerializer
 
 # /patterns/
 class UriPatternCRUD(GenericCRUDView):
+    authentication_classes = (JSONWebTokenAuthentication,)
+    permission_classes = (IsAuthenticated,)
     queryset = UriPattern.objects.all()
     serializer_class = UriPatternSerializer
 
