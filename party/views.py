@@ -96,8 +96,7 @@ class PartyCRUD(GenericCRUDView):
 
 
 # /org/
-class PartyOrgCRUD(GenericCRUDView):
-    requireApiKey = False
+class PartyOrgCRUD(APIView):
 
     def namedtuplefetchall(self,cursor):
         #Return all rows from a cursor as a namedtuple
@@ -107,6 +106,11 @@ class PartyOrgCRUD(GenericCRUDView):
 
     #https://demoapi.arabidopsis.org/parties/?ip=131.204.0.0  returns Auburn University
     def get(self, request, format=None):
+        if 'HTTP_AUTHORIZATION' in request.META:
+            roleList = ['staff',]
+            roleListStr = ','.join(roleList)
+            if not rolePermission(request, roleList):
+                return Response({'error': 'roles needed: ' + roleListStr}, status=status.HTTP_400_BAD_REQUEST)
         ip = request.GET.get('ip')
         if (ip is None):
             return HttpResponse("Error. ip not provided")
