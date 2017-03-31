@@ -42,8 +42,8 @@ def isLoggedIn(request):
     return False
 
 def rolePermission(request, roleList):
-    if request.META.get('HTTP_AUTHORIZATION'):
-        token = request.META.get('HTTP_AUTHORIZATION')
+    if 'HTTP_AUTHORIZATION' in request.META:
+        token = request.META['HTTP_AUTHORIZATION']
         logging.error('token: ' + token)
         payload = jwt_decode_handler(token)
         user_id = payload['user_id']
