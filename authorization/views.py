@@ -83,21 +83,23 @@ class SubscriptionsAccess(APIView):
         return HttpResponse(json.dumps(response), content_type="application/json")
 
 # /authentications/
-# class AuthenticationsAccess(APIView):
-#     def get(self, request, format=None):
-#         credentialId = request.COOKIES.get('credentialId')
-#         loginKey = request.COOKIES.get('secretKey')
-#         url = request.GET.get('url')
-#         partnerId = request.GET.get('partnerId')
-#         hostUrl = "http://%s" % request.get_host()
-#         apiKey = request.COOKIES.get('apiKey')
-#         token = None
-#         access = Authorization.authentication(token, loginKey, credentialId, url, partnerId, getHostUrlFromRequest(request), apiKey)
-#         response = {
-#             "access":access,
-#         }
-#         logging.error("Authorization AuthenticationsAccess %s%s %s%s %s%s %s%s" % ("hostUrl:",hostUrl,"partnerId:",partnerId,"url:",url,"access:",access))
-#         return HttpResponse(json.dumps(response), content_type="application/json")
+class AuthenticationsAccess(APIView):
+    authentication_classes = (JSONWebTokenAuthentication,)
+    permission_classes = (IsAuthenticated,)
+    def get(self, request, format=None):
+        credentialId = request.COOKIES.get('credentialId')
+        loginKey = request.COOKIES.get('secretKey')
+        url = request.GET.get('url')
+        partnerId = request.GET.get('partnerId')
+        hostUrl = "http://%s" % request.get_host()
+        apiKey = request.COOKIES.get('apiKey')
+        token = None
+        access = Authorization.authentication(token, loginKey, credentialId, url, partnerId, getHostUrlFromRequest(request), apiKey)
+        response = {
+            "access":access,
+        }
+        logging.error("Authorization AuthenticationsAccess %s%s %s%s %s%s %s%s" % ("hostUrl:",hostUrl,"partnerId:",partnerId,"url:",url,"access:",access))
+        return HttpResponse(json.dumps(response), content_type="application/json")
 
 class URIAccess(APIView):
     def get(self, request, format=None):
