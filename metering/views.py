@@ -31,6 +31,40 @@ class IpAddressCountCRUD(GenericCRUDView):
     queryset = IpAddressCount.objects.all()
     serializer_class = IpAddressCountSerializer
 
+    def get_queryset(self):
+        if isPhoenix(self.request):
+            partyId = self.request.GET.get('partyId')
+            return super(IpRangeCRUD, self).get_queryset().filter(partyId=partyId)
+        return []
+
+    def get(self, request, format=None):
+      roleList = ['staff', 'consortium', 'organization']
+      roleListStr = ','.join(roleList)
+      if not rolePermission(request, roleList):
+          return Response({'error':'roles needed: '+roleListStr}, status=status.HTTP_400_BAD_REQUEST)
+      return super(IpRangeCRUD, self).get(request)
+
+    def post(self, request, format=None):
+      roleList = ['staff', 'consortium', 'organization']
+      roleListStr = ','.join(roleList)
+      if not rolePermission(request, roleList):
+          return Response({'error':'roles needed: '+roleListStr}, status=status.HTTP_400_BAD_REQUEST)
+      return super(IpRangeCRUD, self).post(request)
+
+    def put(self, request, format=None):
+      roleList = ['staff', 'consortium', 'organization']
+      roleListStr = ','.join(roleList)
+      if not rolePermission(request, roleList):
+          return Response({'error':'roles needed: '+roleListStr}, status=status.HTTP_400_BAD_REQUEST)
+      return super(IpRangeCRUD, self).put(request)
+
+    def delete(self, request, format=None):
+      roleList = ['staff', 'consortium', 'organization']
+      roleListStr = ','.join(roleList)
+      if not rolePermission(request, roleList):
+          return Response({'error':'roles needed: '+roleListStr}, status=status.HTTP_400_BAD_REQUEST)
+      return super(IpRangeCRUD, self).delete(request)
+
 # /limits/
 class LimitValueCRUD(GenericCRUDView):
     queryset = LimitValue.objects.all()

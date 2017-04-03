@@ -96,7 +96,8 @@ class PartyCRUD(GenericCRUDView):
 
 
 # /org/
-class PartyOrgCRUD(APIView):
+class PartyOrgCRUD(GenericCRUDView):
+    requireApiKey = False
 
     def namedtuplefetchall(self,cursor):
         #Return all rows from a cursor as a namedtuple
