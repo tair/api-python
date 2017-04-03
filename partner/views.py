@@ -29,11 +29,6 @@ class PartnerCRUD(GenericCRUDView):
 
     def get(self, request, format=None):
         obj = self.get_queryset()
-        params = request.GET
-        if request.GET.get('authority')=='admin':
-            partnerList = Partner.objects.all()
-            serializer = PartnerSerializer(partnerList, many=True)
-            return Response(serializer.data)
         serializer = self.serializer_class(obj, many=True)
         return Response(serializer.data)
 
