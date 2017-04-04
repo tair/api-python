@@ -1,7 +1,7 @@
 #Copyright 2015 Phoenix Bioinformatics Corporation. All rights reserved.
 
 from party.models import Party, IpRange, Country, PartyAffiliation
-from party.serializers import PartySerializer, IpRangeSerializer
+from party.serializers import PartySerializer, IpRangeSerializer, CountrySerializer
 from subscription.models import Subscription
 from partner.models import Partner
 from django.db.models import Q
@@ -135,7 +135,7 @@ class OrganizationView(APIView):
                                  .filter(partyType="consortium")
         for cons in consSubList:
             for ins in cons.PartyAffiliation.all():
-                if ins not in obj:
+                if ins.display==True and ins not in obj:
                     insInCons.append(ins)
 
         out = []
@@ -156,12 +156,17 @@ class OrganizationView(APIView):
 
 class CountryView(APIView):
     requireApiKey = False
-    def get(self, request, format=None):
-        obj = Country.objects.all()
-        out = []
-        for entry in obj:
-            out.append(entry.name)
-        return HttpResponse(json.dumps(out), content_type="application/json")
+    # def get(self, request, format=None):
+    #     obj = Country.objects.all()
+    #     out = []
+    #     for entry in obj:
+    #         out.append(entry.name)
+    #     return HttpResponse(json.dumps(out), content_type="application/json")
+
+    def get(self, request):
+        countryList = Country.objects.all()
+        serializer = CountrySerializer(countryList, many=True)
+        return Response(serializer.data)
 
 # /usage/
 class Usage(APIView):
