@@ -490,31 +490,36 @@ class InstitutionCRUD(GenericCRUDView):
             else:
                 newPwd = data['password']
                 data['password'] = hashlib.sha1(newPwd).hexdigest()
-            try:
-                credential = Credential.objects.get(partyId=party)
-                credentialSerializer = CredentialSerializer(credential, data=data)
-            except Credential.DoesNotExist:
-                credentialSerializer = CredentialSerializer(data=data)
 
-        out = []
+        if any(field in request.data for field in credentialSerializer.Meta.fields):
+            # get credential
+            if Credential.objects.filter(partyId=party).exists():
+                credential = Credential.objects.get(partyId=party)
+                credentialSerializer = CredentialSerializer(credential, data=data, partial=True)
+            elif all(field in request.data for field in ['partyId', 'partnerId', 'username', 'password']):
+                credentialSerializer = CredentialSerializer(data=data, partial=True)
+            else:
+                return Response({'error': 'partyId, partnerId, username, password required to create credential'}, status=status.HTTP_400_BAD_REQUEST)
+
         if partySerializer.is_valid():
             partySerializer.save()
             partyReturnData = partySerializer.data
-            out.append(partyReturnData)
-            if credentialSerializer:
-                if credentialSerializer.is_valid():
-                    credentialSerializer.save()
-                    credentialReturnData = credentialSerializer.data
-                    out.append(credentialReturnData)
-                    return HttpResponse(json.dumps(out), content_type="application/json")
-                else:
-                    return Response(credentialSerializer.errors, status=status.HTTP_400_BAD_REQUEST)
-            else:
-                credentialReturnData = None
-                out.append(credentialReturnData)
-                return HttpResponse(json.dumps(out), content_type="application/json")
         else:
             return Response(partySerializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+        if credentialSerializer:
+            if credentialSerializer.is_valid():
+                credentialSerializer.save()
+                credentialReturnData = credentialSerializer.data
+            else:
+                return Response(credentialSerializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        else:
+            credentialReturnData = None
+
+        out = []
+        out.append(partyReturnData)
+        out.append(credentialReturnData)
+        return HttpResponse(json.dumps(out), content_type="application/json")
 
     #PW-161 POST https://demoapi.arabidopsis.org/parties/institutions/?credentialId=2&secretKey=7DgskfEF7jeRGn1h%2B5iDCpvIkRA%3D
     #NOTE ?/ in parties/institutions/?credentialId=
