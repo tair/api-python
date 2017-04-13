@@ -590,6 +590,7 @@ class InstitutionCRUD(GenericCRUDView):
     #FORM DATA partyId is required. If pwd passed it will be updated in Credential if not - not.
     # output data from both tables for a given partyId
     def put(self, request, format=None):
+        logging.error('parties/institution put function start')
         roleList = ['staff', 'consortium', 'organization']
         roleListStr = ','.join(roleList)
         if not rolePermission(request, roleList):
@@ -618,7 +619,7 @@ class InstitutionCRUD(GenericCRUDView):
         except Exception:
             logging.error('get institutionId and party error')
             return Response({'error': 'get institutionId and party error'},status=status.HTTP_400_BAD_REQUEST)
-        logging.info('party get')
+        logging.error('party get')
 
         if any(field in request.data for field in CredentialSerializer.Meta.fields):
             # email duplicates check
@@ -691,7 +692,7 @@ class InstitutionCRUD(GenericCRUDView):
                         {'error': 'partyId, partnerId, username, password required to create credential'}, status=status.HTTP_400_BAD_REQUEST)
             except Exception:
                 return Response({'error': 'get credential error'}, status=status.HTTP_400_BAD_REQUEST)
-        logging.info('credential done')
+        logging.error('credential done')
 
         try:
             if partySerializer.is_valid():
@@ -717,7 +718,7 @@ class InstitutionCRUD(GenericCRUDView):
         except Exception:
             logging.error('out append error')
             return Response({'error': 'out append error'}, status=status.HTTP_400_BAD_REQUEST)
-        logging.info('data done')
+        logging.error('data done')
         return HttpResponse(json.dumps(out), content_type="application/json")
 
         #PW-161 POST https://demoapi.arabidopsis.org/parties/institutions/?credentialId=2&secretKey=7DgskfEF7jeRGn1h%2B5iDCpvIkRA%3D
