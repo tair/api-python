@@ -596,10 +596,11 @@ class InstitutionCRUD(GenericCRUDView):
            return Response({'error':'roles needed: '+roleListStr}, status=status.HTTP_400_BAD_REQUEST)
         if not isPhoenix(request):
            return HttpResponse({'error':'credentialId and secretKey query parameters missing or invalid'},status=status.HTTP_400_BAD_REQUEST)
-
-        params = request.GET
-        data = request.data.copy()
-
+        try:
+            params = request.GET
+            data = request.data.copy()
+        except Exception:
+            return Response({'error': 'get params and data error'},status=status.HTTP_400_BAD_REQUEST)
         #check params
         if not params:
             return Response({'error':'does not allow update without query parameters'},status=status.HTTP_400_BAD_REQUEST)
@@ -608,85 +609,106 @@ class InstitutionCRUD(GenericCRUDView):
             return Response({'error':'partyId (aka institutionId) required'},status=status.HTTP_400_BAD_REQUEST)
 
         #get party
-        institutionId = request.data['partyId']
-        party = Party.objects.get(partyId = institutionId)
-        partySerializer = PartySerializer(party, data=data)
-        credentialSerializer = None
+        try:
+            institutionId = request.data['partyId']
+            party = Party.objects.get(partyId = institutionId)
+            partySerializer = PartySerializer(party, data=data)
+            credentialSerializer = None
+        except Exception:
+            return Response({'error': 'get institutionId and party error'},status=status.HTTP_400_BAD_REQUEST)
 
         if any(field in request.data for field in CredentialSerializer.Meta.fields):
             # email duplicates check
-            if 'email' in data:
-                for partyId in Credential.objects.all().filter(email=data['email']).filter(
-                        partnerId='phoenix').values_list('partyId', flat=True):
-                    if Party.objects.all().filter(partyId=partyId).filter(partyType='organization').exists():
-                        return Response({'error': 'This email is already used by another institution.'},
-                                        status=status.HTTP_400_BAD_REQUEST)
+            try:
+                if 'email' in data:
+                    for partyId in Credential.objects.all().filter(email=data['email']).filter(
+                            partnerId='phoenix').values_list('partyId', flat=True):
+                        if Party.objects.all().filter(partyId=partyId).filter(partyType='organization').exists():
+                            return Response({'error': 'This email is already used by another institution.'},
+                                            status=status.HTTP_400_BAD_REQUEST)
+            except Exception:
+                return Response({'error': 'email duplicates check error'}, status=status.HTTP_400_BAD_REQUEST)
+
             # preprocessing password data
-            if 'password' in request.data:
-                if (not data['password'] or data['password'] == ""):
-                    return Response({'error': 'PUT parties/institutions/ password must not be empty'}, status=status.HTTP_400_BAD_REQUEST)
-                else:
-                    newPwd = data['password']
-                    data['password'] = hashlib.sha1(newPwd).hexdigest()
+            try:
+                if 'password' in request.data:
+                    if (not data['password'] or data['password'] == ""):
+                        return Response({'error': 'PUT parties/institutions/ password must not be empty'}, status=status.HTTP_400_BAD_REQUEST)
+                    else:
+                        newPwd = data['password']
+                        data['password'] = hashlib.sha1(newPwd).hexdigest()
+            except Exception:
+                return Response({'error': 'preprocess password error'}, status=status.HTTP_400_BAD_REQUEST)
 
             # get credential if exists
-            if Credential.objects.filter(partyId=party).exists():
-                credential = Credential.objects.get(partyId=party)
-                credentialSerializer = CredentialSerializer(credential, data=data, partial=True)
-                # update Djanog User's password for credential
-                if 'password' in request.data:
-                    password = data['password']
-                try:
-                    credential.user.set_password(password)
-                    credential.user.save()
-                    credential.save()
-                except Exception:
-                    return HttpResponse({'error': 'update django user password error'}, status=status.HTTP_400_BAD_REQUEST)
-                # update Django User's username for credential
-                if 'username' in request.data:
+            try:
+                if Credential.objects.filter(partyId=party).exists():
+                    credential = Credential.objects.get(partyId=party)
+                    credentialSerializer = CredentialSerializer(credential, data=data, partial=True)
+                    # update Djanog User's password for credential
+                    if 'password' in request.data:
+                        password = data['password']
+                    try:
+                        credential.user.set_password(password)
+                        credential.user.save()
+                        credential.save()
+                    except Exception:
+                        return HttpResponse({'error': 'update django user password error'}, status=status.HTTP_400_BAD_REQUEST)
+                    # update Django User's username for credential
+                    if 'username' in request.data:
+                        username = data['username']
+                        partnerId = credential.partnerId.partnerId
+                    try:
+                        credential.user.username = username + '_' + partnerId
+                        credential.user.save()
+                        credential.save()
+                    except Exception:
+                        return HttpResponse({'error': 'update django user username error'},
+                                            status=status.HTTP_400_BAD_REQUEST)
+
+
+                # create credential if not exist but has enough data to create
+                elif all(field in request.data for field in ['partyId', 'partnerId', 'username', 'password']):
+                    # create Django User for credential
                     username = data['username']
-                    partnerId = credential.partnerId.partnerId
-                try:
-                    credential.user.username = username + '_' + partnerId
-                    credential.user.save()
-                    credential.save()
-                except Exception:
-                    return HttpResponse({'error': 'update django user username error'},
-                                        status=status.HTTP_400_BAD_REQUEST)
-            # create credential if not exist but has enough data to create
-            elif all(field in request.data for field in ['partyId', 'partnerId', 'username', 'password']):
-                # create Django User for credential
-                username = data['username']
-                partnerId = data['partnerId']
-                password = data['password']
-                try:
-                    user = User.objects.create_user(username=username + '_' + partnerId, password=password)
-                    user.save()
-                except Exception:
-                    return HttpResponse({'error': 'create django user error'}, status=status.HTTP_400_BAD_REQUEST)
-                data['user'] = user.id
-                credentialSerializer = CredentialSerializer(data=data, partial=True)
-            # return error if credential not exist and doesn't have enough data to create
+                    partnerId = data['partnerId']
+                    password = data['password']
+                    try:
+                        user = User.objects.create_user(username=username + '_' + partnerId, password=password)
+                        user.save()
+                    except Exception:
+                        return HttpResponse({'error': 'create django user error'}, status=status.HTTP_400_BAD_REQUEST)
+                    data['user'] = user.id
+                    credentialSerializer = CredentialSerializer(data=data, partial=True)
+                # return error if credential not exist and doesn't have enough data to create
+                else:
+                    return Response(
+                        {'error': 'partyId, partnerId, username, password required to create credential'}, status=status.HTTP_400_BAD_REQUEST)
+            except Exception:
+                return Response({'error': 'get credential error'}, status=status.HTTP_400_BAD_REQUEST)
+
+        try:
+            if partySerializer.is_valid():
+                partySerializer.save()
+                partyReturnData = partySerializer.data
             else:
-                return Response(
-                    {'error': 'partyId, partnerId, username, password required to create credential'}, status=status.HTTP_400_BAD_REQUEST)
+                return Response(partySerializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
-        if partySerializer.is_valid():
-            partySerializer.save()
-            partyReturnData = partySerializer.data
-        else:
-            return Response(partySerializer.errors, status=status.HTTP_400_BAD_REQUEST)
+            if credentialSerializer:
+                if credentialSerializer.is_valid():
+                    credentialSerializer.save()
+                    credentialReturnData = credentialSerializer.data
+                else:
+                    return Response(credentialSerializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        except Exception:
+            return Response({'error': 'compose return data error'}, status=status.HTTP_400_BAD_REQUEST)
 
-        if credentialSerializer:
-            if credentialSerializer.is_valid():
-                credentialSerializer.save()
-                credentialReturnData = credentialSerializer.data
-            else:
-                return Response(credentialSerializer.errors, status=status.HTTP_400_BAD_REQUEST)
-
-        out = []
-        out.append(partyReturnData)
-        out.append(credentialReturnData)
+        try:
+            out = []
+            out.append(partyReturnData)
+            out.append(credentialReturnData)
+        except Exception:
+            return Response({'error': 'out append error'}, status=status.HTTP_400_BAD_REQUEST)
         return HttpResponse(json.dumps(out), content_type="application/json")
 
         #PW-161 POST https://demoapi.arabidopsis.org/parties/institutions/?credentialId=2&secretKey=7DgskfEF7jeRGn1h%2B5iDCpvIkRA%3D
