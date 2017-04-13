@@ -668,13 +668,13 @@ class InstitutionCRUD(GenericCRUDView):
                     if 'username' in request.data:
                         username = data['username']
                         partnerId = credential.partnerId.partnerId
-                    try:
-                        credential.user.username = username + '_' + partnerId
-                        credential.user.save()
-                        credential.save()
-                    except Exception:
-                        return HttpResponse({'error': 'update django user username error'},
-                                            status=status.HTTP_400_BAD_REQUEST)
+                        try:
+                            credential.user.username = username + '_' + partnerId
+                            credential.user.save()
+                            credential.save()
+                        except Exception:
+                            return HttpResponse({'error': 'update django user username error'},
+                                                status=status.HTTP_400_BAD_REQUEST)
                     logging.error('username change done 678')
 
 
