@@ -600,6 +600,7 @@ class InstitutionCRUD(GenericCRUDView):
             params = request.GET
             data = request.data.copy()
         except Exception:
+            logging.error('get params and data error')
             return Response({'error': 'get params and data error'},status=status.HTTP_400_BAD_REQUEST)
         #check params
         if not params:
@@ -615,7 +616,9 @@ class InstitutionCRUD(GenericCRUDView):
             partySerializer = PartySerializer(party, data=data)
             credentialSerializer = None
         except Exception:
+            logging.error('get institutionId and party error')
             return Response({'error': 'get institutionId and party error'},status=status.HTTP_400_BAD_REQUEST)
+        logging.info('party get')
 
         if any(field in request.data for field in CredentialSerializer.Meta.fields):
             # email duplicates check
@@ -627,6 +630,7 @@ class InstitutionCRUD(GenericCRUDView):
                             return Response({'error': 'This email is already used by another institution.'},
                                             status=status.HTTP_400_BAD_REQUEST)
             except Exception:
+                logging.error('email duplicagtes check error')
                 return Response({'error': 'email duplicates check error'}, status=status.HTTP_400_BAD_REQUEST)
 
             # preprocessing password data
@@ -638,6 +642,7 @@ class InstitutionCRUD(GenericCRUDView):
                         newPwd = data['password']
                         data['password'] = hashlib.sha1(newPwd).hexdigest()
             except Exception:
+                logging.error('preprocess password error')
                 return Response({'error': 'preprocess password error'}, status=status.HTTP_400_BAD_REQUEST)
 
             # get credential if exists
@@ -686,6 +691,7 @@ class InstitutionCRUD(GenericCRUDView):
                         {'error': 'partyId, partnerId, username, password required to create credential'}, status=status.HTTP_400_BAD_REQUEST)
             except Exception:
                 return Response({'error': 'get credential error'}, status=status.HTTP_400_BAD_REQUEST)
+        logging.info('credential done')
 
         try:
             if partySerializer.is_valid():
@@ -701,6 +707,7 @@ class InstitutionCRUD(GenericCRUDView):
                 else:
                     return Response(credentialSerializer.errors, status=status.HTTP_400_BAD_REQUEST)
         except Exception:
+            logging.error('compose return data error')
             return Response({'error': 'compose return data error'}, status=status.HTTP_400_BAD_REQUEST)
 
         try:
@@ -708,7 +715,9 @@ class InstitutionCRUD(GenericCRUDView):
             out.append(partyReturnData)
             out.append(credentialReturnData)
         except Exception:
+            logging.error('out append error')
             return Response({'error': 'out append error'}, status=status.HTTP_400_BAD_REQUEST)
+        logging.info('data done')
         return HttpResponse(json.dumps(out), content_type="application/json")
 
         #PW-161 POST https://demoapi.arabidopsis.org/parties/institutions/?credentialId=2&secretKey=7DgskfEF7jeRGn1h%2B5iDCpvIkRA%3D
