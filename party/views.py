@@ -633,6 +633,7 @@ class InstitutionCRUD(GenericCRUDView):
             except Exception:
                 logging.error('email duplicagtes check error')
                 return Response({'error': 'email duplicates check error'}, status=status.HTTP_400_BAD_REQUEST)
+            logging.error('email check done')
 
             # preprocessing password data
             try:
@@ -645,12 +646,14 @@ class InstitutionCRUD(GenericCRUDView):
             except Exception:
                 logging.error('preprocess password error')
                 return Response({'error': 'preprocess password error'}, status=status.HTTP_400_BAD_REQUEST)
+            logging.error('password check done')
 
             # get credential if exists
             try:
                 if Credential.objects.filter(partyId=party).exists():
                     credential = Credential.objects.get(partyId=party)
                     credentialSerializer = CredentialSerializer(credential, data=data, partial=True)
+                    logging.error('credential get done 656')
                     # update Djanog User's password for credential
                     if 'password' in request.data:
                         password = data['password']
@@ -660,6 +663,7 @@ class InstitutionCRUD(GenericCRUDView):
                         credential.save()
                     except Exception:
                         return HttpResponse({'error': 'update django user password error'}, status=status.HTTP_400_BAD_REQUEST)
+                    logging.error('password change done 666')
                     # update Django User's username for credential
                     if 'username' in request.data:
                         username = data['username']
@@ -671,6 +675,7 @@ class InstitutionCRUD(GenericCRUDView):
                     except Exception:
                         return HttpResponse({'error': 'update django user username error'},
                                             status=status.HTTP_400_BAD_REQUEST)
+                    logging.error('username change done 678')
 
 
                 # create credential if not exist but has enough data to create
