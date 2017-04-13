@@ -657,12 +657,12 @@ class InstitutionCRUD(GenericCRUDView):
                     # update Djanog User's password for credential
                     if 'password' in request.data:
                         password = data['password']
-                    try:
-                        credential.user.set_password(password)
-                        credential.user.save()
-                        credential.save()
-                    except Exception:
-                        return HttpResponse({'error': 'update django user password error'}, status=status.HTTP_400_BAD_REQUEST)
+                        try:
+                            credential.user.set_password(password)
+                            credential.user.save()
+                            credential.save()
+                        except Exception:
+                            return HttpResponse({'error': 'update django user password error'}, status=status.HTTP_400_BAD_REQUEST)
                     logging.error('password change done 666')
                     # update Django User's username for credential
                     if 'username' in request.data:
