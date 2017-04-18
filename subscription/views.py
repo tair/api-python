@@ -60,7 +60,7 @@ class SubscriptionCRUD(GenericCRUDView):
             partyId = params['partyId']
             now = datetime.datetime.now()
             if 'checkConsortium' in params and params['checkConsortium'] == 'true':
-                partnerIdList = Partner.objects.all().values_list('partner', flat=True)
+                partnerIdList = Partner.objects.all().values_list('partnerId', flat=True)
                 idSub = []
                 for partnerId in partnerIdList:
                     idSub.append(Subscription.getById(partyId).filter(partnerId=partnerId).filter(endDate__gt=now).filter(startDate__lt=now).latest('endDate'))
