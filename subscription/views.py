@@ -58,8 +58,16 @@ class SubscriptionCRUD(GenericCRUDView):
             return Response(serializer.data)
         elif 'partyId' in params:
             partyId = params['partyId']
-            if 'active' in params and params['active'] == 'true':
-                now = datetime.datetime.now()
+            now = datetime.datetime.now()
+            if 'checkConsortium' in params and params['checkConsortium'] == 'true':
+                partnerIdList = Partner.objects.all().values_list('partnerId', flat=True)
+                idSub = []
+                allSub = Subscription.getById(partyId)
+                for partnerId in partnerIdList:
+                    if allSub.filter(partnerId=partnerId).filter(endDate__gt=now).filter(startDate__lt=now).exists():
+                        idSub.append(allSub.filter(partnerId=partnerId).filter(endDate__gt=now).filter(startDate__lt=now).latest('endDate'))
+                serializer = SubscriptionSerializer(idSub, many=True)
+            elif 'active' in params and params['active'] == 'true':
                 activeSubscriptions = Subscription.objects.all().filter(partyId=partyId).filter(endDate__gt=now).filter(startDate__lt=now)
                 serializer = SubscriptionSerializer(activeSubscriptions, many=True)
             else:
