@@ -5,6 +5,8 @@ import base64, hmac, hashlib
 from django.contrib.auth.models import User
 from rest_framework_jwt.settings import api_settings
 import logging
+from django.dispatch import receiver
+from django.db.models.signals import post_delete
 
 # Create your models here.
 
@@ -68,3 +70,10 @@ class GooglePartyAffiliation(models.Model):
   partyId = models.ForeignKey(Party)
   class Meta:
     db_table = "GoogleEmail"
+
+
+# http://stackoverflow.com/questions/12754024/onetoonefield-and-deleting
+@receiver(post_delete, sender=Credential)
+def post_delete_user(sender, instance, *args, **kwargs):
+  if instance.user:  # just in case user is not specified
+    instance.user.delete()
