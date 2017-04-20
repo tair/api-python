@@ -25,6 +25,12 @@ class Credential(models.Model):
   #name = models.CharField(max_length=64, null=True) vet PW-161
   user = models.OneToOneField(User, on_delete=models.CASCADE, unique=True)
 
+  # http://stackoverflow.com/questions/12754024/onetoonefield-and-deleting
+  # TODO: learn post_delete and add it for Credential in case there will be bulk delete
+  def delete(self, *args, **kwargs):
+    self.user.delete()
+    return super(self.__class__, self).delete(*args, **kwargs)
+
   @staticmethod
   def validate(partyId, token, secretKey):
     #verify jwt token
@@ -70,10 +76,3 @@ class GooglePartyAffiliation(models.Model):
   partyId = models.ForeignKey(Party)
   class Meta:
     db_table = "GoogleEmail"
-
-
-# http://stackoverflow.com/questions/12754024/onetoonefield-and-deleting
-@receiver(post_delete, sender=Credential)
-def post_delete_user(sender, instance, *args, **kwargs):
-  if instance.user:  # just in case user is not specified
-    instance.user.delete()
