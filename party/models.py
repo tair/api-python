@@ -5,7 +5,7 @@ from django.db import connection
 from netaddr import IPAddress
 from django.utils import timezone
 import logging
-# from authentication.models import Credential
+from django.db.models.loading import get_model
 
 # Create your models here.
 class NumericField(models.Field):
@@ -21,10 +21,12 @@ class Party(models.Model):
     consortiums = models.ManyToManyField('self', through="PartyAffiliation", through_fields=('childPartyId', 'parentPartyId'), symmetrical=False, related_name="PartyAffiliation")
     label = models.CharField(max_length=64, null=True)
 
-    # http://stackoverflow.com/questions/12754024/onetoonefield-and-deleting
+    # cascade delete - http://stackoverflow.com/questions/12754024/onetoonefield-and-deleting
+    # circular import solution - http://stackoverflow.com/questions/29744016/how-to-lazy-load-a-model-in-a-managers-to-stop-circular-imports
     # TODO: learn post_delete and add it for Credential in case there will be bulk delete
     def delete(self):
-        'authentication.Credential'.obejcts.get(partyId = self.partyId).delete()
+        credentialModel = get_model('authentication', 'Credential')
+        credentialModel.obejcts.get(partyId = self).delete()
         return super(Party, self).delete()
 
     @staticmethod
