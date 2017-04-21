@@ -19,7 +19,7 @@ class Credential(models.Model):
   password = models.CharField(max_length=64)
   email = models.CharField(max_length=254, null=True)
   institution = models.CharField(max_length=200, null=True)#PW-254
-  partyId = models.ForeignKey(Party, db_column='partyId')
+  partyId = models.ForeignKey(Party, db_column='partyId', on_delete=models.CASCADE)
   partnerId = models.ForeignKey(Partner, db_column='partnerId')
   userIdentifier = models.CharField(max_length=32, null=True)
   #name = models.CharField(max_length=64, null=True) vet PW-161
