@@ -27,9 +27,9 @@ class Credential(models.Model):
 
   # http://stackoverflow.com/questions/12754024/onetoonefield-and-deleting
   # TODO: learn post_delete and add it for Credential in case there will be bulk delete
-  def delete(self, *args, **kwargs):
+  def delete(self):
     self.user.delete()
-    return super(self.__class__, self).delete(*args, **kwargs)
+    return super(Credential, self).delete()
 
   @staticmethod
   def validate(partyId, token, secretKey):
