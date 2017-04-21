@@ -5,7 +5,7 @@ from django.db import connection
 from netaddr import IPAddress
 from django.utils import timezone
 import logging
-from authentication.models import Credential
+# from authentication.models import Credential
 
 # Create your models here.
 class NumericField(models.Field):
@@ -24,7 +24,7 @@ class Party(models.Model):
     # http://stackoverflow.com/questions/12754024/onetoonefield-and-deleting
     # TODO: learn post_delete and add it for Credential in case there will be bulk delete
     def delete(self):
-        Credential.obejcts.get(partyId = self.partyId).delete()
+        'authentication.Credential'.obejcts.get(partyId = self.partyId).delete()
         return super(Party, self).delete()
 
     @staticmethod
