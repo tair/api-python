@@ -5,6 +5,7 @@ from django.db import connection
 from netaddr import IPAddress
 from django.utils import timezone
 import logging
+from authentication.models import Credential
 
 # Create your models here.
 class NumericField(models.Field):
@@ -19,6 +20,12 @@ class Party(models.Model):
     country = models.ForeignKey('Country', null=True, db_column="countryId")
     consortiums = models.ManyToManyField('self', through="PartyAffiliation", through_fields=('childPartyId', 'parentPartyId'), symmetrical=False, related_name="PartyAffiliation")
     label = models.CharField(max_length=64, null=True)
+
+    # http://stackoverflow.com/questions/12754024/onetoonefield-and-deleting
+    # TODO: learn post_delete and add it for Credential in case there will be bulk delete
+    def delete(self):
+        Credential.obejcts.get(partyId = self).delete()
+        return super(Party, self).delete()
 
     @staticmethod
     def getByIp(ipAddress):
