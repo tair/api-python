@@ -11,6 +11,10 @@ import json
 from rest_framework.permissions import IsAuthenticated
 from rest_framework_jwt.authentication import JSONWebTokenAuthentication
 
+from rest_framework_swagger.views import get_swagger_view
+
+schema_view = get_swagger_view(title='Pastebin API')
+
 # Create your views here.
 class validateip(APIView):
     authentication_classes = (JSONWebTokenAuthentication,)

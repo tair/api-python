@@ -6,6 +6,7 @@ from rest_framework.urlpatterns import format_suffix_patterns
 
 urlpatterns = [ 
     url(r'^validateip/$', views.validateip.as_view()),
+    url(r'^api-doc/$', views.schema_view),
 ]
 
 urlpatterns = format_suffix_patterns(urlpatterns)
