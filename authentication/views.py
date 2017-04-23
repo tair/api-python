@@ -362,6 +362,7 @@ class profile(GenericCRUDView):
 # getUsernames/
 class getUsernameCRUD(GenericCRUDView):
     requireApiKey = False
+    serializer_class = CredentialSerializerNoPassword
 
     def get(self, request):
         params = request.GET
