@@ -470,6 +470,7 @@ class RenewSubscription(generics.GenericAPIView):
 # /request/
 class RequestSubscription(generics.GenericAPIView):
     requireApiKey = False
+    serializer_class = SubscriptionSerializer
     def post(self, request):
         if not isPhoenix(request):
            return HttpResponse(status=400)
