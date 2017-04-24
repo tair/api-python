@@ -328,6 +328,7 @@ def generateSecretKey(partyId, password):
 class profile(GenericCRUDView):
   queryset = Credential.objects.all()
   requireApiKey = False
+  serializer_class = CredentialSerializer
 
   def put(self, request, format=None):
     # TODO: security risk here, get username based on the partyId verified in isPhoenix -SC
