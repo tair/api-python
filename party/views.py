@@ -98,6 +98,7 @@ class PartyCRUD(GenericCRUDView):
 # /org/
 class PartyOrgCRUD(GenericCRUDView):
     requireApiKey = False
+    serializer_class = PartySerializer
 
     def namedtuplefetchall(self,cursor):
         #Return all rows from a cursor as a namedtuple
