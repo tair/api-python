@@ -25,4 +25,5 @@ urlpatterns = patterns('',
     url(r'^cookies/', include('cookies.urls')),
     url(r'^ipranges/', include('ipranges.urls')),
     url(r'^api-token-auth/', obtain_jwt_token),
+    url(r'^swagger-doc/', include('swaggerdoc.urls')),
 )
