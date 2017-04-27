@@ -34,3 +34,5 @@ settings.py
 *.csv
 *.txt
 
+# static files
+/static
