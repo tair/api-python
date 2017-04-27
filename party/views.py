@@ -65,6 +65,12 @@ class PartyCRUD(GenericCRUDView):
     def get(self, request, format=None):
         """
         The Party API manages parties, the individual people and organizations that play a role in the Phoenix system. Parties may be users, organizations, consortiums, partners, staff, or admin parties. The party type defines the role of the party in the system and hence what API calls the party may execute. The party is the basis for authentication.
+        parameters:
+        - name: partyId
+          description: partyId
+          required: true
+          type: string
+          paramType: form
         """
         roleList = ['staff', 'consortium', 'organization']
         roleListStr = ','.join(roleList)
