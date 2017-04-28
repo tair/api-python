@@ -471,14 +471,14 @@ class InstitutionCRUD(GenericCRUDView):
         if not params:
             return Response({'error':'does not allow update without query parameters'},status=status.HTTP_400_BAD_REQUEST)
 
-        if 'partyId' not in request.data:
+        if 'partyId' not in params:
             return Response({'error':'partyId (aka institutionId) required'},status=status.HTTP_400_BAD_REQUEST)
 
-        institutionId = request.data['partyId']
+        institutionId = params['partyId']
         credentialSerializer = None
         #get party
         party = Party.objects.get(partyId = institutionId)
-        partySerializer = PartySerializer(party, data=data)
+        partySerializer = PartySerializer(party, data=data, partial=True)
         if 'email' in data:
             for partyId in Credential.objects.all().filter(email=data['email']).filter(partnerId='phoenix').values_list('partyId', flat=True):
                 if Party.objects.all().filter(partyId=partyId).filter(partyType='organization').exists():
@@ -496,10 +496,12 @@ class InstitutionCRUD(GenericCRUDView):
             if Credential.objects.filter(partyId=party).exists():
                 credential = Credential.objects.get(partyId=party)
                 credentialSerializer = CredentialSerializer(credential, data=data, partial=True)
-            elif all(field in request.data for field in ['partyId', 'partnerId', 'username', 'password']):
+            elif all(field in request.data for field in ['username', 'password']):
+                data['partyId'] = institutionId
+                data['partnerId'] = 'phoenix'
                 credentialSerializer = CredentialSerializer(data=data, partial=True)
             else:
-                return Response({'error': 'partyId, partnerId, username, password required to create credential'}, status=status.HTTP_400_BAD_REQUEST)
+                return Response({'error': 'username, password required to create credential'}, status=status.HTTP_400_BAD_REQUEST)
 
         if partySerializer.is_valid():
             partySerializer.save()
