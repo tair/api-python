@@ -38,16 +38,16 @@ class LimitValueCRUD(GenericCRUDView):
 
 # /meterblacklist
 class MeterBlacklistCRUD(GenericCRUDView):
-    authentication_classes = (JSONWebTokenAuthentication,)
-    permission_classes = (IsAuthenticated,)
+    # authentication_classes = (JSONWebTokenAuthentication,)
+    # permission_classes = (IsAuthenticated,)
     queryset = MeterBlacklist.objects.all()
     serializer_class = MeterBlacklistSerializer
 
 #Increment request for an IP
 # /ip/<pk>/increment/
 class increment(APIView):
-    authentication_classes = (JSONWebTokenAuthentication,)
-    permission_classes = (IsAuthenticated,)
+    # authentication_classes = (JSONWebTokenAuthentication,)
+    # permission_classes = (IsAuthenticated,)
     def post(self, request, ip, format=None):
         partnerId = request.GET.get('partnerId')
         if IpAddressCount.objects.filter(ip=ip).filter(partnerId=partnerId).exists():
@@ -81,8 +81,8 @@ class check_limit(APIView):
     complete URI (required)
     status (required)
     '''
-    authentication_classes = (JSONWebTokenAuthentication,)
-    permission_classes = (IsAuthenticated,)
+    # authentication_classes = (JSONWebTokenAuthentication,)
+    # permission_classes = (IsAuthenticated,)
     def get(self, request, ip, format=None):
         partnerId = request.GET.get('partnerId')
         uri = request.GET.get('uri')
