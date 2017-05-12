@@ -663,24 +663,24 @@ class InstitutionCRUD(GenericCRUDView):
                         return HttpResponse({'error': 'update django user username error'},
                                             status=status.HTTP_400_BAD_REQUEST)
 
-                # create credential if not exist but has enough data to create
-                elif all(field in request.data for field in ['username', 'password']):
-                    data['partyId'] = institutionId
-                    data['partnerId'] = 'phoenix'
-                    # create Django User for credential
-                    username = data['username']
-                    partnerId = data['partnerId']
-                    password = data['password']
-                    try:
-                        user = User.objects.create_user(username=username + '_' + partnerId, password=password)
-                        user.save()
-                    except Exception:
-                        return HttpResponse({'error': 'create django user error'}, status=status.HTTP_400_BAD_REQUEST)
-                    data['user'] = user.id
-                    credentialSerializer = CredentialSerializer(data=data, partial=True)
-                # return error if credential not exist and doesn't have enough data to create
-                else:
-                    return Response({'error': 'username, password required to create credential'}, status=status.HTTP_400_BAD_REQUEST)
+            # create credential if not exist but has enough data to create
+            elif all(field in request.data for field in ['username', 'password']):
+                data['partyId'] = institutionId
+                data['partnerId'] = 'phoenix'
+                # create Django User for credential
+                username = data['username']
+                partnerId = data['partnerId']
+                password = data['password']
+                try:
+                    user = User.objects.create_user(username=username + '_' + partnerId, password=password)
+                    user.save()
+                except Exception:
+                    return HttpResponse({'error': 'create django user error'}, status=status.HTTP_400_BAD_REQUEST)
+                data['user'] = user.id
+                credentialSerializer = CredentialSerializer(data=data, partial=True)
+            # return error if credential not exist and doesn't have enough data to create
+            else:
+                return Response({'error': 'username, password required to create credential'}, status=status.HTTP_400_BAD_REQUEST)
 
         if partySerializer.is_valid():
             partySerializer.save()
