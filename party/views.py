@@ -126,13 +126,16 @@ class PartyOrgCRUD(GenericCRUDView):
         if ip is None:
             return HttpResponse("Error. ip not provided")
         try:
-            cursor = connection.cursor()
-            sqlStatement = 'select p.partyId, p.name from Party p where p.partyId in (\
-            SELECT ipr.partyId FROM IpRange ipr WHERE (INET_ATON("'+ip+'") BETWEEN INET_ATON(ipr.start) \
-            AND INET_ATON(ipr.end))) and (p.partyType="organization" or p.partyType="consortium")'
+            results = Party.objects.raw('SELECT p.partyId, p.name FROM Party p WHERE p.partyId in (\
+            SELECT ipr.partyId FROM IpRange ipr WHERE (INET_ATON("%s") BETWEEN INET_ATON(ipr.start) AND INET_ATON(ipr.end))) \
+            and (p.partyType="organization" or p.partyType="consortium")', [ip])
+            #cursor = connection.cursor()
+            #sqlStatement = 'select p.partyId, p.name from Party p where p.partyId in (\
+            #SELECT ipr.partyId FROM IpRange ipr WHERE (INET_ATON("'+ip+'") BETWEEN INET_ATON(ipr.start) \
+            #AND INET_ATON(ipr.end))) and (p.partyType="organization" or p.partyType="consortium")'
             #logging.error("/parties/org/?ip=%s, %s" % (ip, sqlStatement))
-            cursor.execute(sqlStatement)
-            results = self.namedtuplefetchall(cursor)
+            #cursor.execute(sqlStatement)
+            #results = self.namedtuplefetchall(cursor)
             #return HttpResponse(json.dumps(results), content_type="application/json")
             out = []
             for entry in results:
@@ -146,10 +149,10 @@ class PartyOrgCRUD(GenericCRUDView):
             logging.error("Exception in /parties/org/?ip=%s, %s" % (ip, traceback.format_exc()))
             #logging.error(sys.exc_info()[0])
             return HttpResponse("")
-        finally:
-            if cursor:
-                cursor.close()
-                connection.close()
+        #finally:
+            #if cursor:
+            #    cursor.close()
+            #    connection.close()
 
 
 # /ipranges/
