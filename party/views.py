@@ -127,8 +127,8 @@ class PartyOrgCRUD(GenericCRUDView):
             return HttpResponse("Error. ip not provided")
         try:
             results = Party.objects.raw('SELECT p.partyId, p.name FROM Party p WHERE p.partyId in (\
-            SELECT ipr.partyId FROM IpRange ipr WHERE (INET_ATON("%s") BETWEEN INET_ATON(ipr.start) AND INET_ATON(ipr.end))) \
-            and (p.partyType="organization" or p.partyType="consortium")', [ip])
+            SELECT ipr.partyId FROM IpRange ipr WHERE (INET_ATON("130.107.65.65") BETWEEN INET_ATON(ipr.start) AND INET_ATON(ipr.end))) \
+            and (p.partyType="organization" or p.partyType="consortium")')
             #cursor = connection.cursor()
             #sqlStatement = 'select p.partyId, p.name from Party p where p.partyId in (\
             #SELECT ipr.partyId FROM IpRange ipr WHERE (INET_ATON("'+ip+'") BETWEEN INET_ATON(ipr.start) \
