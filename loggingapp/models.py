@@ -8,7 +8,7 @@ import datetime
 
 class PageView(models.Model):
   pageViewId = models.AutoField(primary_key=True)
-  uri = models.CharField(max_length=250)
+  uri = models.CharField(max_length=2000)#PW-498
   partyId = models.ForeignKey('party.Party', db_column='partyId', null=True)
   pageViewDate = models.DateTimeField(default=datetime.datetime.utcnow)
   sessionId = models.CharField(max_length=250, null=True)
