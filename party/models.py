@@ -5,7 +5,7 @@ from django.db import connection
 from netaddr import IPAddress
 from django.utils import timezone
 import logging
-from django.db.models.loading import get_model
+from django.apps import apps
 
 # Create your models here.
 class NumericField(models.Field):
@@ -25,7 +25,7 @@ class Party(models.Model):
     # circular import solution - http://stackoverflow.com/questions/29744016/how-to-lazy-load-a-model-in-a-managers-to-stop-circular-imports
     # TODO: learn post_delete and add it for Credential in case there will be bulk delete
     def delete(self):
-        credentialModel = get_model('authentication', 'Credential')
+        credentialModel = apps.get_model('authentication', 'Credential')
         credentialModel.objects.get(partyId = self).delete()
         return super(Party, self).delete()
 
