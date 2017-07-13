@@ -44,7 +44,7 @@ for entry in organizationCountryData:
         print 'cannot find party: ' + organizationName
         continue
 
-    data = {'countryId':countryId}
+    data = {'country':countryId}
 
     serializer = PartySerializer(party, data=data, partial=True)
     if serializer.is_valid():
