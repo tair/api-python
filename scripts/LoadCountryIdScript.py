@@ -36,6 +36,9 @@ for entry in organizationCountryData:
         continue
 
     if Party.objects.all().filter(name=organizationName).exists():
+        if Party.objects.all().filter(name=organizationName).count() > 1:
+            print 'more than one Party returned: ' + organizationName
+            continue
         party = Party.objects.get(name=organizationName)
     else:
         print 'cannot find party: ' + organizationName
