@@ -26,16 +26,20 @@ print 'Processing Data'
 for entry in organizationCountryData:
     organizationName = entry[0]
     countryName = entry[1]
+    party = None
+    countryId = None
 
     if Country.objects.all().filter(name=countryName).exists():
         countryId = Country.objects.get(name=countryName).countryId
     else:
         print 'cannot find country name: ' + countryName
+        continue
 
     if Party.objects.all().filter(name=organizationName).exists():
         party = Party.objects.get(name=organizationName)
     else:
         print 'cannot find party: ' + organizationName
+        continue
 
     data = {'countryId':countryId}
 
