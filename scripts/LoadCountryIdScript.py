@@ -28,7 +28,7 @@ for entry in organizationCountryData:
     countryName = entry[1]
 
     if Country.objects.all().filter(name=countryName).exists():
-        countryId = Country.objects.get(name=countryName).countryId.countryId
+        countryId = Country.objects.get(name=countryName).countryId
     else:
         print 'cannot find country name: ' + countryName
 
