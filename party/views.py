@@ -80,6 +80,35 @@ class PartyOrgCRUD(GenericCRUDView):
             #logging.error(sys.exc_info()[0])
             return HttpResponse("")
 
+# /orgstatus/
+class PartyOrgStatusView(APIView):
+    requireApiKey = False
+
+    def get(self, request, format=None):
+        if 'ip' not in request.GET:
+            return Response({'error': 'ip is required'},status=status.HTTP_400_BAD_REQUEST)
+        if 'partnerId' not in request.GET:
+            return Response({'error': 'partnerId is required'}, status=status.HTTP_400_BAD_REQUEST)
+        ip = request.GET.get('ip')
+        partnerId = request.GET.get('partnerId')
+
+        ipranges = IpRange.getByIp(ip)
+        if len(ipranges) <1:
+            return HttpResponse("")
+        partyId = ipranges[0].partyId.partyId
+        party = Party.objects.get(partyId=partyId)
+        subscription = Subscription.getActiveById(partyId, partnerId)
+        if len(subscription) > 0:
+            return Response({party.name + ' (subscribed)'}, status=status.HTTP_200_OK)
+        else:
+            return Response({party.name + ' (not subscribed)'}, status=status.HTTP_200_OK)
+
+
+
+
+
+
+
 # /ipranges/
 class IpRangeCRUD(GenericCRUDView):
     requireApiKey = False
