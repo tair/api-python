@@ -154,10 +154,19 @@ class PartyOrgStatusView(APIView):
         partyId = ipranges[0].partyId.partyId
         party = Party.objects.get(partyId=partyId)
         subscription = Subscription.getActiveById(partyId, partnerId)
+        status = None
+
         if len(subscription) > 0:
-            return HttpResponse(party.name + ' (subscribed)')
+            status = 'subscribed'
         else:
-            return HttpResponse(party.name + ' (not subscribed)')
+            status = 'not subscribed'
+
+        ret = {
+            'name': party.name,
+            'status': status,
+        }
+
+        return Response(ret, status=status.HTTP_400_BAD_REQUEST)
 
 # /ipranges/
 class IpRangeCRUD(GenericCRUDView):
