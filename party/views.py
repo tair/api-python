@@ -166,7 +166,7 @@ class PartyOrgStatusView(APIView):
             'status': status,
         }
 
-        return Response(ret, status=status.HTTP_400_BAD_REQUEST)
+        return Response(json.dumps(ret), status=status.HTTP_400_BAD_REQUEST)
 
 # /ipranges/
 class IpRangeCRUD(GenericCRUDView):
