@@ -161,12 +161,7 @@ class PartyOrgStatusView(APIView):
         else:
             status = 'not subscribed'
 
-        ret = {
-            'name': party.name,
-            'status': status,
-        }
-
-        return Response(json.dumps(ret), status=status.HTTP_400_BAD_REQUEST)
+        return Response({'name': party.name,'status': status}, status=status.HTTP_200_OK)
 
 # /ipranges/
 class IpRangeCRUD(GenericCRUDView):
