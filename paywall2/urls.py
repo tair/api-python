@@ -7,7 +7,7 @@
 from django.conf.urls import patterns, include, url
 from django.contrib import admin
 from rest_framework import routers
-from rest_framework_jwt.views import obtain_jwt_token
+from rest_framework_jwt.views import obtain_jwt_token, verify_jwt_token
 
 router = routers.DefaultRouter()
 
@@ -26,4 +26,5 @@ urlpatterns = patterns('',
     url(r'^ipranges/', include('ipranges.urls')),
     url(r'^api-token-auth/', obtain_jwt_token),
     url(r'^swagger-doc/', include('swaggerdoc.urls')),
+    url(r'^api-token-verify/', verify_jwt_token),
 )
