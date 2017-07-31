@@ -48,7 +48,7 @@ class listcreateuser(GenericCRUDView):
           return Response({'error':'roles needed: '+roleListStr}, status=status.HTTP_400_BAD_REQUEST)
       return super(listcreateuser, self).get(request)
 
-  def get_queryset(self):
+  def get_queryset_update(self):
     params = self.request.GET
     #get by userIdentifier
     if 'userIdentifier' in params:
@@ -133,10 +133,10 @@ class listcreateuser(GenericCRUDView):
       return Response(status=status.HTTP_400_BAD_REQUEST)
     # http://stackoverflow.com/questions/12611345/django-why-is-the-request-post-object-immutable
     serializer_class = self.get_serializer_class()
-    queryResult = self.get_queryset()
+    queryResult = self.get_queryset_update()
     if type(queryResult) == str:
         return Response({'error': queryResult}, status=status.HTTP_400_BAD_REQUEST)
-    obj = self.get_queryset().first()
+    obj = self.get_queryset_update().first()
     if not obj:
         return Response({'error': 'cannot find any record.'}, status=status.HTTP_404_NOT_FOUND)
     #http://stackoverflow.com/questions/18930234/django-modifying-the-request-object PW-123
