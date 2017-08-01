@@ -158,12 +158,14 @@ class listcreateuser(GenericCRUDView):
     serializer = serializer_class(obj, data=data, partial=True)
     if serializer.is_valid():
       serializer.save()
+      returnData = serializer.data.copy()
       #update party info
       if 'partyId' in serializer.data:
         partyId = serializer.data['partyId']
         partyObj = Party.objects.all().get(partyId = partyId)
         if 'name' in data:
           name = data['name']
+          returnData['name'] = name
           partyData = {'name':name}
           partySerializer = PartySerializer(partyObj, data=partyData, partial =True)
           if partySerializer.is_valid():
@@ -174,11 +176,11 @@ class listcreateuser(GenericCRUDView):
 
         payload = jwt_payload_handler(obj.user)
         token = jwt_encode_handler(payload)
-        data['token'] = token
+        returnData['token'] = token
       if 'password' in data:
         # data['password'] = generateSecretKey(str(obj.partyId.partyId), data['password'])#PW-254 and YM: TAIR-2493
-        data['loginKey'] = generateSecretKey(str(obj.partyId.partyId), data['password'])
-      return Response(data, status=status.HTTP_200_OK)
+        returnData['loginKey'] = generateSecretKey(str(obj.partyId.partyId), data['password'])
+      return Response(returnData, status=status.HTTP_200_OK)
     return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 #/credentials/login/
