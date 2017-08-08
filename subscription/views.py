@@ -148,11 +148,11 @@ class SubscriptionCRUD(GenericCRUDView):
             returnData['subscriptionTransactionId']=transaction.subscriptionTransactionId
             return Response(returnData, status=status.HTTP_201_CREATED)
         else:
+            serializer = self.serializer_class(data=request.data)
             # basic subscription creation
             if not isPhoenix(self.request):
                 return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
-            serializer = self.serializer_class(data=request.data)
             if serializer.is_valid():
                 subscription = serializer.save()
                 transaction = SubscriptionTransaction.createFromSubscription(subscription, 'create')
