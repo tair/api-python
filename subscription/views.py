@@ -151,7 +151,7 @@ class SubscriptionCRUD(GenericCRUDView):
             serializer = self.serializer_class(data=request.data)
             # basic subscription creation
             if not isPhoenix(self.request):
-                return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+                return HttpResponse({'error': 'POST subscriptions/ credentialId and secretKey query parameters missing or invalid'}, status=status.HTTP_400_BAD_REQUEST)
 
             if serializer.is_valid():
                 subscription = serializer.save()
