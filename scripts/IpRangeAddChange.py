@@ -57,7 +57,7 @@ for entry in IpRangeListData:
 
         # when the party exists
         else:
-            if Party.objects.all().filter(name=institutionName).count > 1:
+            if Party.objects.all().filter(name=institutionName).count() > 1:
                 print '[More than one party found with institution name] ' + \
                       'type: ' + actionType + \
                       'institution: ' + institutionName + \
@@ -103,7 +103,7 @@ for entry in IpRangeListData:
 
         # when the party exists
         else:
-            if Party.objects.all().filter(name=institutionName).count > 1:
+            if Party.objects.all().filter(name=institutionName).count() > 1:
                 print '[More than one party found with institution name] ' + \
                       'type: ' + actionType + \
                       'institution: ' + institutionName + \
