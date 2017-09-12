@@ -67,6 +67,7 @@ for entry in IpRangeListData:
                 continue
             partyId = Party.objects.get(name=institutionName).partyId
             ipRangeList = IpRange.objects.all().filter(partyId=partyId)
+            nextIter = False
             for ipRange in ipRangeList:
                 if ipRange.start == startIp and ipRange.end == endIp:
                     print '[Ip range already exists] ' + \
@@ -74,8 +75,11 @@ for entry in IpRangeListData:
                           'institution: ' + institutionName + \
                           'start: ' + startIp + \
                           'end: ' + endIp
+                    nextIter = True
                     ipRangeExists += 1
-                    continue
+                    break
+            if nextIter == True:
+                continue
         # create ip range
         ipRangeSerializer = IpRangeSerializer(data={'start': startIp, 'end': endIp, 'partyId': partyId}, partial=True)
         if ipRangeSerializer.is_valid():
@@ -113,6 +117,7 @@ for entry in IpRangeListData:
                 continue
             partyId = Party.objects.get(name=institutionName).partyId
             ipRangeList = IpRange.objects.all().filter(partyId=partyId)
+            nextIter = False
             for ipRange in ipRangeList:
                 if ipRange.start == startIp and ipRange.end == endIp:
                     print '[Ip range already exists] ' + \
@@ -120,8 +125,11 @@ for entry in IpRangeListData:
                           'institution: ' + institutionName + \
                           'start: ' + startIp + \
                           'end: ' + endIp
+                    nextIter = True
                     ipRangeExists += 1
                     continue
+            if nextIter == True:
+                continue
         # create ip range
         ipRangeSerializer = IpRangeSerializer(data={'start': startIp, 'end': endIp, 'partyId': partyId}, partial=True)
         if ipRangeSerializer.is_valid():
