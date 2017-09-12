@@ -143,11 +143,6 @@ for entry in IpRangeListData:
                   'end: ' + endIp
             ipRangeFailed += 1
 
-ipRangeExists = 0
-partyCreated = 0
-ipRangeLoaded = 0
-ipRangeFailed = 0
-
 print 'Loading Complete: ' + \
     'ipRangeLoaded: ' + str(ipRangeLoaded) + \
     'ipRangeExists: ' + str(ipRangeExists) + \
