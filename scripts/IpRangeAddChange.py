@@ -141,7 +141,7 @@ ipRangeLoaded = 0
 ipRangeFailed = 0
 
 print 'Loading Complete: ' + \
-    'ipRangeLoaded: ' + ipRangeLoaded + \
-    'ipRangeExists: ' + ipRangeExists + \
-    'ipRangeFailed: ' + ipRangeFailed + \
-    'partyCreated: ' + partyCreated
+    'ipRangeLoaded: ' + str(ipRangeLoaded) + \
+    'ipRangeExists: ' + str(ipRangeExists) + \
+    'ipRangeFailed: ' + str(ipRangeFailed) + \
+    'partyCreated: ' + str(partyCreated)
