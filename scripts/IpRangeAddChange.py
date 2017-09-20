@@ -28,7 +28,7 @@ ipRangeExists = 0
 partyCreated = 0
 ipRangeLoaded = 0
 ipRangeFailed = 0
-
+cleared = []
 
 for entry in IpRangeListData:
     actionType = entry[0]
@@ -106,30 +106,20 @@ for entry in IpRangeListData:
             continue
 
         # when the party exists
+        elif Party.objects.all().filter(name=institutionName).count() > 1:
+            print '[More than one party found with institution name] ' + \
+                  'type: ' + actionType + \
+                  'institution: ' + institutionName + \
+                  'start: ' + startIp + \
+                  'end: ' + endIp
+            ipRangeFailed +=1
+            continue
         else:
-            if Party.objects.all().filter(name=institutionName).count() > 1:
-                print '[More than one party found with institution name] ' + \
-                      'type: ' + actionType + \
-                      'institution: ' + institutionName + \
-                      'start: ' + startIp + \
-                      'end: ' + endIp
-                ipRangeFailed +=1
-                continue
             partyId = Party.objects.get(name=institutionName).partyId
-            ipRangeList = IpRange.objects.all().filter(partyId=partyId)
-            nextIter = False
-            for ipRange in ipRangeList:
-                if ipRange.start == startIp and ipRange.end == endIp:
-                    print '[Ip range already exists] ' + \
-                          'type: ' + actionType + \
-                          'institution: ' + institutionName + \
-                          'start: ' + startIp + \
-                          'end: ' + endIp
-                    nextIter = True
-                    ipRangeExists += 1
-                    continue
-            if nextIter == True:
-                continue
+            if partyId not in cleared:
+                IpRange.objects.all().filter(partyId=partyId).delete()
+                cleared.append(partyId)
+
         # create ip range
         ipRangeSerializer = IpRangeSerializer(data={'start': startIp, 'end': endIp, 'partyId': partyId}, partial=True)
         if ipRangeSerializer.is_valid():
