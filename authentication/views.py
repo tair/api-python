@@ -305,11 +305,15 @@ class getUsernameCRUD(GenericCRUDView):
 
     def get(self, request):
         params = request.GET
-        if 'email' not in params:
-            return Response({'error':'email param is required.'}, status=status.HTTP_400_BAD_REQUEST)
+        requiredParams = ['email', 'partnerId']
+        for param in requiredParams:
+            if param not in params:
+                return Response({'error':param + 'param is required.'}, status=status.HTTP_400_BAD_REQUEST)
         if not Credential.objects.all().filter(email=params['email']).filter(partnerId='phoenix').exists():
             return Response({'error':'no username found.'}, status=status.HTTP_400_BAD_REQUEST)
-        usernames = Credential.objects.all().filter(email=params['email']).filter(partnerId='phoenix')
+        email = params['email']
+        partnerId = params['partnerId']
+        usernames = Credential.objects.all().filter(email=email).filter(partnerId=partnerId)
         credentialSerializer = CredentialSerializerNoPassword(usernames, many=True)
 
         userList = ''
