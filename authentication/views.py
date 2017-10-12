@@ -382,7 +382,7 @@ class getUsernameCRUD(GenericCRUDView):
         partnerName = Partner.objects.get(partnerId=partnerId).name
 
         #send email
-        subject = partnerName + "Usernames for %s" % params['email']
+        subject = partnerName + " Usernames for %s" % params['email']
 
         message = 'You have the following ' + partnerName + ' usernames associated with %s:\n' % params['email'] + userList
 
