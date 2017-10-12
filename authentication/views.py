@@ -308,7 +308,7 @@ class getUsernameCRUD(GenericCRUDView):
         requiredParams = ['email', 'partnerId']
         for param in requiredParams:
             if param not in params:
-                return Response({'error':param + 'param is required.'}, status=status.HTTP_400_BAD_REQUEST)
+                return Response({'error':param + ' param is required.'}, status=status.HTTP_400_BAD_REQUEST)
         if not Credential.objects.all().filter(email=params['email']).filter(partnerId='phoenix').exists():
             return Response({'error':'no username found.'}, status=status.HTTP_400_BAD_REQUEST)
         email = params['email']
@@ -320,10 +320,12 @@ class getUsernameCRUD(GenericCRUDView):
         for user in credentialSerializer.data:
             userList += user['username'] + '\n'
 
-        #send email
-        subject = "Usernames for %s" % params['email']
+        partnerName = Partner.objects.get(partnerId=partnerId).name
 
-        message = "You have the following usernames associated with %s:\n" % params['email'] + userList
+        #send email
+        subject = partnerName + "Usernames for %s" % params['email']
+
+        message = 'You have the following ' + partnerName + ' usernames associated with %s:\n' % params['email'] + userList
 
         from_email = "info@phoenixbioinformatics.org"
 
