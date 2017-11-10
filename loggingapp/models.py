@@ -13,5 +13,7 @@ class PageView(models.Model):
   pageViewDate = models.DateTimeField(default=datetime.datetime.utcnow)
   sessionId = models.CharField(max_length=250, null=True)
   ip = models.GenericIPAddressField(max_length=200)
+  ipList = models.CharField(max_length=250, null=True)
+
   class Meta:
     db_table = "PageView"
