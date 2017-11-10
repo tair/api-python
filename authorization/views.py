@@ -20,6 +20,9 @@ import urllib
 
 import logging
 
+from rest_framework.permissions import IsAuthenticated
+from rest_framework_jwt.authentication import JSONWebTokenAuthentication
+
 # top level: /authorizations/
 
 
@@ -33,11 +36,14 @@ class Access(APIView):
     def get(self, request, format=None):
         partyId = request.COOKIES.get('credentialId')
         loginKey = request.COOKIES.get('secretKey')
+        token = None
+        if 'token' in request.COOKIES:
+            token = request.COOKIES.get('token')
         ip = request.GET.get('ip')
         url = request.GET.get('url').decode('utf8')
         partnerId = request.GET.get('partnerId')
         apiKey = request.COOKIES.get('apiKey')
-        status = Authorization.getAccessStatus(loginKey, ip, partyId, url, partnerId, getHostUrlFromRequest(request), apiKey)
+        status = Authorization.getAccessStatus(token, loginKey, ip, partyId, url, partnerId, getHostUrlFromRequest(request), apiKey)
         userIdentifier = None
         if partyId and partyId.isdigit() and Credential.objects.all().filter(partyId=partyId).exists():
             userIdentifier = Credential.objects.all().get(partyId=partyId).userIdentifier
@@ -61,6 +67,8 @@ class Access(APIView):
 # /subscriptions/
 # https://demoapi.arabidopsis.org/authorizations/subscriptions/
 class SubscriptionsAccess(APIView):
+    authentication_classes = (JSONWebTokenAuthentication,)
+    permission_classes = (IsAuthenticated,)
     def get(self, request, format=None):
         ip = request.GET.get('ip')
         url = request.GET.get('url')
@@ -76,6 +84,8 @@ class SubscriptionsAccess(APIView):
 
 # /authentications/
 class AuthenticationsAccess(APIView):
+    authentication_classes = (JSONWebTokenAuthentication,)
+    permission_classes = (IsAuthenticated,)
     def get(self, request, format=None):
         credentialId = request.COOKIES.get('credentialId')
         loginKey = request.COOKIES.get('secretKey')
@@ -83,7 +93,8 @@ class AuthenticationsAccess(APIView):
         partnerId = request.GET.get('partnerId')
         hostUrl = "http://%s" % request.get_host()
         apiKey = request.COOKIES.get('apiKey')
-        access = Authorization.authentication(loginKey, credentialId, url, partnerId, getHostUrlFromRequest(request), apiKey)
+        token = None
+        access = Authorization.authentication(token, loginKey, credentialId, url, partnerId, getHostUrlFromRequest(request), apiKey)
         response = {
             "access":access,
         }
@@ -170,16 +181,22 @@ class URIAccess(APIView):
 
 # /accessTypes/
 class AccessTypeCRUD(GenericCRUDView):
+    authentication_classes = (JSONWebTokenAuthentication,)
+    permission_classes = (IsAuthenticated,)
     queryset = AccessType.objects.all()
     serializer_class = AccessTypeSerializer
 
 # /accessRules/
 class AccessRuleCRUD(GenericCRUDView):
+    authentication_classes = (JSONWebTokenAuthentication,)
+    permission_classes = (IsAuthenticated,)
     queryset = AccessRule.objects.all()
     serializer_class = AccessRuleSerializer
 
 # /patterns/
 class UriPatternCRUD(GenericCRUDView):
+    authentication_classes = (JSONWebTokenAuthentication,)
+    permission_classes = (IsAuthenticated,)
     queryset = UriPattern.objects.all()
     serializer_class = UriPatternSerializer
 

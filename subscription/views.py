@@ -17,7 +17,7 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework import generics
 from common.views import GenericCRUDView
-from common.permissions import isPhoenix
+from common.permissions import isPhoenix, rolePermission
 from common.common import getRemoteIpAddress
 
 from django.shortcuts import render
@@ -148,11 +148,11 @@ class SubscriptionCRUD(GenericCRUDView):
             returnData['subscriptionTransactionId']=transaction.subscriptionTransactionId
             return Response(returnData, status=status.HTTP_201_CREATED)
         else:
+            serializer = self.serializer_class(data=request.data)
             # basic subscription creation
             if not isPhoenix(self.request):
-                return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+                return Response({'error': 'POST subscriptions/ credentialId and secretKey query parameters missing or invalid'}, status=status.HTTP_400_BAD_REQUEST)
 
-            serializer = self.serializer_class(data=request.data)
             if serializer.is_valid():
                 subscription = serializer.save()
                 transaction = SubscriptionTransaction.createFromSubscription(subscription, 'create')
@@ -178,6 +178,15 @@ class SubscriptionRenewal(generics.GenericAPIView):
     serializer_class = SubscriptionSerializer
 
     def put(self, request, pk):
+        if request.META.get('HTTP_AUTHORIZATION'):
+        # if not 'credentialId' in request.GET and not 'secretKey' in request.GET:
+            roleList = ['staff', ]
+            roleListStr = ','.join(roleList)
+            if not rolePermission(request, roleList):
+                return Response({'error': 'roles needed: ' + roleListStr}, status=status.HTTP_400_BAD_REQUEST)
+        # elif not isPhoenix(self.request):
+        #     return Response(status=status.HTTP_400_BAD_REQUEST)
+
         subscription = Subscription.objects.get(subscriptionId=pk)
         serializer = SubscriptionSerializer(subscription, data=request.data)
         if serializer.is_valid():
@@ -357,6 +366,10 @@ class EndDate(generics.GenericAPIView):
 class ActiveSubscriptions(generics.GenericAPIView):
     requireApiKey = False
     def get(self, request, partyId):
+        roleList = ['staff', 'consortium', 'organization']
+        roleListStr = ','.join(roleList)
+        if not rolePermission(request, roleList):
+           return Response({'error':'roles needed: '+roleListStr}, status=status.HTTP_400_BAD_REQUEST)
         now = datetime.datetime.now()
         activeSubscriptions = Subscription.objects.all().filter(partyId=partyId).filter(endDate__gt=now).filter(startDate__lt=now)
         serializer = SubscriptionSerializer(activeSubscriptions, many=True)
@@ -370,6 +383,10 @@ class ActiveSubscriptions(generics.GenericAPIView):
 class AllSubscriptions(generics.GenericAPIView):
     requireApiKey = False
     def get(self, request, partyId):
+        roleList = ['staff', 'consortium', 'organization']
+        roleListStr = ','.join(roleList)
+        if not rolePermission(request, roleList):
+            return Response({'error':'roles needed: '+roleListStr}, status=status.HTTP_400_BAD_REQUEST)
         allSubscriptions = Subscription.objects.all().filter(partyId=partyId)
         serializer = SubscriptionSerializer(allSubscriptions, many=True)
         #return HttpResponse(json.dumps(dict(serializer.data)))
@@ -407,6 +424,10 @@ class ConsortiumSubscriptions(generics.GenericAPIView):
 class ConsActSubscriptions(generics.GenericAPIView):
     requireApiKey = False
     def get(self, request, partyId):
+        roleList = ['staff', 'consortium', 'organization']
+        roleListStr = ','.join(roleList)
+        if not rolePermission(request, roleList):
+            return Response({'error':'roles needed: '+roleListStr}, status=status.HTTP_400_BAD_REQUEST)
         ret = {}
         now = datetime.datetime.now()
         if Party.objects.all().get(partyId=partyId):
@@ -426,6 +447,7 @@ class ConsActSubscriptions(generics.GenericAPIView):
 # /renew/
 class RenewSubscription(generics.GenericAPIView):
     requireApiKey = False
+    serializer_class = SubscriptionSerializer
     def post(self, request):
         if not isPhoenix(request):
            return HttpResponse(status=400)
@@ -448,6 +470,7 @@ class RenewSubscription(generics.GenericAPIView):
 # /request/
 class RequestSubscription(generics.GenericAPIView):
     requireApiKey = False
+    serializer_class = SubscriptionSerializer
     def post(self, request):
         if not isPhoenix(request):
            return HttpResponse(status=400)
@@ -482,6 +505,10 @@ class SubscriptionRequestCRUD(GenericCRUDView):
     requireApiKey = False
 
     def get(self, request):
+        roleList = ['staff',]
+        roleListStr = ','.join(roleList)
+        if not rolePermission(request, roleList):
+           return Response({'error':'roles needed: '+roleListStr}, status=status.HTTP_400_BAD_REQUEST)
         allSubscriptionRequests = SubscriptionRequest.objects.all()
         serializer = self.serializer_class(allSubscriptionRequests, many=True)
         # This part comes from django documentation on large csv file generation:
@@ -499,12 +526,16 @@ class SubscriptionRequestCRUD(GenericCRUDView):
         pseudo_buffer = Echo()
         writer = csv.writer(pseudo_buffer)
         response = StreamingHttpResponse((writer.writerow(row) for row in rows),content_type="text/csv")
-        now = datetime.datetime.now()
-        response['Content-Disposition'] = 'attachment; filename="requests_report_{:%Y-%m-%d_%H:%M}.csv"'.format(now)
-        response['X-Sendfile'] = smart_str('/Downloads')
+        #now = datetime.datetime.now()
+        #response['Content-Disposition'] = 'attachment; filename="requests_report_{:%Y-%m-%d_%H:%M}.csv"'.format(now)
+        #response['X-Sendfile'] = smart_str('/Downloads')
         return response
 
     def post(self, request):
+        roleList = ['consortium', 'organization']
+        roleListStr = ','.join(roleList)
+        if not rolePermission(request, roleList):
+           return Response({'error':'roles needed: '+roleListStr}, status=status.HTTP_400_BAD_REQUEST)
         serializer = self.serializer_class(data=request.data)
         if serializer.is_valid():
             serializer.save()

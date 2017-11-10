@@ -7,5 +7,6 @@ from rest_framework import serializers
 class PageViewSerializer(serializers.ModelSerializer):
   class Meta:
     model = PageView
+    
     field = ('pageViewId', 'uri', 'pageViewDate', 'partyId', 'sessionId', 'ip', 'ipList')
 

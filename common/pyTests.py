@@ -14,9 +14,11 @@ class GenericTest(object):
         ApiKey.objects.filter(apiKey=self.apiKeySample.data['apiKey']).delete()
         self.apiKeyId = self.apiKeySample.forcePost(self.apiKeySample.data)
         self.apiKey = self.apiKeySample.data['apiKey']
+        self.headers = {'Authorization': 'JWT eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VybmFtZSI6InBob2VuaXhjdXJhdG9yX3Bob2VuaXgiLCJvcmlnX2lhdCI6MTQ5ODg3MjMwNiwidXNlcl9pZCI6MzE0MjYsImVtYWlsIjoiIiwiZXhwIjoxNDk4OTU4NzA2fQ.3fcQtDR9l-_LzQtV7oHvnGVLOT5O0SjO7Qtp_CQdI0U'}
 
     def tearDown(self):
         PyTestGenerics.forceDelete(self.apiKeySample.model, self.apiKeySample.pkName, self.apiKeyId)
+        self.headers = None
 
 # This function checks if sampleData is within the array of data retrieved
 # from API call.
@@ -42,7 +44,7 @@ class GenericCRUDTest(GenericTest):
         if self.apiKey:
             url = url+'?apiKey=%s' % (self.apiKey)
         cookies = {'apiKey':self.apiKey}
-        req = requests.post(url, data=sample.data, cookies=cookies)
+        req = requests.post(url, data=sample.data, cookies=cookies, headers=self.headers)
 
         self.assertEqual(req.status_code, 201)
         self.assertIsNotNone(PyTestGenerics.forceGet(sample.model,sample.pkName,req.json()[sample.pkName]))

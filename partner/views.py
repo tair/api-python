@@ -29,11 +29,6 @@ class PartnerCRUD(GenericCRUDView):
 
     def get(self, request, format=None):
         obj = self.get_queryset()
-        params = request.GET
-        if request.GET.get('authority')=='admin':
-            partnerList = Partner.objects.all()
-            serializer = PartnerSerializer(partnerList, many=True)
-            return Response(serializer.data)
         serializer = self.serializer_class(obj, many=True)
         return Response(serializer.data)
 
@@ -64,7 +59,7 @@ class PartnerPatternCRUD(GenericCRUDView):
                 partnerList.append(url)
                 return Response(partnerList)
         # serializer = PartnerPatternSerializer(partnerList, many=True)
-        return Response({'msg':'cannot find matched url'}, status=status.HTTP_400_BAD_REQUEST)
+        return Response({'msg':'cannot find matched url'}, status=status.HTTP_204_NO_CONTENT)
 
 # /terms/
 class TermsCRUD(GenericCRUDView):
