@@ -11,5 +11,4 @@ urlpatterns = [
     url(r'^profile/$', views.profile.as_view(), name='profile'),
     url(r'^getUsernames/$', views.getUsernameCRUD.as_view(), name='getUsernames'),
 ]
-
 urlpatterns = format_suffix_patterns(urlpatterns)

@@ -8,8 +8,13 @@ import socket
 import ipaddress
 import json
 
+from rest_framework.permissions import IsAuthenticated
+from rest_framework_jwt.authentication import JSONWebTokenAuthentication
+
 # Create your views here.
 class validateip(APIView):
+    authentication_classes = (JSONWebTokenAuthentication,)
+    permission_classes = (IsAuthenticated,)
     def get(self, request, format=None):
         ip = request.GET.get('ip')
         try:

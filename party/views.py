@@ -7,6 +7,7 @@ from partner.models import Partner
 from django.db.models import Q
 
 from common.views import GenericCRUDView
+from common.permissions import rolePermission
 
 from authentication.models import Credential
 
@@ -15,6 +16,10 @@ from django.http import HttpResponse
 from rest_framework.views import APIView
 from rest_framework import status
 from rest_framework.response import Response
+
+from rest_framework.authentication import SessionAuthentication, BasicAuthentication
+from rest_framework.permissions import IsAuthenticated
+from rest_framework_jwt.authentication import JSONWebTokenAuthentication
 
 from django.core.mail import send_mail
 from common.permissions import isPhoenix
@@ -26,6 +31,7 @@ from authentication.serializers import CredentialSerializer, CredentialSerialize
 from genericpath import exists
 from django.db import connection
 from collections import namedtuple
+from django.contrib.auth.models import User
 
 #below three added by Andrey for PW-277
 import logging
@@ -38,11 +44,15 @@ import traceback
 
 # /
 class PartyCRUD(GenericCRUDView):
+    # authentication_classes = (JSONWebTokenAuthentication,)
+    # permission_classes = (IsAuthenticated,)
     requireApiKey = False
     queryset = Party.objects.all()
     serializer_class = PartySerializer
 
     def get_queryset(self):
+        # if not rolePermission(self.request, ['organization', 'consortium', 'staff']):
+        #     return []
         if isPhoenix(self.request):
             if 'partyId' in self.request.GET:
                 partyId = self.request.GET.get('partyId')
@@ -52,14 +62,60 @@ class PartyCRUD(GenericCRUDView):
                 return super(PartyCRUD, self).get_queryset().filter(partyType=partyType)
         return []
 
+    def get(self, request, format=None):
+        """
+        The Party API manages parties, the individual people and organizations that play a role in the Phoenix system. Parties may be users, organizations, consortiums, partners, staff, or admin parties. The party type defines the role of the party in the system and hence what API calls the party may execute. The party is the basis for authentication.
+        parameters:
+        - name: partyId
+          description: partyId
+          required: true
+          type: string
+          paramType: form
+        """
+        roleList = ['staff', 'consortium', 'organization']
+        roleListStr = ','.join(roleList)
+        if not rolePermission(request, roleList):
+            return Response({'error':'roles needed: '+roleListStr}, status=status.HTTP_400_BAD_REQUEST)
+        return super(PartyCRUD, self).get(request)
+
+    def post(self, request, format=None):
+        roleList = ['staff', 'consortium', 'organization']
+        roleListStr = ','.join(roleList)
+        if not rolePermission(request, roleList):
+            return Response({'error':'roles needed: '+roleListStr}, status=status.HTTP_400_BAD_REQUEST)
+        return super(PartyCRUD, self).post(request)
+
+    def put(self, request, format=None):
+        roleList = ['staff', 'consortium', 'organization']
+        roleListStr = ','.join(roleList)
+        if not rolePermission(request, roleList):
+            return Response({'error':'roles needed: '+roleListStr}, status=status.HTTP_400_BAD_REQUEST)
+        return super(PartyCRUD, self).put(request)
+
+    def delete(self, request, format=None):
+        if 'HTTP_AUTHORIZATION' in request.META:
+            roleList = ['staff', 'consortium', 'organization']
+            roleListStr = ','.join(roleList)
+            if not rolePermission(request, roleList):
+                return Response({'error': 'roles needed: ' + roleListStr}, status=status.HTTP_400_BAD_REQUEST)
+        elif not isPhoenix(self.request):
+            return Response(status=status.HTTP_400_BAD_REQUEST)
+        return super(PartyCRUD, self).delete(request)
+
 
 
 # /org/
 class PartyOrgCRUD(GenericCRUDView):
     requireApiKey = False
+    serializer_class = PartySerializer
 
     #https://demoapi.arabidopsis.org/parties/?ip=131.204.0.0  returns Auburn University
     def get(self, request, format=None):
+        if 'HTTP_AUTHORIZATION' in request.META:
+            roleList = ['staff',]
+            roleListStr = ','.join(roleList)
+            if not rolePermission(request, roleList):
+                return Response({'error': 'roles needed: ' + roleListStr}, status=status.HTTP_400_BAD_REQUEST)
         ip = request.GET.get('ip')
         if ip is None:
             return HttpResponse("Error. ip not provided")
@@ -123,7 +179,34 @@ class IpRangeCRUD(GenericCRUDView):
             partyId = self.request.GET.get('partyId')
             return super(IpRangeCRUD, self).get_queryset().filter(partyId=partyId)
         return []
-# TODO: "post" is still a security vulnerability -SC
+
+    def get(self, request, format=None):
+      roleList = ['staff', 'consortium', 'organization']
+      roleListStr = ','.join(roleList)
+      if not rolePermission(request, roleList):
+          return Response({'error':'roles needed: '+roleListStr}, status=status.HTTP_400_BAD_REQUEST)
+      return super(IpRangeCRUD, self).get(request)
+
+    def post(self, request, format=None):
+      roleList = ['staff', 'consortium', 'organization']
+      roleListStr = ','.join(roleList)
+      if not rolePermission(request, roleList):
+          return Response({'error':'roles needed: '+roleListStr}, status=status.HTTP_400_BAD_REQUEST)
+      return super(IpRangeCRUD, self).post(request)
+
+    def put(self, request, format=None):
+      roleList = ['staff', 'consortium', 'organization']
+      roleListStr = ','.join(roleList)
+      if not rolePermission(request, roleList):
+          return Response({'error':'roles needed: '+roleListStr}, status=status.HTTP_400_BAD_REQUEST)
+      return super(IpRangeCRUD, self).put(request)
+
+    def delete(self, request, format=None):
+      roleList = ['staff', 'consortium', 'organization']
+      roleListStr = ','.join(roleList)
+      if not rolePermission(request, roleList):
+          return Response({'error':'roles needed: '+roleListStr}, status=status.HTTP_400_BAD_REQUEST)
+      return super(IpRangeCRUD, self).delete(request)
 
 #------------------- End of Basic CRUD operations --------------
 
@@ -188,6 +271,10 @@ class CountryView(APIView):
 class Usage(APIView):
     requireApiKey = False
     def post(self, request, format=None):
+        roleList = ['consortium', 'organization']
+        roleListStr = ','.join(roleList)
+        if not rolePermission(request, roleList):
+          return Response({'error':'roles needed: '+roleListStr}, status=status.HTTP_400_BAD_REQUEST)
         # security vulnerability: consortiumId should come from partyId in cookie that's been validated via isPhoenix -SC
         if not isPhoenix(request):
             return HttpResponse(status=400)
@@ -255,6 +342,10 @@ class ConsortiumCRUD(GenericCRUDView):
         return []
 
     def get(self, request, format=None):
+        roleList = ['staff', 'consortium']
+        roleListStr = ','.join(roleList)
+        if not rolePermission(request, roleList):
+           return Response({'error':'roles needed: '+roleListStr}, status=status.HTTP_400_BAD_REQUEST)
         if not isPhoenix(request):
            return HttpResponse({'error':'credentialId and secretKey query parameters missing or invalid'},status=status.HTTP_400_BAD_REQUEST)
         params = request.GET
@@ -286,6 +377,10 @@ class ConsortiumCRUD(GenericCRUDView):
     #FORM DATA partyId is required. If pwd passed it will be updated in Credential if not - not.
     # output data from both tables for a given partyId (aka consortiumId)
     def put(self, request, format=None):
+        roleList = ['staff', 'consortium',]
+        roleListStr = ','.join(roleList)
+        if not rolePermission(request, roleList):
+           return Response({'error':'roles needed: '+roleListStr}, status=status.HTTP_400_BAD_REQUEST)
         if not isPhoenix(request):
            return HttpResponse({'error':'PUT parties/consortiums/ credentialId and secretKey query parameters missing or invalid'},status=status.HTTP_400_BAD_REQUEST)
 
@@ -307,18 +402,38 @@ class ConsortiumCRUD(GenericCRUDView):
             for partyId in Credential.objects.all().filter(email=data['email']).filter(partnerId='phoenix').values_list('partyId', flat=True):
                 if Party.objects.all().filter(partyId=partyId).filter(partyType='consortium').exists():
                     return Response({'error':'This email is already used by another consortium.'}, status=status.HTTP_400_BAD_REQUEST)
+
+        #get credential
+        credential = Credential.objects.get(partyId=party)
+        #update Django user username for credential
+        if 'username' in request.data:
+            username = data['username']
+            partnerId = credential.partnerId.partnerId
+        try:
+            credential.user.username = username+'_'+partnerId
+            credential.user.save()
+            credential.save()
+        except Exception:
+            return HttpResponse({'error':'update django user username error'}, status=status.HTTP_400_BAD_REQUEST)
         if 'password' in request.data:
+            #update Djanog user password for credential
+            password = data['password']
+            try:
+                credential.user.set_password(password)
+                credential.user.save()
+                credential.save()
+            except Exception:
+                return HttpResponse({'error':'update django user password error'}, status=status.HTTP_400_BAD_REQUEST)
             if (not data['password'] or data['password'] == ""):
                 return Response({'error': 'PUT parties/consortiums/ password must not be empty'}, status=status.HTTP_400_BAD_REQUEST)
             else:
                 newPwd = data['password']
                 data['password'] = hashlib.sha1(newPwd).hexdigest()
                 try:
-                    credential = Credential.objects.get(partyId=party)
-                    credentialSerializer = CredentialSerializer(credential, data=data)
+                    credentialSerializer = CredentialSerializer(credential, data=data, partial=True)
                 except Credential.DoesNotExist:
                     data['partnerId'] = 'phoenix'
-                    credentialSerializer = CredentialSerializer(data=data)
+                    credentialSerializer = CredentialSerializer(data=data, partial=True)
 
         else:
             credentialSerializer = CredentialSerializerNoPassword(credential, data=data, partial=True) #??
@@ -346,6 +461,10 @@ class ConsortiumCRUD(GenericCRUDView):
         #partnerId required (tair/phoenix); (username+partnerId) must make a unique set.
         #partyType required and must be "consortium"
     def post(self, request, format=None):
+        roleList = ['staff',]
+        roleListStr = ','.join(roleList)
+        if not rolePermission(request, roleList):
+           return Response({'error':'roles needed: '+roleListStr}, status=status.HTTP_400_BAD_REQUEST)
         if not isPhoenix(request):
            return HttpResponse({'error':'POST parties/consortiums/ credentialId and secretKey query parameters missing or invalid'},status=status.HTTP_400_BAD_REQUEST)
 
@@ -384,6 +503,17 @@ class ConsortiumCRUD(GenericCRUDView):
 
             data['partyId'] = partySerializer.data['partyId']
 
+            #create Django user for credential
+            username = data['username']
+            partnerId = data['partnerId']
+            password = data['password']
+            try:
+                user = User.objects.create_user(username=username+'_'+partnerId, password=password)
+                user.save()
+            except Exception:
+                return HttpResponse({'error':'create django user error'}, status=status.HTTP_400_BAD_REQUEST)
+            data['user'] = user.id
+
             if pwd == True:
                 newPwd = data['password']
                 data['password'] = hashlib.sha1(newPwd).hexdigest()
@@ -404,6 +534,10 @@ class ConsortiumCRUD(GenericCRUDView):
 
 #
     def delete(self, request, format=None):
+        roleList = ['staff',]
+        roleListStr = ','.join(roleList)
+        if not rolePermission(request, roleList):
+           return Response({'error':'roles needed: '+roleListStr}, status=status.HTTP_400_BAD_REQUEST)
         if not isPhoenix(request):
           return HttpResponse({'error':'DELETE parties/consortiums/ credentialId and secretKey query parameters missing or invalid'},status=status.HTTP_400_BAD_REQUEST)
 
@@ -446,6 +580,10 @@ class InstitutionCRUD(GenericCRUDView):
         return []
 
     def get(self, request, format=None):
+        roleList = ['staff', 'consortium', 'organization']
+        roleListStr = ','.join(roleList)
+        if not rolePermission(request, roleList):
+           return Response({'error':'roles needed: '+roleListStr}, status=status.HTTP_400_BAD_REQUEST)
         if not isPhoenix(request):
            return HttpResponse({'error':'credentialId and secretKey query parameters missing or invalid'},status=status.HTTP_400_BAD_REQUEST)
         params = request.GET
@@ -478,6 +616,11 @@ class InstitutionCRUD(GenericCRUDView):
     #FORM DATA partyId is required. If pwd passed it will be updated in Credential if not - not.
     # output data from both tables for a given partyId
     def put(self, request, format=None):
+        logging.error('parties/institution put function start')
+        roleList = ['staff', 'consortium', 'organization']
+        roleListStr = ','.join(roleList)
+        if not rolePermission(request, roleList):
+           return Response({'error':'roles needed: '+roleListStr}, status=status.HTTP_400_BAD_REQUEST)
         if not isPhoenix(request):
            return HttpResponse({'error':'credentialId and secretKey query parameters missing or invalid'},status=status.HTTP_400_BAD_REQUEST)
 
@@ -487,49 +630,95 @@ class InstitutionCRUD(GenericCRUDView):
         if not params:
             return Response({'error':'does not allow update without query parameters'},status=status.HTTP_400_BAD_REQUEST)
 
-        if 'partyId' not in request.data:
+        if 'partyId' not in params:
             return Response({'error':'partyId (aka institutionId) required'},status=status.HTTP_400_BAD_REQUEST)
 
-        institutionId = request.data['partyId']
+        institutionId = params['partyId']
+        credentialSerializer = None
         #get party
         party = Party.objects.get(partyId = institutionId)
-        partySerializer = PartySerializer(party, data=data)
-        if 'email' in data:
-            for partyId in Credential.objects.all().filter(email=data['email']).filter(partnerId='phoenix').values_list('partyId', flat=True):
-                if Party.objects.all().filter(partyId=partyId).filter(partyType='organization').exists():
-                    return Response({'error':'This email is already used by another institution.'}, status=status.HTTP_400_BAD_REQUEST)
+        partySerializer = PartySerializer(party, data=data, partial=True)
 
-        if 'password' in request.data:
-            if (not data['password'] or data['password'] == ""):
-                return Response({'error': 'PUT parties/institutions/ password must not be empty'}, status=status.HTTP_400_BAD_REQUEST)
-            else:
-                newPwd = data['password']
-                data['password'] = hashlib.sha1(newPwd).hexdigest()
+        if any(field in request.data for field in CredentialSerializer.Meta.fields):
+            # email duplicates check
+            if 'email' in data:
+                for partyId in Credential.objects.all().filter(email=data['email']).filter(
+                        partnerId='phoenix').values_list('partyId', flat=True):
+                    if Party.objects.all().filter(partyId=partyId).filter(partyType='organization').exists():
+                        return Response({'error': 'This email is already used by another institution.'}, status=status.HTTP_400_BAD_REQUEST)
+
+            if 'password' in request.data:
+                if (not data['password'] or data['password'] == ""):
+                    return Response({'error': 'PUT parties/institutions/ password must not be empty'}, status=status.HTTP_400_BAD_REQUEST)
+                else:
+                    newPwd = data['password']
+                    data['password'] = hashlib.sha1(newPwd).hexdigest()
+
+            # get credential if exists
+            if Credential.objects.filter(partyId=party).exists():
+                credential = Credential.objects.get(partyId=party)
+                credentialSerializer = CredentialSerializer(credential, data=data, partial=True)
+                # update Djanog User's password for credential
+                if 'password' in request.data:
+                    password = data['password']
+                    try:
+                        credential.user.set_password(password)
+                        credential.user.save()
+                        credential.save()
+                    except Exception:
+                        return HttpResponse({'error': 'update django user password error'}, status=status.HTTP_400_BAD_REQUEST)
+                # update Django User's username for credential
+                if 'username' in request.data:
+                    username = data['username']
+                    partnerId = credential.partnerId.partnerId
+                    try:
+                        credential.user.username = username + '_' + partnerId
+                        credential.user.save()
+                        credential.save()
+                    except Exception:
+                        return HttpResponse({'error': 'update django user username error'},
+                                            status=status.HTTP_400_BAD_REQUEST)
+
+            # create credential if not exist but has enough data to create
+            elif all(field in request.data for field in ['username', 'password']):
+                data['partyId'] = institutionId
+                data['partnerId'] = 'phoenix'
+                # create Django User for credential
+                username = data['username']
+                partnerId = data['partnerId']
+                password = data['password']
                 try:
-                    credential = Credential.objects.get(partyId=party)
-                    credentialSerializer = CredentialSerializer(credential, data=data)
-                except Credential.DoesNotExist:
-                    data['partnerId'] = 'phoenix'
-                    credentialSerializer = CredentialSerializer(data=data)
-        else:
-            credentialSerializer = CredentialSerializerNoPassword(credential, data=data, partial=True) #??
+                    user = User.objects.create_user(username=username + '_' + partnerId, password=password)
+                    user.save()
+                except Exception:
+                    return HttpResponse({'error': 'create django user error'}, status=status.HTTP_400_BAD_REQUEST)
+                data['user'] = user.id
+                credentialSerializer = CredentialSerializer(data=data, partial=True)
+            # return error if credential not exist and doesn't have enough data to create
+            else:
+                return Response({'error': 'username, password required to create credential'}, status=status.HTTP_400_BAD_REQUEST)
 
-        out = []
         if partySerializer.is_valid():
             partySerializer.save()
             partyReturnData = partySerializer.data
-            out.append(partyReturnData)
-            if credentialSerializer.is_valid():
-                credentialSerializer.save()
-                credentialReturnData = credentialSerializer.data
-                out.append(credentialReturnData)
-                return HttpResponse(json.dumps(out), content_type="application/json")
-            else:
-                return Response(credentialSerializer.errors, status=status.HTTP_400_BAD_REQUEST)
         else:
             return Response(partySerializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
-    #PW-161 POST https://demoapi.arabidopsis.org/parties/institutions/?credentialId=2&secretKey=7DgskfEF7jeRGn1h%2B5iDCpvIkRA%3D
+        if credentialSerializer:
+            if credentialSerializer.is_valid():
+                credentialSerializer.save()
+                credentialReturnData = credentialSerializer.data
+            else:
+                return Response(credentialSerializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        else:
+            credentialReturnData = None
+
+        out = []
+        out.append(partyReturnData)
+        out.append(credentialReturnData)
+        return HttpResponse(json.dumps(out), content_type="application/json")
+
+        #PW-161 POST https://demoapi.arabidopsis.org/parties/institutions/?credentialId=2&secretKey=7DgskfEF7jeRGn1h%2B5iDCpvIkRA%3D
     #NOTE ?/ in parties/institutions/?credentialId=
     #FORM DATA
         #username required
@@ -537,6 +726,10 @@ class InstitutionCRUD(GenericCRUDView):
         #partnerId required (tair/phoenix); (username+partnerId) must make a unique set.
         #partyType required and must be "organization"
     def post(self, request, format=None):
+        roleList = ['staff', 'consortium',]
+        roleListStr = ','.join(roleList)
+        if not rolePermission(request, roleList):
+           return Response({'error':'roles needed: '+roleListStr}, status=status.HTTP_400_BAD_REQUEST)
         if not isPhoenix(request):
            return HttpResponse({'error':'POST parties/institutions/ credentialId and secretKey query parameters missing or invalid'},status=status.HTTP_400_BAD_REQUEST)
 
@@ -574,6 +767,17 @@ class InstitutionCRUD(GenericCRUDView):
 
             data['partyId'] = partySerializer.data['partyId']
 
+            #create Django user for credential
+            username = data['username']
+            partnerId = data['partnerId']
+            password = data['password']
+            try:
+                user = User.objects.create_user(username=username+'_'+partnerId, password=password)
+                user.save()
+            except Exception:
+                return HttpResponse({'error':'create django user error'}, status=status.HTTP_400_BAD_REQUEST)
+            data['user'] = user.id
+
             if pwd == True:
                 newPwd = data['password']
                 data['password'] = hashlib.sha1(newPwd).hexdigest()
@@ -594,6 +798,10 @@ class InstitutionCRUD(GenericCRUDView):
 
 #
     def delete(self, request, format=None):
+        roleList = ['staff',]
+        roleListStr = ','.join(roleList)
+        if not rolePermission(request, roleList):
+           return Response({'error':'roles needed: '+roleListStr}, status=status.HTTP_400_BAD_REQUEST)
         if not isPhoenix(request):
            return HttpResponse({'error':'credentialId and secretKey query parameters missing or invalid'},status=status.HTTP_400_BAD_REQUEST)
 
@@ -632,6 +840,10 @@ class AffiliationCRUD(GenericCRUDView):
         return []
 
     def get(self, request, format=None):
+       roleList = ['staff', 'consortium', 'organization']
+       roleListStr = ','.join(roleList)
+       if not rolePermission(request, roleList):
+          return Response({'error':'roles needed: '+roleListStr}, status=status.HTTP_400_BAD_REQUEST)
        serializer_class = self.get_serializer_class()
        params = request.GET
        if not params['partyId']:
@@ -653,6 +865,10 @@ class AffiliationCRUD(GenericCRUDView):
        return HttpResponse(json.dumps(out), content_type="application/json")
 
     def post(self, request, format=None):
+       roleList = ['staff', 'consortium', 'organization']
+       roleListStr = ','.join(roleList)
+       if not rolePermission(request, roleList):
+          return Response({'error':'roles needed: '+roleListStr}, status=status.HTTP_400_BAD_REQUEST)
        if not isPhoenix(self.request):
            return HttpResponse(status=400)
        serializer_class = self.get_serializer_class()
@@ -674,6 +890,10 @@ class AffiliationCRUD(GenericCRUDView):
        return Response(serializer.data, status=status.HTTP_201_CREATED)
 
     def delete(self, request, format=None):
+       roleList = ['staff', 'consortium', 'organization']
+       roleListStr = ','.join(roleList)
+       if not rolePermission(request, roleList):
+           return Response({'error':'roles needed: '+roleListStr}, status=status.HTTP_400_BAD_REQUEST)
        if not isPhoenix(self.request):
            return HttpResponse(status=400)
        serializer_class = self.get_serializer_class()
