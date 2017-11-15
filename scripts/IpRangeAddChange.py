@@ -1,4 +1,6 @@
 #!/usr/bin/python
+# file format:
+# 4 columns for actionType, institutionName, startIp, endIp
 
 import django
 import os
