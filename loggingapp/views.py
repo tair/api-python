@@ -16,6 +16,8 @@ from partner.models import Partner
 
 from django.db.models import Count, Min, Max
 
+from netaddr import IPAddress
+
 # Create your views here.
 
 # top level uri: /session-logs/
@@ -83,14 +85,25 @@ def page_view_to_csv(request):
     pageViews = PageView.objects.all()
 
     params = request.GET
-    if 'startDate' in params:
-        pageViews = pageViews.filter(pageViewDate__gte=params['startDate'])
-    if 'endDate' in params:
-        pageViews = pageViews.filter(pageViewDate__lte=params['endDate'])
-    if 'startIp' in params:
-        pageViews = pageViews.filter(ip__gte=params['startIp'])
-    if 'endIp' in params:
-        pageViews = pageViews.filter(ip__lte=params['endIp'])
+    if all(field in params for field in ['startDate', 'endDate', 'startIp', 'endIp', 'ipPref']):
+        startDate = params['startDate']
+        endDate = params['endDate']
+        startIp = params['startIp']
+        endIp = params['endIp']
+        ipPref = params['ipPref']
+
+    if startDate:
+        pageViews = pageViews.filter(pageViewDate__gte=startDate)
+    if endDate:
+        pageViews = pageViews.filter(pageViewDate__lte=endDate)
+    if startIp:
+        startIp = IPAddress(startIp)
+        pageViews = pageViews.filter(ip__gte=startIp)
+    if endIp:
+        endIp = IPAddress(endIp)
+        pageViews = pageViews.filter(ip__lte=endIp)
+    if ipPref:
+        pageViews = pageViews.filter(ip__startswith=ipPref)
 
     pageViews = pageViews.values_list()
 
