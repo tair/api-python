@@ -91,6 +91,8 @@ def page_view_to_csv(request):
         startIp = params['startIp']
         endIp = params['endIp']
         ipPref = params['ipPref']
+    else:
+        return Response({'error':'required fields: startDate, endDate, startIp, endIp, ipPref'}, status=status.HTTP_400_BAD_REQUEST)
 
     if startDate:
         pageViews = pageViews.filter(pageViewDate__gte=startDate)
