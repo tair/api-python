@@ -80,13 +80,17 @@ class Echo:
 
 def page_view_to_csv(request):
     """A view that streams a large CSV file."""
-    pageViews = PageView.objects.all().values_list()
+    pageViews = PageView.objects.all()
 
     params = request.GET
     if 'startDate' in params:
-      pageViews = pageViews.filter(pageViewDate__gte=params['startDate'])
+        pageViews = pageViews.filter(pageViewDate__gte=params['startDate'])
     if 'endDate' in params:
-      pageViews = pageViews.filter(pageViewDate__lte=params['endDate'])
+        pageViews = pageViews.filter(pageViewDate__lte=params['endDate'])
+    if 'startIp' in params:
+        pageViews = pageViews.filter(ip__gte=params['startIp'])
+    if 'endIp' in params:
+        pageViews = pageViews.filter(ip__lte=params['endIp'])
 
     pageViews = pageViews.values_list()
 
