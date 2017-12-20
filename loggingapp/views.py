@@ -1,8 +1,10 @@
 from django.shortcuts import render
+from django.http import StreamingHttpResponse
 from rest_framework.response import Response
 from rest_framework import generics
 from rest_framework.views import APIView
 import datetime
+import csv
 
 from rest_framework import status
 
@@ -67,3 +69,30 @@ class SessionCountView(generics.GenericAPIView):
 
     distinctSessions = PageView.objects.values('sessionId').distinct().filter(**filters)
     return Response({'count':len(distinctSessions)})
+
+class Echo:
+    """An object that implements just the write method of the file-like
+    interface.
+    """
+    def write(self, value):
+        """Write the value by returning it, instead of storing in a buffer."""
+        return value
+
+def page_view_to_csv(request):
+    """A view that streams a large CSV file."""
+    pageViews = PageView.objects.all().values_list()
+
+    params = request.GET
+    if 'startDate' in params:
+      pageViews = pageViews.filter(pageViewDate__gte=params['startDate'])
+    if 'endDate' in params:
+      pageViews = pageViews.filter(pageViewDate__lte=params['endDate'])
+
+    pageViews = pageViews.values_list()
+
+    pseudo_buffer = Echo()
+    writer = csv.writer(pseudo_buffer)
+    response = StreamingHttpResponse((writer.writerow(pageView) for pageView in pageViews),
+                                     content_type="text/csv")
+    response['Content-Disposition'] = 'attachment; filename="somefilename.csv"'
+    return response
