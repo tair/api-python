@@ -5,6 +5,7 @@ from rest_framework import generics
 from rest_framework.views import APIView
 import datetime
 import csv
+import re
 
 from rest_framework import status
 
@@ -13,6 +14,7 @@ from loggingapp.serializers import PageViewSerializer
 from common.views import GenericCRUDView
 from party.models import Party
 from partner.models import Partner
+from authorization.models import AccessRule
 
 from django.db.models import Count, Min, Max
 
@@ -85,15 +87,21 @@ def page_view_to_csv(request):
     pageViews = PageView.objects.all()
 
     params = request.GET
-    if all(field in params for field in ['startDate', 'endDate', 'startIp', 'endIp', 'ipPref']):
+    if all(field in params for field in ['partnerId', 'startDate', 'endDate', 'startIp', 'endIp', 'ipPref', 'isPaidContent']):
+        partnerId = params['partnerId']
         startDate = params['startDate']
         endDate = params['endDate']
         startIp = params['startIp']
         endIp = params['endIp']
         ipPref = params['ipPref']
+        isPaidContent = params['isPaidContent']
     else:
-        return Response({'error':'required fields: startDate, endDate, startIp, endIp, ipPref'}, status=status.HTTP_400_BAD_REQUEST)
+        return Response({'error':'required fields: startDate, endDate, startIp, endIp, ipPref, isPaidContent'}, status=status.HTTP_400_BAD_REQUEST)
 
+    if partnerId:
+        return Response({'error': 'partnerId shouldn\'t be null'}, status=status.HTTP_400_BAD_REQUEST)
+    if ipPref:
+        pageViews = pageViews.filter(ip__startswith=ipPref)
     if startDate:
         pageViews = pageViews.filter(pageViewDate__gte=startDate)
     if endDate:
@@ -104,8 +112,16 @@ def page_view_to_csv(request):
     if endIp:
         endIp = IPAddress(endIp)
         pageViews = pageViews.filter(ip__lte=endIp)
-    if ipPref:
-        pageViews = pageViews.filter(ip__startswith=ipPref)
+    if isPaidContent:
+        accessRules = AccessRule.objects.all().filter(partnerId=partnerId).filter(accessTypeId=1)
+        for rule in accessRules:
+            try:
+                pattern = re.compile(rule.patternId.pattern)
+                isPatternValid = True
+            except re.error:
+                isPatternValid = False
+            if isPatternValid == True:
+                pageViews = pageViews.filter(uri__regex=pattern)
 
     pageViews = pageViews.values_list()
 
