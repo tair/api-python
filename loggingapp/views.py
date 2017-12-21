@@ -98,7 +98,7 @@ def page_view_to_csv(request):
     else:
         return Response({'error':'required fields: startDate, endDate, startIp, endIp, ipPref, isPaidContent'}, status=status.HTTP_400_BAD_REQUEST)
 
-    if partnerId:
+    if not partnerId:
         return Response({'error': 'partnerId shouldn\'t be null'}, status=status.HTTP_400_BAD_REQUEST)
     if ipPref:
         pageViews = pageViews.filter(ip__startswith=ipPref)
@@ -106,13 +106,14 @@ def page_view_to_csv(request):
         pageViews = pageViews.filter(pageViewDate__gte=startDate)
     if endDate:
         pageViews = pageViews.filter(pageViewDate__lte=endDate)
+    #TODO: ip filter is not available currently
     if startIp:
         startIp = IPAddress(startIp)
         pageViews = pageViews.filter(ip__gte=startIp)
     if endIp:
         endIp = IPAddress(endIp)
         pageViews = pageViews.filter(ip__lte=endIp)
-    if isPaidContent:
+    if isPaidContent == 'true':
         accessRules = AccessRule.objects.all().filter(partnerId=partnerId).filter(accessTypeId=1)
         for rule in accessRules:
             try:
