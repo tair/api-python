@@ -129,8 +129,8 @@ def page_view_to_csv(request):
                         pageViewList.append(pageViews.values_list().get(pageViewId=pageView.pageViewId))
 
         pageViews = pageViewList
-
-    pageViews = pageViews.values_list()
+    else:
+        pageViews = pageViews.values_list()
 
     pseudo_buffer = Echo()
     writer = csv.writer(pseudo_buffer)
