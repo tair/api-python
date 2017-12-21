@@ -113,6 +113,8 @@ def page_view_to_csv(request):
     if endIp:
         endIp = IPAddress(endIp)
         pageViews = pageViews.filter(ip__lte=endIp)
+    #TODO: it is better to use Django's __regex filter, but currently MySQL only supports POSIX regex
+    pageViewList = []
     if isPaidContent == 'true':
         accessRules = AccessRule.objects.all().filter(partnerId=partnerId).filter(accessTypeId=1)
         for rule in accessRules:
@@ -122,7 +124,11 @@ def page_view_to_csv(request):
             except re.error:
                 isPatternValid = False
             if isPatternValid == True:
-                pageViews = pageViews.filter(uri__regex=pattern)
+                for pageView in pageViews:
+                    if pattern.search(pageView.uri):
+                        pageViewList.append(pageViews.values_list().get(pageViewId=pageView.pageViewId))
+
+        pageViews = pageViewList
 
     pageViews = pageViews.values_list()
 
