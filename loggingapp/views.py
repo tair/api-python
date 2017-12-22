@@ -149,7 +149,7 @@ def page_view_to_csv(request):
                     pageViewIdList.append(pageView.pageViewId)
         pageViews = PageView.objects.all().filter(pageViewId__in=pageViewIdList)
 
-    pageViewData = pageViews.values_list()
+    pageViewData = pageViews.values_list('ip').annotate(count=Count('pageViewId'))
 
     pseudo_buffer = Echo()
     writer = csv.writer(pseudo_buffer)
