@@ -88,14 +88,15 @@ def page_view_to_csv(request):
     pageViews = PageView.objects.all()
 
     params = request.GET
-    if all(field in params for field in ['partnerId', 'startDate', 'endDate', 'startIp', 'endIp', 'ipPref', 'isPaidContent']):
+    if all(field in params for field in ['partnerId', 'startDate', 'endDate', 'startIp', 'ipRanges', 'endIp', 'ipPref', 'isPaidContent']):
         partnerId = params['partnerId']
         startDate = params['startDate']
         endDate = params['endDate']
-        startIp = params['startIp']
-        endIp = params['endIp']
+        # startIp = params['startIp']
+        # endIp = params['endIp']
         ipPref = params['ipPref']
         isPaidContent = params['isPaidContent']
+        ipRanges = params['ipRanges']
     else:
         return Response({'error':'required fields: startDate, endDate, startIp, endIp, ipPref, isPaidContent'}, status=status.HTTP_400_BAD_REQUEST)
 
@@ -112,16 +113,9 @@ def page_view_to_csv(request):
         pageViews = pageViews.filter(pageViewDate__gte=startDate)
     if endDate:
         pageViews = pageViews.filter(pageViewDate__lte=endDate)
-    #TODO: ip filter is not available currently
-    if startIp:
-        startIp = IPAddress(startIp)
-        pageViews = pageViews.filter(ip__gte=startIp)
-    if endIp:
-        endIp = IPAddress(endIp)
-        pageViews = pageViews.filter(ip__lte=endIp)
     #TODO: it is better to use Django's __regex filter, but currently MySQL only supports POSIX regex
-    pageViewList = []
     if isPaidContent == 'true':
+        pageViewIdList = []
         accessRules = AccessRule.objects.all().filter(partnerId=partnerId).filter(accessTypeId=1)
         for rule in accessRules:
             try:
@@ -132,15 +126,34 @@ def page_view_to_csv(request):
             if isPatternValid == True:
                 for pageView in pageViews:
                     if pattern.search(pageView.uri):
-                        pageViewList.append(pageViews.values_list().get(pageViewId=pageView.pageViewId))
+                        pageViewIdList.append(pageView.pageViewId)
 
-        pageViews = pageViewList
-    else:
-        pageViews = pageViews.values_list()
+        pageViews = PageView.objects.all().filter(pageViewId__in=pageViewIdList)
+    #TODO: it is better to use Django's ip__gte, ip__lte filters, but they are not working because MySQL doesn't have ip comparison
+    # if startIp:
+    #     startIp = IPAddress(startIp)
+    #     pageViews = pageViews.filter(ip__gte=startIp)
+    # if endIp:
+    #     endIp = IPAddress(endIp)
+    #     pageViews = pageViews.filter(ip__lte=endIp)
+    if ipRanges:
+        pageViewIdList = []
+        ipRangeList = ipRanges.split(',')
+        for ipRange in ipRangeList:
+            #get ip from string and convert to IPAddress format
+            startIp = IPAddress(ipRange.split('-')[0])
+            endIp  = IPAddress(ipRange.split('-')[1])
+            for pageView in pageViews:
+                pageViewIp = IPAddress(pageView.ip)
+                if startIp <= pageViewIp and endIp >= pageViewIp:
+                    pageViewIdList.append(pageView.pageViewId)
+        pageViews = PageView.objects.all().filter(pageViewId__in=pageViewIdList)
+
+    pageViewData = pageViews.values_list('ip').annotate(count=Count('pageViewId'))
 
     pseudo_buffer = Echo()
     writer = csv.writer(pseudo_buffer)
-    response = StreamingHttpResponse((writer.writerow(pageView) for pageView in pageViews),
+    response = StreamingHttpResponse((writer.writerow(pageView) for pageView in pageViewData),
                                      content_type="text/csv")
     filename = 'DateRange_'+startDate+'_'+endDate+'_ip_'+ipPref+'.csv'
     response['Content-Disposition'] = 'attachment; filename="'+filename+'"'
