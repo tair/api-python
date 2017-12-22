@@ -144,7 +144,8 @@ def page_view_to_csv(request):
             startIp = IPAddress(ipRange.split('-')[0])
             endIp  = IPAddress(ipRange.split('-')[1])
             for pageView in pageViews:
-                if startIp <= pageView.ip and endIp >= pageView.ip:
+                pageViewIp = IPAddress(pageView.ip)
+                if startIp <= pageViewIp and endIp >= pageViewIp:
                     pageViewIdList.append(pageView.pageViewId)
         pageViews = PageView.objects.all().filter(pageViewId__in=pageViewIdList)
 
