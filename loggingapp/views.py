@@ -6,6 +6,7 @@ from rest_framework.views import APIView
 import datetime
 import csv
 import re
+from os.path import commonprefix
 
 from rest_framework import status
 
@@ -140,10 +141,15 @@ def page_view_to_csv(request):
         pageViewIdList = []
         ipRangeList = ipRanges.split(',')
         for ipRange in ipRangeList:
+            startIpStr = ipRange.split('-')[0]
+            endIpStr = ipRange.split('-')[1]
+            ipPrefTemp = commonprefix([startIpStr, endIpStr])
+            if ipPrefTemp == "":
+                return Response({'error': 'ipRanges invalid'}, status=status.HTTP_400_BAD_REQUEST)
             #get ip from string and convert to IPAddress format
-            startIp = IPAddress(ipRange.split('-')[0])
-            endIp  = IPAddress(ipRange.split('-')[1])
-            for pageView in pageViews:
+            startIp = IPAddress(startIpStr)
+            endIp  = IPAddress(endIpStr)
+            for pageView in pageViews.filter(ip__startswith=ipPrefTemp):
                 pageViewIp = IPAddress(pageView.ip)
                 if startIp <= pageViewIp and endIp >= pageViewIp:
                     pageViewIdList.append(pageView.pageViewId)
