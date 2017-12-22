@@ -17,6 +17,7 @@ from partner.models import Partner
 from authorization.models import AccessRule
 
 from django.db.models import Count, Min, Max
+from django.db.models import Q
 
 from netaddr import IPAddress
 
@@ -101,7 +102,12 @@ def page_view_to_csv(request):
     if not partnerId:
         return Response({'error': 'partnerId shouldn\'t be null'}, status=status.HTTP_400_BAD_REQUEST)
     if ipPref:
-        pageViews = pageViews.filter(ip__startswith=ipPref)
+        ipPrefList = ipPref.split(',')
+        qList = [Q(ip__startswith=ipPrefItem) for ipPrefItem in ipPrefList]
+        query = qList.pop()
+        for q in qList:
+            query |= q
+        pageViews = pageViews.filter(query)
     if startDate:
         pageViews = pageViews.filter(pageViewDate__gte=startDate)
     if endDate:
@@ -136,5 +142,6 @@ def page_view_to_csv(request):
     writer = csv.writer(pseudo_buffer)
     response = StreamingHttpResponse((writer.writerow(pageView) for pageView in pageViews),
                                      content_type="text/csv")
-    response['Content-Disposition'] = 'attachment; filename="somefilename.csv"'
+    filename = 'DateRange_'+startDate+'_'+endDate+'_ip_'+ipPref+'_reportgeneratedon_'+ datetime.datetime.now()+'.csv'
+    response['Content-Disposition'] = 'attachment; filename="'+filename+'"'
     return response
