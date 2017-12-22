@@ -142,6 +142,6 @@ def page_view_to_csv(request):
     writer = csv.writer(pseudo_buffer)
     response = StreamingHttpResponse((writer.writerow(pageView) for pageView in pageViews),
                                      content_type="text/csv")
-    filename = 'DateRange_'+startDate+'_'+endDate+'_ip_'+ipPref+'_reportgeneratedon_'+ datetime.datetime.now()+'.csv'
+    filename = 'DateRange_'+startDate+'_'+endDate+'_ip_'+ipPref+'.csv'
     response['Content-Disposition'] = 'attachment; filename="'+filename+'"'
     return response
