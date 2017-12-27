@@ -155,7 +155,7 @@ def page_view_to_csv(request):
                     pageViewIdList.append(pageView.pageViewId)
         pageViews = PageView.objects.all().filter(pageViewId__in=pageViewIdList)
 
-    pageViewData = pageViews.extra({'month':'MONTH(pageViewDate)'}).values_list('ip','month').annotate(count=Count('pageViewId'))
+    pageViewData = pageViews.extra({'month':'MONTH(pageViewDate)'}).values_list('month', 'ip').annotate(count=Count('pageViewId'))
 
     pseudo_buffer = Echo()
     writer = csv.writer(pseudo_buffer)
