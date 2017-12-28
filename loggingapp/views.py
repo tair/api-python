@@ -89,25 +89,26 @@ def page_view_to_csv(request):
     pageViews = PageView.objects.all()
 
     params = request.GET
-    if all(field in params for field in ['partnerId', 'startDate', 'endDate', 'ipPref', 'isPaidContent', 'ipRanges']):
+    if all(field in params for field in ['partyName','partnerId', 'startDate', 'endDate', 'isPaidContent']):
+        partyName = params['partyName']
         partnerId = params['partnerId']
         startDate = params['startDate']
         endDate = params['endDate']
         # startIp = params['startIp']
         # endIp = params['endIp']
-        ipPref = params['ipPref']
         isPaidContent = params['isPaidContent']
-        ipRanges = params['ipRanges']
     else:
-        return Response({'error':'required fields: partnerId, startDate, endDate, ipPref, isPaidContent, ipRanges'}, status=status.HTTP_400_BAD_REQUEST)
+        return Response({'error':'required fields: partyName, partnerId, startDate, endDate, isPaidContent'}, status=status.HTTP_400_BAD_REQUEST)
 
     if not partnerId:
         return Response({'error': 'partnerId shouldn\'t be null'}, status=status.HTTP_400_BAD_REQUEST)
 
     ipPrefList = []
-    if ipPref:
+    if 'ipPref' in params:
+        ipPref = params['ipPref']
         ipPrefList.extend(ipPref.split(','))
-    if ipRanges: # convert ip ranges to ip prefix list to improve performance
+    if 'ipRanges' in params: # convert ip ranges to ip prefix list to improve performance
+        ipRanges = params['ipRanges']
         ipRangeList=ipRanges.split(',')
         for ipRange in ipRangeList:
             startIp = ipRange.split('-')[0]
@@ -153,6 +154,6 @@ def page_view_to_csv(request):
     writer = csv.writer(pseudo_buffer)
     response = StreamingHttpResponse((writer.writerow(pageView) for pageView in pageViewData),
                                      content_type="text/csv")
-    filename = 'DateRange_'+startDate+'_'+endDate+'_ip_'+ipPref+'.csv'
+    filename = partyName+'_'+startDate+'_'+endDate+'.csv'
     response['Content-Disposition'] = 'attachment; filename="'+filename+'"'
     return response
