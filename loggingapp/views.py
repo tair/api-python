@@ -105,8 +105,19 @@ def page_view_to_csv(request):
 
     ipPrefList = []
     if 'ipPref' in params:
-        ipPref = params['ipPref']
-        ipPrefList.extend(ipPref.split(','))
+        ipPrefStr = params['ipPref']
+        tempIpPrefList = ipPrefStr.split(',')
+        for ipPref in tempIpPrefList:
+            if '-' in ipPref:
+                parts = ipPref.split('.')
+                start = int(parts[-1].split('-')[0])
+                end = int(parts[-1].split('-')[1])
+                for num in range(start, end+1):
+                    prefHead = parts[0:-1]
+                    prefHead.append(str(num))
+                    ipPrefList.append('.'.join(prefHead))
+            else:
+                ipPrefList.append(ipPref)
     if 'ipRanges' in params: # convert ip ranges to ip prefix list to improve performance
         ipRanges = params['ipRanges']
         ipRangeList=ipRanges.split(',')
