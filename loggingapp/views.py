@@ -111,7 +111,7 @@ def page_view_to_csv(request):
         ipRangeList=ipRanges.split(',')
         for ipRange in ipRangeList:
             startIp = ipRange.split('-')[0]
-            endIp = ipRange.spli('-')[1]
+            endIp = ipRange.split('-')[1]
             for num in range(int(IPAddress(startIp)),int(IPAddress(endIp))+1):
                 ipPrefList.append(str(IPAddress(num)))
     qList = [Q(ip__startswith=ipPrefItem) for ipPrefItem in ipPrefList]
