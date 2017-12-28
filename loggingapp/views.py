@@ -89,7 +89,7 @@ def page_view_to_csv(request):
     pageViews = PageView.objects.all()
 
     params = request.GET
-    if all(field in params for field in ['partnerId', 'startDate', 'endDate', 'startIp', 'ipRanges', 'endIp', 'ipPref', 'isPaidContent']):
+    if all(field in params for field in ['partnerId', 'startDate', 'endDate', 'ipPref', 'isPaidContent', 'ipRanges']):
         partnerId = params['partnerId']
         startDate = params['startDate']
         endDate = params['endDate']
@@ -99,7 +99,7 @@ def page_view_to_csv(request):
         isPaidContent = params['isPaidContent']
         ipRanges = params['ipRanges']
     else:
-        return Response({'error':'required fields: startDate, endDate, startIp, endIp, ipPref, isPaidContent'}, status=status.HTTP_400_BAD_REQUEST)
+        return Response({'error':'required fields: partnerId, startDate, endDate, ipPref, isPaidContent, ipRanges'}, status=status.HTTP_400_BAD_REQUEST)
 
     if not partnerId:
         return Response({'error': 'partnerId shouldn\'t be null'}, status=status.HTTP_400_BAD_REQUEST)
@@ -146,23 +146,6 @@ def page_view_to_csv(request):
     # if endIp:
     #     endIp = IPAddress(endIp)
     #     pageViews = pageViews.filter(ip__lte=endIp)
-    if ipRanges:
-        pageViewIdList = []
-        ipRangeList = ipRanges.split(',')
-        for ipRange in ipRangeList:
-            startIpStr = ipRange.split('-')[0]
-            endIpStr = ipRange.split('-')[1]
-            ipPrefTemp = commonprefix([startIpStr, endIpStr])
-            if ipPrefTemp == "":
-                return Response({'error': 'ipRanges invalid'}, status=status.HTTP_400_BAD_REQUEST)
-            #get ip from string and convert to IPAddress format
-            startIp = IPAddress(startIpStr)
-            endIp  = IPAddress(endIpStr)
-            for pageView in pageViews.filter(ip__startswith=ipPrefTemp):
-                pageViewIp = IPAddress(pageView.ip)
-                if startIp <= pageViewIp and endIp >= pageViewIp:
-                    pageViewIdList.append(pageView.pageViewId)
-        pageViews = PageView.objects.all().filter(pageViewId__in=pageViewIdList)
 
     pageViewData = pageViews.extra({'month':'MONTH(pageViewDate)'}).values_list('month', 'ip').annotate(count=Count('pageViewId'))
 
