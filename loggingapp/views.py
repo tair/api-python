@@ -103,13 +103,22 @@ def page_view_to_csv(request):
 
     if not partnerId:
         return Response({'error': 'partnerId shouldn\'t be null'}, status=status.HTTP_400_BAD_REQUEST)
+
+    ipPrefList = []
     if ipPref:
-        ipPrefList = ipPref.split(',')
-        qList = [Q(ip__startswith=ipPrefItem) for ipPrefItem in ipPrefList]
-        query = qList.pop()
-        for q in qList:
-            query |= q
-        pageViews = pageViews.filter(query)
+        ipPrefList.extend(ipPref.split(','))
+    if ipRanges: # convert ip ranges to ip prefix list to improve performance
+        ipRangeList=ipRanges.split(',')
+        for ipRange in ipRangeList:
+            startIp = ipRange.split('-')[0]
+            endIp = ipRange.spli('-')[1]
+            for num in range(int(IPAddress(startIp)),int(IPAddress(endIp))+1):
+                ipPrefList.append(str(IPAddress(num)))
+    qList = [Q(ip__startswith=ipPrefItem) for ipPrefItem in ipPrefList]
+    query = qList.pop()
+    for q in qList:
+        query |= q
+    pageViews = pageViews.filter(query)
     if startDate:
         pageViews = pageViews.filter(pageViewDate__gte=startDate)
     if endDate:
