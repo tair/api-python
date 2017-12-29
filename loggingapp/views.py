@@ -133,7 +133,7 @@ def page_view_to_csv(request):
     ipQList = [Q(ip=ipItem) for ipItem in ipList]
     qList = []
     qList.extend(ipPrefQlist + ipQList)
-    if qList != []
+    if qList != []:
         query = qList.pop()
         for q in qList:
             query |= q
