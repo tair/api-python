@@ -119,6 +119,7 @@ def page_view_to_csv(request):
                         ipPrefList.append('.'.join(prefHead))
                 else:
                     ipPrefList.append(ipPref)
+    ipList = []
     if 'ipRanges' in params: # convert ip ranges to ip prefix list to improve performance
         ipRanges = params['ipRanges']
         if ipRanges:
@@ -127,12 +128,16 @@ def page_view_to_csv(request):
                 startIp = ipRange.split('-')[0]
                 endIp = ipRange.split('-')[1]
                 for num in range(int(IPAddress(startIp)),int(IPAddress(endIp))+1):
-                    ipPrefList.append(str(IPAddress(num)))
-    qList = [Q(ip__startswith=ipPrefItem) for ipPrefItem in ipPrefList]
-    query = qList.pop()
-    for q in qList:
-        query |= q
-    pageViews = pageViews.filter(query)
+                    ipList.append(str(IPAddress(num)))
+    ipPrefQlist = [Q(ip__startswith=ipPrefItem) for ipPrefItem in ipPrefList]
+    ipQList = [Q(ip=ipItem) for ipItem in ipList]
+    qList = []
+    qList.extend(ipPrefQlist + ipQList)
+    if qList != []
+        query = qList.pop()
+        for q in qList:
+            query |= q
+        pageViews = pageViews.filter(query)
     if startDate:
         pageViews = pageViews.filter(pageViewDate__gte=startDate)
     if endDate:
