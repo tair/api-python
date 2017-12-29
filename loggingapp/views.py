@@ -120,7 +120,7 @@ def page_view_to_csv(request):
                 else:
                     ipPrefList.append(ipPref)
     ipList = []
-    if 'ipRanges' in params: # convert ip ranges to ip prefix list to improve performance
+    if 'ipRanges' in params: # convert ip ranges to ip list to improve performance
         ipRanges = params['ipRanges']
         if ipRanges:
             ipRangeList=ipRanges.split(',')
