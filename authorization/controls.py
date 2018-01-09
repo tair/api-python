@@ -3,12 +3,13 @@
 from models import Status, AccessType
 from subscription.models import Subscription
 from authentication.models import Credential
+import logging
 
 class Authorization:
     @staticmethod
-    def getAccessStatus(loginKey, ip, partyId, url, partnerId, hostUrl, apiKey):
+    def getAccessStatus(token, loginKey, ip, partyId, url, partnerId, hostUrl, apiKey):
         # check login
-        if not Authorization.authentication(loginKey, partyId, url, partnerId, hostUrl, apiKey):
+        if not Authorization.authentication(token, loginKey, partyId, url, partnerId, hostUrl, apiKey):
             return Status.needLogin
 
         # no login required or is already logged in, check subscription
@@ -37,11 +38,13 @@ class Authorization:
         return False
 
     @staticmethod
-    def authentication(loginKey, partyId, url, partnerId, hostUrl, apiKey):
+    def authentication(token, loginKey, partyId, url, partnerId, hostUrl, apiKey):
         if not AccessType.checkHasAccessRule(url, "Login", partnerId):
             # does not have Login access rule to this url, allow access.
+            # logging.error('does not have Login access rule to this url, allow access.')
             return True
-        if Credential.validate(partyId, loginKey):
+        if Credential.validate(partyId, token, loginKey):
             # have authentication, allow access.
+            # logging.error('have authentication, allow access.')
             return True
         return False
