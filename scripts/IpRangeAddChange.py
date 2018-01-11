@@ -11,7 +11,7 @@ os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'paywall2.settings')
 django.setup()
 
 from party.serializers import IpRangeSerializer, PartySerializer
-from party.models import IpRange, Party
+from party.models import IpRange, Party, PartyAffiliation
 
 # Begin main program:
 
@@ -31,6 +31,7 @@ partyCreated = 0
 ipRangeLoaded = 0
 ipRangeFailed = 0
 cleared = []
+consortiumId = 31772
 
 for entry in IpRangeListData:
     actionType = entry[0]
@@ -56,6 +57,9 @@ for entry in IpRangeListData:
                 ipRangeFailed += 1
                 continue
             partyId = partySerializer.data['partyId']
+            childParty = Party.objects.get(partyId = partyId)
+            parentParty = Party.objects.get(partyId = consortiumId)
+            PartyAffiliation.create(childPartyId = childParty, parentParty = parentParty)
             partyCreated += 1
 
         # when the party exists
