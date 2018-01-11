@@ -37,11 +37,12 @@ for entry in IpRangeListData:
     institutionName = entry[1]
     startIp = entry[2]
     endIp = entry[3]
+    queryset = Party.objects.all().filter(partyType='organization')
 
     if actionType == 'create':
         partyId = None
         # when the party doesn't exist
-        if not Party.objects.all().filter(name=institutionName).exists():
+        if not queryset.filter(name=institutionName).exists():
             #create party
             partySerializer = PartySerializer(data={'name':institutionName}, partial=True)
             if partySerializer.is_valid():
@@ -59,7 +60,7 @@ for entry in IpRangeListData:
 
         # when the party exists
         else:
-            if Party.objects.all().filter(name=institutionName).count() > 1:
+            if queryset.filter(name=institutionName).count() > 1:
                 print '[More than one party found with institution name] ' + \
                       'type: ' + actionType + \
                       'institution: ' + institutionName + \
@@ -67,7 +68,7 @@ for entry in IpRangeListData:
                       'end: ' + endIp
                 ipRangeFailed += 1
                 continue
-            partyId = Party.objects.get(name=institutionName).partyId
+            partyId = queryset.filter(name=institutionName)[0].partyId
             ipRangeList = IpRange.objects.all().filter(partyId=partyId)
             nextIter = False
             for ipRange in ipRangeList:
@@ -98,7 +99,7 @@ for entry in IpRangeListData:
     elif actionType == 'update':
         partyId = None
         # when the party doesn't exist
-        if not Party.objects.all().filter(name=institutionName).exists():
+        if not queryset.filter(name=institutionName).exists():
             print '[Party does not exist] ' + \
                   'type: ' + actionType + \
                   'institution: ' + institutionName + \
@@ -108,7 +109,7 @@ for entry in IpRangeListData:
             continue
 
         # when the party exists
-        elif Party.objects.all().filter(name=institutionName).count() > 1:
+        elif queryset.filter(name=institutionName).count() > 1:
             print '[More than one party found with institution name] ' + \
                   'type: ' + actionType + \
                   'institution: ' + institutionName + \
@@ -117,7 +118,7 @@ for entry in IpRangeListData:
             ipRangeFailed +=1
             continue
         else:
-            partyId = Party.objects.get(name=institutionName).partyId
+            partyId = queryset.get(name=institutionName)[0].partyId
             if partyId not in cleared:
                 IpRange.objects.all().filter(partyId=partyId).delete()
                 cleared.append(partyId)
