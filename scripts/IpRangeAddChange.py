@@ -59,7 +59,7 @@ for entry in IpRangeListData:
             partyId = partySerializer.data['partyId']
             childParty = Party.objects.get(partyId = partyId)
             parentParty = Party.objects.get(partyId = consortiumId)
-            PartyAffiliation.objects.create(childPartyId = childParty, parentParty = parentParty)
+            PartyAffiliation.objects.create(childPartyId = childParty, parentPartyId = parentParty)
             partyCreated += 1
 
         # when the party exists
