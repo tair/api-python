@@ -68,7 +68,7 @@ for entry in IpRangeListData:
                       'end: ' + endIp
                 ipRangeFailed += 1
                 continue
-            partyId = queryset.get(name=institutionName).partyId
+            partyId = queryset.filter(name=institutionName)[0].partyId
             ipRangeList = IpRange.objects.all().filter(partyId=partyId)
             nextIter = False
             for ipRange in ipRangeList:
@@ -118,7 +118,7 @@ for entry in IpRangeListData:
             ipRangeFailed +=1
             continue
         else:
-            partyId = queryset.get(name=institutionName).partyId
+            partyId = queryset.get(name=institutionName)[0].partyId
             if partyId not in cleared:
                 IpRange.objects.all().filter(partyId=partyId).delete()
                 cleared.append(partyId)
