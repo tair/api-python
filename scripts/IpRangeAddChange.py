@@ -44,7 +44,7 @@ for entry in IpRangeListData:
         # when the party doesn't exist
         if not queryset.filter(name=institutionName).exists():
             #create party
-            partySerializer = PartySerializer(data={'name':institutionName}, partial=True)
+            partySerializer = PartySerializer(data={'name':institutionName, 'partyType': 'organization'}, partial=True)
             if partySerializer.is_valid():
                 partySerializer.save()
             else:
