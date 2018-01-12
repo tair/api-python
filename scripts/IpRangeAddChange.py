@@ -38,6 +38,11 @@ for entry in IpRangeListData:
     institutionName = entry[1]
     startIp = entry[2]
     endIp = entry[3]
+    #remove any blance spaces or non-ascii charactors from the ip ranges
+    whitelist = set('abcdefghijklmnopqrstuvwxyABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890.:')
+    startIp = ''.join(filter(whitelist.__contains__, startIp))
+    endIp = ''.join(filter(whitelist.__contains__, endIp))
+
     queryset = Party.objects.all().filter(partyType='organization')
 
     if actionType == 'create':
