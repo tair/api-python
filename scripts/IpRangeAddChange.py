@@ -11,7 +11,7 @@ os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'paywall2.settings')
 django.setup()
 
 from party.serializers import IpRangeSerializer, PartySerializer
-from party.models import IpRange, Party
+from party.models import IpRange, Party, PartyAffiliation
 
 # Begin main program:
 
@@ -31,12 +31,18 @@ partyCreated = 0
 ipRangeLoaded = 0
 ipRangeFailed = 0
 cleared = []
+consortiumId = 31772
 
 for entry in IpRangeListData:
     actionType = entry[0]
     institutionName = entry[1]
     startIp = entry[2]
     endIp = entry[3]
+    #remove any blance spaces or non-ascii charactors from the ip ranges
+    whitelist = set('abcdefghijklmnopqrstuvwxyABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890.:')
+    startIp = ''.join(filter(whitelist.__contains__, startIp))
+    endIp = ''.join(filter(whitelist.__contains__, endIp))
+
     queryset = Party.objects.all().filter(partyType='organization')
 
     if actionType == 'create':
@@ -44,9 +50,10 @@ for entry in IpRangeListData:
         # when the party doesn't exist
         if not queryset.filter(name=institutionName).exists():
             #create party
-            partySerializer = PartySerializer(data={'name':institutionName}, partial=True)
+            partySerializer = PartySerializer(data={'name':institutionName, 'partyType': 'organization'}, partial=True)
             if partySerializer.is_valid():
                 partySerializer.save()
+                print '[New Party Created] ' + institutionName
             else:
                 print '[Party serializer invalid] ' + \
                       'type: ' + actionType + \
@@ -56,6 +63,14 @@ for entry in IpRangeListData:
                 ipRangeFailed += 1
                 continue
             partyId = partySerializer.data['partyId']
+            childParty = Party.objects.get(partyId = partyId)
+            parentParty = Party.objects.get(partyId = consortiumId)
+            PartyAffiliation.objects.create(childPartyId = childParty, parentPartyId = parentParty)
+            print '[PartyAffiliation Created] ' + \
+                  'type: ' + actionType + \
+                  'institution: ' + institutionName + \
+                  'start: ' + startIp + \
+                  'end: ' + endIp
             partyCreated += 1
 
         # when the party exists
@@ -68,7 +83,7 @@ for entry in IpRangeListData:
                       'end: ' + endIp
                 ipRangeFailed += 1
                 continue
-            partyId = queryset.get(name=institutionName).partyId
+            partyId = queryset.filter(name=institutionName)[0].partyId
             ipRangeList = IpRange.objects.all().filter(partyId=partyId)
             nextIter = False
             for ipRange in ipRangeList:
@@ -87,6 +102,11 @@ for entry in IpRangeListData:
         ipRangeSerializer = IpRangeSerializer(data={'start': startIp, 'end': endIp, 'partyId': partyId}, partial=True)
         if ipRangeSerializer.is_valid():
             ipRangeSerializer.save()
+            print '[IpRange Created] ' + \
+                  'type: ' + actionType + \
+                  'institution: ' + institutionName + \
+                  'start: ' + startIp + \
+                  'end: ' + endIp
             ipRangeLoaded += 1
         else:
             print '[Ip range serializer invalid] ' + \
@@ -118,7 +138,7 @@ for entry in IpRangeListData:
             ipRangeFailed +=1
             continue
         else:
-            partyId = queryset.get(name=institutionName).partyId
+            partyId = queryset.filter(name=institutionName)[0].partyId
             if partyId not in cleared:
                 IpRange.objects.all().filter(partyId=partyId).delete()
                 cleared.append(partyId)
@@ -127,6 +147,11 @@ for entry in IpRangeListData:
         ipRangeSerializer = IpRangeSerializer(data={'start': startIp, 'end': endIp, 'partyId': partyId}, partial=True)
         if ipRangeSerializer.is_valid():
             ipRangeSerializer.save()
+            print '[IpRange Created] ' + \
+                  'type: ' + actionType + \
+                  'institution: ' + institutionName + \
+                  'start: ' + startIp + \
+                  'end: ' + endIp
             ipRangeLoaded += 1
         else:
             print '[Ip range serializer invalid] ' + \
