@@ -67,10 +67,8 @@ for entry in IpRangeListData:
             parentParty = Party.objects.get(partyId = consortiumId)
             PartyAffiliation.objects.create(childPartyId = childParty, parentPartyId = parentParty)
             print '[PartyAffiliation Created] ' + \
-                  'type: ' + actionType + \
                   'institution: ' + institutionName + \
-                  'start: ' + startIp + \
-                  'end: ' + endIp
+                  'consortium: ' + parentParty.name
             partyCreated += 1
 
         # when the party exists
