@@ -47,10 +47,12 @@ class Access(APIView):
         userIdentifier = None
         if partyId and partyId.isdigit() and Credential.objects.all().filter(partyId=partyId).exists():
             userIdentifier = Credential.objects.all().get(partyId=partyId).userIdentifier
+        isPaidContent = 'Y' if AccessType.checkHasAccessRule(url, "Paid", partnerId) else 'N'
         response = {
             "ip":ipResult,
             "status":status,
             "userIdentifier":userIdentifier,
+            "isPaidContent":isPaidContent,
         }
         '''
         authorization  access  should contain these elements:
