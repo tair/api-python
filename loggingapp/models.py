@@ -16,6 +16,7 @@ class PageView(models.Model):
   ipList = models.CharField(max_length=250, null=True)
   partnerId = models.ForeignKey(Partner, db_column='partnerId', null=True)
   isPaidContent = models.NullBooleanField()
+  meterStatus = models.CharField(max_length=1, null=True)
 
   class Meta:
     db_table = "PageView"
