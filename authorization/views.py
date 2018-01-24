@@ -53,7 +53,7 @@ class Access(APIView):
         userIdentifier = None
         if partyId and partyId.isdigit() and Credential.objects.all().filter(partyId=partyId).exists():
             userIdentifier = Credential.objects.all().get(partyId=partyId).userIdentifier
-        isPaidContent = 'Y' if AccessType.checkHasAccessRule(url, "Paid", partnerId) else 'N'
+        isPaidContent = 'T' if AccessType.checkHasAccessRule(url, "Paid", partnerId) else 'F'
         response = {
             "ip":ipResult,
             "status":status,
