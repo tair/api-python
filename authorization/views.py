@@ -5,7 +5,7 @@ from rest_framework.views import APIView
 from rest_framework import generics
 from controls import Authorization
 
-from models import AccessType, AccessRule, UriPattern
+from models import AccessType, AccessRule, UriPattern, Status
 from serializers import AccessTypeSerializer, AccessRuleSerializer, UriPatternSerializer
 from partner.models import Partner
 from authentication.models import Credential
@@ -33,17 +33,26 @@ class Access(APIView):
     def get(self, request, format=None):
         partyId = request.COOKIES.get('credentialId')
         loginKey = request.COOKIES.get('secretKey')
-        ip = request.GET.get('ip')
+        ipList = request.GET.get('ipList')
         url = request.GET.get('url').decode('utf8')
         partnerId = request.GET.get('partnerId')
         apiKey = request.COOKIES.get('apiKey')
-        status = Authorization.getAccessStatus(loginKey, ip, partyId, url, partnerId, getHostUrlFromRequest(request), apiKey)
+        ipList = ipList.split(',')
+        ipResult = ''
+        for ip in ipList:
+            status = Authorization.getAccessStatus(loginKey, ip, partyId, url, partnerId, getHostUrlFromRequest(request), apiKey)
+            ipResult = ip
+            if status == Status.ok:
+                break
         userIdentifier = None
         if partyId and partyId.isdigit() and Credential.objects.all().filter(partyId=partyId).exists():
             userIdentifier = Credential.objects.all().get(partyId=partyId).userIdentifier
+        isPaidContent = 'T' if AccessType.checkHasAccessRule(url, "Paid", partnerId) else 'F'
         response = {
+            "ip":ipResult,
             "status":status,
             "userIdentifier":userIdentifier,
+            "isPaidContent":isPaidContent,
         }
         '''
         authorization  access  should contain these elements:
@@ -55,7 +64,7 @@ class Access(APIView):
             complete URI (required) 
             status (required)
         '''
-        logging.error("Authorization Access %s%s %s%s %s%s %s%s %s%s %s%s" % ("ip:",ip,"partyId:",partyId,"userIdentifier:",userIdentifier,"partnerId:",partnerId,"url:",url,"status:",status))
+        logging.error("Authorization Access %s%s %s%s %s%s %s%s %s%s %s%s" % ("ip:",ipResult,"partyId:",partyId,"userIdentifier:",userIdentifier,"partnerId:",partnerId,"url:",url,"status:",status))
         return HttpResponse(json.dumps(response), content_type="application/json")
 
 # /subscriptions/
