@@ -1,4 +1,4 @@
-from party.models import Party, PartyAffiliation
+from party.models import Party
 from partner.models import Partner
 from subscription.models import Subscription
 from subscription.serializers import SubscriptionSerializer
@@ -20,14 +20,10 @@ for institution in institutions:
             .order_by('-endDate').first()
         # if any consortium has an active subscription for the certain partner
         if subscription:
-            consortiumStartDate = subscription.startDate
-            consortiumEndDate = subscription.endDate
-            consortiumId = subscription.partyId
-
             updateData = {}
-            updateData['consortiumStartDate'] = consortiumStartDate
-            updateData['consortiumEndDate'] = consortiumEndDate
-            updateData['consortiumId'] = consortiumId
+            updateData['consortiumStartDate'] = subscription.startDate
+            updateData['consortiumEndDate'] = subscription.endDate
+            updateData['consortiumId'] = subscription.partyId
             # if the obj doesn't exist then create
             obj, created = Subscription.objects.get_or_create(
                 partnerId=partner,
@@ -36,9 +32,9 @@ for institution in institutions:
             )
             # if the obj exists then update
             if not created:
-                if obj.consortiumStartDate != consortiumStartDate\
-                    or obj.consortiumEndDate != consortiumEndDate\
-                    or obj.consortiumId != consortiumId:
+                if obj.consortiumStartDate != subscription.startDate\
+                    or obj.consortiumEndDate != subscription.endDate\
+                    or obj.consortiumId != subscription.partyId:
                     serializer = SubscriptionSerializer(obj, data=updateData, null=True)
                     if serializer.is_valid():
                         serializer.save()
