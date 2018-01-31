@@ -14,13 +14,13 @@ class NumericField(models.Field):
 
 class Subscription(models.Model):
     subscriptionId = models.AutoField(primary_key=True)
-    partyId = models.ForeignKey("party.Party", null=True, db_column="partyId")
+    partyId = models.ForeignKey("party.Party", null=True, db_column="partyId", related_name='partyId')
     partnerId = models.ForeignKey("partner.Partner", null=True, db_column="partnerId")
     startDate = models.DateTimeField(null=True)
     endDate = models.DateTimeField(null=True)
     consortiumStartDate = models.DateTimeField(null=True)
     consortiumEndDate = models.DateTimeField(null=True)
-    consortiumId = models.ForeignKey("party.Party", null=True)
+    consortiumId = models.ForeignKey("party.Party", null=True, related_name='consortiumId')
 
     @staticmethod
     def getByIp(ipAddress):
