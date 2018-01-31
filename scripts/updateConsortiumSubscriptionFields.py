@@ -1,9 +1,14 @@
+import django
+import os
+
+os.sys.path.append('../')
+os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'paywall2.settings')
+django.setup()
+
 from party.models import Party
 from partner.models import Partner
 from subscription.models import Subscription
 from subscription.serializers import SubscriptionSerializer
-
-from django.db.models import Max
 
 from django.utils import timezone
 
