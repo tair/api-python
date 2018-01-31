@@ -8,7 +8,6 @@ django.setup()
 from party.models import Party
 from partner.models import Partner
 from subscription.models import Subscription
-from subscription.serializers import SubscriptionSerializer
 
 from django.utils import timezone
 
@@ -37,11 +36,8 @@ for institution in institutions:
             )
             # if the obj exists then update
             if not created:
-                if obj.consortiumStartDate != subscription.startDate\
-                    or obj.consortiumEndDate != subscription.endDate\
-                    or obj.consortiumId != subscription.partyId:
-                    serializer = SubscriptionSerializer(obj, data=updateData, partial=True)
-                    if serializer.is_valid():
-                        serializer.save()
+                for k, v in updateData.iteritems():
+                    if getattr(obj, k) != v:
+                        setattr(obj, k, v)
 
 
