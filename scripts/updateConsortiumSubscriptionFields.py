@@ -40,7 +40,7 @@ for institution in institutions:
                 if obj.consortiumStartDate != subscription.startDate\
                     or obj.consortiumEndDate != subscription.endDate\
                     or obj.consortiumId != subscription.partyId:
-                    serializer = SubscriptionSerializer(obj, data=updateData, null=True)
+                    serializer = SubscriptionSerializer(obj, data=updateData, partial=True)
                     if serializer.is_valid():
                         serializer.save()
 
