@@ -68,4 +68,7 @@ for institution in institutions:
                     setattr(obj, k, v)
                     obj.save()
 
+        if not obj.startDate and not obj.endDate and not obj.consortiumStartDate and not obj.consortiumEndDate and not obj.consortiumId:
+            obj.delete()
+
 
