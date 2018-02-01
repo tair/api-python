@@ -8,7 +8,7 @@ from partner.models import Partner
 class SubscriptionSerializer(serializers.ModelSerializer):
     class Meta:
         model = Subscription
-        fields = ('subscriptionId', 'partyId', 'partnerId', 'startDate', 'endDate')
+        fields = ('subscriptionId', 'partyId', 'partnerId', 'startDate', 'endDate', 'consortiumStartDate', 'consortiumEndDate', 'consortiumId')
 
 class SubscriptionTransactionSerializer(serializers.ModelSerializer):
     class Meta:
