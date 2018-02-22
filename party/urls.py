@@ -19,6 +19,7 @@ urlpatterns = [
     url(r'^consortiums/$', views.ConsortiumCRUD.as_view()),
     #https://demoapi.arabidopsis.org/parties/institutions/?partyId=31627&credentialId=33197&secretKey=kZ5yK8hdSbncXwD4%2F2DJOxqFUds%3D
     url(r'^institutions/$', views.InstitutionCRUD.as_view()),#PW-161
+    url(r'^allinstitutions/$', views.AllInstitutions.as_view()),#PWL-587
     url(r'^affiliations/$', views.AffiliationCRUD.as_view()),
     
     #PW-277 - accept IP, returns organization

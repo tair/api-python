@@ -618,6 +618,23 @@ class InstitutionCRUD(GenericCRUDView):
         else:
             return Response({'error':'delete partyId '+institutionId+' failed. partyId not found'},status=status.HTTP_400_BAD_REQUEST)
 
+# allinstitutions/
+class AllInstitutions(APIView):
+    def get(self):
+        if not isPhoenix(self.request):
+            return HttpResponse(status=400)
+        institutions = Party.objects.all().filter(partyType='organization')
+        returnData = []
+        for institution in institutions:
+            serializer = PartySerializer(institution)
+            if institution.iprange_set.all() == []:
+                serializer.data['hasIpRange'] = False
+            else:
+                serializer.data['hasIpRange'] = True
+            returnData.append(serializer.data)
+        return returnData
+
+
 # affiliations/
 class AffiliationCRUD(GenericCRUDView):
     requireApiKey = False
