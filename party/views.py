@@ -620,19 +620,22 @@ class InstitutionCRUD(GenericCRUDView):
 
 # allinstitutions/
 class AllInstitutions(APIView):
-    def get(self):
+    def get(self, request, format=None):
         if not isPhoenix(self.request):
             return HttpResponse(status=400)
         institutions = Party.objects.all().filter(partyType='organization')
         returnData = []
         for institution in institutions:
             serializer = PartySerializer(institution)
+            data = {}
             if institution.iprange_set.all() == []:
-                serializer.data['hasIpRange'] = False
+                data['hasIpRange'] = 'false'
+                data.update(serializer.data)
             else:
-                serializer.data['hasIpRange'] = True
-            returnData.append(serializer.data)
-        return returnData
+                data['hasIpRange'] = 'true'
+                data.update(serializer.data)
+            returnData.append(data)
+        return HttpResponse(json.dumps(returnData), content_type="application/json")
 
 
 # affiliations/
