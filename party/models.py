@@ -42,6 +42,7 @@ class Party(models.Model):
 
     def updateHasIpRange(self):
         self.hasIpRange = True if self.iprange_set.all() else False
+        self.save()
 
     class Meta:
         db_table = "Party"
