@@ -19,6 +19,7 @@ class Party(models.Model):
     country = models.ForeignKey('Country', null=True, db_column="countryId")
     consortiums = models.ManyToManyField('self', through="PartyAffiliation", through_fields=('childPartyId', 'parentPartyId'), symmetrical=False, related_name="PartyAffiliation")
     label = models.CharField(max_length=64, null=True)
+    hasIpRange = models.BooleanField(default=False)
 
     @staticmethod
     def getByIp(ipAddress):
@@ -38,6 +39,9 @@ class Party(models.Model):
         partyList.append(partyId)
         partyList.extend(consortiums)
         return partyList
+
+    def updateHasIpRange(self):
+        self.hasIpRange = True if self.iprange_set.all() else False
 
     class Meta:
         db_table = "Party"
