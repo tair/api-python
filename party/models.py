@@ -40,10 +40,6 @@ class Party(models.Model):
         partyList.extend(consortiums)
         return partyList
 
-    def updateHasIpRange(self):
-        self.hasIpRange = True if self.iprange_set.all() else False
-        self.save()
-
     class Meta:
         db_table = "Party"
 

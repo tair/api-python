@@ -31,6 +31,7 @@ from collections import namedtuple
 import logging
 import traceback
 #import sys
+from decorators import updateHasIpRange
 
 # top level: /parties/
 
@@ -124,6 +125,14 @@ class IpRangeCRUD(GenericCRUDView):
             return super(IpRangeCRUD, self).get_queryset().filter(partyId=partyId)
         return []
 # TODO: "post" is still a security vulnerability -SC
+
+    @updateHasIpRange
+    def post(self, request, format=None):
+        return super(IpRangeCRUD, self).post(request)
+
+    @updateHasIpRange
+    def delete(self, request, format=None):
+        return super(IpRangeCRUD, self).delete(request)
 
 #------------------- End of Basic CRUD operations --------------
 
