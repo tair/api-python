@@ -5,7 +5,7 @@ from party.models import Party, IpRange, Country
 from rest_framework import serializers
 
 class PartySerializer(serializers.ModelSerializer):
-    hasIpRange = serializers.SerializerMethodField() # Used SerializerMethodField to add a customized field which returns number of ip ranges
+    hasIpRange = serializers.SerializerMethodField() # Used SerializerMethodField to add a customized field which returns a boolean
     class Meta:
         model = Party
         fields = ('partyId','partyType', 'name', 'country', 'display', 'consortiums', 'label', 'hasIpRange')
