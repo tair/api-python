@@ -620,6 +620,7 @@ class InstitutionCRUD(GenericCRUDView):
 
 # allinstitutions/
 class AllInstitutions(APIView):
+    requireApiKey = False
     def get(self, request, format=None):
         if not isPhoenix(self.request):
             return HttpResponse(status=400)
@@ -628,7 +629,7 @@ class AllInstitutions(APIView):
         for institution in institutions:
             serializer = PartySerializer(institution)
             data = {}
-            if institution.iprange_set.all() == []:
+            if not institution.iprange_set.all():
                 data['hasIpRange'] = 'false'
                 data.update(serializer.data)
             else:
