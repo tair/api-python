@@ -620,7 +620,7 @@ class ActivationCodeCRUD(GenericCRUDView):
                 return Response({"error": field + " field is needed."}, status=status.HTTP_400_BAD_REQUEST)
 
         activationCodeId = params['activationCodeId']
-        deleteMarker = params['deleteMarker']
+        deleteMarker = True if params['deleteMarker'] == 'true' else False
 
         activationCodeIdList = map(int, activationCodeId.split(','))
 
