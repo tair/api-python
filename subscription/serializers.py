@@ -18,7 +18,7 @@ class SubscriptionTransactionSerializer(serializers.ModelSerializer):
 class ActivationCodeSerializer(serializers.ModelSerializer):
     class Meta:
         model = ActivationCode
-        fields = ('activationCodeId', 'activationCode', 'partnerId', 'partyId', 'period', 'purchaseDate')
+        fields = ('activationCodeId', 'activationCode', 'partnerId', 'partyId', 'period', 'purchaseDate', 'deleteMarker')
 
 class SubscriptionRequestSerializer(serializers.ModelSerializer):
     class Meta:
