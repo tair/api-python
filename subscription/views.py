@@ -577,7 +577,7 @@ class ActivationCodeCRUD(GenericCRUDView):
     serializer_class = ActivationCodeSerializer
     requireApiKey = False
 
-    def get(self,request):
+    def post(self,request):
         if not isPhoenix(request):
            return HttpResponse(status=400)
 
