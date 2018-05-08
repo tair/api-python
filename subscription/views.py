@@ -608,7 +608,31 @@ class ActivationCodeCRUD(GenericCRUDView):
 
         return HttpResponse(json.dumps(activationCodes), status=200)
 
+    def put(self, request):
+        if not isPhoenix(request):
+           return HttpResponse(status=400)
 
 
+        params = request.GET
+        fields = ['activationCodeId', 'deleteMarker']
+        for field in fields:
+            if field not in params:
+                return Response({"error": field + " field is needed."}, status=status.HTTP_400_BAD_REQUEST)
+
+        activationCodeId = params['activationCodeId']
+        deleteMarker = params['deleteMarker']
+
+        activationCodeIdList = map(int, activationCodeId.split(','))
+
+        activationCodes = ActivationCode.objects.all().filter(activationCodeId__in=activationCodeIdList)
+
+        try:
+            activationCodes.update(deleteMarker=deleteMarker)
+        except:
+            return Response({'error':'update deleteMarker error'}, status=status.HTTP_400_BAD_REQUEST)
+
+        serializers = ActivationCodeSerializer(activationCodes, many=True)
+
+        return Response(serializers.data, status=status.HTTP_200_OK)
 
 
