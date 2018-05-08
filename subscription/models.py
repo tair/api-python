@@ -65,6 +65,7 @@ class ActivationCode(models.Model):
     period = models.IntegerField()
     purchaseDate = models.DateTimeField(default='2001-01-01T00:00:00Z')
     transactionType = models.CharField(max_length=200, null=True)
+    deleteMarker = models.BooleanField(default=False)
     class Meta:
         db_table = "ActivationCode"
 
