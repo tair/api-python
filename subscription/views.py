@@ -284,7 +284,7 @@ class InstitutionSubscription(APIView):
 #        logging.error("%s" % subject)
 #        logging.error("%s" % message)
 
-        from_email = "info@phoenixbioinformatics.org"
+        from_email = "subscriptions@phoenixbioinformatics.org"
         recipient_list = ["subscriptions@phoenixbioinformatics.org"]
         send_mail(subject=subject, message=message, from_email=from_email, recipient_list=recipient_list)
 #        logging.error("------Done sending institution subscription email------")
@@ -330,7 +330,7 @@ class CommercialSubscription(APIView):
 #        logging.error("%s" % subject)
 #        logging.error("%s" % message)
 
-        from_email = "info@phoenixbioinformatics.org"
+        from_email = "subscriptions@phoenixbioinformatics.org"
         recipient_list = ["subscriptions@phoenixbioinformatics.org"]
         send_mail(subject=subject, message=message, from_email=from_email, recipient_list=recipient_list)
 #        logging.error("------Done sending commercial email------")
@@ -462,7 +462,7 @@ class RenewSubscription(generics.GenericAPIView):
                   "Comments: %s \n" \
                   "\n" \
                   % (data['partnerName'], data['email'], data['partyType'], data['partyName'], data['comments'])
-        from_email = "info@phoenixbioinformatics.org"
+        from_email = "subscriptions@phoenixbioinformatics.org"
         recipient_list = ["subscriptions@phoenixbioinformatics.org"]
         send_mail(subject=subject, message=message, from_email=from_email, recipient_list=recipient_list)
         return HttpResponse(json.dumps({'message':'success'}), content_type="application/json")
@@ -485,7 +485,7 @@ class RequestSubscription(generics.GenericAPIView):
                   "Comments: %s \n" \
                   "\n" \
                   % (data['partnerName'], data['email'], data['partyType'], data['partyName'], data['comments'])
-        from_email = "info@phoenixbioinformatics.org"
+        from_email = "subscriptions@phoenixbioinformatics.org"
         recipient_list = ["subscriptions@phoenixbioinformatics.org"]
         send_mail(subject=subject, message=message, from_email=from_email, recipient_list=recipient_list)
         return HttpResponse(json.dumps({'message':'success'}), content_type="application/json")
