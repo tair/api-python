@@ -209,8 +209,8 @@ class Usage(APIView):
                   "End date: %s\n" \
                   "Comments: %s\n" \
                   % (data['partner'], partyTypeName, partyName, data['name'], data['email'], data['startDate'], data['endDate'], data['comments'])
-        from_email = "info@phoenixbioinformatics.org"
-        recipient_list = ["info@phoenixbioinformatics.org"]
+        from_email = "subscriptions@phoenixbioinformatics.org"
+        recipient_list = ["subscriptions@phoenixbioinformatics.org"]
         send_mail(subject=subject, message=message, from_email=from_email, recipient_list=recipient_list)
         return HttpResponse(json.dumps({'message': 'success'}), status=200)
 
