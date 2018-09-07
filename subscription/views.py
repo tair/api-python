@@ -239,7 +239,7 @@ class SubscriptionsPayment(APIView):
         descriptionPartnerDuration = partnerName+" "+descriptionDuration +" subscription"+" vat:"+vat
         domain = request.POST['domain']
 
-        message = PaymentControl.tryCharge(stripe_api_secret_test_key, token, price, descriptionPartnerDuration, termId, quantity, email, firstname, lastname, institute, street, city, state, country, zip, hostname, redirect, vat, domain)
+        message = PaymentControl.tryCharge(stripe_api_secret_test_key, token, price, partnerName, descriptionPartnerDuration, termId, quantity, email, firstname, lastname, institute, street, city, state, country, zip, hostname, redirect, vat, domain)
         #PW-120 vet
         status = 200
         if 'message' in message:
