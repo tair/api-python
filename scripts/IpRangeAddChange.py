@@ -1,6 +1,6 @@
 #!/usr/bin/python
 # file format:
-# 4 columns for actionType, institutionName, startIp, endIp
+# 4 columns for actionType, institutionName, startIp, endIp, countryName
 
 import django
 import os
@@ -11,7 +11,7 @@ os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'paywall2.settings')
 django.setup()
 
 from party.serializers import IpRangeSerializer, PartySerializer
-from party.models import IpRange, Party, PartyAffiliation
+from party.models import IpRange, Party, PartyAffiliation, Country
 
 # Begin main program:
 
@@ -38,6 +38,7 @@ for entry in IpRangeListData:
     institutionName = entry[1]
     startIp = entry[2]
     endIp = entry[3]
+    countryName = entry[4]
     #remove any blance spaces or non-ascii charactors from the ip ranges
     whitelist = set('abcdefghijklmnopqrstuvwxyABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890.:')
     startIp = ''.join(filter(whitelist.__contains__, startIp))
@@ -50,7 +51,15 @@ for entry in IpRangeListData:
         # when the party doesn't exist
         if not queryset.filter(name=institutionName).exists():
             #create party
-            partySerializer = PartySerializer(data={'name':institutionName, 'partyType': 'organization'}, partial=True)
+            if not Country.objects.all().filter(name=countryName):
+                print '[Country Not Found] ' + countryName
+                continue
+            elif Country.objects.all().filter(name=countryName).count() >1:
+                print '[More than one record found with country name] ' + countryName
+                continue
+            else:
+                countryId = Country.objects.get(name=countryName).countryId
+            partySerializer = PartySerializer(data={'name':institutionName, 'partyType': 'organization', 'country':countryId}, partial=True)
             if partySerializer.is_valid():
                 partySerializer.save()
                 print '[New Party Created] ' + institutionName
