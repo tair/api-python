@@ -76,7 +76,7 @@ class check_limit(APIView):
     '''
     def get(self, request, ip, format=None):
         partnerId = request.GET.get('partnerId')
-        uri = request.GET.get('uri')
+        uri = request.GET.get('uri').decode('utf8')
         """PW-287
          Change the check_limit() function to get the patterns for the specified partner by partnerId 
          and iterate through them to find any matches, 
