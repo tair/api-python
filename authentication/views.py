@@ -84,6 +84,12 @@ class listcreateuser(GenericCRUDView):
         partyId = data['partyId']
         if Credential.objects.all().filter(partyId=partyId).exists():
             return Response({"non_field_errors": ["There is an existing credential for the user, use PUT to update the credential."]}, status=status.HTTP_400_BAD_REQUEST)
+      if 'userIdentifier' in data:
+        userIdentifier = data['userIdentifier']
+        if userIdentifier is not None:
+          partnerId = data['partnerId']
+          if Credential.objects.all().filter(userIdentifier=userIdentifier).filter(partnerId=partnerId).exists():
+            return Response({"non_field_errors": ["User identifier already exists, use PUT to update the credential or provide an unique user identifier."]}, status=status.HTTP_400_BAD_REQUEST)
       if 'partyId' not in data:
         name = data['name']
         if 'display' not in data:#PW-272 
