@@ -59,7 +59,7 @@ class listcreateuser(GenericCRUDView):
         partnerId = params['partnerId']
         queryset = Credential.objects.all().filter(userIdentifier=userIdentifier).filter(partnerId=partnerId)
         if len(queryset) > 1:
-            return "more than one record in result"
+            return "Found more than one record with the same user identifier. Please contact dev@phoenixbioinformatics.org for assistant."
         # check if credential is user credential
         obj = queryset.first()
         # if query set is empty set, return it and let the PUT function handle it
@@ -103,6 +103,12 @@ class listcreateuser(GenericCRUDView):
         partyId = data['partyId']
         if Credential.objects.all().filter(partyId=partyId).exists():
             return Response({"non_field_errors": ["There is an existing credential for the user, use PUT to update the credential."]}, status=status.HTTP_400_BAD_REQUEST)
+      if 'userIdentifier' in data:
+        userIdentifier = data['userIdentifier']
+        if userIdentifier is not None:
+          partnerId = data['partnerId']
+          if Credential.objects.all().filter(userIdentifier=userIdentifier).filter(partnerId=partnerId).exists():
+            return Response({"non_field_errors": ["User identifier already exists, use PUT to update the credential or provide an unique user identifier."]}, status=status.HTTP_400_BAD_REQUEST)
       if 'partyId' not in data:
         name = data['name']
         if 'display' not in data:#PW-272 
