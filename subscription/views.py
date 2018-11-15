@@ -334,7 +334,10 @@ class EndDate(generics.GenericAPIView):
     requireApiKey = False
     def get(self, request):
         partnerId=request.GET.get("partnerId")
-        ipAddress=request.GET.get("ipAddress")
+        if 'ipAddress' in request.GET:
+            ipAddress=request.GET.get("ipAddress")
+        else:
+            ipAddress=getRemoteIpAddress(request)
         userIdentifier=request.GET.get("userIdentifier")
         expDate = ""
         subscribed = False
