@@ -338,16 +338,27 @@ class EndDate(generics.GenericAPIView):
             ipAddress=request.GET.get("ipAddress")
         else:
             ipAddress=getRemoteIpAddress(request)
-        userIdentifier=request.GET.get("userIdentifier")
+        if 'partyId' in request.GET:
+            partyId = request.GET.get('partyId')
+        elif 'userIdentifier' in request.GET:
+            userIdentifier=request.GET.get("userIdentifier")
+        else:
+            return Response({'error':'partyId or userIdentifier is required'}, status=status.HTTP_400_BAD_REQUEST)
         expDate = ""
         subscribed = False
         ipSub = Subscription.getActiveByIp(ipAddress, partnerId)
         idSub = None #Pw-418
         subList = [] #Pw-418
         subscriptionType = None
-        if Credential.objects.filter(userIdentifier=userIdentifier).filter(partnerId=partnerId).exists():
-            partyId = Credential.objects.filter(partnerId=partnerId).filter(userIdentifier=userIdentifier)[0].partyId.partyId
-            idSub = Subscription.getActiveById(partyId, partnerId)
+        if not partyId:
+            if Credential.objects.filter(userIdentifier=userIdentifier).filter(partnerId=partnerId).exists():
+                partyId = Credential.objects.filter(partnerId=partnerId).filter(userIdentifier=userIdentifier)[0].partyId.partyId
+                idSub = Subscription.getActiveById(partyId, partnerId)
+        else:
+            try:
+                idSub = Subscription.getActiveById(partyId, partnerId)
+            except:
+                return Response({'error':'getting active susbcription by id failed'}, status=status.HTTP_400_BAD_REQUEST)
         if (idSub):
             subList = SubscriptionSerializer(ipSub, many=True).data+SubscriptionSerializer(idSub, many=True).data
         else:
