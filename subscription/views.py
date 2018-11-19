@@ -338,6 +338,7 @@ class EndDate(generics.GenericAPIView):
             ipAddress=request.GET.get("ipAddress")
         else:
             ipAddress=getRemoteIpAddress(request)
+        partyId = None
         if 'partyId' in request.GET:
             partyId = request.GET.get('partyId')
         elif 'userIdentifier' in request.GET:
