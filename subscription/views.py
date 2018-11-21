@@ -333,6 +333,8 @@ class CommercialSubscription(APIView):
 class EndDate(generics.GenericAPIView):
     requireApiKey = False
     def get(self, request):
+        if not 'partnerId' in request.GET:
+            return Response({'error':'partnerId is required'}, status=status.HTTP_400_BAD_REQUEST)
         partnerId=request.GET.get("partnerId")
         if 'ipAddress' in request.GET:
             ipAddress=request.GET.get("ipAddress")
