@@ -341,10 +341,12 @@ class EndDate(generics.GenericAPIView):
         partyId = None
         if 'partyId' in request.GET:
             partyId = request.GET.get('partyId')
+        elif 'credentialId' in request.GET:
+            credentialId = request.GET.get("credentialId")
         elif 'userIdentifier' in request.GET:
-            userIdentifier=request.GET.get("userIdentifier")
+            userIdentifier = request.GET.get("userIdentifier")
         else:
-            return Response({'error':'partyId or userIdentifier is required'}, status=status.HTTP_400_BAD_REQUEST)
+            return Response({'error':'partyId, credentialId or userIdentifier is required'}, status=status.HTTP_400_BAD_REQUEST)
         expDate = ""
         subscribed = False
         ipSub = Subscription.getActiveByIp(ipAddress, partnerId)
@@ -352,9 +354,14 @@ class EndDate(generics.GenericAPIView):
         subList = [] #Pw-418
         subscriptionType = None
         if not partyId:
-            if Credential.objects.filter(userIdentifier=userIdentifier).filter(partnerId=partnerId).exists():
-                partyId = Credential.objects.filter(partnerId=partnerId).filter(userIdentifier=userIdentifier)[0].partyId.partyId
-                idSub = Subscription.getActiveById(partyId, partnerId)
+            if credentialId:
+                if Credential.objects.filter(id=credentialId).filter(partnerId=partnerId).exists():
+                    partyId = Credential.objects.filter(partnerId=partnerId).filter(id=credentialId)[0].partyId.partyId
+                    idSub = Subscription.getActiveById(partyId, partnerId)
+            elif userIdentifier:
+                if Credential.objects.filter(userIdentifier=userIdentifier).filter(partnerId=partnerId).exists():
+                    partyId = Credential.objects.filter(partnerId=partnerId).filter(userIdentifier=userIdentifier)[0].partyId.partyId
+                    idSub = Subscription.getActiveById(partyId, partnerId)
         else:
             try:
                 idSub = Subscription.getActiveById(partyId, partnerId)
