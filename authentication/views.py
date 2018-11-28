@@ -78,7 +78,7 @@ class listcreateuser(GenericCRUDView):
   def post(self, request, format=None):
     if ApiKeyPermission.has_permission(request, self):
       serializer_class = self.get_serializer_class()
-      data = request.data
+      data = request.data.copy() # PW-660
       data['password'] = hashlib.sha1(data['password']).hexdigest()
       if 'partyId' in data:
         partyId = data['partyId']
