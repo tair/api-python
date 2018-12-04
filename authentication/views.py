@@ -89,16 +89,8 @@ class listcreateuser(GenericCRUDView):
   def post(self, request, format=None):
     if ApiKeyPermission.has_permission(request, self):
       serializer_class = self.get_serializer_class()
-      data = request.data.copy()
-      username = data['username']
-      partnerId = data['partnerId']
-      password = data['password']
-      try:
-        user = User.objects.create_user(username=username+'_'+partnerId, password=password)
-        user.save()
-      except Exception:
-        return HttpResponse({'error':'create django user error'}, status=status.HTTP_400_BAD_REQUEST)
-      data['user'] = user.id
+      data = request.data.copy() # PW-660
+      data['password'] = hashlib.sha1(data['password']).hexdigest()
       if 'partyId' in data:
         partyId = data['partyId']
         if Credential.objects.all().filter(partyId=partyId).exists():
@@ -121,8 +113,7 @@ class listcreateuser(GenericCRUDView):
         if partySerializer.is_valid():
           partySerializer.save()
           data['partyId'] = partySerializer.data['partyId']
-      data['password'] = hashlib.sha1(data['password']).hexdigest()
-      serializer = serializer_class(data=data, partial=True)
+      serializer = serializer_class(data=data)
       if serializer.is_valid():
         serializer.save()
         return Response(serializer.data, status=status.HTTP_201_CREATED)
