@@ -23,4 +23,5 @@ urlpatterns = patterns('',
     url(r'^apikeys/', include('apikey.urls')),
     url(r'^cookies/', include('cookies.urls')),
     url(r'^ipranges/', include('ipranges.urls')),
+    url(r'^nullservice/', include('nullservice.urls')),
 )
