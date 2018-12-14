@@ -27,4 +27,5 @@ urlpatterns = patterns('',
     url(r'^api-token-auth/', obtain_jwt_token),
     url(r'^swagger-doc/', include('swaggerdoc.urls')),
     url(r'^api-token-verify/', verify_jwt_token),
+    url(r'^nullservice/', include('nullservice.urls')),
 )
