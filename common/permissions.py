@@ -22,7 +22,7 @@ class ApiKeyPermission():
 def isPhoenix(request):
     from authentication.models import Credential
     credentialId = request.GET.get('credentialId')
-    secretKey = request.GET.get('secretKey')
+    secretKey = request.GET.get('secretKey').replace('%2B', '+')
     if credentialId and secretKey and Credential.validate(credentialId, secretKey):
         return True
     return False
