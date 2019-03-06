@@ -13,6 +13,7 @@ class Status():
 class UriPattern(models.Model):
     patternId = models.AutoField(primary_key=True)
     pattern = models.CharField(max_length=5000, default='')
+    redirectUri = models.CharField(max_length=500, default='')
     class Meta:
         db_table = "UriPattern"
 
