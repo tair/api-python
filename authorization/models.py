@@ -13,8 +13,29 @@ class Status():
 class UriPattern(models.Model):
     patternId = models.AutoField(primary_key=True)
     pattern = models.CharField(max_length=5000, default='')
+    redirectUri = models.CharField(max_length=500, default=None, blank=True, null=True)
+
+    @staticmethod
+    def getRedirectUri(url, partnerId):
+        if not (url and partnerId):
+            return None
+
+        accessRules = AccessRule.objects.all().filter(partnerId=partnerId)
+        for rule in accessRules:
+            try:
+                pattern = re.compile(rule.patternId.pattern)
+                isPatternValid = True
+            except re.error:
+                isPatternValid = False
+
+            if isPatternValid and pattern.search(url):
+                return rule.patternId.redirectUri
+
+        return None
+
     class Meta:
         db_table = "UriPattern"
+
 
 class AccessRule(models.Model):
     accessRuleId = models.AutoField(primary_key=True)
