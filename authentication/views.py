@@ -345,19 +345,18 @@ class getUsernameCRUD(GenericCRUDView):
 def checkAccountExists(request):
   if request.method == 'GET':
     params = request.GET
-    requiredParams = ['email', 'partnerId', 'username']
-    for param in requiredParams:
-      if param not in params:
-        return HttpResponse(json.dumps({'error': param + ' is required.'}), status=status.HTTP_400_BAD_REQUEST)
-    email = params['email']
-    username = params['username']
+    if not 'partnerId' in params:
+      return HttpResponse(json.dumps({'error': 'partnerId is required.'}), status=status.HTTP_400_BAD_REQUEST)
+    if not 'email' in params and not 'username' in params:
+      return HttpResponse(json.dumps({'error': 'You need to provide at least an email or a username.'}), status=status.HTTP_400_BAD_REQUEST)
     partnerId = params['partnerId']
-    usernameExist = False
-    emailExist = False
-    if Credential.objects.all().filter(email=email).filter(partnerId=partnerId).exists():
-      emailExist = True
-    if Credential.objects.all().filter(username=username).filter(partnerId=partnerId).exists():
-      usernameExist = True
-    return HttpResponse(json.dumps({'usernameExist': usernameExist, 'emailExist': emailExist}), status=status.HTTP_200_OK);
+    result = {}
+    if 'email' in params:
+      email = params['email']
+      result['emailExist'] = Credential.objects.all().filter(email=email).filter(partnerId=partnerId).exists()
+    if 'username' in params:
+      username = params['username']
+      result['usernameExist'] = Credential.objects.all().filter(username=username).filter(partnerId=partnerId).exists()
+    return HttpResponse(json.dumps(result), status=status.HTTP_200_OK);
 
 
