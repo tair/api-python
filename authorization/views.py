@@ -54,11 +54,16 @@ class Access(APIView):
         if partyId and partyId.isdigit() and Credential.objects.all().filter(partyId=partyId).exists():
             userIdentifier = Credential.objects.all().get(partyId=partyId).userIdentifier
         isPaidContent = 'T' if AccessType.checkHasAccessRule(url, "Paid", partnerId) else 'F'
+        redirectUri = None
+        # only get redirect uri when user have no access to the page
+        if status != Status.ok:
+            redirectUri = UriPattern.getRedirectUri(url, partnerId)
         response = {
             "ip":ipResult,
             "status":status,
             "userIdentifier":userIdentifier,
             "isPaidContent":isPaidContent,
+            "redirectUri": redirectUri
         }
         '''
         authorization  access  should contain these elements:
