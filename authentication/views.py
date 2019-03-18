@@ -390,3 +390,23 @@ class getUsernameCRUD(GenericCRUDView):
         send_mail(subject=subject, message=message, from_email=from_email, recipient_list=recipient_list)
 
         return Response(credentialSerializer.data, status=status.HTTP_200_OK)
+
+#/credentials/checkAccountExists
+def checkAccountExists(request):
+  if request.method == 'GET':
+    params = request.GET
+    if not 'partnerId' in params:
+      return HttpResponse(json.dumps({'error': 'partnerId is required.'}), status=status.HTTP_400_BAD_REQUEST)
+    if not 'email' in params and not 'username' in params:
+      return HttpResponse(json.dumps({'error': 'You need to provide at least an email or a username.'}), status=status.HTTP_400_BAD_REQUEST)
+    partnerId = params['partnerId']
+    result = {}
+    if 'email' in params:
+      email = params['email']
+      result['emailExist'] = Credential.objects.all().filter(email=email).filter(partnerId=partnerId).exists()
+    if 'username' in params:
+      username = params['username']
+      result['usernameExist'] = Credential.objects.all().filter(username=username).filter(partnerId=partnerId).exists()
+    return HttpResponse(json.dumps(result), status=status.HTTP_200_OK);
+
+
