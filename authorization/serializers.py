@@ -16,4 +16,4 @@ class AccessRuleSerializer(serializers.ModelSerializer):
 class UriPatternSerializer(serializers.ModelSerializer):
     class Meta:
         model = UriPattern
-        fields = ('patternId', 'pattern')
+        fields = ('patternId', 'pattern', 'redirectUri')
