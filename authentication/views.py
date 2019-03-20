@@ -12,7 +12,7 @@ from rest_framework import generics, status
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from common.views import GenericCRUDView
-from common.permissions import ApiKeyPermission 
+from common.permissions import ApiKeyPermission, rolePermission
 
 from authentication.models import Credential, GooglePartyAffiliation
 from authentication.serializers import CredentialSerializer, CredentialSerializerNoPassword
@@ -24,6 +24,10 @@ from party.models import Party
 from common.permissions import isPhoenix
 
 import logging
+from rest_framework_jwt.settings import api_settings
+
+from django.contrib.auth.models import User
+
 
 # Create your views here.
 
@@ -37,7 +41,15 @@ class listcreateuser(GenericCRUDView):
       return CredentialSerializerNoPassword
     return CredentialSerializer
 
-  def get_queryset(self):
+  def get(self, request, format=None):
+      roleList = ['staff', 'consortium', 'organization']
+      roleListStr = ','.join(roleList)
+      if not rolePermission(request, roleList):
+          return Response({'error':'roles needed: '+roleListStr}, status=status.HTTP_400_BAD_REQUEST)
+      #JWT_todo: use decorator
+      return super(listcreateuser, self).get(request)
+
+  def get_queryset_update(self):
     params = self.request.GET
     #get by userIdentifier
     if 'userIdentifier' in params:
@@ -78,8 +90,16 @@ class listcreateuser(GenericCRUDView):
   def post(self, request, format=None):
     if ApiKeyPermission.has_permission(request, self):
       serializer_class = self.get_serializer_class()
-      data = request.data.copy() # PW-660
-      data['password'] = hashlib.sha1(data['password']).hexdigest()
+      data = request.data.copy()
+      username = data['username']
+      partnerId = data['partnerId']
+      password = data['password']
+      try:
+        user = User.objects.create_user(username=username+'_'+partnerId, password=password)
+        user.save()
+      except Exception:
+        return HttpResponse({'error':'create django user error'}, status=status.HTTP_400_BAD_REQUEST)
+      data['user'] = user.id
       if 'partyId' in data:
         partyId = data['partyId']
         if Credential.objects.all().filter(partyId=partyId).exists():
@@ -102,7 +122,8 @@ class listcreateuser(GenericCRUDView):
         if partySerializer.is_valid():
           partySerializer.save()
           data['partyId'] = partySerializer.data['partyId']
-      serializer = serializer_class(data=data)
+      data['password'] = hashlib.sha1(data['password']).hexdigest()
+      serializer = serializer_class(data=data, partial=True)
       if serializer.is_valid():
         serializer.save()
         return Response(serializer.data, status=status.HTTP_201_CREATED)
@@ -110,38 +131,65 @@ class listcreateuser(GenericCRUDView):
   
   def put(self, request, format=None):
     # TODO: security risk here, get username based on the partyId verified in isPhoenix -SC
-    if not isPhoenix(self.request):
+    if not 'credentialId' in request.GET and not 'secretKey' in request.GET:
+        roleList = ['staff', 'consortium', 'organization', 'user']
+        roleListStr = ','.join(roleList)
+        if not rolePermission(request, roleList):
+            return Response({'error': 'roles needed: ' + roleListStr}, status=status.HTTP_400_BAD_REQUEST)
+        #JWT_todo: use decorator
+    elif not isPhoenix(self.request):
       return Response(status=status.HTTP_400_BAD_REQUEST)
     # http://stackoverflow.com/questions/12611345/django-why-is-the-request-post-object-immutable
     serializer_class = self.get_serializer_class()
-    params = request.GET
-    queryResult = self.get_queryset()
+    queryResult = self.get_queryset_update()
     if type(queryResult) == str:
         return Response({'error': queryResult}, status=status.HTTP_400_BAD_REQUEST)
-    obj = self.get_queryset().first()
+    obj = self.get_queryset_update().first()
     if not obj:
         return Response({'error': 'cannot find any record.'}, status=status.HTTP_404_NOT_FOUND)
     #http://stackoverflow.com/questions/18930234/django-modifying-the-request-object PW-123
     data = request.data.copy() # PW-123
     if 'password' in data:
+      #update django user
+      obj.user.set_password(data['password'])
+      obj.user.save()
+      obj.save()
+
       data['password'] = hashlib.sha1(data['password']).hexdigest()
+    if 'username' in data:
+      #update django user
+      partnerId = obj.partnerId.partnerId
+      obj.user.username = data['username'] + '_' + partnerId
+      obj.user.save()
+      obj.save()
+
     serializer = serializer_class(obj, data=data, partial=True)
     if serializer.is_valid():
       serializer.save()
+      returnData = serializer.data.copy()
       #update party info
       if 'partyId' in serializer.data:
         partyId = serializer.data['partyId']
         partyObj = Party.objects.all().get(partyId = partyId)
         if 'name' in data:
           name = data['name']
+          returnData['name'] = name
           partyData = {'name':name}
           partySerializer = PartySerializer(partyObj, data=partyData, partial =True)
           if partySerializer.is_valid():
             partySerializer.save()
+      if 'password' in data or 'username' in data:
+        jwt_payload_handler = api_settings.JWT_PAYLOAD_HANDLER
+        jwt_encode_handler = api_settings.JWT_ENCODE_HANDLER
+
+        payload = jwt_payload_handler(obj.user)
+        token = jwt_encode_handler(payload)
+        returnData['token'] = token
       if 'password' in data:
-        #data['password'] = generateSecretKey(str(obj.partyId.partyId), data['password'])#PW-254 and YM: TAIR-2493
-        data['loginKey'] = generateSecretKey(str(obj.partyId.partyId), data['password'])
-      return Response(data, status=status.HTTP_200_OK)
+        # data['password'] = generateSecretKey(str(obj.partyId.partyId), data['password'])#PW-254 and YM: TAIR-2493
+        returnData['loginKey'] = generateSecretKey(str(obj.partyId.partyId), data['password'])
+      return Response(returnData, status=status.HTTP_200_OK)
+    #JWT_todo: use a different serializer
     return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 #/credentials/login/
@@ -209,6 +257,17 @@ def login(request):
                 i = i+1
                 continue
             else:
+                data = []
+                dbUser.user.set_password(requestPassword)
+                dbUser.user.save()
+                dbUser.save()
+                user = dbUser.user
+
+                jwt_payload_handler = api_settings.JWT_PAYLOAD_HANDLER
+                jwt_encode_handler = api_settings.JWT_ENCODE_HANDLER
+
+                payload = jwt_payload_handler(user)
+                token = jwt_encode_handler(payload)
                 response = HttpResponse(json.dumps({
                      "message": "Correct password",
                      "credentialId": dbUser.partyId.partyId,
@@ -217,6 +276,7 @@ def login(request):
                      "role":"librarian",
                      "username": dbUser.username,
                      "userIdentifier": dbUser.userIdentifier,
+                     "token": token,
                 }), status=200)
                 msg=" Authentication Login USER AND PWD MATCH. dbUser=%s requestUser=%s requestPwd=%s" % (dbUser.username, requestUser, requestPassword)
                 logging.error(msg)

@@ -2,6 +2,9 @@ from django.db import models
 from party.models import Party
 from partner.models import Partner
 import base64, hmac, hashlib
+from django.contrib.auth.models import User
+from rest_framework_jwt.settings import api_settings
+import logging
 
 # Create your models here.
 
@@ -18,9 +21,34 @@ class Credential(models.Model):
   partnerId = models.ForeignKey(Partner, db_column='partnerId')
   userIdentifier = models.CharField(max_length=32, null=True)
   #name = models.CharField(max_length=64, null=True) vet PW-161
-  
+  user = models.OneToOneField(User, on_delete=models.CASCADE, unique=True)
+
+  # http://stackoverflow.com/questions/12754024/onetoonefield-and-deleting
+  # TODO: learn post_delete and add it for Credential in case there will be bulk delete
+  def delete(self):
+    self.user.delete()
+    return super(Credential, self).delete()
+
   @staticmethod
-  def validate(partyId, secretKey):
+  def validate(partyId, token, secretKey):
+    #verify jwt token; using if for backward compatibility
+    if token:
+      jwt_decode_handler = api_settings.JWT_DECODE_HANDLER
+      jwt_get_username_from_payload = api_settings.JWT_PAYLOAD_GET_USERNAME_HANDLER
+      try:
+        payload = jwt_decode_handler(token)
+      except Exception:
+        return False
+      username = jwt_get_username_from_payload(payload)
+      if not username:
+        return False
+    # Make sure user exists
+      try:
+        user = User.objects.get_by_natural_key(username)
+      except User.DoesNotExist:
+        return False
+      logging.error("user authenticated: " + user.username)
+      return True
     if partyId and secretKey and partyId.isdigit() and Party.objects.filter(partyId=partyId).exists():
       pu = Party.objects.filter(partyId=partyId)
       if Credential.objects.filter(partyId_id__in=pu.values('partyId')).exists():

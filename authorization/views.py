@@ -33,6 +33,9 @@ class Access(APIView):
     def get(self, request, format=None):
         partyId = request.COOKIES.get('credentialId')
         loginKey = request.COOKIES.get('secretKey')
+        token = None
+        if 'token' in request.COOKIES:
+            token = request.COOKIES.get('token')
         ipList = request.GET.get('ipList')
         url = request.GET.get('url').decode('utf8')
         partnerId = request.GET.get('partnerId')
@@ -40,7 +43,7 @@ class Access(APIView):
         ipList = ipList.split(',')
         ipResult = ''
         for ip in ipList:
-            status = Authorization.getAccessStatus(loginKey, ip, partyId, url, partnerId, getHostUrlFromRequest(request), apiKey)
+            status = Authorization.getAccessStatus(token, loginKey, ip, partyId, url, partnerId, getHostUrlFromRequest(request), apiKey)
             ipResult = ip
             if status == Status.ok:
                 break

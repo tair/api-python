@@ -1,4 +1,7 @@
 from apikey.models import ApiKey
+from rest_framework_jwt.utils import jwt_decode_handler
+from authentication.models import Credential
+from party.models import Party
 
 class ApiKeyPermission():
     @staticmethod
@@ -23,7 +26,8 @@ def isPhoenix(request):
     from authentication.models import Credential
     credentialId = request.GET.get('credentialId')
     secretKey = request.GET.get('secretKey')
-    if credentialId and secretKey and Credential.validate(credentialId, secretKey):
+    token = None
+    if credentialId and secretKey and Credential.validate(credentialId, token, secretKey):
         return True
     return False
 
@@ -31,6 +35,28 @@ def isLoggedIn(request):
     from authentication.models import Credential
     credentialId = request.GET.get('credentialId')
     secretKey = request.GET.get('secretKey')
-    if credentialId and secretKey and Credential.validate(credentialId, secretKey):# and Credential.objects.get(partyId=credentialId).partyId.partyType=='phoenix':
+    token = None
+    if credentialId and secretKey and Credential.validate(credentialId, token, secretKey):# and Credential.objects.get(partyId=credentialId).partyId.partyType=='phoenix':
         return True
+    return False
+
+def rolePermission(request, roleList):
+    if 'HTTP_AUTHORIZATION' in request.META:
+        token = None
+        if ' ' in request.META['HTTP_AUTHORIZATION']:
+            parts = request.META['HTTP_AUTHORIZATION'].split(' ')
+            token = parts[1]
+        try:
+            payload = jwt_decode_handler(token)
+        except Exception:
+            return False
+        user_id = payload['user_id']
+        partyType = ''
+        if Credential.objects.all().filter(user_id=user_id).exists():
+            partyId = Credential.objects.get(user_id=user_id).partyId.partyId
+            partyType = Party.objects.all().get(partyId=partyId).partyType
+
+        for role in roleList:
+            if partyType == role:
+                return True
     return False
