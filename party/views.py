@@ -26,6 +26,7 @@ from authentication.serializers import CredentialSerializer, CredentialSerialize
 from genericpath import exists
 from django.db import connection
 from collections import namedtuple
+from django.contrib.auth.models import User
 
 #below three added by Andrey for PW-277
 import logging
