@@ -4,4 +4,4 @@ from common.views import GenericCRUDView
 
 class nullserviceCRUD(GenericCRUDView):
     def get(self, request, format=None):
-        return HttpResponse('nullack');
+        return HttpResponse('nullack')
