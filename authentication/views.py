@@ -13,6 +13,7 @@ from rest_framework.views import APIView
 from rest_framework.response import Response
 from common.views import GenericCRUDView
 from common.permissions import ApiKeyPermission, rolePermission
+from common.decorators import compatible_jwt
 
 from authentication.models import Credential, GooglePartyAffiliation
 from authentication.serializers import CredentialSerializer, CredentialSerializerNoPassword
@@ -35,18 +36,15 @@ from django.contrib.auth.models import User
 class listcreateuser(GenericCRUDView):
   queryset = Credential.objects.all()
   requireApiKey = False
+  http_method_names = ['get','post','put']
 
   def get_serializer_class(self):
     if self.request.method == 'GET':
       return CredentialSerializerNoPassword
     return CredentialSerializer
 
+  @compatible_jwt('staff','consortium','organization')
   def get(self, request, format=None):
-      roleList = ['staff', 'consortium', 'organization']
-      roleListStr = ','.join(roleList)
-      if not rolePermission(request, roleList):
-          return Response({'error':'roles needed: '+roleListStr}, status=status.HTTP_400_BAD_REQUEST)
-      #JWT_todo: use decorator
       return super(listcreateuser, self).get(request)
 
   def get_queryset_update(self):
@@ -83,9 +81,6 @@ class listcreateuser(GenericCRUDView):
         return 'invalid query parameters.'
 
     return queryset
-
-  def delete(self, request):
-    return Response()
 
   def post(self, request, format=None):
     if ApiKeyPermission.has_permission(request, self):

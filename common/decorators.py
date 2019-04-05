@@ -8,11 +8,11 @@ from django.utils.decorators import available_attrs
 def compatible_jwt(*roleList):
     def decorator(func):
         @wraps(func, assigned=available_attrs(func))
-        def inner(request, *args, **kwargs):
+        def inner(self, request, *args, **kwargs):
             if request.version == '2.0':
                 roleListStr = ','.join(roleList)
                 if not rolePermission(request, roleList):
                     return Response({'error': 'roles needed: ' + roleListStr}, status=status.HTTP_400_BAD_REQUEST)
-            return func(request, *args, **kwargs)
+            return func(self, request, *args, **kwargs)
         return inner
     return decorator
