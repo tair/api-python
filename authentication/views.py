@@ -191,16 +191,16 @@ def login(request):
     if not dbUserList.exists():
 
         msg = "PWD NOT FOUND IN DB. username existance unknown"
-        logging.error("Authentication Login %s, %s: %s %s %s" % (ip, msg, requestUser, requestPassword, request.GET['partnerId']))
+        logging.error("Authentication Login %s, %s: %s %s %s" % (ip, msg, requestUser, requestHashedPassword, request.GET['partnerId']))
         return HttpResponse(json.dumps({"message":msg}), status=401)
 
     else:
 
-        logging.error("Authentication Login %s USER(S) WITH PWD %s FOUND:" %(len(dbUserList), requestPassword))
+        logging.error("Authentication Login %s USER(S) WITH PWD %s FOUND:" %(len(dbUserList), requestHashedPassword))
 
         for dbUser in dbUserList:
 
-            logging.error("Authentication Login dbUser %s requestUser %s pwd %s" % (dbUser.username,requestUser,requestPassword))
+            logging.error("Authentication Login dbUser %s requestUser %s pwd %s" % (dbUser.username,requestUser,requestHashedPassword))
 
             #if user not found then continue
             if dbUser.username.lower() != requestUser.lower():
@@ -218,7 +218,7 @@ def login(request):
                      "username": dbUser.username,
                      "userIdentifier": dbUser.userIdentifier,
                 }), status=200)
-                msg=" Authentication Login USER AND PWD MATCH. dbUser=%s requestUser=%s requestPwd=%s" % (dbUser.username, requestUser, requestPassword)
+                msg=" Authentication Login USER AND PWD MATCH. dbUser=%s requestUser=%s hashedRequestPassword=%s" % (dbUser.username, requestUser, requestHashedPassword)
                 logging.error(msg)
                 return response
 
@@ -226,7 +226,7 @@ def login(request):
     #}end of if not empty list
     #if we did not return from above and we are here, then it's an error.
     #print last error msg from the loop and return 401 response
-    logging.error("Authentication Login %s, %s: \n %s %s %s" % (ip, msg, requestUser, requestPassword, request.GET['partnerId']))
+    logging.error("Authentication Login %s, %s: \n %s %s %s" % (ip, msg, requestUser, requestHashedPassword, request.GET['partnerId']))
     return HttpResponse(json.dumps({"message":msg}), status=401)
 
 def resetPwd(request):
