@@ -34,6 +34,80 @@ DEBUG = False
 
 TEMPLATE_DEBUG = False
 
+# Add error email setting
+ADMINS = [('Phoenix', 'techteam@arabidopsis.org'), ('Dev', 'dev@arabidopsis.org'), ('Xingguo', 'xingguo.chen@arabidopsis.org')]
+SERVER_EMAIL = 'dev@arabidopsis.org' # override the email address that error messages come from
+
+LOGGING = {
+    'version': 1,
+    'formatters': {
+        # more formatter syntax on 
+        # https://docs.python.org/3/library/logging.html#logrecord-attributes
+        'simple': {
+            'format': '%(asctime)s %(message)s'
+        },
+        'standard': {
+            'format': '%(asctime)s [%(levelname)s] %(message)s'
+        }
+    },
+    'handlers': {
+        'mail_admins': {
+            'level': 'ERROR',
+            'class': 'django.utils.log.AdminEmailHandler'
+        },
+        'api_log': {
+            'level': 'DEBUG',
+            'class': 'logging.FileHandler',
+            'filename': '/var/log/api/api.log',
+            'formatter': 'simple'
+        },
+        'request_log': {
+            'level': 'WARNING',
+            'class': 'logging.FileHandler',
+            'filename': '/var/log/api/request_error.log',
+            'formatter': 'standard'
+        },
+        'security_log': {
+            'level': 'WARNING',
+            'class': 'logging.FileHandler',
+            'filename': '/var/log/api/security_error.log',
+            'formatter': 'standard'
+        }
+        # 'sql_log': {
+        #     'level': 'DEBUG',
+        #     'class': 'logging.FileHandler',
+        #     'filename': '/var/log/api/sql.log',
+        #     'formatter': 'simple'
+        # },
+    },
+    'loggers': {
+        # api project
+        'phoenix.api': {
+            'handlers': ['api_log'],
+            'propagate': True,
+            'level': 'DEBUG',
+        },
+        # request error log
+        'django.request': {
+            'handlers': ['request_log', 'mail_admins'],
+            'propagate': True,
+            'level': 'WARNING',
+        },
+        # security alert log
+        'django.security': {
+            'handlers': ['security_log', 'mail_admins'],
+            'propagate': True,
+            'level': 'WARNING',
+        },
+        # SQL statement executed
+        'django.db.backends': {
+            # 'handlers': ['sql_log'],
+            # 'propagate': True,
+            # 'level': 'DEBUG',
+        },
+    }
+}
+
 ALLOWED_HOSTS = ['*']
 
 

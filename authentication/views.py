@@ -24,6 +24,7 @@ from party.models import Party
 from common.permissions import isPhoenix
 
 import logging
+logger = logging.getLogger('phoenix.api.authentication')
 
 # Create your views here.
 
@@ -150,29 +151,29 @@ def login(request):
     ip = request.META.get('REMOTE_ADDR')
     #vet PW-223
     browser = request.META.get('HTTP_USER_AGENT')
-    logging.error("Authentication Login ===")
-    logging.error("Authentication Login Receiving request from %s: Client browser %s:" % (ip, browser))
-    #logging.error("Client browser %s:" % browser)
+    logger.info("Authentication Login ===")
+    logger.info("Authentication Login Receiving request from %s: Client browser %s:" % (ip, browser))
+    #logger.info("Client browser %s:" % browser)
 
     if not 'user' in request.POST:
       msg = "No username provided"
-      logging.error("Authentication Login %s, %s" % (ip, msg))
+      logger.info("Authentication Login %s, %s" % (ip, msg))
       return HttpResponse(json.dumps({"message": msg}), status=400)
     if not 'password' in request.POST:
       msg = "No password provided"
-      logging.error("Authentication Login %s, %s" % (ip, msg))
+      logger.info("Authentication Login %s, %s" % (ip, msg))
       return HttpResponse(json.dumps({"message": msg}), status=400)
     if not 'partnerId' in request.GET:
       msg = "No partnerId provided"
-      logging.error("Authentication Login %s, %s" % (ip, msg))
+      logger.info("Authentication Login %s, %s" % (ip, msg))
       return HttpResponse(json.dumps({"message": msg}), status=400)
 
     #   msg = "Incorrect password"
-    #   logging.error("%s, %s: %s %s %s" % (ip, msg, request.POST['user'], request.POST['password'], request.GET['partnerId']))
+    #   logger.info("%s, %s: %s %s %s" % (ip, msg, request.POST['user'], request.POST['password'], request.GET['partnerId']))
     #   return HttpResponse(json.dumps({"message":msg}), status=401)
     
     #  msg = "No such user"
-    #  logging.error("%s, %s: %s %s %s" % (ip, msg, request.POST['user'], request.POST['password'], request.GET['partnerId']))
+    #  logger.info("%s, %s: %s %s %s" % (ip, msg, request.POST['user'], request.POST['password'], request.GET['partnerId']))
     #  return HttpResponse(json.dumps({"message":msg}), status=401)
 
     requestPassword = request.POST.get('password')
@@ -191,21 +192,21 @@ def login(request):
     if not dbUserList.exists():
 
         msg = "PWD NOT FOUND IN DB. username existance unknown"
-        logging.error("Authentication Login %s, %s: %s %s %s" % (ip, msg, requestUser, requestHashedPassword, request.GET['partnerId']))
+        logger.info("Authentication Login %s, %s: %s %s %s" % (ip, msg, requestUser, requestHashedPassword, request.GET['partnerId']))
         return HttpResponse(json.dumps({"message":msg}), status=401)
 
     else:
 
-        logging.error("Authentication Login %s USER(S) WITH PWD %s FOUND:" %(len(dbUserList), requestHashedPassword))
+        logger.info("Authentication Login %s USER(S) WITH PWD %s FOUND:" %(len(dbUserList), requestHashedPassword))
 
         for dbUser in dbUserList:
 
-            logging.error("Authentication Login dbUser %s requestUser %s pwd %s" % (dbUser.username,requestUser,requestHashedPassword))
+            logger.info("Authentication Login dbUser %s requestUser %s pwd %s" % (dbUser.username,requestUser,requestHashedPassword))
 
             #if user not found then continue
             if dbUser.username.lower() != requestUser.lower():
                 msg = " Authentication Login USER NOT MATCH. i=%s continue..." % (i)
-                logging.error(msg)
+                logger.info(msg)
                 i = i+1
                 continue
             else:
@@ -219,14 +220,14 @@ def login(request):
                      "userIdentifier": dbUser.userIdentifier,
                 }), status=200)
                 msg=" Authentication Login USER AND PWD MATCH. dbUser=%s requestUser=%s hashedRequestPassword=%s" % (dbUser.username, requestUser, requestHashedPassword)
-                logging.error(msg)
+                logger.info(msg)
                 return response
 
-        logging.error("Authentication Login end of loop")
+        logger.info("Authentication Login end of loop")
     #}end of if not empty list
     #if we did not return from above and we are here, then it's an error.
     #print last error msg from the loop and return 401 response
-    logging.error("Authentication Login %s, %s: \n %s %s %s" % (ip, msg, requestUser, requestHashedPassword, request.GET['partnerId']))
+    logger.info("Authentication Login %s, %s: \n %s %s %s" % (ip, msg, requestUser, requestHashedPassword, request.GET['partnerId']))
     return HttpResponse(json.dumps({"message":msg}), status=401)
 
 def resetPwd(request):

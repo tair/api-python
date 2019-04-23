@@ -21,6 +21,8 @@ import re
 import socket
 import ipaddress
 import logging
+logger = logging.getLogger('phoenix.api.metering')
+
 
 # /
 class IpAddressCountCRUD(GenericCRUDView):
@@ -100,7 +102,7 @@ class check_limit(APIView):
             searchObj = re.search(meterBlackListRecord.pattern, uri)
             if searchObj:
                 ret = {'status': "BlackListBlock"}
-                logging.error("Metering check_limit %s%s %s%s %s%s %s" % ("ip:",ip,"partnerId:",partnerId,"uri:",uri,ret))
+                logger.info("Metering check_limit %s%s %s%s %s%s %s" % ("ip:",ip,"partnerId:",partnerId,"uri:",uri,ret))
                 return HttpResponse(json.dumps(ret), content_type="application/json", status=200)
             
         if IpAddressCount.objects.filter(ip=ip).filter(partnerId=partnerId).exists():
@@ -114,5 +116,5 @@ class check_limit(APIView):
         else:
             # IP address not in database. not block by IP.
             ret = {'status': "OK"}
-        logging.error("Metering check_limit %s%s %s%s %s%s %s" % ("ip:",ip,"partnerId:",partnerId,"uri:",uri,ret))
+        logger.info("Metering check_limit %s%s %s%s %s%s %s" % ("ip:",ip,"partnerId:",partnerId,"uri:",uri,ret))
         return HttpResponse(json.dumps(ret), content_type="application/json", status=200)
