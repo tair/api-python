@@ -57,6 +57,6 @@ IPV6_PRIVATE = (
 def validateIpRangeSize(start, end):
     ipRange = IPRange(start, end)
     if ipRange.__getstate__()[2] == 4:
-        return True if ipRange.size <= 68000000 else False
+        return True if ipRange.size <= 65536 else False
     if ipRange.__getstate__()[2] == 6:
         return True if ipRange.size <= 324518553658426726783156020576256 else False
