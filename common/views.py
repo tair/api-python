@@ -4,10 +4,7 @@ from rest_framework_jwt.utils import jwt_decode_handler
 from authentication.models import Credential
 from party.models import Party
 
-import logging
-
 class GenericCRUDView(generics.GenericAPIView):
-    logging.basicConfig(filename="/var/log/api/api.log", format='%(asctime)s %(message)s')
     requireApiKey = True
     def get_queryset(self):
         queryset = super(GenericCRUDView, self).get_queryset()

@@ -4,8 +4,9 @@ from django.db import models
 from django.db import connection
 from netaddr import IPAddress
 from django.utils import timezone
-import logging
 from django.apps import apps
+import logging
+logger = logging.getLogger('phoenix.api.party')
 
 # Create your models here.
 class NumericField(models.Field):
@@ -74,19 +75,19 @@ class IpRange(models.Model):
         try:
             inputIpAddress = IPAddress(ipAddress)
         except Exception:
-            logging.error("Party IpRange %s, %s" % (ipAddress, "invalid ip"))
+            logger.error("Party IpRange %s, %s" % (ipAddress, "invalid ip"))
             pass
         # for detail on comparison between IPAddress objects, see Python netaddr module.
         for obj in objs:
             try:
                 start = IPAddress(obj.start)
             except Exception:
-                logging.error("Party IpRange %s, %s" % (obj.start, "invalid start ip"))
+                logger.error("Party IpRange %s, %s" % (obj.start, "invalid start ip"))
                 pass
             try:
                 end = IPAddress(obj.end)
             except Exception:
-                logging.error("Party IpRange %s, %s" % (obj.end, "invalid end ip"))
+                logger.error("Party IpRange %s, %s" % (obj.end, "invalid end ip"))
                 pass
             
             if inputIpAddress >= start and inputIpAddress <= end:

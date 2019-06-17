@@ -14,6 +14,7 @@ import uuid
 
 from django.core.mail import send_mail
 import logging
+logger = logging.getLogger('phoenix.api.subscription')
 
 from django.conf import settings
 
@@ -194,10 +195,10 @@ class PaymentControl():
 #        logging.basicConfig(filename="/home/ec2-user/logs/debug.log",
 #                            format='%(asctime)s %(message)s'
 #        )
-#        logging.error("------Sending individual email------")
-#        logging.error("%s" % recipient_list[0])
+#        logger.info("------Sending individual email------")
+#        logger.info("%s" % recipient_list[0])
         send_mail(subject=subject, from_email=from_email, recipient_list=recipient_list, html_message=html_message, message=None)
-#        logging.error("------Done sending individual email------")
+#        logger.info("------Done sending individual email------")
         
     @staticmethod
     def isValidRequest(request, message):

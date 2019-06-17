@@ -19,6 +19,7 @@ import re
 import urllib
 
 import logging
+logger = logging.getLogger('phoenix.api.authorization')
 
 from rest_framework.permissions import IsAuthenticated
 from rest_framework_jwt.authentication import JSONWebTokenAuthentication
@@ -75,7 +76,7 @@ class Access(APIView):
             complete URI (required) 
             status (required)
         '''
-        logging.error("Authorization Access %s%s %s%s %s%s %s%s %s%s %s%s" % ("ip:",ipResult,"partyId:",partyId,"userIdentifier:",userIdentifier,"partnerId:",partnerId,"url:",url,"status:",status))
+        logger.info("Authorization Access %s%s %s%s %s%s %s%s %s%s %s%s" % ("ip:",ipResult,"partyId:",partyId,"userIdentifier:",userIdentifier,"partnerId:",partnerId,"url:",url,"status:",status))
         return HttpResponse(json.dumps(response), content_type="application/json")
 
 # /subscriptions/
@@ -93,7 +94,7 @@ class SubscriptionsAccess(APIView):
         response = {
             "access":access,
         }
-        logging.error("Authorization SubscriptionsAccess %s%s %s%s %s%s %s%s %s%s" % ("ip:",ip,"partyId:",partyId,"partnerId:",partnerId,"url:",url,"access:",access))
+        logger.info("Authorization SubscriptionsAccess %s%s %s%s %s%s %s%s %s%s" % ("ip:",ip,"partyId:",partyId,"partnerId:",partnerId,"url:",url,"access:",access))
         return HttpResponse(json.dumps(response), content_type="application/json")
 
 # /authentications/
@@ -112,7 +113,7 @@ class AuthenticationsAccess(APIView):
         response = {
             "access":access,
         }
-        logging.error("Authorization AuthenticationsAccess %s%s %s%s %s%s %s%s" % ("hostUrl:",hostUrl,"partnerId:",partnerId,"url:",url,"access:",access))
+        logger.info("Authorization AuthenticationsAccess %s%s %s%s %s%s %s%s" % ("hostUrl:",hostUrl,"partnerId:",partnerId,"url:",url,"access:",access))
         return HttpResponse(json.dumps(response), content_type="application/json")
 
 class URIAccess(APIView):
@@ -121,7 +122,7 @@ class URIAccess(APIView):
         if 'patternId' not in params:
             obj = UriPattern.objects.all()
             serializer = UriPatternSerializer(obj, many=True)
-            logging.error("Authorization URIAccess %s%s %s%s" % ("serializer.data:",serializer.data,"status:",status.HTTP_200_OK))
+            logger.info("Authorization URIAccess %s%s %s%s" % ("serializer.data:",serializer.data,"status:",status.HTTP_200_OK))
             return Response(serializer.data, status=status.HTTP_200_OK)
         else:
             #requestPatternId = params['patternId']
@@ -129,10 +130,10 @@ class URIAccess(APIView):
             if UriPattern.objects.filter(patternId = requestPatternId).exists():
                 obj = UriPattern.objects.get(patternId = requestPatternId)
                 serializer = UriPatternSerializer(obj, many=True)
-                logging.error("Authorization URIAccess %s%s %s%s %s%s" % ("requestPatternId:",requestPatternId,"serializer.data:",serializer.data,"status:",status.HTTP_200_OK))
+                logger.info("Authorization URIAccess %s%s %s%s %s%s" % ("requestPatternId:",requestPatternId,"serializer.data:",serializer.data,"status:",status.HTTP_200_OK))
                 return Response(serializer.data, status=status.HTTP_200_OK)
             else:
-                logging.error("Authorization URIAccess %s%s %s" % ("GET URIAccess error: requestPatternId:",requestPatternId,"not found"))
+                logger.info("Authorization URIAccess %s%s %s" % ("GET URIAccess error: requestPatternId:",requestPatternId,"not found"))
                 return Response({'GET error: patternId' + requestPatternId + ' not found'})
         
     def delete(self, request, format=None):
