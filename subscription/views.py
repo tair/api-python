@@ -38,6 +38,7 @@ from django.utils import timezone
 import uuid
 
 import logging
+logger = logging.getLogger('phoenix.api.subscription')
 
 # top level: /subscriptions/
 
@@ -271,14 +272,14 @@ class InstitutionSubscription(APIView):
 #        logging.basicConfig(filename="/home/ec2-user/logs/debug.log",
 #                            format='%(asctime)s %(message)s'
 #        )
-#        logging.error("------Sending institution subscription email------")
-#        logging.error("%s" % subject)
-#        logging.error("%s" % message)
+#        logger.info("------Sending institution subscription email------")
+#        logger.info("%s" % subject)
+#        logger.info("%s" % message)
 
         from_email = "subscriptions@phoenixbioinformatics.org"
         recipient_list = ["subscriptions@phoenixbioinformatics.org"]
         send_mail(subject=subject, message=message, from_email=from_email, recipient_list=recipient_list)
-#        logging.error("------Done sending institution subscription email------")
+#        logger.info("------Done sending institution subscription email------")
 
         return HttpResponse(json.dumps({'message':'success'}), content_type="application/json")
 
@@ -317,14 +318,14 @@ class CommercialSubscription(APIView):
 #        logging.basicConfig(filename="/home/ec2-user/logs/debug.log",
 #                            format='%(asctime)s %(message)s'
 #        )
-#        logging.error("------Sending commercial subscription email------")
-#        logging.error("%s" % subject)
-#        logging.error("%s" % message)
+#        logger.info("------Sending commercial subscription email------")
+#        logger.info("%s" % subject)
+#        logger.info("%s" % message)
 
         from_email = "subscriptions@phoenixbioinformatics.org"
         recipient_list = ["subscriptions@phoenixbioinformatics.org"]
         send_mail(subject=subject, message=message, from_email=from_email, recipient_list=recipient_list)
-#        logging.error("------Done sending commercial email------")
+#        logger.info("------Done sending commercial email------")
         return HttpResponse(json.dumps({'message':'success'}), content_type="application/json")
 
 # /enddate
