@@ -29,6 +29,7 @@ from collections import namedtuple
 
 #below three added by Andrey for PW-277
 import logging
+logger = logging.getLogger('phoenix.api.party')
 import traceback
 #import sys
 
@@ -71,13 +72,13 @@ class PartyOrgCRUD(GenericCRUDView):
             for entry in results:
                 #out.append("{'partyId':'%s','partyName':'%s','subscribed':'%s'}" % (str(entry.partyId), str(entry.name), str(entry.subscribed)))
                 out.append(str(entry.name)+"; ")
-                logging.error("/parties/org/?ip=%s, partyId=%s, name=%s" % (ip, entry.partyId, entry.name))
+                logger.info("/parties/org/?ip=%s, partyId=%s, name=%s" % (ip, entry.partyId, entry.name))
             orgNames = ''.join(out)
             orgNames = orgNames[:-2]
             return HttpResponse(orgNames)
         except Exception as e:
-            logging.error("Exception in /parties/org/?ip=%s, %s" % (ip, traceback.format_exc()))
-            #logging.error(sys.exc_info()[0])
+            logger.error("Exception in /parties/org/?ip=%s, %s" % (ip, traceback.format_exc()))
+            #logger.error(sys.exc_info()[0])
             return HttpResponse("")
 
 # /orgstatus/
