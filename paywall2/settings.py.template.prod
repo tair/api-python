@@ -89,7 +89,7 @@ LOGGING = {
         },
         # request error log
         'django.request': {
-            'handlers': ['request_log', 'mail_admins'],
+            'handlers': ['request_log'],
             'propagate': True,
             'level': 'WARNING',
         },
