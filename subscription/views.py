@@ -237,7 +237,7 @@ class SubscriptionsPayment(APIView):
         #PW-204 requirement: "TAIR 1-year subscription" would suffice.
         descriptionDuration = SubscriptionTerm.objects.get(subscriptionTermId=termId).description
         partnerName = SubscriptionTerm.objects.get(subscriptionTermId=termId).partnerId.name
-        descriptionPartnerDuration = partnerName+" "+descriptionDuration +" subscription"+" vat:"+vat
+        descriptionPartnerDuration = '%s %s subscription vat: %s name: %s %s'%(partnerName,descriptionDuration,vat,firstname,lastname)
         domain = request.POST['domain']
 
         message = PaymentControl.tryCharge(stripe_api_secret_test_key, token, price, partnerName, descriptionPartnerDuration, termId, quantity, email, firstname, lastname, institute, street, city, state, country, zip, hostname, redirect, vat, domain)

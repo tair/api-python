@@ -5,6 +5,8 @@ from django.db import connection
 from netaddr import IPAddress
 from django.utils import timezone
 from django.apps import apps
+from common.common import validateIpRange
+
 import logging
 logger = logging.getLogger('phoenix.api.party')
 
@@ -66,7 +68,18 @@ class IpRange(models.Model):
     start = models.GenericIPAddressField()
     end = models.GenericIPAddressField()
     partyId = models.ForeignKey('Party', db_column="partyId")
-    label = models.CharField(max_length=64, null=True)
+    label = models.CharField(max_length=64, null=True, blank=True)
+
+    class Meta:
+        db_table = "IpRange"
+
+    def clean(self, *args, **kwargs):
+        validateIpRange(self.start, self.end)
+        super(IpRange, self).clean(*args, **kwargs)
+
+    def save(self, *args, **kwargs):
+        self.clean()
+        super(IpRange, self).save(*args, **kwargs)
 
     @staticmethod
     def getByIp(ipAddress):
@@ -93,9 +106,6 @@ class IpRange(models.Model):
             if inputIpAddress >= start and inputIpAddress <= end:
                 objList.append(obj)
         return objList
-
-    class Meta:
-        db_table = "IpRange"
 
 class Country(models.Model):
     countryId = models.AutoField(primary_key=True)
