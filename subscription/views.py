@@ -643,9 +643,8 @@ class Membership(generics.GenericAPIView):
         isMember = False
         expDate = ""
         name = ""
-        logoUrl = ""
+        imageUrl = ""
         ipSub = Subscription.getActiveByIp(ipAddress, partnerId)
-        
         subList = SubscriptionSerializer(ipSub, many=True).data
         if subList != []:
             isMember = True
@@ -654,9 +653,10 @@ class Membership(generics.GenericAPIView):
                     expDate = sub['endDate']
                 else:
                     expDate = max(expDate, sub['endDate'])
-                memberInfo = ImageInfo.objects.all().get(partyId=sub['partyId'])
-                if memberInfo:
+                items = ImageInfo.objects.all().filter(partyId=sub['partyId'])
+                if (items.exists()):
+                    memberInfo = items[0]
                     name = memberInfo.name
-                    logoUrl = memberInfo.imageUrl
-        return HttpResponse(json.dumps({'isMember':isMember, 'expDate':expDate, "name":name, "logoUrl":logoUrl }), content_type="application/json")
+                    imageUrl = memberInfo.imageUrl
+        return HttpResponse(json.dumps({'isMember':isMember, 'expDate':expDate, "name":name, "imageUrl":imageUrl }), content_type="application/json")
 
