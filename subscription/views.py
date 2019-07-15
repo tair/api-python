@@ -7,7 +7,7 @@ from subscription.models import Subscription, SubscriptionTransaction, Activatio
 from subscription.serializers import SubscriptionSerializer, SubscriptionTransactionSerializer, ActivationCodeSerializer, SubscriptionRequestSerializer
 
 from partner.models import Partner, SubscriptionTerm
-from party.models import Party
+from party.models import Party, ImageInfo
 from party.serializers import PartySerializer
 from authentication.models import Credential
 from authentication.serializers import CredentialSerializer
@@ -625,4 +625,38 @@ class ActivationCodeCRUD(GenericCRUDView):
 
         return Response(serializers.data, status=status.HTTP_200_OK)
 
+# /membership
+# MBANK-13: An extension of /enddate endpoint for member based subscription authentication
+# Among all the subscriptions to a given partner, looks for the effective subscription that covers the given IP address
+# Upon success, returns the expiration date, member name and member logo url of the found subscription 
+# and 'isMember' status as True; otherwise, the returned expiration date is null and isMember status is False.
+class Membership(generics.GenericAPIView):
+    requireApiKey = False
+    def get(self, request):
+        if not 'partnerId' in request.GET:
+            return Response({'error':'partnerId is required'}, status=status.HTTP_400_BAD_REQUEST)
+        partnerId=request.GET.get("partnerId")
+        if 'ipAddress' in request.GET:
+            ipAddress=request.GET.get("ipAddress")
+        else:
+            ipAddress=getRemoteIpAddress(request)
+        isMember = False
+        expDate = ""
+        name = ""
+        logoUrl = ""
+        ipSub = Subscription.getActiveByIp(ipAddress, partnerId)
+        
+        subList = SubscriptionSerializer(ipSub, many=True).data
+        if subList != []:
+            isMember = True
+            for sub in subList:
+                if expDate == "":
+                    expDate = sub['endDate']
+                else:
+                    expDate = max(expDate, sub['endDate'])
+                memberInfo = ImageInfo.objects.all().get(partyId=sub['partyId'])
+                if memberInfo:
+                    name = memberInfo.name
+                    logoUrl = memberInfo.imageUrl
+        return HttpResponse(json.dumps({'isMember':isMember, 'expDate':expDate, "name":name, "logoUrl":logoUrl }), content_type="application/json")
 

@@ -17,6 +17,7 @@ urlpatterns = [
     url(r'^institutions/$', views.InstitutionSubscription.as_view()),
     url(r'^commercials/$', views.CommercialSubscription.as_view()),
     url(r'^enddate/$', views.EndDate.as_view()),
+    url(r'^membership/$', views.Membership.as_view()),
     url(r'^activesubscriptions/(?P<partyId>.+)/$', views.ActiveSubscriptions.as_view()),
     url(r'^allsubscriptions/(?P<partyId>.+)/$', views.AllSubscriptions.as_view()),
     url(r'^consortiums/$', views.ConsortiumSubscriptions.as_view()),
