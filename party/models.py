@@ -104,3 +104,13 @@ class Country(models.Model):
 
     class Meta:
         db_table = "Country"
+
+class ImageInfo(models.Model):
+    imageInfoId = models.AutoField(primary_key=True);
+    partyId = models.ForeignKey(Party, db_column="partyId")
+    name = models.CharField(max_length=200)
+    imageUrl = models.CharField(max_length=500)
+    createdAt = models.DateTimeField(default=timezone.now)
+
+    class Meta:
+        db_table = "ImageInfo"
