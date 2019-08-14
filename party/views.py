@@ -641,16 +641,17 @@ class AffiliationCRUD(GenericCRUDView):
            return Response({'error':'does not allow get without partyType'})
        obj = self.get_queryset()
        out = []
-       if params['partyType'] == 'consortium':
-           for entry in obj.PartyAffiliation.all():
-               serializer = serializer_class(entry)
-               out.append(serializer.data)
-       elif params['partyType'] == 'organization':
-           for entry in obj.consortiums.all():
-               serializer = serializer_class(entry)
-               out.append(serializer.data)
-       else:
-           return Response({'error':'invalid partyType'})
+       if obj:
+           if params['partyType'] == 'consortium':
+               for entry in obj.PartyAffiliation.all():
+                   serializer = serializer_class(entry)
+                   out.append(serializer.data)
+           elif params['partyType'] == 'organization':
+               for entry in obj.consortiums.all():
+                   serializer = serializer_class(entry)
+                   out.append(serializer.data)
+           else:
+               return Response({'error':'invalid partyType'})
        return HttpResponse(json.dumps(out), content_type="application/json")
 
     def post(self, request, format=None):

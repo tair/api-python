@@ -1,23 +1,13 @@
 #Copyright 2015 Phoenix Bioinformatics Corporation. All rights reserved.
 
-import django
-import unittest
-import sys, getopt
-import requests
-from unittest import TestCase
 from authorization.models import UriPattern, AccessRule, AccessType
-from authentication.models import Credential
 from partner.models import Partner
 from party.models import Party
-from common.pyTests import PyTestGenerics
-
-from authorization.models import Status
+from common.tests import TestGenericInterfaces
 import copy
-
 import hashlib
 
-genericForcePost = PyTestGenerics.forcePost
-
+genericForcePost = TestGenericInterfaces.forcePost
 
 class UriPatternSample():
     url = None
@@ -34,25 +24,23 @@ class UriPatternSample():
     def __init__(self, serverUrl):
         self.url = serverUrl+self.path
 
-    def forcePost(self,data):
-        return genericForcePost(self.model, self.pkName, data)
+    def forcePost(self,postData):
+        return genericForcePost(self.model, self.pkName, postData)
 
 class AccessRuleSample():
     partnerId = 'tair'
     url = None
     path = 'authorizations/accessRules/'
     data = {
-        'accessRuleId':1,
-        'patternId':1,
-        'accessTypeId':1,
-        'partnerId':'tair',
+        'partnerId':None,
+        'patternId':None,
+        'accessTypeId':None,
     }
 
     updateData = {
-        'accessRuleId':1,
-        'patternId':7,
-        'accessTypeId':1,
-        'partnerId':'cdiff',
+        'partnerId':None,
+        'patternId':None,
+        'accessTypeId':None,
     }
     pkName = 'accessRuleId'
     model = AccessRule
@@ -60,22 +48,23 @@ class AccessRuleSample():
     def __init__(self, serverUrl):
         self.url = serverUrl+self.path
 
-    def forcePost(self,data):
-        postData = copy.deepcopy(data)
-        postData['patternId'] = UriPattern.objects.get(patternId=data['patternId'])
-        postData['accessTypeId'] = AccessType.objects.get(accessTypeId=data['accessTypeId'])
-        postData['partnerId'] = Partner.objects.get(partnerId=data['partnerId'])
-        return genericForcePost(self.model, self.pkName, postData)
+    def forcePost(self,postData):
+        processedData = copy.deepcopy(postData)
+        processedData['patternId'] = UriPattern.objects.get(patternId=postData['patternId'])
+        processedData['accessTypeId'] = AccessType.objects.get(accessTypeId=postData['accessTypeId'])
+        processedData['partnerId'] = Partner.objects.get(partnerId=postData['partnerId'])
+        return genericForcePost(self.model, self.pkName, processedData)
 
 class AccessTypeSample():
     url = None
     path = 'authorizations/accessTypes/'
+    TYPE_LOGIN = 'Login'
+    TYPE_PAID = 'Paid'
     data = {
-        'name':'test1',
+        'name':TYPE_LOGIN,
     }
-
     updateData = {
-        'name':'test2',
+        'name':TYPE_PAID,
     }
     pkName = 'accessTypeId'
     model = AccessType
@@ -83,26 +72,11 @@ class AccessTypeSample():
     def __init__(self, serverUrl):
         self.url = serverUrl+self.path
 
-    def forcePost(self,data):
-        return genericForcePost(self.model, self.pkName, data)
+    def setAsLoginType(self):
+        self.data['name'] = self.TYPE_LOGIN
 
+    def setAsPaidType(self):
+        self.data['name'] = self.TYPE_PAID
 
-class CredentialSample():
-    data = {
-        'username':'steve',
-        'password':hashlib.sha1('stevepass').hexdigest(),
-        'email':'steve@getexp.com',
-        'institution':'test organization',
-        'partyId':None,
-        'partnerId':None,
-        'userIdentifier':'1234536',
-    }
-    pkName = 'id'
-    model = Credential
-
-    def forcePost(self,data):
-        postData = copy.deepcopy(data)
-        postData['partyId'] = Party.objects.get(partyId=data['partyId'])
-        postData['partnerId'] = Partner.objects.get(partnerId=data['partnerId'])
+    def forcePost(self,postData):
         return genericForcePost(self.model, self.pkName, postData)
-

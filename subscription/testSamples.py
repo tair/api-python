@@ -1,40 +1,65 @@
-import django
-import unittest
-import sys, getopt
-from unittest import TestCase
+import copy
 from subscription.models import Subscription, SubscriptionTransaction, ActivationCode
 from party.models import Party
 from partner.models import Partner
-import requests
-import json
+from datetime import datetime, timedelta
+from common.tests import TestGenericInterfaces
 
-import copy
-from common.pyTests import PyTestGenerics
+genericForcePost = TestGenericInterfaces.forcePost
 
-genericForcePost = PyTestGenerics.forcePost
+NUM_DAYS_AFTER_PURCHASE = 2
+NUM_SUBSCRIBED_DAYS = 30
+UPDATE_NUM_DAYS_AFTER_PURCHASE = 1
+UPDATE_NUM_SUBSCRIBED_DAYS = 60
+
+def getDateTimeString(dateTimeObj):
+    return dateTimeObj.strftime("%Y-%m-%d %H:%M:%S.%f")
 
 class ActivationCodeSample():
     path = 'subscriptions/activationCodes/'
     url = None
+    TRANSACTION_TYPE = 'create_free'
     data = {
         'activationCode':'testactivationcode',
         'partnerId':None,
-        'partyId':None,
-        'period':180,
-        'purchaseDate':'2001-01-01T00:00:00Z',
+        # partyId is assigned upon activation not on creation
+        # 'partyId':None,
+        'period':NUM_SUBSCRIBED_DAYS,
+        'purchaseDate':None,
     }
     updateData = {
         'activationCode':'testactivationcode2',
         'partnerId':None,
-        'partyId':None,
-        'period':150,
-        'purchaseDate':'2005-01-01T00:00:00Z',
+        # 'partyId':None,
+        'period':UPDATE_NUM_SUBSCRIBED_DAYS,
+        'purchaseDate':None,
     }
     pkName = 'activationCodeId'
     model = ActivationCode
 
     def __init__(self, serverUrl):
         self.url = serverUrl+self.path
+        self.data['purchaseDate'] = getDateTimeString(datetime.today() - timedelta(days=NUM_DAYS_AFTER_PURCHASE))
+        self.updateData['purchaseDate'] = getDateTimeString(datetime.today() - timedelta(days=UPDATE_NUM_DAYS_AFTER_PURCHASE))
+
+    def setPartnerId(self, partnerId):
+        self.data['partnerId'] = partnerId
+
+    # for get endpoint transactionType is not returned, so we only initialize this param when needed
+    def initTransctionType(self):
+        self.data['transactionType'] = self.TRANSACTION_TYPE
+
+    def getActivationCode(self):
+        return self.data['activationCode']
+
+    def getPeriod(self):
+        return self.data['period']
+
+    def getTransactionType(self):
+        return self.data['transactionType']
+
+    def getPartnerId(self):
+        return self.data['partnerId']
 
     def forcePost(self,data):
         postData = copy.deepcopy(data)
@@ -45,22 +70,43 @@ class SubscriptionSample():
     path = 'subscriptions/'
     url = None
     data = {
-        'startDate':'2012-04-12T00:00:00Z',
-        'endDate':'2018-04-12T00:00:00Z',
-        'partnerId':'tair',
-        'partyId':1,
+        'startDate':None,
+        'endDate':None,
+        'partnerId':None,
+        'partyId':None,
     }
     updateData = {
-        'startDate':'2012-04-12T00:00:00Z',
-        'endDate':'2018-04-12T00:00:00Z',
-        'partnerId':'cdiff',
-        'partyId':1,
+        'startDate':None,
+        'partnerId':None,
+        'partyId':None,
     }
     pkName = 'subscriptionId'
     model = Subscription
 
     def __init__(self, serverUrl):
         self.url = serverUrl+self.path
+        self.data = copy.deepcopy(self.data)
+
+        startDateObj = datetime.today() - timedelta(days=NUM_DAYS_AFTER_PURCHASE)
+        self.data['startDate'] = getDateTimeString(startDateObj)
+        self.data['endDate'] = getDateTimeString(startDateObj + timedelta(days=NUM_SUBSCRIBED_DAYS))
+
+        updateStartDateObj = datetime.today() - timedelta(days=UPDATE_NUM_DAYS_AFTER_PURCHASE)
+        self.updateData['startDate'] = getDateTimeString(updateStartDateObj)
+        self.updateData['endDate'] = getDateTimeString(updateStartDateObj + timedelta(days=UPDATE_NUM_SUBSCRIBED_DAYS))
+
+    def setPartnerId(self, partnerId):
+        self.data['partnerId'] = partnerId
+
+    def setPartyId(self, partyId):
+        self.data['partyId'] = partyId
+
+    def getEndDate(self):
+        return self.data['endDate']
+
+    def setAsExpired(self):
+        self.data['startDate'] = getDateTimeString(datetime.today() - timedelta(days=2 * NUM_SUBSCRIBED_DAYS))
+        self.data['endDate'] = getDateTimeString(datetime.today() - timedelta(days=NUM_SUBSCRIBED_DAYS))
 
     def forcePost(self,data):
         postData = copy.deepcopy(data)
@@ -68,22 +114,19 @@ class SubscriptionSample():
         postData['partnerId'] = Partner.objects.get(partnerId=data['partnerId'])
         return genericForcePost(self.model, self.pkName, postData)
 
-
 class SubscriptionTransactionSample():
     path = 'subscriptions/transactions/'
-    url = None
+    url = None   
     data = {
-        'subscriptionId':1,
-        'transactionDate':'2012-04-12T00:00:00Z',
-        'startDate':'2012-04-12T00:00:00Z',
-        'endDate':'2018-04-12T00:00:00Z',
+        'transactionDate':None,
+        'startDate':None,
+        'endDate':None,
         'transactionType':'create',
     }
     updateData = {
-        'subscriptionId':1,
-        'transactionDate':'2014-02-12T00:00:00Z',
-        'startDate':'2012-04-12T00:00:00Z',
-        'endDate':'2018-04-12T00:00:00Z',
+        'transactionDate':None,
+        'startDate':None,
+        'endDate':None,
         'transactionType':'renew',
     }
     pkName = 'subscriptionTransactionId'
@@ -92,8 +135,19 @@ class SubscriptionTransactionSample():
     def __init__(self, serverUrl):
         self.url = serverUrl+self.path
 
+        transactionDateObj = datetime.today() - timedelta(days=NUM_DAYS_AFTER_PURCHASE)
+        self.data['transactionDate'] = getDateTimeString(transactionDateObj)
+        self.data['startDate'] = self.data['transactionDate']
+        self.data['endDate'] = getDateTimeString(transactionDateObj + timedelta(days=NUM_SUBSCRIBED_DAYS))
+
+        updateTransactionDateObj = datetime.today() - timedelta(days=UPDATE_NUM_DAYS_AFTER_PURCHASE)
+        self.updateData['transactionDate'] = getDateTimeString(updateTransactionDateObj)
+        self.updateData['startDate'] = self.updateData['transactionDate']
+        self.updateData['endDate'] = getDateTimeString(updateTransactionDateObj + timedelta(days=UPDATE_NUM_DAYS_AFTER_PURCHASE))
+     
+
     def forcePost(self,data):
         postData = copy.deepcopy(data)
-        postData['subscriptionId'] = Subscription.objects.get(subscriptionId=data['subscriptionId'])
+        if ('subscriptionId' in postData):
+            postData['subscriptionId'] = Subscription.objects.get(subscriptionId=postData['subscriptionId'])
         return genericForcePost(self.model, self.pkName, postData)
-

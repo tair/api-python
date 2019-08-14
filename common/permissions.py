@@ -1,4 +1,5 @@
 from apikey.models import ApiKey
+from authentication.models import Credential
 
 class ApiKeyPermission():
     @staticmethod
@@ -20,7 +21,6 @@ class ApiKeyPermission():
         return True
 
 def isPhoenix(request):
-    from authentication.models import Credential
     credentialId = request.GET.get('credentialId')
     secretKey = request.GET.get('secretKey')
     if credentialId and secretKey and Credential.validate(credentialId, secretKey):
@@ -28,7 +28,6 @@ def isPhoenix(request):
     return False
 
 def isLoggedIn(request):
-    from authentication.models import Credential
     credentialId = request.GET.get('credentialId')
     secretKey = request.GET.get('secretKey')
     if credentialId and secretKey and Credential.validate(credentialId, secretKey):# and Credential.objects.get(partyId=credentialId).partyId.partyType=='phoenix':

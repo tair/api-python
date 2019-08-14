@@ -29,6 +29,8 @@ STRIPE_PUBLIC_KEY = 'pk_test_VEu0r74glZkzeT8IXLmXxojP'
 
 STRIPE_PRIVATE_KEY = 'sk_test_dXy85QkwH66s64bIWKbikyMt'
 
+HOSTNAME = 'http://localhost:9000/'
+
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
