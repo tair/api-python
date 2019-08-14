@@ -11,9 +11,4 @@ class Migration(migrations.Migration):
     ]
 
     operations = [
-        migrations.AddField(
-            model_name='partner',
-            name='forgotUserNameText',
-            field=models.CharField(max_length=200, null=True),
-        ),
     ]
