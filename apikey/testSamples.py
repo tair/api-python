@@ -1,9 +1,7 @@
 import django
-import unittest
-import sys, getopt
-from unittest import TestCase
+import sys
+from django.test import TestCase
 from models import ApiKey
-
 from common.pyTests import PyTestGenerics
 
 genericForcePost = PyTestGenerics.forcePost
@@ -15,13 +13,13 @@ class ApiKeySample():
         'apiKey':'proxyKey',
     }
     updateData = {
-        'apiKey':'proxy2Key',
+        'apiKey':'proxyKey2',
     }
     pkName = 'apiKeyId'
     model = ApiKey
 
     def __init__(self, serverUrl):
-        self.url = serverUrl+self.path
+        self.url = serverUrl + self.path
 
-    def forcePost(self,data):
+    def forcePost(self, data):
         return genericForcePost(self.model, self.pkName, data)

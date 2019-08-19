@@ -1,6 +1,5 @@
-import requests
 import json
-import sys, getopt
+import sys
 
 from testSamples import CommonApiKeySample
 from partner.models import Partner
@@ -13,9 +12,9 @@ from Cookie import SimpleCookie
 class GenericTest(object):
     apiKeySample = CommonApiKeySample()
     apiKey = None
+
     def setUp(self):
         #delete possible entries that we use as test case
-        ApiKey.objects.filter(apiKey=self.apiKeySample.data['apiKey']).delete()
         self.apiKeyId = self.apiKeySample.forcePost(self.apiKeySample.data)
         self.apiKey = self.apiKeySample.data['apiKey']
 
@@ -44,9 +43,8 @@ class GenericGETOnlyTest(GenericTest):
         pk = sample.forcePost(sample.data)
         url = sample.url
         if self.apiKey:
-            url = url+'?apiKey=%s' % (self.apiKey)
+            self.client.cookies = SimpleCookie({'apiKey':self.apiKey})
 
-        self.client.cookies = SimpleCookie({'apiKey':self.apiKey})
         res = self.client.get(url)
 
         self.assertEqual(res.status_code, 200)
@@ -57,9 +55,8 @@ class GenericGETOnlyTest(GenericTest):
         pk = sample.forcePost(sample.data)
         url = sample.url + '?%s=%s' % (sample.pkName, str(pk))
         if self.apiKey:
-            url = url+'&apiKey=%s' % (self.apiKey)
-        
-        self.client.cookies = SimpleCookie({'apiKey':self.apiKey})
+            self.client.cookies = SimpleCookie({'apiKey':self.apiKey})
+
         res = self.client.get(url)
 
         self.assertEqual(res.status_code, 200)
@@ -74,9 +71,8 @@ class GenericCRUDTest(GenericGETOnlyTest):
         sample = self.sample
         url = sample.url
         if self.apiKey:
-            url = url+'?apiKey=%s' % (self.apiKey)
+            self.client.cookies = SimpleCookie({'apiKey':self.apiKey})
 
-        self.client.cookies = SimpleCookie({'apiKey':self.apiKey})
         res = self.client.post(url, sample.data)
 
         self.assertEqual(res.status_code, 201)
@@ -86,12 +82,11 @@ class GenericCRUDTest(GenericGETOnlyTest):
         sample = self.sample
         pk = sample.forcePost(sample.data)
         url = sample.url + '?%s=%s' % (sample.pkName, str(pk))
-        if self.apiKey:
-            url = url+'&apiKey=%s' % (self.apiKey)
         if sample.pkName in sample.updateData:
             pk = sample.updateData[sample.pkName]
+        if self.apiKey:
+            self.client.cookies = SimpleCookie({'apiKey':self.apiKey})
 
-        self.client.cookies = SimpleCookie({'apiKey':self.apiKey})
         # the default content type for put is 'application/octet-stream'
         res = self.client.put(url, json.dumps(sample.updateData), content_type='application/json')
 
@@ -101,12 +96,10 @@ class GenericCRUDTest(GenericGETOnlyTest):
     def test_for_delete(self):
         sample = self.sample
         pk = sample.forcePost(sample.data)
-
         url = sample.url + '?%s=%s' % (sample.pkName, str(pk))
         if self.apiKey:
-            url = url+'&apiKey=%s' % (self.apiKey)
-
-        self.client.cookies = SimpleCookie({'apiKey':self.apiKey})
+            self.client.cookies = SimpleCookie({'apiKey':self.apiKey})
+            
         res = self.client.delete(url)
 
         self.assertIsNone(PyTestGenerics.forceGet(sample.model,sample.pkName,pk))
