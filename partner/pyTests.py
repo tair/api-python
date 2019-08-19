@@ -2,68 +2,82 @@
 import sys
 import django
 import unittest
-from unittest import TestCase
-from partner.models import Partner, PartnerPattern, SubscriptionTerm, SubscriptionDescription, SubscriptionDescriptionItem
 import copy
-from common.pyTests import PyTestGenerics, GenericCRUDTest, GenericTest
+import json
+from django.test import TestCase, Client
+from partner.models import Partner, PartnerPattern, SubscriptionTerm, SubscriptionDescription, SubscriptionDescriptionItem
+from common.pyTests import PyTestGenerics, GenericCRUDTest, GenericGETOnlyTest, checkMatch
 from testSamples import PartnerSample, PartnerPatternSample, SubscriptionTermSample, SubscriptionDescriptionSample, SubscriptionDescriptionItemSample
-import requests
-
-initPyTest = PyTestGenerics.initPyTest
-genericForceDelete = PyTestGenerics.forceDelete
 
 # Create your tests here.                                                                                                                                                                                 
 django.setup()
-serverUrl = initPyTest()
+serverUrl = PyTestGenerics.initPyTest()
 
 print "using server url %s" % serverUrl
 
-class PartnerCRUD(GenericCRUDTest, TestCase):
+# test for API end point /partners/
+class PartnerCRUD(GenericGETOnlyTest, TestCase):
     sample = PartnerSample(serverUrl)
 
-    def test_for_create(self):
-        Partner.objects.filter(partnerId=self.sample.data['partnerId']).delete()
-        super(PartnerCRUD, self).test_for_create()
-
-    def test_for_getByUri(self):
-        partnerSample = PartnerSample(serverUrl)
-        Partner.objects.filter(partnerId=partnerSample.data['partnerId']).delete()
-        partnerId = partnerSample.forcePost(partnerSample.data)
-        
-        partnerPatternSample = PartnerPatternSample(serverUrl)
-        partnerPatternSample.data['partnerId'] = partnerId
-        partnerPatternId = partnerPatternSample.forcePost(partnerPatternSample.data)
-        url = self.sample.url + "?uri=%s" % (partnerPatternSample.data['sourceUri'])
-        cookies = {'apiKey':self.apiKey}
-        req = requests.get(url,cookies=cookies)
-        self.assertEqual(len(req.json()) > 0, True)
-        genericForceDelete(partnerPatternSample.model, partnerPatternSample.pkName, partnerPatternId)
-        genericForceDelete(partnerSample.model, partnerSample.pkName, partnerId)
-
+# test for API end point /partners/patterns/
 class PartnerPatternCRUD(GenericCRUDTest, TestCase):
     sample = PartnerPatternSample(serverUrl)
     partnerSample = PartnerSample(serverUrl)
+
     def setUp(self):
         super(PartnerPatternCRUD,self).setUp()
-        Partner.objects.filter(partnerId=self.partnerSample.data['partnerId']).delete()
         self.partnerId = self.partnerSample.forcePost(self.partnerSample.data)
-        self.sample.partnerId=self.sample.data['partnerId']=self.sample.updateData['partnerId']=self.partnerId
+        self.sample.data['partnerId']=self.sample.updateData['partnerId']=self.partnerId
 
-    def tearDown(self):
-        super(PartnerPatternCRUD,self).tearDown()
-        genericForceDelete(self.partnerSample.model, self.partnerSample.pkName, self.partnerId)
+    # cannot perform get all since for GET action sourceUri is required
+    def test_for_get_all(self):
+        pass
 
-class SubscriptionTermCRUD(GenericCRUDTest, TestCase):
+    def test_for_get(self):
+        sample = self.sample
+        pk = sample.forcePost(sample.data)
+        url = sample.url + '?%s=%s' % ('sourceUri', sample.data['sourceUri'])
+        
+        # no cookie needed
+        res = self.client.get(url)
+
+        self.assertEqual(res.status_code, 200)
+        self.assertEqual(checkMatch(sample.data, json.loads(res.content), sample.pkName, pk), True)
+
+
+# test for API end point /partners/terms/
+class SubscriptionTermCRUD(GenericGETOnlyTest, TestCase):
     sample = SubscriptionTermSample(serverUrl)
     partnerSample = PartnerSample(serverUrl)
+
     def setUp(self):
         super(SubscriptionTermCRUD,self).setUp()
-        Partner.objects.filter(partnerId=self.partnerSample.data['partnerId']).delete()
         self.partnerId = self.partnerSample.forcePost(self.partnerSample.data)
-        self.sample.partnerId=self.sample.data['partnerId']=self.sample.updateData['partnerId']=self.partnerId
-    def tearDown(self):
-        super(SubscriptionTermCRUD,self).tearDown()
-        genericForceDelete(self.partnerSample.model, self.partnerSample.pkName, self.partnerId)
+        self.sample.data['partnerId']=self.sample.updateData['partnerId']=self.partnerId
+
+# test for API end point /partners/descriptions/
+# TODO: test for case when GET request is sent with includeText param
+class SubscriptionDescriptionCRUD(GenericGETOnlyTest, TestCase):
+    sample = SubscriptionDescriptionSample(serverUrl)
+    partnerSample = PartnerSample(serverUrl)
+
+    def setUp(self):
+        super(SubscriptionDescriptionCRUD,self).setUp()
+        self.partnerId = self.partnerSample.forcePost(self.partnerSample.data)
+        self.sample.data['partnerId']=self.sample.updateData['partnerId']=self.partnerId
+
+# test for API end point /partners/descriptionItems/
+class SubscriptionDescriptionItemCRUD(GenericCRUDTest, TestCase):
+    sample = SubscriptionDescriptionItemSample(serverUrl)
+    partnerSample = PartnerSample(serverUrl)
+    descriptionSample = SubscriptionDescriptionSample(serverUrl)
+
+    def setUp(self):
+        super(SubscriptionDescriptionItemCRUD,self).setUp()
+        self.partnerId = self.partnerSample.forcePost(self.partnerSample.data)
+        self.descriptionSample.data['partnerId']=self.partnerId
+        self.descriptionId = self.descriptionSample.forcePost(self.descriptionSample.data)
+        self.sample.data['subscriptionDescriptionId']=self.sample.updateData['subscriptionDescriptionId']=self.descriptionId
 
 print "Running unit tests on partner web services API........."
 

@@ -1,7 +1,7 @@
 import sys
 import django
 import unittest
-from unittest import TestCase
+from django.test import TestCase
 from partner.models import Partner, PartnerPattern, SubscriptionTerm, SubscriptionDescription, SubscriptionDescriptionItem
 import copy
 from common.pyTests import PyTestGenerics
@@ -21,22 +21,15 @@ class PartnerSample():
     updateData = {
         'partnerId':'test',
         'name':'testPartner2',
-        'logoUri':'randomuri.com',
-        'termOfServiceUri':'anotherrandomuri.com',
-        'description':'Genome database for the reference plant Arabidopsis thaliana2',
+        'logoUri':'randomuri2.com',
+        'termOfServiceUri':'anotherrandomuri2.com',
+        'description':'Updated description: Genome database for the reference plant Arabidopsis thaliana',
     }
     pkName = 'partnerId'
     model = Partner
 
     def __init__(self, serverUrl):
         self.url = serverUrl+self.path
-
-        #delete possible entries that we use as test case
-        try:
-            filters={self.pkName:self.data['patternId']}
-            self.model.objects.get(**filters).delete()
-        except:
-            pass
 
     def forcePost(self,data):
         return genericForcePost(self.model, self.pkName, data)
@@ -46,13 +39,13 @@ class PartnerPatternSample():
     path = 'partners/patterns/'
     data = {
         'partnerId':None,
-        'sourceUri':'https://paywall2.steveatgetexp.com',
-        'targetUri':'https://back-prod.steveatgetexp.com',
+        'sourceUri':'https://www.arabidopsis.org',
+        'targetUri':'https://back-prod.arabidopsis.org',
     }
     updateData = {
         'partnerId':None,
-        'sourceUri':'https://paywall2a.steveatgetexp.com',
-        'targetUri':'https://back-prod.steveatgetexp.com',
+        'sourceUri':'https://uat.arabidopsis.org',
+        'targetUri':'https://back-uat.arabidopsis.org',
     }
     pkName = 'partnerPatternId'
     model = PartnerPattern
@@ -71,15 +64,15 @@ class SubscriptionTermSample():
     data = {
         'partnerId':None,
         'period':180,
-        'price':360.00,
-        'groupDiscountPercentage':0.7,
+        'price':180.00,
+        'groupDiscountPercentage': 1.5,
         'description':'test'
     }
     updateData = {
         'partnerId':None,
         'period':365,
-        'price':180.00,
-        'groupDiscountPercentage':0.8,
+        'price':360.00,
+        'groupDiscountPercentage': 2.5,
         'description':'test2'
     }
     pkName = 'subscriptionTermId'
@@ -97,14 +90,14 @@ class SubscriptionDescriptionSample():
     url = None
     path = 'partners/descriptions/'
     data = {
+        'partnerId':None,
         'header':'Commercial Description',
         'descriptionType':'Commercial',
-        'partnerId':None,
     }
     updateData = {
-        'header':'Commercial Description2',
-        'descriptionType':'Institution',
         'partnerId':None,
+        'header':'Institution Description',
+        'descriptionType':'Institution',
     }
     pkName = 'subscriptionDescriptionId'
     model = SubscriptionDescription
@@ -121,10 +114,12 @@ class SubscriptionDescriptionItemSample():
     url = None
     path = 'partners/descriptionItems/'
     data = {
-        'subscriptionDescriptionId':None,
+        'subscriptionDescriptionId': None,
+        'text': 'Benefit'
     }
     updateData = {
-        'subscriptionDescriptionId':None,
+        'subscriptionDescriptionId': None,
+        'text': 'Updated Benefit'
     }
     pkName = 'subscriptionDescriptionItemId'
     model = SubscriptionDescriptionItem
@@ -134,5 +129,5 @@ class SubscriptionDescriptionItemSample():
 
     def forcePost(self,data):
         postData = copy.deepcopy(data)
-        postData['subscriptionDescritpionId'] = SubscriptionDescription.objects.get(subscriptionDescriptionId=data['subscriptionDescriptionId'])
+        postData['subscriptionDescriptionId'] = SubscriptionDescription.objects.get(subscriptionDescriptionId=data['subscriptionDescriptionId'])
         return genericForcePost(self.model, self.pkName, postData)

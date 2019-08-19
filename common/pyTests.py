@@ -36,7 +36,7 @@ def checkMatch(sampleData, retrievedDataArray, pkName, pk):
                     break
     return hasMatch
 
-class GenericCRUDTest(GenericTest):
+class GenericGETOnlyTest(GenericTest):
     client = Client()
 
     def test_for_get_all(self):
@@ -52,18 +52,6 @@ class GenericCRUDTest(GenericTest):
         self.assertEqual(res.status_code, 200)
         self.assertEqual(checkMatch(sample.data, json.loads(res.content), sample.pkName, pk), True)
 
-    def test_for_create(self):
-        sample = self.sample
-        url = sample.url
-        if self.apiKey:
-            url = url+'?apiKey=%s' % (self.apiKey)
-
-        self.client.cookies = SimpleCookie({'apiKey':self.apiKey})
-        res = self.client.post(url, sample.data)
-
-        self.assertEqual(res.status_code, 201)
-        self.assertIsNotNone(PyTestGenerics.forceGet(sample.model,sample.pkName,json.loads(res.content)[sample.pkName]))
-
     def test_for_get(self):
         sample = self.sample
         pk = sample.forcePost(sample.data)
@@ -76,7 +64,23 @@ class GenericCRUDTest(GenericTest):
 
         self.assertEqual(res.status_code, 200)
         self.assertEqual(checkMatch(sample.data, json.loads(res.content), sample.pkName, pk), True)
-        PyTestGenerics.forceDelete(sample.model,sample.pkName,pk)
+
+class GenericCRUDTest(GenericGETOnlyTest):
+    client = Client()
+
+    # GET tests defined in GenericGETOnlyTest class
+
+    def test_for_create(self):
+        sample = self.sample
+        url = sample.url
+        if self.apiKey:
+            url = url+'?apiKey=%s' % (self.apiKey)
+
+        self.client.cookies = SimpleCookie({'apiKey':self.apiKey})
+        res = self.client.post(url, sample.data)
+
+        self.assertEqual(res.status_code, 201)
+        self.assertIsNotNone(PyTestGenerics.forceGet(sample.model,sample.pkName,json.loads(res.content)[sample.pkName]))
 
     def test_for_update(self):
         sample = self.sample
