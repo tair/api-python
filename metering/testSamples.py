@@ -1,11 +1,10 @@
 import django
+import copy
 from metering.models import IpAddressCount, LimitValue, MeterBlacklist
 from partner.models import Partner
+from common.tests import TestGenericInterfaces
 
-import copy
-from common.pyTests import PyTestGenerics
-
-genericForcePost = PyTestGenerics.forcePost
+genericForcePost = TestGenericInterfaces.forcePost
 
 class LimitValueSample():
     path = 'meters/limits/'

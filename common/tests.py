@@ -76,7 +76,7 @@ class GenericCRUDTest(GenericGETOnlyTest):
         res = self.client.post(url, sample.data)
 
         self.assertEqual(res.status_code, 201)
-        self.assertIsNotNone(PyTestGenerics.forceGet(sample.model,sample.pkName,json.loads(res.content)[sample.pkName]))
+        self.assertIsNotNone(TestGenericInterfaces.forceGet(sample.model,sample.pkName,json.loads(res.content)[sample.pkName]))
 
     def test_for_update(self):
         sample = self.sample
@@ -102,11 +102,11 @@ class GenericCRUDTest(GenericGETOnlyTest):
             
         res = self.client.delete(url)
 
-        self.assertIsNone(PyTestGenerics.forceGet(sample.model,sample.pkName,pk))
+        self.assertIsNone(TestGenericInterfaces.forceGet(sample.model,sample.pkName,pk))
 
-class PyTestGenerics:
+class TestGenericInterfaces:
     @staticmethod
-    def initPyTest():
+    def getHost():
         if hasattr(settings, 'HOSTNAME'):
             return settings.HOSTNAME
         # default connection to localhost

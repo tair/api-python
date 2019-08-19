@@ -4,9 +4,9 @@ import unittest
 from django.test import TestCase
 from partner.models import Partner, PartnerPattern, SubscriptionTerm, SubscriptionDescription, SubscriptionDescriptionItem
 import copy
-from common.pyTests import PyTestGenerics
+from common.tests import TestGenericInterfaces
 
-genericForcePost = PyTestGenerics.forcePost
+genericForcePost = TestGenericInterfaces.forcePost
 
 class PartnerSample():
     url = None

@@ -2,9 +2,9 @@ import django
 import sys
 from django.test import TestCase
 from models import ApiKey
-from common.pyTests import PyTestGenerics
+from common.tests import TestGenericInterfaces
 
-genericForcePost = PyTestGenerics.forcePost
+genericForcePost = TestGenericInterfaces.forcePost
 
 class ApiKeySample():
     path = 'apikeys/'
