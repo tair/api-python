@@ -1,7 +1,7 @@
 # The catch-all container for any commonly used classes/functions that don't (yet) deserve dedicated containers of their own.
-from django.core.exceptions import ValidationError
 from django.utils.translation import ugettext_lazy as _
 from netaddr import IPAddress, IPRange, IPNetwork
+from rest_framework import serializers
 
 # Determine IP address of the host from which the given request has been received.
 #
@@ -18,9 +18,9 @@ def getRemoteIpAddress(request):
 # validate ip range based on a series of conditions
 def validateIpRange(start, end):
     if isIpRangePrivate(start, end):
-        raise ValidationError({'IP Range': _('IP range contains private IP: %s - %s' % (start, end))})
+        raise serializers.ValidationError({'IP Range': _('IP range contains private IP: %s - %s' % (start, end))})
     if not validateIpRangeSize(start, end):
-        raise ValidationError({'IP Range': _('IP range too large: %s - %s' % (start, end))})
+        raise serializers.ValidationError({'IP Range': _('IP range too large: %s - %s' % (start, end))})
 
 # check if the ip range is private
 def isIpRangePrivate(start, end):
