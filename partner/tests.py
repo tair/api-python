@@ -13,8 +13,6 @@ from testSamples import PartnerSample, PartnerPatternSample, SubscriptionTermSam
 django.setup()
 serverUrl = TestGenericInterfaces.getHost()
 
-print "using server url %s" % serverUrl
-
 # test for API end point /partners/
 class PartnerCRUD(GenericGETOnlyTest, TestCase):
     sample = PartnerSample(serverUrl)

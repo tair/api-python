@@ -1,108 +1,13 @@
 import json
 import sys
-
-from testSamples import CommonApiKeySample
+import time
+from testSamples import CommonApiKeySample, CommonPartnerSample, CommonCredentialSample
 from partner.models import Partner
 from apikey.models import ApiKey
 from django.test import Client
 from django.conf import settings
 # Python 3: module Cookie -> http.cookies
 from Cookie import SimpleCookie
-
-class GenericTest(object):
-    apiKeySample = CommonApiKeySample()
-    apiKey = None
-
-    def setUp(self):
-        #delete possible entries that we use as test case
-        self.apiKeyId = self.apiKeySample.forcePost(self.apiKeySample.data)
-        self.apiKey = self.apiKeySample.data['apiKey']
-
-# This function checks if sampleData is within the array of data retrieved
-# from API call.
-def checkMatch(sampleData, retrievedDataArray, pkName, pk):
-    hasMatch = False
-    for item in retrievedDataArray:
-        # find the entry from dataArray that has the same PK
-        # as the entry created
-        if item[pkName] == pk:
-            hasMatch = True
-            for key in sampleData:
-                # makes sure that all contents from sample is the
-                # same as content retrieved from request
-                if not (item[key] == sampleData[key] or float(item[key]) == float(sampleData[key])):
-                    hasMatch = False
-                    break
-    return hasMatch
-
-class GenericGETOnlyTest(GenericTest):
-    client = Client()
-
-    def test_for_get_all(self):
-        sample = self.sample
-        pk = sample.forcePost(sample.data)
-        url = sample.url
-        if self.apiKey:
-            self.client.cookies = SimpleCookie({'apiKey':self.apiKey})
-
-        res = self.client.get(url)
-
-        self.assertEqual(res.status_code, 200)
-        self.assertEqual(checkMatch(sample.data, json.loads(res.content), sample.pkName, pk), True)
-
-    def test_for_get(self):
-        sample = self.sample
-        pk = sample.forcePost(sample.data)
-        url = sample.url + '?%s=%s' % (sample.pkName, str(pk))
-        if self.apiKey:
-            self.client.cookies = SimpleCookie({'apiKey':self.apiKey})
-
-        res = self.client.get(url)
-
-        self.assertEqual(res.status_code, 200)
-        self.assertEqual(checkMatch(sample.data, json.loads(res.content), sample.pkName, pk), True)
-
-class GenericCRUDTest(GenericGETOnlyTest):
-    client = Client()
-
-    # GET tests defined in GenericGETOnlyTest class
-
-    def test_for_create(self):
-        sample = self.sample
-        url = sample.url
-        if self.apiKey:
-            self.client.cookies = SimpleCookie({'apiKey':self.apiKey})
-
-        res = self.client.post(url, sample.data)
-
-        self.assertEqual(res.status_code, 201)
-        self.assertIsNotNone(TestGenericInterfaces.forceGet(sample.model,sample.pkName,json.loads(res.content)[sample.pkName]))
-
-    def test_for_update(self):
-        sample = self.sample
-        pk = sample.forcePost(sample.data)
-        url = sample.url + '?%s=%s' % (sample.pkName, str(pk))
-        if sample.pkName in sample.updateData:
-            pk = sample.updateData[sample.pkName]
-        if self.apiKey:
-            self.client.cookies = SimpleCookie({'apiKey':self.apiKey})
-
-        # the default content type for put is 'application/octet-stream'
-        res = self.client.put(url, json.dumps(sample.updateData), content_type='application/json')
-
-        self.assertEqual(res.status_code, 200)
-        self.assertEqual(checkMatch(sample.updateData, json.loads(res.content), sample.pkName, pk), True)
-
-    def test_for_delete(self):
-        sample = self.sample
-        pk = sample.forcePost(sample.data)
-        url = sample.url + '?%s=%s' % (sample.pkName, str(pk))
-        if self.apiKey:
-            self.client.cookies = SimpleCookie({'apiKey':self.apiKey})
-            
-        res = self.client.delete(url)
-
-        self.assertIsNone(TestGenericInterfaces.forceGet(sample.model,sample.pkName,pk))
 
 class TestGenericInterfaces:
     @staticmethod
@@ -133,3 +38,178 @@ class TestGenericInterfaces:
         u = model(**data)
         u.save()
         return u.__dict__[pkName]
+
+class GenericTest(object):
+    apiKeySample = CommonApiKeySample()
+    apiKey = None
+
+    def setUp(self):
+        self.apiKeyId = self.apiKeySample.forcePost(self.apiKeySample.data)
+        self.apiKey = self.apiKeySample.data['apiKey']
+
+# recreate credential record for every test
+# TODO: convert to singleton pass
+class LoginRequiredTest(object):
+    serverUrl = TestGenericInterfaces.getHost()
+    apiKeySample = CommonApiKeySample()
+    credentialSample = CommonCredentialSample(serverUrl);
+    apiKey = None
+    credentialId = None
+    secretKey = None
+
+    def setUp(self):
+        if self.setUpCommonCredential():
+            if self.apiKey:
+                self.client.cookies = SimpleCookie({'apiKey':self.apiKey})
+            # this is a dependancy to the login API
+            loginUrl = self.credentialSample.getLoginUrl()
+            loginData = self.credentialSample.getLoginData()
+            self.pauseForAPIRest()
+            res = self.client.post(loginUrl, loginData)
+            if (res.status_code == 200):
+                resObj = json.loads(res.content)
+                self.credentialId = resObj['credentialId']
+                self.secretKey = resObj['secretKey']
+
+    def setUpCommonCredential(self):
+        self.apiKeyId = self.apiKeySample.forcePost(self.apiKeySample.data)
+        self.apiKey = self.apiKeySample.data['apiKey']
+
+        partnerSample = CommonPartnerSample(self.serverUrl)
+        partnerId = partnerSample.forcePost(partnerSample.data)
+        
+        self.credentialSample.setPartnerId(partnerId)
+        # this is a dependancy to the credential creation API
+        url = self.credentialSample.url
+        self.client.cookies = SimpleCookie({'apiKey':self.apiKey})
+        self.pauseForAPIRest()
+        res = self.client.post(url, self.credentialSample.data)
+        return res.status_code == 201
+
+    # pause for API rest
+    def pauseForAPIRest(self):
+        time.sleep(3)
+
+# This function checks if sampleData is within the array of data retrieved
+# from API call.
+def checkMatch(sampleData, retrievedDataArray, pkName, pk):
+    hasMatch = False
+    for item in retrievedDataArray:
+        # find the entry from dataArray that has the same PK
+        # as the entry created
+        if item[pkName] == pk:
+            hasMatch = True
+            for key in sampleData:
+                # makes sure that all contents from sample is the
+                # same as content retrieved from request
+                if not (item[key] == sampleData[key] or float(item[key]) == float(sampleData[key])):
+                    hasMatch = False
+                    break
+    return hasMatch
+
+## This function checks if sampleData is within the array of data retrieved
+# from API call, and skip common key we use for authentication, such as apiKey, 
+# credential, party etc.
+def filterAndCheckMatch(sampleData, retrievedDataArray, pkName, pk, commonKeyName, commonKeyValue):
+    filteredArray = []
+    for item in retrievedDataArray:
+            if item[commonKeyName] == commonKeyValue:
+                continue;
+            else:
+                filteredArray.append(item)
+    return checkMatch(sampleData, filteredArray, pkName, pk)
+
+class GenericGETOnlyTest(GenericTest):
+
+    def test_for_get_all(self):
+        sample = self.sample
+        url = self.getUrl(sample.url)
+        self.getAllHelper(url)
+
+    def test_for_get(self):
+        sample = self.sample
+        pk = sample.forcePost(sample.data)
+        url = self.getUrl(sample.url, sample.pkName, pk) 
+        if self.apiKey:
+            self.client.cookies = SimpleCookie({'apiKey':self.apiKey})
+
+        res = self.client.get(url)
+
+        self.assertEqual(res.status_code, 200)
+        self.assertEqual(checkMatch(sample.data, json.loads(res.content), sample.pkName, pk), True)
+
+    def getAllHelper(self, url, commonKeyName = None, commonKeyValue = None):
+        sample = self.sample
+        pk = sample.forcePost(sample.data)
+        if self.apiKey:
+            self.client.cookies = SimpleCookie({'apiKey':self.apiKey})
+
+        res = self.client.get(url)
+        self.assertEqual(res.status_code, 200)
+        if commonKeyName and commonKeyValue:
+            self.assertEqual(filterAndCheckMatch(sample.data, json.loads(res.content), sample.pkName, pk, commonKeyName, commonKeyValue), True)
+        else:
+            self.assertEqual(checkMatch(sample.data, json.loads(res.content), sample.pkName, pk), True)
+
+    def getUrl(self, url, pkName = None, pk = None):
+        fullUrl = url
+        if pkName and pk:
+            fullUrl = url + '?%s=%s' % (pkName, str(pk))
+        return fullUrl
+
+class GenericCRUDTest(GenericGETOnlyTest):
+
+    # GET tests defined in GenericGETOnlyTest class
+
+    def test_for_create(self):
+        sample = self.sample
+        url = self.getUrl(sample.url)
+        if self.apiKey:
+            self.client.cookies = SimpleCookie({'apiKey':self.apiKey})
+
+        res = self.client.post(url, sample.data)
+
+        self.assertEqual(res.status_code, 201)
+        self.assertIsNotNone(TestGenericInterfaces.forceGet(sample.model,sample.pkName,json.loads(res.content)[sample.pkName]))
+
+    def test_for_update(self):
+        sample = self.sample
+        pk = sample.forcePost(sample.data)
+        url = self.getUrl(sample.url, sample.pkName, pk)
+        if sample.pkName in sample.updateData:
+            pk = sample.updateData[sample.pkName]
+        if self.apiKey:
+            self.client.cookies = SimpleCookie({'apiKey':self.apiKey})
+
+        # the default content type for put is 'application/octet-stream'
+        res = self.client.put(url, json.dumps(sample.updateData), content_type='application/json')
+
+        self.assertEqual(res.status_code, 200)
+        self.assertEqual(checkMatch(sample.updateData, json.loads(res.content), sample.pkName, pk), True)
+
+    def test_for_delete(self):
+        sample = self.sample
+        pk = sample.forcePost(sample.data)
+        url = self.getUrl(sample.url, sample.pkName, pk)
+        if self.apiKey:
+            self.client.cookies = SimpleCookie({'apiKey':self.apiKey})
+            
+        res = self.client.delete(url)
+
+        self.assertIsNone(TestGenericInterfaces.forceGet(sample.model,sample.pkName,pk))
+
+class LoginRequiredGETOnlyTest(LoginRequiredTest, GenericGETOnlyTest):
+    
+    def getUrl(self, url, pkName = None, pk = None):
+        fullUrl = ''
+        if pkName and pk:
+            fullUrl = url + '?%s=%s&credentialId=%s&secretKey=%s' % (pkName, str(pk), self.credentialId, self.secretKey)
+        else:
+            fullUrl = url + '?credentialId=%s&secretKey=%s' % (self.credentialId, self.secretKey)
+        return fullUrl
+
+class LoginRequiredCRUDTest(LoginRequiredGETOnlyTest, GenericCRUDTest):
+    # just inherit method from two parent classes
+    pass
+
+print "using server url %s" % TestGenericInterfaces.getHost()
