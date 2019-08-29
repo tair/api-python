@@ -4,7 +4,6 @@ import unittest
 import sys
 import json
 import copy
-import hashlib
 from django.test import TestCase, Client
 from testSamples import CountrySample, UserPartySample, OrganizationPartySample, InstitutionPartySample, ConsortiumPartySample, IpRangeSample, PartyAffiliationSample
 from partner.testSamples import PartnerSample
@@ -36,7 +35,7 @@ class OrganizationPartyCRUDTest(LoginRequiredCRUDTest, TestCase):
     countrySample = CountrySample(serverUrl)
 
     def setUp(self):
-        super(OrganizationPartyCRUD,self).setUp()
+        super(OrganizationPartyCRUDTest,self).setUp()
         countryId = self.countrySample.forcePost(self.countrySample.data)
         self.sample.data['country']=self.sample.updateData['country']=countryId
 
@@ -61,7 +60,7 @@ class IpRangeCRUDTest(LoginRequiredCRUDTest, TestCase):
     partyId = None
 
     def setUp(self):
-        super(IpRangeCRUD,self).setUp()
+        super(IpRangeCRUDTest,self).setUp()
         countryId = self.countrySample.forcePost(self.countrySample.data)
         self.partySample.data['country']=countryId
         self.partyId = self.partySample.forcePost(self.partySample.data)
@@ -72,7 +71,7 @@ class IpRangeCRUDTest(LoginRequiredCRUDTest, TestCase):
 
     def getUrl(self, url, pkName = None, pk = None):
         # need partyId for filter
-        fullUrl = super(IpRangeCRUD,self).getUrl(url, pkName, pk) + '&%s=%s' % ('partyId', self.partyId)
+        fullUrl = super(IpRangeCRUDTest,self).getUrl(url, pkName, pk) + '&%s=%s' % ('partyId', self.partyId)
         return fullUrl
         
 # test for API end point /parties/consortiums/
@@ -105,7 +104,7 @@ class ConsortiumPartyCRUDTest(LoginRequiredCRUDTest, TestCase):
         self.assertEqual(res.status_code, 200)
 
         resObj = json.loads(res.content)
-        self.assertConsortiumItem(sample.data, consortiumCredentialSample.data, resObj, sample.pkName, pk)
+        self.assertConsortiumItem(sample.data, consortiumCredentialSample.data, consortiumCredentialSample, resObj, sample.pkName, pk)
         self.assertEqual(resObj[0]['hasIpRange'], False)
 
         # test for case where ip range is associated
@@ -139,8 +138,7 @@ class ConsortiumPartyCRUDTest(LoginRequiredCRUDTest, TestCase):
         pk = resObj[0][sample.pkName]
         # manipulate sample data to match the test condition
         consortiumCredentialSample.data['partyId'] = pk
-        consortiumCredentialSample.data['password'] = hashlib.sha1(consortiumCredentialSample.data['password']).hexdigest()
-        self.assertConsortiumItem(sample.data, consortiumCredentialSample.data, resObj, sample.pkName, pk)
+        self.assertConsortiumItem(sample.data, consortiumCredentialSample.data, consortiumCredentialSample, resObj, sample.pkName, pk)
 
     def test_for_update(self):
         sample = self.sample
@@ -158,14 +156,12 @@ class ConsortiumPartyCRUDTest(LoginRequiredCRUDTest, TestCase):
         self.assertEqual(res.status_code, 200)
         resObj = json.loads(res.content)
         # manipulate sample update data to match the test condition
-        consortiumCredentialSample.updateData['password'] = hashlib.sha1(consortiumCredentialSample.updateData['password']).hexdigest()
-        self.assertConsortiumItem(sample.updateData, consortiumCredentialSample.updateData, resObj, sample.pkName, pk)
+        self.assertConsortiumItem(sample.updateData, consortiumCredentialSample.updateData, consortiumCredentialSample, resObj, sample.pkName, pk)
 
     def initForcePostConsortiumCredentialSample(self, serverUrl):
         consortiumCredentialSample = CredentialSample(serverUrl)
 
         consortiumCredentialSample.data['partnerId'] = consortiumCredentialSample.updateData['partnerId'] = self.partnerId
-        consortiumCredentialSample.data['password'] = hashlib.sha1(consortiumCredentialSample.data['password']).hexdigest()
         return consortiumCredentialSample
 
     # alternative method is to post data by call create API
@@ -188,8 +184,10 @@ class ConsortiumPartyCRUDTest(LoginRequiredCRUDTest, TestCase):
 
         return postData
 
-    def assertConsortiumItem(self, consortiumSampleData, consortiumCredentialSampleData, resObj, pkName, pk):
+    def assertConsortiumItem(self, consortiumSampleData, consortiumCredentialSampleData, consortiumCredentialSample, resObj, pkName, pk):
         self.assertEqual(checkMatch(consortiumSampleData, [resObj[0]], pkName, pk), True)
+        # manipulate sample data to match the test condition
+        consortiumCredentialSampleData['password'] = consortiumCredentialSample.hashPassword(consortiumCredentialSampleData['password'])
         self.assertEqual(checkMatch(consortiumCredentialSampleData, [resObj[1]], pkName, pk), True)
 
 # test for API end point /parties/institutions/
@@ -228,7 +226,7 @@ class InstitutionPartyCRUDTest(LoginRequiredCRUDTest, TestCase):
         self.assertEqual(res.status_code, 200)
 
         resObj = json.loads(res.content)
-        self.assertInstitutionItem(sample.data, institutionCredentialSample.data, resObj, sample.pkName, pk)
+        self.assertInstitutionItem(sample.data, institutionCredentialSample.data, institutionCredentialSample, resObj, sample.pkName, pk)
         self.assertEqual(resObj[0]['hasIpRange'], False)
         self.assertEqual(resObj[0]['consortiums'][0], self.consortiumPartyId)
 
@@ -263,8 +261,7 @@ class InstitutionPartyCRUDTest(LoginRequiredCRUDTest, TestCase):
         pk = resObj[0][sample.pkName]
         # manipulate sample data to match the test condition
         institutionCredentialSample.data['partyId'] = pk
-        institutionCredentialSample.data['password'] = hashlib.sha1(institutionCredentialSample.data['password']).hexdigest()
-        self.assertInstitutionItem(sample.data, institutionCredentialSample.data, resObj, sample.pkName, pk)
+        self.assertInstitutionItem(sample.data, institutionCredentialSample.data, institutionCredentialSample, resObj, sample.pkName, pk)
 
     def test_for_update(self):
         sample = self.sample
@@ -281,15 +278,12 @@ class InstitutionPartyCRUDTest(LoginRequiredCRUDTest, TestCase):
 
         self.assertEqual(res.status_code, 200)
         resObj = json.loads(res.content)
-        # manipulate sample update data to match the test condition
-        institutionCredentialSample.updateData['password'] = hashlib.sha1(institutionCredentialSample.updateData['password']).hexdigest()
-        self.assertInstitutionItem(sample.updateData, institutionCredentialSample.updateData, resObj, sample.pkName, pk)
+        self.assertInstitutionItem(sample.updateData, institutionCredentialSample.updateData, institutionCredentialSample, resObj, sample.pkName, pk)
 
     def initForcePostInstitutionCredentialSample(self, serverUrl):
         institutionCredentialSample = CredentialSample(serverUrl)
 
         institutionCredentialSample.data['partnerId'] = institutionCredentialSample.updateData['partnerId'] = self.partnerId
-        institutionCredentialSample.data['password'] = hashlib.sha1(institutionCredentialSample.data['password']).hexdigest()
         
         return institutionCredentialSample
 
@@ -318,18 +312,20 @@ class InstitutionPartyCRUDTest(LoginRequiredCRUDTest, TestCase):
 
         return postData
 
-    def assertInstitutionItem(self, institutionSampleData, institutionCredentialSampleData, resObj, pkName, pk):
+    def assertInstitutionItem(self, institutionSampleData, institutionCredentialSampleData, institutionCredentialSample, resObj, pkName, pk):
         self.assertEqual(checkMatch(institutionSampleData, [resObj[0]], pkName, pk), True)
+        # manipulate sample data to match the test condition
+        institutionCredentialSampleData['password'] = institutionCredentialSample.hashPassword(institutionCredentialSampleData['password'])
         self.assertEqual(checkMatch(institutionCredentialSampleData, [resObj[1]], pkName, pk), True)
 
 # test for end point /parties/affiliations/
-class PartyAffiliationCRUD(LoginRequiredCRUDTest, TestCase):
+class PartyAffiliationCRUDTest(LoginRequiredCRUDTest, TestCase):
     sample = PartyAffiliationSample(serverUrl)
     parentPartySample = ConsortiumPartySample(serverUrl)
     childPartySample = InstitutionPartySample(serverUrl)
 
     def setUp(self):
-        super(PartyAffiliationCRUD,self).setUp()
+        super(PartyAffiliationCRUDTest,self).setUp()
 
         countrySample = CountrySample(serverUrl)
         countryId = countrySample.forcePost(countrySample.data)

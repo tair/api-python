@@ -17,6 +17,7 @@ class PartnerSample():
         'logoUri':'randomuri.com',
         'termOfServiceUri':'anotherrandomuri.com',
         'description':'Genome database for the reference plant Arabidopsis thaliana',
+        'resetPasswordEmailBody': 'Test Partner username: %s (%s). Your temp password is %s.'
     }
     updateData = {
         'partnerId':'test',
