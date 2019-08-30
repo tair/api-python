@@ -1,7 +1,10 @@
 from apikey.models import ApiKey
 from partner.models import Partner
 from party.models import Party
+from authentication.models import Credential
+from authentication.views import generateSecretKey
 import copy
+import hashlib
 
 def forcePost(model, pkName, data):
     u = model(**data)
@@ -34,11 +37,25 @@ class CommonPartnerSample():
     def forcePost(self,data):
         return forcePost(self.model, self.pkName, data)
 
+class CommonUserPartySample():
+    path = 'parties/'
+    url = None
+    data = {
+        'partyType':'user',
+        'name':'phoenix_admin',
+    }
+    pkName = 'partyId'
+    model = Party
+
+    def __init__(self, serverUrl):
+        self.url = serverUrl+self.path
+
+    def forcePost(self,data):
+        return forcePost(self.model, self.pkName, data)
+
 class CommonCredentialSample():
     url = None
-    serverUrl = None
     path = 'credentials/'
-    loginPath = 'credentials/login/'
     USERNAME = 'phoenix_admin'
     FIRSTNAME = 'Phoenix'
     LASTNAME = 'Bioinformatics'
@@ -50,26 +67,35 @@ class CommonCredentialSample():
         'username': USERNAME,
         'firstName': FIRSTNAME,
         'lastName': LASTNAME,
-        'name': '%s %s' % (FIRSTNAME, LASTNAME),
         'password': PASSWORD,
         'email': EMAIL,
         'institution': INSTITUTION,
+        'userIdentifier': USER_IDENTIFIER,
         'partnerId': None,
-        'userIdentifier': USER_IDENTIFIER
+        'partyId': None
     }
+    pkName = 'id'
+    model = Credential
 
     def __init__(self, serverUrl):
-        self.serverUrl = serverUrl
         self.url = serverUrl + self.path
 
     def setPartnerId(self, partnerId):
         self.data['partnerId'] = partnerId
 
-    def getLoginUrl(self):
-        return self.serverUrl + self.loginPath + '?partnerId=%s' % self.data['partnerId']
+    def setPartyId(self, partyId):
+        self.data['partyId'] = partyId
+    
+    def forcePost(self,data):
+        postData = copy.deepcopy(data)
+        postData['partyId'] = Party.objects.get(partyId=self.data['partyId'])
+        postData['partnerId'] = Partner.objects.get(partnerId=self.data['partnerId'])
+        postData['password'] = self.hashPassword(self.data['password'])
+        return forcePost(self.model, self.pkName, postData)
 
-    def getLoginData(self):
-        return {
-            'user': self.data['username'],
-            'password': self.data['password']
-        }
+    def hashPassword(self, password):
+        return hashlib.sha1(password).hexdigest()
+
+    def getSecretKey(self):
+        # this has dependency on authentication.views regarding argument
+        return generateSecretKey(self.data['partyId'], self.hashPassword(self.data['password']))

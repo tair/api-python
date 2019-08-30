@@ -22,7 +22,6 @@ serverUrl = TestGenericInterfaces.getHost()
 class CredentialCRUDTest(GenericTest, TestCase):
     sample = CredentialSample(serverUrl)
     partnerId = None
-    partyId = None
 
     def setUp(self):
         super(CredentialCRUDTest,self).setUp()
@@ -32,8 +31,8 @@ class CredentialCRUDTest(GenericTest, TestCase):
         self.sample.data['partnerId']=self.sample.updateData['partnerId']=self.partnerId
 
         userPartySample = UserPartySample(serverUrl)
-        self.partyId = userPartySample.forcePost(userPartySample.data)
-        self.sample.data['partyId']=self.sample.updateData['partyId']=self.partyId
+        partyId = userPartySample.forcePost(userPartySample.data)
+        self.sample.data['partyId']=self.sample.updateData['partyId']=partyId
 
     def test_for_create_with_party_id(self):
         sample = self.sample
@@ -46,7 +45,7 @@ class CredentialCRUDTest(GenericTest, TestCase):
         self.assertEqual(res.status_code, 201)
         # note the returned credential object do not contain credential table primary key "id"
         # but always contains party id instead
-        self.assertIsNotNone(TestGenericInterfaces.forceGet(self.sample.model,'partyId',self.partyId))
+        self.assertIsNotNone(TestGenericInterfaces.forceGet(self.sample.model,'partyId',sample.getPartyId()))
 
     def test_for_create_without_party_id(self):
         sample = self.sample
@@ -75,7 +74,7 @@ class CredentialCRUDTest(GenericTest, TestCase):
         self.assertGetRequestByQueryParam(queryByUsername)
 
         # test get by partyId
-        queryByPartyId = 'partyId=%s' % self.partyId
+        queryByPartyId = 'partyId=%s' % sample.getPartyId()
         self.assertGetRequestByQueryParam(queryByPartyId)
 
     def assertGetRequestByQueryParam(self, queryParam):
@@ -88,10 +87,10 @@ class CredentialCRUDTest(GenericTest, TestCase):
         del data['password']
         # note the returned credential object do not contain credential table primary key "id"
         # but always contains party id instead
-        self.assertEqual(checkMatch(data, resObj, 'partyId', self.partyId), True)
+        self.assertEqual(checkMatch(data, resObj, 'partyId', self.sample.getPartyId()), True)
 
     def test_for_update_by_party_id(self):
-        queryParam = 'partyId=%s' % self.partyId
+        queryParam = 'partyId=%s' % self.sample.getPartyId()
         self.runUpdateTestByQueryParam(queryParam)
 
     def test_for_update_by_user_identifier(self):
@@ -124,7 +123,7 @@ class CredentialCRUDTest(GenericTest, TestCase):
             else:
                 updateData[key] = sample.updateData[key]
         # manipulate sample data to match the test condition
-        self.assertEqual(checkMatch(updateData, [resObj], 'partyId', self.partyId), True)
+        self.assertEqual(checkMatch(updateData, [resObj], 'partyId', sample.getPartyId()), True)
     
     # test for API endpoint /credentials/profile/
     # this is smiliar to the UPDATE methods above except that it only accepts 
@@ -135,7 +134,7 @@ class CredentialCRUDTest(GenericTest, TestCase):
         partnerId = self.partnerId 
         loginCredential = self.getUserLoginCredential();
 
-        url = '%scredentials/profile/?%s&partyId=%s' % (serverUrl, loginCredential, self.partyId)
+        url = '%scredentials/profile/?%s&partyId=%s' % (serverUrl, loginCredential, sample.getPartyId())
         # the default content type for put is 'application/octet-stream'
         # does not test for partyId update
         res = self.client.put(url, json.dumps(sample.updateData), content_type='application/json')
@@ -151,23 +150,16 @@ class CredentialCRUDTest(GenericTest, TestCase):
             else:
                 updateData[key] = sample.updateData[key]
         # manipulate sample data to match the test condition
-        self.assertEqual(checkMatch(updateData, [resObj], 'partyId', self.partyId), True)
+        self.assertEqual(checkMatch(updateData, [resObj], 'partyId', sample.getPartyId()), True)
     
-    # has dependency on /credentials/login API end point
     def getUserLoginCredential(self):
-        # this is a dependancy to the login API
-        loginUrl = self.sample.getLoginUrl()
-        loginData = self.sample.getLoginData()
-        res = self.client.post(loginUrl, loginData)
-        if (res.status_code == 200):
-            resObj = json.loads(res.content)
-            return 'credentialId=%s&secretKey=%s' % (resObj['credentialId'], resObj['secretKey'])
-        return None
+        sample = self.sample
+        secretKey = sample.getSecretKey()
+        return 'credentialId=%s&secretKey=%s' % (sample.getPartyId(), sample.getSecretKey())
 
 class CredentialGenericTest(TestCase):
     sample = CredentialSample(serverUrl)
     partnerId = None
-    partyId = None
 
     def setUp(self):
         super(CredentialGenericTest,self).setUp()
@@ -177,8 +169,8 @@ class CredentialGenericTest(TestCase):
         self.sample.data['partnerId']=self.partnerId
 
         userPartySample = UserPartySample(serverUrl)
-        self.partyId = userPartySample.forcePost(userPartySample.data)
-        self.sample.data['partyId']=self.partyId
+        partyId = userPartySample.forcePost(userPartySample.data)
+        self.sample.data['partyId']=partyId
 
         self.sample.forcePost(self.sample.data)
 
@@ -207,7 +199,7 @@ class GetUsernamesTest(CredentialGenericTest):
         del data['password']
         # note the returned credential object do not contain credential table primary key "id"
         # but always contains party id instead
-        self.assertEqual(checkMatch(data, resObj, 'partyId', self.partyId), True)
+        self.assertEqual(checkMatch(data, resObj, 'partyId', self.sample.getPartyId()), True)
 
 # test for API endpoint /credentials/checkAccountExists/
 class CheckAccountExistsTest(CredentialGenericTest):

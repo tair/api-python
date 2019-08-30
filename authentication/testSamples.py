@@ -5,6 +5,7 @@ from authentication.models import Credential
 from partner.models import Partner
 from party.models import Party
 from common.tests import TestGenericInterfaces
+from authentication.views import generateSecretKey
 
 genericForcePost = TestGenericInterfaces.forcePost
 
@@ -67,6 +68,9 @@ class CredentialSample():
     def getEmail(self):
         return self.data['email']
 
+    def getPartyId(self):
+        return self.data['partyId']
+
     # data to submit to POST API to create credential without party
     def getDataForCreate(self):
         dataForCreate = copy.deepcopy(self.data)
@@ -92,3 +96,7 @@ class CredentialSample():
             'user': self.data['username'],
             'password': self.data['password']
         }
+
+    def getSecretKey(self):
+        # this has dependency on authentication.views regarding argument
+        return generateSecretKey(self.data['partyId'], self.hashPassword(self.data['password']))

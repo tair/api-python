@@ -1,7 +1,7 @@
 import json
 import sys
 import time
-from testSamples import CommonApiKeySample, CommonPartnerSample, CommonCredentialSample
+from testSamples import CommonApiKeySample, CommonPartnerSample, CommonUserPartySample, CommonCredentialSample
 from partner.models import Partner
 from apikey.models import ApiKey
 from django.test import Client
@@ -47,48 +47,32 @@ class GenericTest(object):
         self.apiKeyId = self.apiKeySample.forcePost(self.apiKeySample.data)
         self.apiKey = self.apiKeySample.data['apiKey']
 
-# recreate credential record for every test
-# TODO: convert to singleton pass
-class LoginRequiredTest(object):
-    serverUrl = TestGenericInterfaces.getHost()
-    apiKeySample = CommonApiKeySample()
-    credentialSample = CommonCredentialSample(serverUrl);
-    apiKey = None
+# create a credential record to login for every test
+class LoginRequiredTest(GenericTest):
     credentialId = None
     secretKey = None
 
     def setUp(self):
-        if self.setUpCommonCredential():
-            if self.apiKey:
-                self.client.cookies = SimpleCookie({'apiKey':self.apiKey})
-            # this is a dependancy to the login API
-            loginUrl = self.credentialSample.getLoginUrl()
-            loginData = self.credentialSample.getLoginData()
-            self.pauseForAPIRest()
-            res = self.client.post(loginUrl, loginData)
-            if (res.status_code == 200):
-                resObj = json.loads(res.content)
-                self.credentialId = resObj['credentialId']
-                self.secretKey = resObj['secretKey']
+        # self.pauseForAPIRest()
+        super(LoginRequiredTest, self).setUp()
+        serverUrl = TestGenericInterfaces.getHost()
+        credentialSample = CommonCredentialSample(serverUrl)
 
-    def setUpCommonCredential(self):
-        self.apiKeyId = self.apiKeySample.forcePost(self.apiKeySample.data)
-        self.apiKey = self.apiKeySample.data['apiKey']
-
-        partnerSample = CommonPartnerSample(self.serverUrl)
+        partnerSample = CommonPartnerSample(serverUrl)
         partnerId = partnerSample.forcePost(partnerSample.data)
-        
-        self.credentialSample.setPartnerId(partnerId)
-        # this is a dependancy to the credential creation API
-        url = self.credentialSample.url
-        self.client.cookies = SimpleCookie({'apiKey':self.apiKey})
-        self.pauseForAPIRest()
-        res = self.client.post(url, self.credentialSample.data)
-        return res.status_code == 201
+        credentialSample.setPartnerId(partnerId)
 
-    # pause for API rest
+        userPartySample = CommonUserPartySample(serverUrl)
+        partyId = userPartySample.forcePost(userPartySample.data)
+        credentialSample.setPartyId(partyId)
+
+        credentialSample.forcePost(credentialSample.data)
+
+        self.credentialId = partyId
+        self.secretKey = credentialSample.getSecretKey()
+
     def pauseForAPIRest(self):
-        time.sleep(3)
+        time.sleep(0.5)
 
 # This function checks if sampleData is within the array of data retrieved
 # from API call.
