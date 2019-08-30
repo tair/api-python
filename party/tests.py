@@ -185,10 +185,10 @@ class ConsortiumPartyCRUDTest(LoginRequiredCRUDTest, TestCase):
         return postData
 
     def assertConsortiumItem(self, consortiumSampleData, consortiumCredentialSampleData, consortiumCredentialSample, resObj, pkName, pk):
-        self.assertEqual(checkMatch(consortiumSampleData, [resObj[0]], pkName, pk), True)
+        self.assertEqual(checkMatch(consortiumSampleData, resObj[0], pkName, pk), True)
         # manipulate sample data to match the test condition
         consortiumCredentialSampleData['password'] = consortiumCredentialSample.hashPassword(consortiumCredentialSampleData['password'])
-        self.assertEqual(checkMatch(consortiumCredentialSampleData, [resObj[1]], pkName, pk), True)
+        self.assertEqual(checkMatch(consortiumCredentialSampleData, resObj[1], pkName, pk), True)
 
 # test for API end point /parties/institutions/
 # returns organization info and associated credential info
@@ -313,10 +313,10 @@ class InstitutionPartyCRUDTest(LoginRequiredCRUDTest, TestCase):
         return postData
 
     def assertInstitutionItem(self, institutionSampleData, institutionCredentialSampleData, institutionCredentialSample, resObj, pkName, pk):
-        self.assertEqual(checkMatch(institutionSampleData, [resObj[0]], pkName, pk), True)
+        self.assertEqual(checkMatch(institutionSampleData, resObj[0], pkName, pk), True)
         # manipulate sample data to match the test condition
         institutionCredentialSampleData['password'] = institutionCredentialSample.hashPassword(institutionCredentialSampleData['password'])
-        self.assertEqual(checkMatch(institutionCredentialSampleData, [resObj[1]], pkName, pk), True)
+        self.assertEqual(checkMatch(institutionCredentialSampleData, resObj[1], pkName, pk), True)
 
 # test for end point /parties/affiliations/
 class PartyAffiliationCRUDTest(LoginRequiredCRUDTest, TestCase):
@@ -380,7 +380,7 @@ class PartyAffiliationCRUDTest(LoginRequiredCRUDTest, TestCase):
         self.assertEqual(res.status_code, 201)
         # return content is child organization data
         # resObj = json.loads(res.content)
-        # self.assertEqual(checkMatch(self.childPartySample.data, [resObj], 'partyId', childPartyId), True)
+        # self.assertEqual(checkMatch(self.childPartySample.data, resObj, 'partyId', childPartyId), True)
         # self.assertEqual(resObj['consortiums'][0], parentPartyId)
         self.assertIsNotNone(TestGenericInterfaces.forceGet(sample.model,'parentPartyId',parentPartyId))
         self.assertIsNotNone(TestGenericInterfaces.forceGet(sample.model,'childPartyId',childPartyId))

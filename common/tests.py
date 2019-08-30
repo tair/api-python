@@ -76,9 +76,11 @@ class LoginRequiredTest(GenericTest):
 
 # This function checks if sampleData is within the array of data retrieved
 # from API call.
-def checkMatch(sampleData, retrievedDataArray, pkName, pk):
+def checkMatch(sampleData, retrievedData, pkName, pk):
     hasMatch = False
-    for item in retrievedDataArray:
+    if not isinstance(retrievedData, list):
+        retrievedData = [retrievedData]
+    for item in retrievedData:
         # find the entry from dataArray that has the same PK
         # as the entry created
         if item[pkName] == pk:

@@ -123,7 +123,7 @@ class CredentialCRUDTest(GenericTest, TestCase):
             else:
                 updateData[key] = sample.updateData[key]
         # manipulate sample data to match the test condition
-        self.assertEqual(checkMatch(updateData, [resObj], 'partyId', sample.getPartyId()), True)
+        self.assertEqual(checkMatch(updateData, resObj, 'partyId', sample.getPartyId()), True)
     
     # test for API endpoint /credentials/profile/
     # this is smiliar to the UPDATE methods above except that it only accepts 
@@ -150,7 +150,7 @@ class CredentialCRUDTest(GenericTest, TestCase):
             else:
                 updateData[key] = sample.updateData[key]
         # manipulate sample data to match the test condition
-        self.assertEqual(checkMatch(updateData, [resObj], 'partyId', sample.getPartyId()), True)
+        self.assertEqual(checkMatch(updateData, resObj, 'partyId', sample.getPartyId()), True)
     
     def getUserLoginCredential(self):
         sample = self.sample
