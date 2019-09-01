@@ -152,7 +152,10 @@ class IpRangeSample():
         self.url = serverUrl+self.path
 
     def getInRangeIp(self):
-        return '120.10.21.231';
+        return '120.10.21.231'
+
+    def getOutRangeIp(self):
+        return '133.1.8.52'
 
     def forcePost(self,data):
         postData = copy.deepcopy(data)

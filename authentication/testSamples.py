@@ -53,6 +53,11 @@ class CredentialSample():
         self.serverUrl = serverUrl
         self.url = serverUrl + self.path
 
+    def setAsUpdateExample(self):
+        for key in self.data:
+            if self.updateData[key]:
+                self.data[key] = self.updateData[key]
+
     def setPartnerId(self, partnerId):
         self.data['partnerId'] = partnerId
 

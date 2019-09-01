@@ -118,7 +118,7 @@ class URIAccess(APIView):
             requestPatternId = request.GET.get('patternId')
             if UriPattern.objects.filter(patternId = requestPatternId).exists():
                 obj = UriPattern.objects.get(patternId = requestPatternId)
-                serializer = UriPatternSerializer(obj, many=True)
+                serializer = UriPatternSerializer(obj)
                 logger.info("Authorization URIAccess %s%s %s%s %s%s" % ("requestPatternId:",requestPatternId,"serializer.data:",serializer.data,"status:",status.HTTP_200_OK))
                 return Response(serializer.data, status=status.HTTP_200_OK)
             else:
