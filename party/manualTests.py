@@ -11,11 +11,11 @@ from django.core.mail import send_mail
 class GetUsageRequestTest(TestCase):
     sample = UsageSample()
     
-    # this code is copied from party/views.py implementation
     def test_for_send_usage_request(self):
         self.send_usage_email(self.sample.institutionData)
         self.send_usage_email(self.sample.consortiumData)
 
+    # this code is copied from party/views.py implementation
     def send_usage_email(self, data):
         partyName = ''
         partyTypeName = ''

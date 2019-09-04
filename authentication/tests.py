@@ -8,7 +8,7 @@ import copy
 from django.test import TestCase, Client
 from partner.testSamples import PartnerSample
 from party.testSamples import UserPartySample
-from common.tests import TestGenericInterfaces, GenericCRUDTest, GenericTest, checkMatch
+from common.tests import TestGenericInterfaces, GenericCRUDTest, GenericTest, ManualTest, checkMatch
 from testSamples import CredentialSample
 # Python 3: module Cookie -> http.cookies
 from Cookie import SimpleCookie
@@ -220,6 +220,9 @@ class CheckAccountExistsTest(CredentialGenericTest):
 
 # test for API endpoint /credentials/resetPwd/
 # test in manualTests.py
+class ResetPasswordTest(ManualTest, TestCase):
+    path = "/credentials/resetPwd/"
+    testMethodStr = "running ./manage.py test authentication.manualTests"
 
 print "Running unit tests on authentication/credential web services API........."
 

@@ -90,9 +90,10 @@ def checkMatch(sampleData, retrievedData, pkName, pk):
                 # same as content retrieved from request
                 if not key in item or not (item[key] == sampleData[key] or compareDateTime(sampleData[key], item[key]) 
                     or float(item[key]) == float(sampleData[key])):
-                    print "\nERROR: sample data %s and retrieved data %s does not match" % (sampleData, item)
                     hasMatch = False
                     break
+    if not hasMatch:
+        print "\nERROR: sample data %s and retrieved data %s does not match" % (sampleData, retrievedData)
     return hasMatch
 
 ## This function checks if sampleData is within the array of data retrieved
@@ -203,5 +204,17 @@ class LoginRequiredGETOnlyTest(LoginRequiredTest, GenericGETOnlyTest):
 class LoginRequiredCRUDTest(LoginRequiredGETOnlyTest, GenericCRUDTest):
     # just inherit method from two parent classes
     pass
+
+class ManualTest(object):
+    path = ""
+    testMethodStr = ""
+
+    def test_warning(self):
+        print "\nWARNING: Please test API end point %s if necessary.\n\
+        If you've \n\
+        (1) upgraded Python version or\n\
+        (2) upgraded Django version or\n\
+        (3) updated module or setting params related to this end point\n\
+        Please make sure you test this end point by %s" % (self.path, self.testMethodStr)
 
 print "using server url %s" % TestGenericInterfaces.getHost()

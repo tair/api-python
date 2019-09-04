@@ -9,7 +9,7 @@ from testSamples import CountrySample, UserPartySample, OrganizationPartySample,
 from partner.testSamples import PartnerSample
 from subscription.testSamples import SubscriptionSample
 from authentication.testSamples import CredentialSample
-from common.tests import TestGenericInterfaces, GenericGETOnlyTest, GenericCRUDTest, LoginRequiredGETOnlyTest, LoginRequiredCRUDTest, LoginRequiredTest, checkMatch
+from common.tests import TestGenericInterfaces, GenericGETOnlyTest, GenericCRUDTest, LoginRequiredGETOnlyTest, LoginRequiredCRUDTest, LoginRequiredTest, ManualTest, checkMatch
 # Python 3: module Cookie -> http.cookies
 from Cookie import SimpleCookie
 
@@ -508,6 +508,9 @@ class GetSubOrgListByPartnerTest(TestCase):
 
 # test for API end point /parties/usage/
 # test in manualTests.py
+class GetUsageRequestTest(ManualTest, TestCase):
+    path = "/parties/usage/"
+    testMethodStr = "running ./manage.py test party.manualTests (the UI invocation from librarians is not public yet)"
 
 # test for API end point /parties/consortiuminstitutions/{consortiumId}
 # this endpoint is not working

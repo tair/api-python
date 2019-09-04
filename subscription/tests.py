@@ -11,7 +11,7 @@ from testSamples import SubscriptionSample, SubscriptionTransactionSample, Activ
 from party.testSamples import UserPartySample, CountrySample, OrganizationPartySample, IpRangeSample, ConsortiumPartySample, InstitutionPartySample, PartyAffiliationSample, ImageInfoSample
 from partner.testSamples import PartnerSample, SubscriptionTermSample
 from authentication.testSamples import CredentialSample
-from common.tests import TestGenericInterfaces, GenericCRUDTest, GenericTest, LoginRequiredCRUDTest, LoginRequiredTest, checkMatch
+from common.tests import TestGenericInterfaces, GenericCRUDTest, GenericTest, LoginRequiredCRUDTest, ManualTest, checkMatch
 from rest_framework import status
 from controls import PaymentControl
 # Python 3: module Cookie -> http.cookies
@@ -329,30 +329,10 @@ class SubscriptionRenewalTest(GenericTest, TestCase):
         self.assertIsNotNone(TestGenericInterfaces.forceGet(SubscriptionTransaction,'subscriptionTransactionId',transactionId))
 
 # test for API end point /subscriptions/payments/
-class PostPaymentHandlingTest(GenericTest, TestCase):
-    subscriptionTermId = None
-
-    def setUp(self):
-        super(PostPaymentHandlingTest, self).setUp()
-
-        partnerSample = PartnerSample(serverUrl)
-        partnerId = partnerSample.forcePost(partnerSample.data)
-
-        subscriptionTermSample = SubscriptionTermSample(serverUrl)
-        subscriptionTermSample.setPartnerId(partnerId)
-        self.subscriptionTermId = subscriptionTermSample.forcePost(subscriptionTermSample.data)
-
-    # cannot test via POST request to API since not sure how to generate a stripeToken
-    def test_for_post_payment(self):
-        print "\nWARNING: Please test API end point /subscriptions/payments/ if necessary.\n\
-        If you've \n\
-        (1) upgraded Python version or\n\
-        (2) upgraded Django version or\n\
-        (3) updated Payment/Stripe related settings in settings.py,\n\
-        Please make sure you test Stripe Payment by submitting an order on ui.arabidopsis.org."
-        activationCodeArray = PaymentControl.postPaymentHandling(self.subscriptionTermId, 5)
-        for activationCode in activationCodeArray:
-            self.assertIsNotNone(TestGenericInterfaces.forceGet(ActivationCode, 'activationCode', activationCode))
+# cannot test via POST request to API since not sure how to generate a stripeToken
+class PostPaymentHandlingTest(ManualTest, TestCase):
+    path = "/subscriptions/payments/"
+    testMethodStr = "by submitting an order on ui.arabidopsis.org"
 
 # test for API end point /subscriptions/enddate/
 # end point looks for the effective subscription with latest end date that either covers the given IP address 
@@ -552,14 +532,10 @@ class CheckMembershipTest(GenericTest, TestCase):
 
 # test for API end point /subscriptions/subscriptionrequest/
 # this end point seems not working. Will print a warning to ask manual test
-class SubscriptionRequestTest(TestCase):
-    def test_warning(self):
-        print "\nWARNING: Please test API end point /subscriptions/subscriptionrequest/ if necessary.\n\
-        If you've \n\
-        (1) upgraded Python version or\n\
-        (2) upgraded Django version or\n\
-        Please make sure you test this end point by click Subcription - Download All Requests on ui.arabidopsis.org/adminportal/."
-
+class SubscriptionRequestTest(ManualTest, TestCase):
+    path = "/subscriptions/subscriptionrequest/"
+    testMethodStr = "clicking Subcription - Download All Requests on ui.arabidopsis.org/adminportal/"
+    
 # test for API end point /subscriptions/active/
 # endpoint returns ALL ACTIVE subscription and party info that covers the given IP address or belongs to the given 
 # user identifier for a given partner
