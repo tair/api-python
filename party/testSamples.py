@@ -63,14 +63,14 @@ class OrganizationPartySample():
         'name':'test_organization',
         'display': True,
         'country': None,
-        'label': 'Test Label'
+        'label': 'Test Organization Label'
     }
     updateData = {
         'partyType':PARTY_TYPE_ORG,
         'name':'test_organization_II',
         'display': False,
         'country': None,
-        'label': 'Test Label II'
+        'label': 'Test Organization Label II'
     }
     pkName = 'partyId'
     model = Party
@@ -104,14 +104,14 @@ class ConsortiumPartySample():
         'name':'test_consortium',
         'display': True,
         'country': None,
-        'label': 'Test Label'
+        'label': 'Test Consortium Label'
     }
     updateData = {
         'partyType':PARTY_TYPE_CONSORTIUM,
         'name':'test_consortium_II',
         'display': False,
         'country': None,
-        'label': 'Test Label II'
+        'label': 'Test Consortium Label II'
     }
     pkName = 'partyId'
     model = Party
@@ -159,6 +159,9 @@ class IpRangeSample():
 
     def setPartyId(self, partyId):
         self.data['partyId'] = partyId
+
+    def getPartyId(self):
+        return self.data['partyId']
 
     def getInRangeIp(self):
         return '120.10.21.231'

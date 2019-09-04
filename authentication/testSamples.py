@@ -52,6 +52,7 @@ class CredentialSample():
     def __init__(self, serverUrl):
         self.serverUrl = serverUrl
         self.url = serverUrl + self.path
+        self.data = copy.deepcopy(self.data)
 
     def setAsUpdateExample(self):
         for key in self.data:

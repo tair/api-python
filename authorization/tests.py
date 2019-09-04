@@ -6,7 +6,7 @@ import sys
 import json
 from django.test import TestCase
 from common.tests import TestGenericInterfaces, GenericCRUDTest, GenericTest
-from party.testSamples import UserPartySample, OrganizationPartySample, IpRangeSample, CountrySample
+from party.testSamples import UserPartySample, OrganizationPartySample, IpRangeSample, CountrySample, ConsortiumPartySample, InstitutionPartySample, PartyAffiliationSample
 from partner.testSamples import PartnerSample
 from authentication.testSamples import CredentialSample
 from subscription.testSamples import SubscriptionSample
@@ -59,7 +59,6 @@ class AccessRuleCRUDTest(GenericCRUDTest, TestCase):
         self.sample.updateData['accessTypeId']=updateAccessTypeId
 
         super(AccessRuleCRUDTest, self).test_for_update()
-
 
 # # ----------------- END OF BASIC CRUD OPERATIONS ----------------------
 
@@ -123,11 +122,11 @@ class GenericAuthorizationTest(GenericTest, TestCase):
         countryId = countrySample.forcePost(countrySample.data)
 
         organizationPartySample = OrganizationPartySample(serverUrl)
-        organizationPartySample.data['country'] = countryId
+        organizationPartySample.setCountry(countryId)
         organizationPartyId = organizationPartySample.forcePost(organizationPartySample.data)
 
         orgIpRangeSample = IpRangeSample(serverUrl)
-        orgIpRangeSample.data['partyId'] = organizationPartyId
+        orgIpRangeSample.setPartyId(organizationPartyId)
         orgIpRangeSample.forcePost(orgIpRangeSample.data)
 
         organizationSubscriptionSample = SubscriptionSample(serverUrl)
@@ -136,6 +135,36 @@ class GenericAuthorizationTest(GenericTest, TestCase):
         organizationSubscriptionSample.forcePost(organizationSubscriptionSample.data)
 
         return orgIpRangeSample
+
+    def setUpSubscribedConsortium(self):
+        countrySample = CountrySample(serverUrl)
+        countryId = countrySample.forcePost(countrySample.data)
+
+        # create subscribed consortium
+        consortiumPartySample = ConsortiumPartySample(serverUrl)
+        consortiumPartySample.setCountry(countryId)
+        consortiumPartyId = consortiumPartySample.forcePost(consortiumPartySample.data)
+
+        consortiumSubscriptionSample = SubscriptionSample(serverUrl)
+        consortiumSubscriptionSample.setPartnerId(self.partnerId)
+        consortiumSubscriptionSample.setPartyId(consortiumPartyId)
+        consortiumSubscriptionSample.forcePost(consortiumSubscriptionSample.data)
+
+        # create institution that is a subsidy of consortium
+        institutionPartySample = InstitutionPartySample(serverUrl)
+        institutionPartySample.setCountry(countryId)
+        institutionPartyId = institutionPartySample.forcePost(institutionPartySample.data)
+
+        institutionIpRangeSample = IpRangeSample(serverUrl)
+        institutionIpRangeSample.setPartyId(institutionPartyId)
+        institutionIpRangeSample.forcePost(institutionIpRangeSample.data)
+
+        affiliationSample = PartyAffiliationSample(serverUrl)
+        affiliationSample.setParentId(consortiumPartyId)
+        affiliationSample.setChildId(institutionPartyId)
+        affiliationSample.forcePost(affiliationSample.data)
+
+        return institutionIpRangeSample
 
 # Test for API end point /authorizations/authentications/
 # Checks if user can access a Login type pattern
@@ -192,8 +221,6 @@ class SubscriptionTest(GenericAuthorizationTest):
     url = serverUrl + 'authorizations/subscriptions/'
     paidPattern = None
     nonPaidPattern = None
-    userPartyId = None
-    orgIpRangeSample = IpRangeSample(serverUrl)
 
     def setUp(self):
         super(SubscriptionTest,self).setUp()
@@ -202,25 +229,25 @@ class SubscriptionTest(GenericAuthorizationTest):
         self.paidPattern = self.patternSample.data['pattern']
         self.nonPaidPattern = self.patternSample.updateData['pattern']
 
-        credentialSample = self.setUpSubscribedUser()
-        self.userPartyId = credentialSample.getPartyId()
-
-        self.orgIpRangeSample = self.setUpSubscribedOrganization()
-
     def test_for_subscription(self):
+        credentialSample = self.setUpSubscribedUser()
+        userPartyId = credentialSample.getPartyId()
+
+        orgIpRangeSample = self.setUpSubscribedOrganization()
+
         # User with subscription, Paid url. access should be True
         # Note if a non-exist partyId is passed in an error will be thrown
-        authParam = 'partyId=%s' % self.userPartyId
+        authParam = 'partyId=%s' % userPartyId
         self.runSubscriptionTest(self.paidPattern, authParam , True)
         
         # IP of organization with subscription, Paid url, access should be True
-        subscribedIP = self.orgIpRangeSample.getInRangeIp()
+        subscribedIP = orgIpRangeSample.getInRangeIp()
         authParam = 'ip=%s' % subscribedIP
         self.runSubscriptionTest(self.paidPattern, authParam, True) 
 
         # IP outside of organization with subscription, Paid url, access should be False
         # Note that if an invalid format IP is passed in, error will be thrown
-        unsubscribedIP = self.orgIpRangeSample.getOutRangeIp()
+        unsubscribedIP = orgIpRangeSample.getOutRangeIp()
         authParam = 'ip=%s' % unsubscribedIP
         self.runSubscriptionTest(self.paidPattern, authParam, False) 
         
@@ -229,6 +256,26 @@ class SubscriptionTest(GenericAuthorizationTest):
 
         # Not Paid url. access should be True
         self.runSubscriptionTest(self.nonPaidPattern, None, True)
+
+    def test_for_consortium_subscription(self):
+        consOrgIpRangeSample = self.setUpSubscribedConsortium()
+
+        # Institution whose parent consortium has subscription, Paid url. Passed in institution party id
+        # Access should be True
+        # Note if a non-exist partyId is passed in an error will be thrown
+        authParam = 'partyId=%s' % consOrgIpRangeSample.getPartyId()
+        self.runSubscriptionTest(self.paidPattern, authParam , True)
+        
+        # IP of institution whose parent consortium has subscription, Paid url, access should be True
+        subscribedIP = consOrgIpRangeSample.getInRangeIp()
+        authParam = 'ip=%s' % subscribedIP
+        self.runSubscriptionTest(self.paidPattern, authParam, True) 
+
+        # IP outside of organization with subscription, Paid url, access should be False
+        # Note that if an invalid format IP is passed in, error will be thrown
+        unsubscribedIP = consOrgIpRangeSample.getOutRangeIp()
+        authParam = 'ip=%s' % unsubscribedIP
+        self.runSubscriptionTest(self.paidPattern, authParam, False) 
 
     def runSubscriptionTest(self, urlToCheck, authParam, expectedStatus):
         url = '%s?partnerId=%s&url=%s' % (self.url, self.partnerId, urlToCheck)
@@ -252,22 +299,16 @@ class SubscriptionTest(GenericAuthorizationTest):
 # ApiKey, credentialId and secretKey are required and need to be passed in by cookie
 class AccessTest(GenericAuthorizationTest):
     url = serverUrl + 'authorizations/access/'
-    credentialSample = None
-    orgIpRangeSample = None
 
     def setUp(self):
         super(AccessTest, self).setUp()
-
-        self.credentialSample = self.setUpSubscribedUser()
-
-        self.orgIpRangeSample = self.setUpSubscribedOrganization()
 
     def test_for_login_only_access(self):
         self.setUpLoginAccessRule()
         loginPattern = self.patternSample.data['pattern']
         nonLoginPattern = self.patternSample.updateData['pattern']
 
-        credentialSample = self.credentialSample
+        credentialSample = self.setUpCredentialSample()
 
         # test login not required & free pattern when user is not logged in, status should be OK
         self.runAccessTest(urlToCheck=nonLoginPattern, expectedUrlPaidStatus=False,
@@ -290,12 +331,21 @@ class AccessTest(GenericAuthorizationTest):
             expectedAccessStatus=True, expectedUserIdentifier=credentialSample.getUserIdentifier(), cookies=cookies)
 
     def test_for_subscription_only_access(self):
+        orgIpRangeSample = self.setUpSubscribedOrganization()
+
+        self.runSubscriptionOnlyAccessTest(orgIpRangeSample)
+
+    def test_for_subscription_only_access_for_consortium(self):
+        orgIpRangeSample = self.setUpSubscribedConsortium()
+
+        self.runSubscriptionOnlyAccessTest(orgIpRangeSample)
+
+    def runSubscriptionOnlyAccessTest(self, orgIpRangeSample):
         self.setUpPaidAccessRule()
         paidPattern = self.patternSample.data['pattern']
         nonPaidPattern = self.patternSample.updateData['pattern']
 
-        credentialSample = self.credentialSample
-        orgIpRangeSample = self.orgIpRangeSample
+        credentialSample = self.setUpSubscribedUser()
 
         # test no credential & ip for paid url, status should be NeedSubscription
         self.runAccessTest(urlToCheck=paidPattern, expectedUrlPaidStatus=True, 
@@ -316,18 +366,28 @@ class AccessTest(GenericAuthorizationTest):
             expectedAccessStatus=True, expectedUserIdentifier=credentialSample.getUserIdentifier(), cookies=cookies)
         
         # test valid subscription for organization, paid url, status should be OK
-        subscribedIP = self.orgIpRangeSample.getInRangeIp()
+        subscribedIP = orgIpRangeSample.getInRangeIp()
         self.runAccessTest(urlToCheck=paidPattern, expectedUrlPaidStatus=True, 
             authParam=None, ipList=subscribedIP, expectedNeedLoginStatus=False, 
             expectedAccessStatus=True, expectedUserIdentifier=None, cookies=None)
 
         # test IP outside of subscribed organization subscription, paid url, status should be NeedSubscription
-        unsubscribedIP = self.orgIpRangeSample.getOutRangeIp()
+        unsubscribedIP = orgIpRangeSample.getOutRangeIp()
         self.runAccessTest(urlToCheck=paidPattern, expectedUrlPaidStatus=True, 
             authParam=None, ipList=unsubscribedIP, expectedNeedLoginStatus=False, 
             expectedAccessStatus=False, expectedUserIdentifier=None, cookies=None)
 
     def test_for_login_and_subscription_access(self):
+        orgIpRangeSample = self.setUpSubscribedOrganization()
+
+        self.runLoginAndSubscriptionAccessTest(orgIpRangeSample)
+
+    def test_for_login_and_subscription_access_for_consortium(self):
+        orgIpRangeSample = self.setUpSubscribedConsortium()
+
+        self.runLoginAndSubscriptionAccessTest(orgIpRangeSample)
+
+    def runLoginAndSubscriptionAccessTest(self, orgIpRangeSample):
         self.setUpLoginAccessRule()
         self.setUpPaidAccessRule()
         loginPaidPattern = self.patternSample.data['pattern']
@@ -338,13 +398,13 @@ class AccessTest(GenericAuthorizationTest):
             expectedAccessStatus=None, expectedUserIdentifier=None, cookies=None)
 
         # test login required & paid pattern when only IP provided, status should be NeedLogin
-        subscribedIP = self.orgIpRangeSample.getInRangeIp()
+        subscribedIP = orgIpRangeSample.getInRangeIp()
         self.runAccessTest(urlToCheck=loginPaidPattern, expectedUrlPaidStatus=True, 
             authParam=None, ipList=subscribedIP, expectedNeedLoginStatus=True, 
             expectedAccessStatus=None, expectedUserIdentifier=None, cookies=None)
 
-        # test login required & paid pattern with subscribed user , status should be OK
-        credentialSample = self.credentialSample
+        # test login required & paid pattern with subscribed user, status should be OK
+        credentialSample = self.setUpSubscribedUser()
         partyId = credentialSample.getPartyId()
         authParam = 'partyId=%s' % partyId
         cookies = SimpleCookie({'apiKey':self.apiKey, 'credentialId':partyId, 'secretKey':credentialSample.getSecretKey()})
@@ -356,19 +416,19 @@ class AccessTest(GenericAuthorizationTest):
         nonSubUserPartySample = UserPartySample(serverUrl)
         nonSubUserPartyId = nonSubUserPartySample.forcePost(nonSubUserPartySample.updateData)
 
-        nonSubcredentialSample = CredentialSample(serverUrl)
-        nonSubcredentialSample.setAsUpdateExample()
-        nonSubcredentialSample.setPartnerId(self.partnerId)
-        nonSubcredentialSample.setPartyId(nonSubUserPartyId)
-        nonSubcredentialSample.forcePost(nonSubcredentialSample.data)
+        nonSubCredentialSample = CredentialSample(serverUrl)
+        nonSubCredentialSample.setAsUpdateExample()
+        nonSubCredentialSample.setPartnerId(self.partnerId)
+        nonSubCredentialSample.setPartyId(nonSubUserPartyId)
+        nonSubCredentialSample.forcePost(nonSubCredentialSample.data)
         
         # test login required & paid pattern with unsubscribed user , status should be NeedSubscription
-        partyId = nonSubcredentialSample.getPartyId()
+        partyId = nonSubCredentialSample.getPartyId()
         authParam = 'partyId=%s' % partyId
-        cookies = SimpleCookie({'apiKey':self.apiKey, 'credentialId':partyId, 'secretKey':nonSubcredentialSample.getSecretKey()})
+        cookies = SimpleCookie({'apiKey':self.apiKey, 'credentialId':partyId, 'secretKey':nonSubCredentialSample.getSecretKey()})
         self.runAccessTest(urlToCheck=loginPaidPattern, expectedUrlPaidStatus=True, 
             authParam=authParam, ipList=None, expectedNeedLoginStatus=False, 
-            expectedAccessStatus=False, expectedUserIdentifier=nonSubcredentialSample.getUserIdentifier(), cookies=cookies)
+            expectedAccessStatus=False, expectedUserIdentifier=nonSubCredentialSample.getUserIdentifier(), cookies=cookies)
 
     # Note ipList param always need to add to end point call even when no value for it
     def runAccessTest(self, urlToCheck, expectedUrlPaidStatus, authParam = None, ipList = None,
