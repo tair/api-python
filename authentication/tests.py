@@ -5,6 +5,8 @@ import unittest
 import sys
 import json
 import copy
+# Python 3: library urllib -> urllib.parse
+import urllib
 from django.test import TestCase, Client
 from partner.testSamples import PartnerSample
 from party.testSamples import UserPartySample
@@ -154,8 +156,8 @@ class CredentialCRUDTest(GenericTest, TestCase):
     
     def getUserLoginCredential(self):
         sample = self.sample
-        secretKey = sample.getSecretKey()
-        return 'credentialId=%s&secretKey=%s' % (sample.getPartyId(), sample.getSecretKey())
+        secretKey = urllib.quote(sample.getSecretKey())
+        return 'credentialId=%s&secretKey=%s' % (sample.getPartyId(), secretKey)
 
 class CredentialGenericTest(TestCase):
     sample = CredentialSample(serverUrl)

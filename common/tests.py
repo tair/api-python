@@ -1,6 +1,8 @@
 import json
 import sys
 import time
+# Python 3: library urllib -> urllib.parse
+import urllib
 from testSamples import CommonApiKeySample, CommonPartnerSample, CommonUserPartySample, CommonCredentialSample
 from partner.models import Partner
 from apikey.models import ApiKey
@@ -194,11 +196,10 @@ class GenericCRUDTest(GenericGETOnlyTest):
 class LoginRequiredGETOnlyTest(LoginRequiredTest, GenericGETOnlyTest):
     
     def getUrl(self, url, pkName = None, pk = None):
-        fullUrl = ''
+        secretKey = urllib.quote(self.secretKey)
+        fullUrl = url + '?credentialId=%s&secretKey=%s' % (self.credentialId, secretKey)
         if pkName and pk:
-            fullUrl = url + '?%s=%s&credentialId=%s&secretKey=%s' % (pkName, str(pk), self.credentialId, self.secretKey)
-        else:
-            fullUrl = url + '?credentialId=%s&secretKey=%s' % (self.credentialId, self.secretKey)
+            fullUrl = '%s&%s=%s' % (fullUrl, pkName, str(pk))
         return fullUrl
 
 class LoginRequiredCRUDTest(LoginRequiredGETOnlyTest, GenericCRUDTest):
@@ -210,11 +211,13 @@ class ManualTest(object):
     testMethodStr = ""
 
     def test_warning(self):
-        print "\nWARNING: Please test API end point %s if necessary.\n\
+        print "\n----------------------------------------------------------------------"
+        print "\nWARNING: Please manually test API end point %s if necessary.\n\
         If you've \n\
         (1) upgraded Python version or\n\
         (2) upgraded Django version or\n\
         (3) updated module or setting params related to this end point\n\
         Please make sure you test this end point by %s" % (self.path, self.testMethodStr)
+        print "\n----------------------------------------------------------------------"
 
 print "using server url %s" % TestGenericInterfaces.getHost()
