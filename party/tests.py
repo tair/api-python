@@ -460,8 +460,8 @@ class GetOrgAndSubStatusTest(TestCase):
         self.assertEqual(resObj['status'], 'not subscribed')
 
     def test_for_subscribed(self):
-        self.subscriptionSample.data['partnerId']=self.partnerId  
-        self.subscriptionSample.data['partyId']=self.partyId  
+        self.subscriptionSample.setPartnerId(self.partnerId)
+        self.subscriptionSample.setPartyId(self.partyId)
         self.subscriptionSample.forcePost(self.subscriptionSample.data)
 
         res = self.client.get(self.url)
@@ -492,8 +492,8 @@ class GetSubOrgListByPartnerTest(TestCase):
         self.sample.data['partyId']=partyId
         self.sample.forcePost(self.sample.data)
 
-        self.subscriptionSample.data['partnerId']=partnerId  
-        self.subscriptionSample.data['partyId']=partyId  
+        self.subscriptionSample.setPartnerId(partnerId)
+        self.subscriptionSample.setPartyId(partyId)
         self.subscriptionSample.forcePost(self.subscriptionSample.data)
 
         self.url = serverUrl + 'parties/organizations/?partnerId=%s' % partnerId

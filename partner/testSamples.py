@@ -31,6 +31,10 @@ class PartnerSample():
 
     def __init__(self, serverUrl):
         self.url = serverUrl+self.path
+        self.data = copy.deepcopy(self.data)
+
+    def setDifferentPartnerId(self):
+        self.data['partnerId'] = 'test2'
 
     def forcePost(self,data):
         return genericForcePost(self.model, self.pkName, data)
@@ -81,6 +85,9 @@ class SubscriptionTermSample():
 
     def __init__(self, serverUrl):
         self.url = serverUrl+self.path
+
+    def setPartnerId(self, partnerId):
+        self.data['partnerId'] = partnerId
 
     def forcePost(self,data):
         postData = copy.deepcopy(data)

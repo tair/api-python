@@ -88,7 +88,9 @@ def checkMatch(sampleData, retrievedData, pkName, pk):
             for key in sampleData:
                 # makes sure that all contents from sample is the
                 # same as content retrieved from request
-                if not (item[key] == sampleData[key] or float(item[key]) == float(sampleData[key])):
+                if not key in item or not (item[key] == sampleData[key] or compareDateTime(sampleData[key], item[key]) 
+                    or float(item[key]) == float(sampleData[key])):
+                    print "\nERROR: sample data %s and retrieved data %s does not match" % (sampleData, item)
                     hasMatch = False
                     break
     return hasMatch
@@ -104,6 +106,10 @@ def filterAndCheckMatch(sampleData, retrievedDataArray, pkName, pk, commonKeyNam
             else:
                 filteredArray.append(item)
     return checkMatch(sampleData, filteredArray, pkName, pk)
+
+def compareDateTime(sampleTime, retrievedTime):
+    retrievedTime = retrievedTime.replace('T', ' ').replace('Z', '')
+    return sampleTime == retrievedTime
 
 class GenericGETOnlyTest(GenericTest):
 

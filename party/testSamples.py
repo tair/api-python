@@ -3,7 +3,7 @@ import unittest
 import sys
 import copy
 from unittest import TestCase
-from party.models import Country, Party, IpRange, PartyAffiliation
+from party.models import Country, Party, IpRange, PartyAffiliation, ImageInfo
 from partner.models import Partner
 from common.tests import TestGenericInterfaces
 from datetime import datetime, timedelta
@@ -84,6 +84,9 @@ class OrganizationPartySample():
     def getPartyType(self):
         return self.data['partyType']
 
+    def setCountry(self, countryId):
+        self.data['country'] = countryId
+
     def forcePost(self,data):
         postData = copy.deepcopy(data)
         postData['country'] = Country.objects.get(countryId=data['country'])
@@ -115,6 +118,9 @@ class ConsortiumPartySample():
 
     def __init__(self, serverUrl):
         self.url = serverUrl+self.path
+
+    def setCountry(self, countryId):
+        self.data['country'] = countryId
 
     def getName(self):
         return self.data['name']
@@ -151,6 +157,9 @@ class IpRangeSample():
     def __init__(self, serverUrl):
         self.url = serverUrl+self.path
 
+    def setPartyId(self, partyId):
+        self.data['partyId'] = partyId
+
     def getInRangeIp(self):
         return '120.10.21.231'
 
@@ -161,7 +170,6 @@ class IpRangeSample():
         postData = copy.deepcopy(data)
         postData['partyId'] = Party.objects.get(partyId=data['partyId'])
         return genericForcePost(self.model, self.pkName, postData)
-
 
 class PartyAffiliationSample():
     path = 'parties/affiliations/'
@@ -192,6 +200,29 @@ class PartyAffiliationSample():
         postData = copy.deepcopy(data)
         postData['parentPartyId'] = Party.objects.get(partyId=data['parentPartyId'])
         postData['childPartyId'] = Party.objects.get(partyId=data['childPartyId'])
+        return genericForcePost(self.model, self.pkName, postData)
+
+class ImageInfoSample():
+    data = {
+        'partyId': None,
+        'name' : 'Test Organization',
+        'imageUrl': 'somerandomurl'
+    }
+    pkName = 'imageInfoId';
+    model = ImageInfo
+
+    def setPartyId(self, partyId):
+        self.data['partyId'] = partyId
+
+    def getName(self):
+        return self.data['name']
+
+    def getImageUrl(self):
+        return self.data['imageUrl']
+
+    def forcePost(self,data):
+        postData = copy.deepcopy(data)
+        postData['partyId'] = Party.objects.get(partyId=data['partyId'])
         return genericForcePost(self.model, self.pkName, postData)
 
 class UsageSample():

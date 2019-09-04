@@ -100,8 +100,8 @@ class GenericAuthorizationTest(GenericTest, TestCase):
         credentialSample = self.setUpCredentialSample()
 
         individualSubscriptionSample = SubscriptionSample(serverUrl)
-        individualSubscriptionSample.data['partnerId'] = self.partnerId
-        individualSubscriptionSample.data['partyId'] = credentialSample.getPartyId()
+        individualSubscriptionSample.setPartnerId(self.partnerId)
+        individualSubscriptionSample.setPartyId(credentialSample.getPartyId())
         individualSubscriptionSample.forcePost(individualSubscriptionSample.data)
 
         return credentialSample
@@ -131,8 +131,8 @@ class GenericAuthorizationTest(GenericTest, TestCase):
         orgIpRangeSample.forcePost(orgIpRangeSample.data)
 
         organizationSubscriptionSample = SubscriptionSample(serverUrl)
-        organizationSubscriptionSample.data['partnerId'] = self.partnerId
-        organizationSubscriptionSample.data['partyId'] = organizationPartyId
+        organizationSubscriptionSample.setPartnerId(self.partnerId)
+        organizationSubscriptionSample.setPartyId(organizationPartyId)
         organizationSubscriptionSample.forcePost(organizationSubscriptionSample.data)
 
         return orgIpRangeSample
