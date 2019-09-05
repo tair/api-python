@@ -14,10 +14,14 @@ from Cookie import SimpleCookie
 class TestGenericInterfaces:
     @staticmethod
     def getHost():
-        if hasattr(settings, 'HOSTNAME'):
+        if TestGenericInterfaces.hasHost():
             return settings.HOSTNAME
         # default connection to localhost
         return "http://localhost/"
+
+    @staticmethod
+    def hasHost():
+        return hasattr(settings, 'HOSTNAME')
 
     @staticmethod
     def forceGet(model, pkName, pk):
@@ -218,4 +222,8 @@ class ManualTest(object):
         Please make sure you test this end point by %s" % (self.path, self.testMethodStr)
         print "\n----------------------------------------------------------------------"
 
-print "using server url %s" % TestGenericInterfaces.getHost()
+if not TestGenericInterfaces.hasHost():
+    print "WARNING: No HOSTNAME detected in settings.py."
+
+print "Using server url %s" % TestGenericInterfaces.getHost()
+
