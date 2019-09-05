@@ -319,7 +319,9 @@ class InstitutionPartyCRUDTest(LoginRequiredCRUDTest, TestCase):
         self.assertEqual(checkMatch(institutionCredentialSampleData, resObj[1], pkName, pk), True)
 
 # test for end point /parties/affiliations/
-class PartyAffiliationCRUDTest(LoginRequiredCRUDTest, TestCase):
+# get_all and update methods unavailable, all available methods need to be override
+# so no need to inherit from LoginRequiredCRUDTest
+class PartyAffiliationCRUDTest(LoginRequiredTest, TestCase):
     sample = PartyAffiliationSample(serverUrl)
     parentPartySample = ConsortiumPartySample(serverUrl)
     childPartySample = InstitutionPartySample(serverUrl)
@@ -398,13 +400,6 @@ class PartyAffiliationCRUDTest(LoginRequiredCRUDTest, TestCase):
         res = self.client.delete(url)
 
         self.assertIsNone(TestGenericInterfaces.forceGet(sample.model,sample.pkName,pk))
-
-    def test_for_get_all(self):
-        pass
-
-    def test_for_update(self):
-        # not available
-        pass
 
 # ----------------- END OF BASIC CRUD OPERATIONS ----------------------
 

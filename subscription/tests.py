@@ -11,7 +11,7 @@ from testSamples import SubscriptionSample, SubscriptionTransactionSample, Activ
 from party.testSamples import UserPartySample, CountrySample, OrganizationPartySample, IpRangeSample, ConsortiumPartySample, InstitutionPartySample, PartyAffiliationSample, ImageInfoSample
 from partner.testSamples import PartnerSample, SubscriptionTermSample
 from authentication.testSamples import CredentialSample
-from common.tests import TestGenericInterfaces, GenericCRUDTest, GenericTest, LoginRequiredCRUDTest, ManualTest, checkMatch
+from common.tests import TestGenericInterfaces, GenericCRUDTest, GenericTest, LoginRequiredTest, ManualTest, checkMatch
 from rest_framework import status
 from controls import PaymentControl
 # Python 3: module Cookie -> http.cookies
@@ -26,7 +26,7 @@ serverUrl = TestGenericInterfaces.getHost()
 # test for API end point /subscriptions/
 # except for GET that is explicitly override in end point, all other actions
 # (UPDATE and DELETE) queries item by party id instead of subscription id
-class SubscriptionCRUDTest(LoginRequiredCRUDTest, TestCase):
+class SubscriptionCRUDTest(LoginRequiredTest, TestCase):
     partyId = None
     partnerId = None
     sample = SubscriptionSample(serverUrl)
@@ -128,10 +128,6 @@ class SubscriptionCRUDTest(LoginRequiredCRUDTest, TestCase):
         url = '%s&partnerId=%s&userIdentifier=' % (url, self.partnerId)
         self.runGetTestByIdentifier(url, pk)
     
-    # default is get by partyId so no get all function
-    def test_for_get_all(self):
-        pass
-
     def runGetTestByIdentifier(self, url, pk):
         sample = self.sample
 
@@ -140,6 +136,7 @@ class SubscriptionCRUDTest(LoginRequiredCRUDTest, TestCase):
         self.assertEqual(res.status_code, 200)
         self.assertEqual(checkMatch(sample.data, json.loads(res.content), sample.pkName, pk), True)
 
+    # can only update by party id
     def test_for_update(self):
         sample = self.sample
         pk = sample.forcePost(sample.data)
@@ -164,7 +161,7 @@ class SubscriptionCRUDTest(LoginRequiredCRUDTest, TestCase):
 
 # test for API end point /subscriptions/activationCodes/ for create and update
 # need to authenticate user
-class ActivationCodeCreateAndUpdateTest(LoginRequiredCRUDTest, TestCase):
+class ActivationCodeCreateAndUpdateTest(LoginRequiredTest, TestCase):
     sample = ActivationCodeSample(serverUrl)
 
     def setUp(self):
@@ -198,19 +195,8 @@ class ActivationCodeCreateAndUpdateTest(LoginRequiredCRUDTest, TestCase):
         self.assertEqual(res.status_code, 200)
         self.assertEqual(TestGenericInterfaces.forceGet(sample.model,sample.pkName,pk).deleteMarker, True)
 
-    # Tested in class below
-    def test_for_get(self):
-        pass
-
-    # Tested in class below
-    def test_for_get_all(self):
-        pass
-
-    # Tested in class below; shall not be used. Use update method instead
-    def test_for_delete(self):
-        pass
-
 # test for API end point /subscriptions/activationCodes/ for get and delete
+# returned activation code data does not include transaction type
 class ActivationCodeGetAndDeleteTest(GenericCRUDTest, TestCase):
     sample = ActivationCodeSample(serverUrl)
 
@@ -221,23 +207,12 @@ class ActivationCodeGetAndDeleteTest(GenericCRUDTest, TestCase):
         partnerId = partnerSample.forcePost(partnerSample.data)
         self.sample.data['partnerId'] = self.sample.updateData['partnerId']=partnerId
 
-        # returned activation code data does not include transaction type
-
-    # Tested in above class
-    def test_for_create(self):
-        pass
     
-    # Tested in above class
-    def test_for_update(self):
-        pass
-
     def test_for_get(self):
         sample = self.sample
         pk = sample.forcePost(sample.data)
         url = self.getUrl(sample.url, sample.pkName, pk) 
-        # if self.apiKey:
-        #     self.client.cookies = SimpleCookie({'apiKey':self.apiKey})
-
+        
         res = self.client.get(url)
 
         self.assertEqual(res.status_code, 200)
@@ -251,15 +226,23 @@ class ActivationCodeGetAndDeleteTest(GenericCRUDTest, TestCase):
         pk = sample.forcePost(sample.data)
         url = self.getUrl(sample.url)
 
-        # if self.apiKey:
-        #     self.client.cookies = SimpleCookie({'apiKey':self.apiKey})
-
         res = self.client.get(url)
         self.assertEqual(res.status_code, 200)
         # transaction is not returned in API
         data = copy.deepcopy(sample.data)
         del data['transactionType']
         self.assertEqual(checkMatch(data, json.loads(res.content), sample.pkName, pk), True)
+
+    # Tested in above class
+    def test_for_create(self):
+        pass
+     
+    # Tested in above class
+    def test_for_update(self):
+        pass
+
+    # delete method can be tested but shall not be used. 
+    # should use update method to update delete marker instead
 
 # test for API end point /subscriptions/transactions/
 class SubscriptionTransactionCRUDTest(GenericCRUDTest, TestCase):

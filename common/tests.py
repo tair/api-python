@@ -49,13 +49,18 @@ class GenericTest(object):
         self.apiKeyId = self.apiKeySample.forcePost(self.apiKeySample.data)
         self.apiKey = self.apiKeySample.data['apiKey']
 
+    def getUrl(self, url, pkName = None, pk = None):
+        fullUrl = url
+        if pkName and pk:
+            fullUrl = url + '?%s=%s' % (pkName, str(pk))
+        return fullUrl
+
 # create a credential record to login for every test
 class LoginRequiredTest(GenericTest):
     credentialId = None
     secretKey = None
 
     def setUp(self):
-        # self.pauseForAPIRest()
         super(LoginRequiredTest, self).setUp()
         serverUrl = TestGenericInterfaces.getHost()
         credentialSample = CommonCredentialSample(serverUrl)
@@ -73,8 +78,12 @@ class LoginRequiredTest(GenericTest):
         self.credentialId = partyId
         self.secretKey = credentialSample.getSecretKey()
 
-    def pauseForAPIRest(self):
-        time.sleep(0.5)
+    def getUrl(self, url, pkName = None, pk = None):
+        secretKey = urllib.quote(self.secretKey)
+        fullUrl = url + '?credentialId=%s&secretKey=%s' % (self.credentialId, secretKey)
+        if pkName and pk:
+            fullUrl = '%s&%s=%s' % (fullUrl, pkName, str(pk))
+        return fullUrl
 
 # This function checks if sampleData is within the array of data retrieved
 # from API call.
@@ -146,12 +155,6 @@ class GenericGETOnlyTest(GenericTest):
         else:
             self.assertEqual(checkMatch(sample.data, json.loads(res.content), sample.pkName, pk), True)
 
-    def getUrl(self, url, pkName = None, pk = None):
-        fullUrl = url
-        if pkName and pk:
-            fullUrl = url + '?%s=%s' % (pkName, str(pk))
-        return fullUrl
-
 class GenericCRUDTest(GenericGETOnlyTest):
 
     # GET tests defined in GenericGETOnlyTest class
@@ -194,16 +197,11 @@ class GenericCRUDTest(GenericGETOnlyTest):
         self.assertIsNone(TestGenericInterfaces.forceGet(sample.model,sample.pkName,pk))
 
 class LoginRequiredGETOnlyTest(LoginRequiredTest, GenericGETOnlyTest):
+    # just inherit methods from two parent classes
+    pass
     
-    def getUrl(self, url, pkName = None, pk = None):
-        secretKey = urllib.quote(self.secretKey)
-        fullUrl = url + '?credentialId=%s&secretKey=%s' % (self.credentialId, secretKey)
-        if pkName and pk:
-            fullUrl = '%s&%s=%s' % (fullUrl, pkName, str(pk))
-        return fullUrl
-
-class LoginRequiredCRUDTest(LoginRequiredGETOnlyTest, GenericCRUDTest):
-    # just inherit method from two parent classes
+class LoginRequiredCRUDTest(LoginRequiredTest, GenericCRUDTest):
+    # just inherit methods from two parent classes
     pass
 
 class ManualTest(object):
