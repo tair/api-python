@@ -187,7 +187,7 @@ WSGI_APPLICATION = 'paywall2.wsgi.application'
 # ACTION: modify databse setting here
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.mysql',
+        'ENGINE': 'mysql.connector.django',
         'NAME': None,
         'USER': None,
         'PASSWORD': None,

@@ -187,7 +187,7 @@ WSGI_APPLICATION = 'paywall2.wsgi.application'
 
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.mysql',
+        'ENGINE': 'mysql.connector.django',
         'NAME': 'phoenix_api',
         'USER': 'phoenix',
         'PASSWORD': '',
