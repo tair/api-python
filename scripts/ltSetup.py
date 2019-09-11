@@ -13,7 +13,7 @@ from metering.serializers import LimitValueSerializer
 from party.serializers import PartySerializer
 from authentication.serializers import CredentialSerializer
 
-from tairData import TAIR
+from .tairData import TAIR
 
 
 def loadTestUser(testUsers):

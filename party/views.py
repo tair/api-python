@@ -20,8 +20,7 @@ from django.core.mail import send_mail
 from common.permissions import isPhoenix
 
 from common.permissions import ApiKeyPermission
-import hashlib
-import datetime
+from django.utils import timezone
 from authentication.serializers import CredentialSerializer, CredentialSerializerNoPassword
 from genericpath import exists
 from django.db import connection
@@ -52,8 +51,6 @@ class PartyCRUD(GenericCRUDView):
                 partyType = self.request.GET.get('partyType')
                 return super(PartyCRUD, self).get_queryset().filter(partyType=partyType)
         return []
-
-
 
 # /org/
 class PartyOrgCRUD(GenericCRUDView):
@@ -137,7 +134,7 @@ class OrganizationView(APIView):
 
         partyList = []
         #SELECT partyId FROM phoenix_api.Subscription where partnerId = 'tair';
-        now =datetime.datetime.now()
+        now = timezone.now()
         objs = Subscription.objects.all().filter(partnerId=partnerId).filter(startDate__lte=now).filter(endDate__gte=now).values('partyId')
         for entry in objs:
             partyList.append(entry['partyId'])
@@ -313,7 +310,7 @@ class ConsortiumCRUD(GenericCRUDView):
                 return Response({'error': 'PUT parties/consortiums/ password must not be empty'}, status=status.HTTP_400_BAD_REQUEST)
             else:
                 newPwd = data['password']
-                data['password'] = hashlib.sha1(newPwd).hexdigest()
+                data['password'] = Party.generatePasswordHash(newPwd)
                 try:
                     credential = Credential.objects.get(partyId=party)
                     credentialSerializer = CredentialSerializer(credential, data=data)
@@ -387,7 +384,7 @@ class ConsortiumCRUD(GenericCRUDView):
 
             if pwd == True:
                 newPwd = data['password']
-                data['password'] = hashlib.sha1(newPwd).hexdigest()
+                data['password'] = Party.generatePasswordHash(newPwd)
                 credentialSerializer = CredentialSerializer(data=data)
             else:
                 credentialSerializer = CredentialSerializerNoPassword(data=data)
@@ -505,7 +502,7 @@ class InstitutionCRUD(GenericCRUDView):
                 return Response({'error': 'PUT parties/institutions/ password must not be empty'}, status=status.HTTP_400_BAD_REQUEST)
             else:
                 newPwd = data['password']
-                data['password'] = hashlib.sha1(newPwd).hexdigest()
+                data['password'] = Party.generatePasswordHash(newPwd)
                 try:
                     credential = Credential.objects.get(partyId=party)
                     credentialSerializer = CredentialSerializer(credential, data=data)
@@ -577,7 +574,7 @@ class InstitutionCRUD(GenericCRUDView):
 
             if pwd == True:
                 newPwd = data['password']
-                data['password'] = hashlib.sha1(newPwd).hexdigest()
+                data['password'] = Party.generatePasswordHash(newPwd)
                 credentialSerializer = CredentialSerializer(data=data)
             else:
                 credentialSerializer = CredentialSerializerNoPassword(data=data)

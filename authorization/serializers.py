@@ -1,6 +1,6 @@
 #Copyright 2015 Phoenix Bioinformatics Corporation. All rights reserved.
 
-from models import AccessType, AccessRule, UriPattern
+from .models import AccessType, AccessRule, UriPattern
 from rest_framework import serializers
 
 class AccessTypeSerializer(serializers.ModelSerializer):

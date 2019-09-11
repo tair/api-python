@@ -9,9 +9,8 @@ from django.test import TestCase, Client
 from partner.testSamples import PartnerSample
 from party.testSamples import UserPartySample
 from common.tests import TestGenericInterfaces, GenericCRUDTest, GenericTest
-from testSamples import PageViewSample
-# Python 3: module Cookie -> http.cookies
-from Cookie import SimpleCookie
+from .testSamples import PageViewSample
+from http.cookies import SimpleCookie
 
 # Create your tests here.                                                                                                                                                                                 
 django.setup()
@@ -92,7 +91,7 @@ class SessionCountViewTest(GenericTest, TestCase):
 
 # skipped testing for /session-logs/page-views/csv/ since no external resource uses its
 
-print "Running unit tests on session logs web services API........."
+print("Running unit tests on session logs web services API.........")
 
 if __name__ == '__main__':
     sys.argv[1:] = []

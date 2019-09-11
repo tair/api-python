@@ -5,7 +5,7 @@ import json
 
 from django.test import TestCase
 from common.tests import TestGenericInterfaces, GenericTest
-from Cookie import SimpleCookie
+from http.cookies import SimpleCookie
 
 # Create your tests here.
 django.setup()
@@ -38,20 +38,23 @@ class ValidateIpTest(GenericTest, TestCase):
         res = self.get_response(ip)
 
         self.assertEqual(res.status_code, 200)
-        self.assertEqual(res.content, '{"ip version": %s}' % ipVersion)
+        # The raw response will be bytes so need to convert to string and then compare
+        self.assertEqual(res.content.decode(), '{"ip version": %s}' % ipVersion)
 
     def assert_for_invalid_ip(self, ip):
         res = self.get_response(ip)
 
         self.assertEqual(res.status_code, 200)
-        self.assertEqual(res.content, '{"ip": "invalid"}')
+        # The raw response will be bytes so need to convert to string and then compare
+        self.assertEqual(res.content.decode(), '{"ip": "invalid"}')
 
     # TODO: find example that can trigger this response
     def assert_for_error_input(self, ip):
         res = self.get_response(ip)
 
         self.assertEqual(res.status_code, 200)
-        self.assertEqual(res.content, '{"ip": "error"}')
+        # The raw response will be bytes so need to convert to string and then compare
+        self.assertEqual(res.content.decode(), '{"ip": "error"}')
 
     def get_response(self, ip):
         url = '%sipranges/validateip/?ip=%s' % (serverUrl, ip)
@@ -61,7 +64,7 @@ class ValidateIpTest(GenericTest, TestCase):
 
         return res
 
-print "Running unit tests on IP range web services API........."
+print("Running unit tests on IP range web services API.........")
 
 if __name__ == '__main__':
     sys.argv[1:] = []

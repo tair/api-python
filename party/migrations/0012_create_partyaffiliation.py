@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-from __future__ import unicode_literals
+
 
 from django.db import models, migrations
 
@@ -15,8 +15,8 @@ class Migration(migrations.Migration):
             name='PartyAffiliation',
             fields=[
                 ('id', models.AutoField(verbose_name='ID', serialize=False, auto_created=True, primary_key=True)),
-                ('childPartyId', models.ForeignKey(related_name='childPartyId', db_column=b'childPartyId', to='party.Party')),
-                ('parentPartyId', models.ForeignKey(related_name='parentPartyId', db_column=b'parentPartyId', to='party.Party')),
+                ('childPartyId', models.ForeignKey(related_name='childPartyId', db_column='childPartyId', to='party.Party', on_delete=models.PROTECT)),
+                ('parentPartyId', models.ForeignKey(related_name='parentPartyId', db_column='parentPartyId', to='party.Party', on_delete=models.PROTECT)),
             ],
             options={
                 'db_table': 'PartyAffiliation',

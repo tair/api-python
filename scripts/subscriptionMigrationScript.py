@@ -65,7 +65,7 @@ def parseTime(inString):
     return outString
 
 # Initializing organization country
-print "Initializing Organization Country Array"
+print("Initializing Organization Country Array")
 organizationCountryArray = {}
 for entry in organizationCountryData:
     organizationId = entry[0]
@@ -87,18 +87,18 @@ for entry in organizationCountryData:
         countryId = None
     organizationCountryArray[organizationId] = [countryId, display]
 
-print "Processing Data"
+print("Processing Data")
 count = 0
 for entry in organizationData:
     count += 1
-    print count
+    print(count)
     organizationId = entry[0]
     if not organizationId.isdigit():
         continue
     offset = 2
     organizationName = entry[1]
     if Party.objects.all().filter(name=organizationName).exists():
-        print 'organization already exists: '+'('+organizationId+')'+organizationName
+        print('organization already exists: '+'('+organizationId+')'+organizationName)
         continue
     while not entry[offset].isdigit():
         organizationName = "%s,%s" % (organizationName, entry[offset])
@@ -142,8 +142,8 @@ for entry in organizationData:
     if serializer.is_valid():
         serializer.save()
     else:
-        print "CANNOT SAVE SUBSCRIPTION"
-        print data
+        print("CANNOT SAVE SUBSCRIPTION")
+        print(data)
 
     subscriptionId = serializer.data['subscriptionId']
     data = {
@@ -156,12 +156,12 @@ for entry in organizationData:
     serializer = SubscriptionTransactionSerializer(data=data)
     if serializer.is_valid():
         serializer.save()
-print "DOING IP MIGRATION"
+print("DOING IP MIGRATION")
 
 count = 0
 for entry in ipData:
     count +=1
-    print count
+    print(count)
     organizationId = entry[0]
     if not organizationId.isdigit():
         continue
@@ -170,7 +170,7 @@ for entry in ipData:
     if organizationId in orgIdPartyId:
         partyId = orgIdPartyId[organizationId]
     else:
-        print 'organization already exists: '+ organizationId
+        print('organization already exists: '+ organizationId)
         continue
 
     data = {
@@ -182,5 +182,5 @@ for entry in ipData:
     if serializer.is_valid():
         serializer.save()
     else:
-        print "BAD IP"
-        print data
+        print("BAD IP")
+        print(data)

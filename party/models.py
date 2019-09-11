@@ -5,6 +5,7 @@ from django.db import connection
 from netaddr import IPAddress
 from django.utils import timezone
 from common.common import validateIpRange
+import hashlib
 
 import logging
 logger = logging.getLogger('phoenix.api.party')
@@ -19,7 +20,7 @@ class Party(models.Model):
     partyType = models.CharField(max_length=200, default='user')
     name = models.CharField(max_length=200, default='')
     display = models.BooleanField(default=True)
-    country = models.ForeignKey('Country', null=True, db_column="countryId")
+    country = models.ForeignKey('Country', null=True, db_column="countryId", on_delete=models.PROTECT)
     consortiums = models.ManyToManyField('self', through="PartyAffiliation", through_fields=('childPartyId', 'parentPartyId'), symmetrical=False, related_name="PartyAffiliation")
     label = models.CharField(max_length=64, null=True)
 
@@ -42,13 +43,18 @@ class Party(models.Model):
         partyList.extend(consortiums)
         return partyList
 
+    # this is the same as the method in Credential class
+    @staticmethod
+    def generatePasswordHash(password):
+        return hashlib.sha1(password.encode()).hexdigest()
+
     class Meta:
         db_table = "Party"
 
 class PartyAffiliation(models.Model):
     partyAffiliationId = models.AutoField(verbose_name='ID', serialize=False, auto_created=True, primary_key=True)
-    childPartyId = models.ForeignKey(Party, related_name="childPartyId", db_column="childPartyId")
-    parentPartyId = models.ForeignKey(Party, related_name="parentPartyId", db_column="parentPartyId")
+    childPartyId = models.ForeignKey(Party, related_name="childPartyId", db_column="childPartyId", on_delete=models.PROTECT)
+    parentPartyId = models.ForeignKey(Party, related_name="parentPartyId", db_column="parentPartyId", on_delete=models.PROTECT)
 
     class Meta:
         db_table = "PartyAffiliation"
@@ -58,7 +64,7 @@ class IpRange(models.Model):
     ipRangeId = models.AutoField(primary_key=True)
     start = models.GenericIPAddressField()
     end = models.GenericIPAddressField()
-    partyId = models.ForeignKey('Party', db_column="partyId")
+    partyId = models.ForeignKey('Party', db_column="partyId", on_delete=models.PROTECT)
     label = models.CharField(max_length=64, null=True, blank=True)
 
     class Meta:
@@ -107,7 +113,7 @@ class Country(models.Model):
 
 class ImageInfo(models.Model):
     imageInfoId = models.AutoField(primary_key=True);
-    partyId = models.ForeignKey(Party, db_column="partyId")
+    partyId = models.ForeignKey(Party, db_column="partyId", on_delete=models.PROTECT)
     name = models.CharField(max_length=200)
     imageUrl = models.CharField(max_length=500)
     createdAt = models.DateTimeField(default=timezone.now)

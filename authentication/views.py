@@ -1,5 +1,4 @@
 from django.shortcuts import render, redirect
-from django.core.urlresolvers import reverse
 from django.http import HttpResponse
 from django.core.mail import send_mail
 
@@ -80,7 +79,7 @@ class listcreateuser(GenericCRUDView):
     if ApiKeyPermission.has_permission(request, self):
       serializer_class = self.get_serializer_class()
       data = request.data.copy() # PW-660
-      data['password'] = hashlib.sha1(data['password']).hexdigest()
+      data['password'] = Credential.generatePasswordHash(data['password'])
       if 'partyId' in data:
         partyId = data['partyId']
         if Credential.objects.all().filter(partyId=partyId).exists():
@@ -125,7 +124,7 @@ class listcreateuser(GenericCRUDView):
     #http://stackoverflow.com/questions/18930234/django-modifying-the-request-object PW-123
     data = request.data.copy() # PW-123
     if 'password' in data:
-      data['password'] = hashlib.sha1(data['password']).hexdigest()
+      data['password'] = Credential.generatePasswordHash(data['password'])
     serializer = serializer_class(obj, data=data, partial=True)
     if serializer.is_valid():
       serializer.save()
@@ -140,8 +139,8 @@ class listcreateuser(GenericCRUDView):
           if partySerializer.is_valid():
             partySerializer.save()
       if 'password' in data:
-        #data['password'] = generateSecretKey(str(obj.partyId.partyId), data['password'])#PW-254 and YM: TAIR-2493
-        data['loginKey'] = generateSecretKey(str(obj.partyId.partyId), data['password'])
+        #data['password'] = Credential.generateSecretKey(str(obj.partyId.partyId), data['password'])#PW-254 and YM: TAIR-2493
+        data['loginKey'] = Credential.generateSecretKey(str(obj.partyId.partyId), data['password'])
       return Response(data, status=status.HTTP_200_OK)
     return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
@@ -177,7 +176,7 @@ def login(request):
     #  return HttpResponse(json.dumps({"message":msg}), status=401)
 
     requestPassword = request.POST.get('password')
-    requestHashedPassword = hashlib.sha1(request.POST.get('password')).hexdigest()
+    requestHashedPassword = Credential.generatePasswordHash(request.POST.get('password'))
     requestUser = request.POST.get('user')
 
     # iexact does not work unfortunately. Steve to find out why
@@ -213,7 +212,7 @@ def login(request):
                 response = HttpResponse(json.dumps({
                      "message": "Correct password",
                      "credentialId": dbUser.partyId.partyId,
-                     "secretKey": generateSecretKey(str(dbUser.partyId.partyId), dbUser.password),
+                     "secretKey": Credential.generateSecretKey(str(dbUser.partyId.partyId), dbUser.password),
                      "email": dbUser.email,
                      "role":"librarian",
                      "username": dbUser.username,
@@ -244,7 +243,7 @@ def resetPwd(request):
     if user: 
       user = user.first()
       password = ''.join(random.choice(string.ascii_uppercase + string.digits) for _ in range(8))
-      user.password=hashlib.sha1(password).hexdigest()
+      user.password = Credential.generatePasswordHash(password)
       user.save()
       
       subject = "Temporary password for %s (%s)" % (user.username, user.email)#PW-215 unlikely
@@ -268,9 +267,6 @@ def registerUser(request):
   context = {'partnerId': request.GET.get('partnerId', "")}
   return render(request, "authentication/register.html", context)
 
-def generateSecretKey(partyId, password):
-  return base64.b64encode(hmac.new(str(partyId).encode('ascii'), password.encode('ascii'), hashlib.sha1).digest())
-
 #/credentials/profile/
 class profile(GenericCRUDView):
   queryset = Credential.objects.all()
@@ -289,7 +285,7 @@ class profile(GenericCRUDView):
     #http://stackoverflow.com/questions/18930234/django-modifying-the-request-object PW-123
     data = request.data.copy() # PW-123
     if 'password' in data:
-      data['password'] = hashlib.sha1(data['password']).hexdigest()
+      data['password'] = Credential.generatePasswordHash(data['password'])
     serializer = serializer_class(obj, data=data, partial=True)
     if serializer.is_valid():
       serializer.save()

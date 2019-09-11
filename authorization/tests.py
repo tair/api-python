@@ -10,10 +10,9 @@ from party.testSamples import UserPartySample, OrganizationPartySample, IpRangeS
 from partner.testSamples import PartnerSample
 from authentication.testSamples import CredentialSample
 from subscription.testSamples import SubscriptionSample
-from testSamples import UriPatternSample, AccessRuleSample, AccessTypeSample
+from .testSamples import UriPatternSample, AccessRuleSample, AccessTypeSample
 from authorization.models import Status
-# Python 3: module Cookie -> http.cookies
-from Cookie import SimpleCookie
+from http.cookies import SimpleCookie
 
 # Create your tests here.                                                                                                                                                                                 
 django.setup()
@@ -463,7 +462,7 @@ class AccessTest(GenericAuthorizationTest):
         if expectedUserIdentifier:
             self.assertEqual(res['userIdentifier'], str(expectedUserIdentifier))
 
-print "Running unit tests on authorization web services API........."
+print("Running unit tests on authorization web services API.........")
 
 if __name__ == '__main__':
     sys.argv[1:] = []

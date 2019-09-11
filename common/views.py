@@ -7,7 +7,9 @@ class GenericCRUDView(generics.GenericAPIView):
         queryset = super(GenericCRUDView, self).get_queryset()
         params = self.request.GET
         for key in params:
-            if key in queryset.model._meta.get_all_field_names():
+            # fully backward compatiable version on get_fields method can be found here:
+            # https://docs.djangoproject.com/en/1.10/ref/models/meta/#migrating-from-the-old-api
+            if key in queryset.model._meta.get_fields():
                 value = params[key]
                 filters = {key:value}
                 try:

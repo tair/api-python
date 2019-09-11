@@ -2,7 +2,8 @@ import copy
 from subscription.models import Subscription, SubscriptionTransaction, ActivationCode
 from party.models import Party
 from partner.models import Partner
-from datetime import datetime, timedelta
+from datetime import timedelta
+from django.utils import timezone
 from common.tests import TestGenericInterfaces
 
 genericForcePost = TestGenericInterfaces.forcePost
@@ -13,7 +14,7 @@ UPDATE_NUM_DAYS_AFTER_PURCHASE = 1
 UPDATE_NUM_SUBSCRIBED_DAYS = 60
 
 def getDateTimeString(dateTimeObj):
-    return dateTimeObj.strftime("%Y-%m-%d %H:%M:%S.%f")
+    return dateTimeObj.strftime("%Y-%m-%dT%H:%M:%S.%fZ")
 
 class ActivationCodeSample():
     path = 'subscriptions/activationCodes/'
@@ -39,8 +40,8 @@ class ActivationCodeSample():
 
     def __init__(self, serverUrl):
         self.url = serverUrl+self.path
-        self.data['purchaseDate'] = getDateTimeString(datetime.today() - timedelta(days=NUM_DAYS_AFTER_PURCHASE))
-        self.updateData['purchaseDate'] = getDateTimeString(datetime.today() - timedelta(days=UPDATE_NUM_DAYS_AFTER_PURCHASE))
+        self.data['purchaseDate'] = getDateTimeString(timezone.now() - timedelta(days=NUM_DAYS_AFTER_PURCHASE))
+        self.updateData['purchaseDate'] = getDateTimeString(timezone.now() - timedelta(days=UPDATE_NUM_DAYS_AFTER_PURCHASE))
 
     def setPartnerId(self, partnerId):
         self.data['partnerId'] = partnerId
@@ -87,11 +88,11 @@ class SubscriptionSample():
         self.url = serverUrl+self.path
         self.data = copy.deepcopy(self.data)
 
-        startDateObj = datetime.today() - timedelta(days=NUM_DAYS_AFTER_PURCHASE)
+        startDateObj = timezone.now() - timedelta(days=NUM_DAYS_AFTER_PURCHASE)
         self.data['startDate'] = getDateTimeString(startDateObj)
         self.data['endDate'] = getDateTimeString(startDateObj + timedelta(days=NUM_SUBSCRIBED_DAYS))
 
-        updateStartDateObj = datetime.today() - timedelta(days=UPDATE_NUM_DAYS_AFTER_PURCHASE)
+        updateStartDateObj = timezone.now() - timedelta(days=UPDATE_NUM_DAYS_AFTER_PURCHASE)
         self.updateData['startDate'] = getDateTimeString(updateStartDateObj)
         self.updateData['endDate'] = getDateTimeString(updateStartDateObj + timedelta(days=UPDATE_NUM_SUBSCRIBED_DAYS))
 
@@ -105,8 +106,8 @@ class SubscriptionSample():
         return self.data['endDate']
 
     def setAsExpired(self):
-        self.data['startDate'] = getDateTimeString(datetime.today() - timedelta(days=2 * NUM_SUBSCRIBED_DAYS))
-        self.data['endDate'] = getDateTimeString(datetime.today() - timedelta(days=NUM_SUBSCRIBED_DAYS))
+        self.data['startDate'] = getDateTimeString(timezone.now() - timedelta(days=2 * NUM_SUBSCRIBED_DAYS))
+        self.data['endDate'] = getDateTimeString(timezone.now() - timedelta(days=NUM_SUBSCRIBED_DAYS))
 
     def forcePost(self,data):
         postData = copy.deepcopy(data)
@@ -135,12 +136,12 @@ class SubscriptionTransactionSample():
     def __init__(self, serverUrl):
         self.url = serverUrl+self.path
 
-        transactionDateObj = datetime.today() - timedelta(days=NUM_DAYS_AFTER_PURCHASE)
+        transactionDateObj = timezone.now() - timedelta(days=NUM_DAYS_AFTER_PURCHASE)
         self.data['transactionDate'] = getDateTimeString(transactionDateObj)
         self.data['startDate'] = self.data['transactionDate']
         self.data['endDate'] = getDateTimeString(transactionDateObj + timedelta(days=NUM_SUBSCRIBED_DAYS))
 
-        updateTransactionDateObj = datetime.today() - timedelta(days=UPDATE_NUM_DAYS_AFTER_PURCHASE)
+        updateTransactionDateObj = timezone.now() - timedelta(days=UPDATE_NUM_DAYS_AFTER_PURCHASE)
         self.updateData['transactionDate'] = getDateTimeString(updateTransactionDateObj)
         self.updateData['startDate'] = self.updateData['transactionDate']
         self.updateData['endDate'] = getDateTimeString(updateTransactionDateObj + timedelta(days=UPDATE_NUM_DAYS_AFTER_PURCHASE))

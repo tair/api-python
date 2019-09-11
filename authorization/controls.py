@@ -1,6 +1,6 @@
 
 #import Path, AccessType
-from models import Status, AccessType
+from .models import Status, AccessType
 from subscription.models import Subscription
 from authentication.models import Credential
 

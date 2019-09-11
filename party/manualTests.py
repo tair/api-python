@@ -3,11 +3,13 @@ import unittest
 import sys
 import json
 from django.test import TestCase
-from testSamples import UsageSample
+from .testSamples import UsageSample
 from django.core.mail import send_mail
+from django.test.utils import override_settings
 
 # test for API end point /parties/usage/
 # API used for requesting usage for consortiums/institutions
+@override_settings(EMAIL_BACKEND='django.core.mail.backends.smtp.EmailBackend')
 class GetUsageRequestTest(TestCase):
     sample = UsageSample()
     
@@ -16,6 +18,7 @@ class GetUsageRequestTest(TestCase):
         self.send_usage_email(self.sample.consortiumData)
 
     # this code is copied from party/views.py implementation
+    # since the original implementation hard coded recipient email
     def send_usage_email(self, data):
         partyName = ''
         partyTypeName = ''
@@ -38,7 +41,7 @@ class GetUsageRequestTest(TestCase):
         recipient_list = [self.sample.RECEIPIENT_EMAIL]
         self.assertEqual(send_mail(subject=subject, message=message, from_email=from_email, recipient_list=recipient_list, fail_silently=False), 1)
 
-print "Running unit tests on consortium usage email request........."
+print("Running unit tests on consortium usage email request.........")
 
 if __name__ == '__main__':
     sys.argv[1:] = []

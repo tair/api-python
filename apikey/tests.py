@@ -6,11 +6,10 @@ import sys
 import requests
 import json
 from django.test import TestCase
-from models import ApiKey
-from testSamples import ApiKeySample
+from .models import ApiKey
+from .testSamples import ApiKeySample
 from common.tests import TestGenericInterfaces, GenericCRUDTest
-# Python 3: module Cookie -> http.cookies
-from Cookie import SimpleCookie
+from http.cookies import SimpleCookie
 
 # Create your tests here.                                                                                                                                                                                 
 django.setup()
@@ -27,7 +26,7 @@ class ApiKeyCRUD(GenericCRUDTest, TestCase):
 
 # ----------------- END OF BASIC CRUD OPERATIONS ----------------------
 
-print "Running unit tests on API key web services API........."
+print("Running unit tests on API key web services API.........")
 
 if __name__ == '__main__':
     sys.argv[1:] = []

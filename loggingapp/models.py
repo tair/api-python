@@ -9,13 +9,13 @@ import datetime
 class PageView(models.Model):
   pageViewId = models.AutoField(primary_key=True)
   uri = models.CharField(max_length=2000)
-  partyId = models.ForeignKey('party.Party', db_column='partyId', null=True)
+  partyId = models.ForeignKey('party.Party', db_column='partyId', null=True, on_delete=models.PROTECT)
   pageViewDate = models.DateTimeField(default=datetime.datetime.utcnow)
   sessionId = models.CharField(max_length=250, null=True)
   ip = models.GenericIPAddressField(max_length=200)
   ipList = models.CharField(max_length=250, null=True)
-  partnerId = models.ForeignKey(Partner, db_column='partnerId', null=True)
-  isPaidContent = models.NullBooleanField()
+  partnerId = models.ForeignKey(Partner, db_column='partnerId', null=True, on_delete=models.PROTECT)
+  isPaidContent = models.BooleanField(null=True)
 
   # meter choices
   METER_WARNING_STATUS = 'W'

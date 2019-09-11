@@ -13,7 +13,7 @@ from authentication.models import Credential
 # Begin main program:
 
 # Step1: Open the source CSV file and load into memory.
-partyListFilename = raw_input("Please enter a file name(*.csv) for party list(not organization_country):\n")
+partyListFilename = input("Please enter a file name(*.csv) for party list(not organization_country):\n")
 
 with open(partyListFilename, 'rb') as f:
     reader = csv.reader(f)
@@ -23,5 +23,5 @@ for entry in partyListData:
 
     if Party.objects.all().filter(name=entry[0]).exists():
         Party.objects.all().filter(name=entry[0]).delete()
-        print 'deleted: '+ entry[0]
+        print('deleted: '+ entry[0])
 

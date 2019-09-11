@@ -57,9 +57,9 @@ for line in data:
     try: 
         cur.execute(passwordSql%(digestedPw,partyId,))
     except:
-        print "Party {} -- exception: {}".format(partyId, sys.exc_info()[0])
+        print("Party {} -- exception: {}".format(partyId, sys.exc_info()[0]))
 
 # Commit the transaction.
 conn.commit()
 
-print "total passwords updated: %s" %totalCount
+print("total passwords updated: %s" %totalCount)

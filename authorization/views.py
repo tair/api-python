@@ -3,10 +3,10 @@
 from django.http import HttpResponse
 from rest_framework.views import APIView
 from rest_framework import generics
-from controls import Authorization
+from .controls import Authorization
 
-from models import AccessType, AccessRule, UriPattern, Status
-from serializers import AccessTypeSerializer, AccessRuleSerializer, UriPatternSerializer
+from .models import AccessType, AccessRule, UriPattern, Status
+from .serializers import AccessTypeSerializer, AccessRuleSerializer, UriPatternSerializer
 from partner.models import Partner
 from authentication.models import Credential
 from common.views import GenericCRUDView
@@ -16,7 +16,7 @@ from rest_framework import status
 
 import json
 import re
-import urllib
+import urllib.request, urllib.parse, urllib.error
 
 import logging
 logger = logging.getLogger('phoenix.api.authorization')
@@ -35,7 +35,7 @@ class Access(APIView):
         partyId = request.COOKIES.get('credentialId')
         loginKey = request.COOKIES.get('secretKey')
         ipList = request.GET.get('ipList')
-        url = request.GET.get('url').decode('utf8')
+        url = request.GET.get('url')
         partnerId = request.GET.get('partnerId')
         apiKey = request.COOKIES.get('apiKey')
         ipList = ipList.split(',')

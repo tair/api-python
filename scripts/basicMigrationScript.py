@@ -13,7 +13,7 @@ from metering.serializers import LimitValueSerializer
 from party.serializers import PartySerializer
 from authentication.serializers import CredentialSerializer
 
-from tairData import TAIR
+from .tairData import TAIR
 
 APIKEY = [
     {'apiKey':'test123'},
@@ -109,7 +109,7 @@ def loadPartner(partner, paidAccessTypeId, loginAccessTypeId):
     if serializer.is_valid():
         serializer.save()
     else:
-        print "Unable to create partner %s, exiting" % partnerId
+        print("Unable to create partner %s, exiting" % partnerId)
         exit()
 
     loadItem(PartnerPatternSerializer, partner['PartnerPattern'], partnerId)

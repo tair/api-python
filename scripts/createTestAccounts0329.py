@@ -30,9 +30,9 @@ for entry in createAccountsData:
     serializer = CredentialSerializer(data=data, partial=True)
     if serializer.is_valid():
         serializer.save()
-        print "user record loaded: "
-        print json.dumps(serializer.data)
+        print("user record loaded: ")
+        print(json.dumps(serializer.data))
     else:
-        print "user record not added: "
-        print serializer.errors
+        print("user record not added: ")
+        print(serializer.errors)
 

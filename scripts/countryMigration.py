@@ -45,7 +45,7 @@ for entry in data:
 
     # Does 500 queries per transaction for performance improvement.
     if batchCount >= 500:
-        print "total commit %s" % totalCount
+        print("total commit %s" % totalCount)
         conn.commit()
         batchCount = 0
     

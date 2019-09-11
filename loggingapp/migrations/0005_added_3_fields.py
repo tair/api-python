@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-from __future__ import unicode_literals
+
 
 from django.db import models, migrations
 
@@ -20,11 +20,11 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='pageview',
             name='isPaidContent',
-            field=models.NullBooleanField(),
+            field=models.BooleanField(null=True),
         ),
         migrations.AddField(
             model_name='pageview',
             name='partnerId',
-            field=models.ForeignKey(db_column=b'partnerId', to='partner.Partner', null=True),
+            field=models.ForeignKey(db_column='partnerId', to='partner.Partner', null=True, on_delete=models.PROTECT),
         ),
     ]

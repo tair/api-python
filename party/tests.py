@@ -5,13 +5,12 @@ import sys
 import json
 import copy
 from django.test import TestCase, Client
-from testSamples import CountrySample, UserPartySample, OrganizationPartySample, InstitutionPartySample, ConsortiumPartySample, IpRangeSample, PartyAffiliationSample
+from .testSamples import CountrySample, UserPartySample, OrganizationPartySample, InstitutionPartySample, ConsortiumPartySample, IpRangeSample, PartyAffiliationSample
 from partner.testSamples import PartnerSample
 from subscription.testSamples import SubscriptionSample
 from authentication.testSamples import CredentialSample
 from common.tests import TestGenericInterfaces, GenericGETOnlyTest, GenericCRUDTest, LoginRequiredGETOnlyTest, LoginRequiredCRUDTest, LoginRequiredTest, ManualTest, checkMatch
-# Python 3: module Cookie -> http.cookies
-from Cookie import SimpleCookie
+from http.cookies import SimpleCookie
 
 django.setup()
 serverUrl = TestGenericInterfaces.getHost()
@@ -423,7 +422,8 @@ class GetOrgByIpTest(TestCase):
         res = self.client.get(self.url)
 
         self.assertEqual(res.status_code, 200)
-        self.assertEqual(res.content, self.partySample.getName())
+        # The raw response will be bytes so need to convert to string and then compare
+        self.assertEqual(res.content.decode(), self.partySample.getName())
 
 # test for API end point /parties/orgstatus/
 # get organization and its subscription status to partner by ip
@@ -510,7 +510,7 @@ class GetUsageRequestTest(ManualTest, TestCase):
 # test for API end point /parties/consortiuminstitutions/{consortiumId}
 # this endpoint is not working
 
-print "Running unit tests on party web services API........."
+print("Running unit tests on party web services API.........")
 
 if __name__ == '__main__':
     sys.argv[1:] = []

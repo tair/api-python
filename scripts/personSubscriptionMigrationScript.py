@@ -50,7 +50,7 @@ count = 0
 partnerId = "tair"
 for entry in personData:
     count += 1
-    print count
+    print(count)
     communityId = entry[0]
     if not communityId.isdigit():
         continue
@@ -60,7 +60,7 @@ for entry in personData:
     if len(cred) > 0:
         partyId = cred[0].partyId.partyId
     else:
-        print "not good %s" % communityId
+        print("not good %s" % communityId)
         continue
     
     startDate = parseTime("21-DEC-12")
@@ -75,8 +75,8 @@ for entry in personData:
     if serializer.is_valid():
         serializer.save()
     else:
-        print "CANNOT SAVE SUBSCRIPTION"
-        print data
+        print("CANNOT SAVE SUBSCRIPTION")
+        print(data)
 
     subscriptionId = serializer.data['subscriptionId']
     data = {

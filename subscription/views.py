@@ -59,7 +59,7 @@ class SubscriptionCRUD(GenericCRUDView):
             return Response(serializer.data)
         elif 'partyId' in params:
             partyId = params['partyId']
-            now = datetime.datetime.now()
+            now = timezone.now()
             if 'checkConsortium' in params and params['checkConsortium'] == 'true':
                 partnerIdList = Partner.objects.all().values_list('partnerId', flat=True)
                 idSub = []
@@ -378,7 +378,7 @@ class EndDate(generics.GenericAPIView):
 class ActiveSubscriptions(generics.GenericAPIView):
     requireApiKey = False
     def get(self, request, partyId):
-        now = datetime.datetime.now()
+        now = timezone.now()
         activeSubscriptions = Subscription.objects.all().filter(partyId=partyId).filter(endDate__gt=now).filter(startDate__lt=now)
         serializer = SubscriptionSerializer(activeSubscriptions, many=True)
     #return HttpResponse(json.dumps(dict(serializer.data)))
@@ -407,7 +407,7 @@ class ConsortiumSubscriptions(generics.GenericAPIView):
         if not 'partyId' in params:
             return Response({'error':'partyId is required'}, status=status.HTTP_400_BAD_REQUEST)
         ret = {}
-        now = datetime.datetime.now()
+        now = timezone.now()
         partyId = params['partyId']
         if 'active' in params and params['active'] == 'true':
             if Party.objects.all().get(partyId=partyId):
@@ -429,7 +429,7 @@ class ConsActSubscriptions(generics.GenericAPIView):
     requireApiKey = False
     def get(self, request, partyId):
         ret = {}
-        now = datetime.datetime.now()
+        now = timezone.now()
         if Party.objects.all().get(partyId=partyId):
             consortiums = Party.objects.all().get(partyId=partyId).consortiums.all()
             for consortium in consortiums:
@@ -511,16 +511,16 @@ class SubscriptionRequestCRUD(GenericCRUDView):
         # preprocessing requestDate
         for request in requestJSONList:
             request['requestDate'] = datetime.datetime.strptime(request['requestDate'], '%Y-%m-%dT%H:%M:%S.%fZ').strftime('%m/%d/%Y')
-        rows = [request.values() for request in requestJSONList]
+        rows = [list(request.values()) for request in requestJSONList]
         try:
-            header = requestJSONList[0].keys()
+            header = list(requestJSONList[0].keys())
         except:
             return Response("requestJSONList[0] index out of range")
         rows.insert(0, header)
         pseudo_buffer = Echo()
         writer = csv.writer(pseudo_buffer)
         response = StreamingHttpResponse((writer.writerow(row) for row in rows),content_type="text/csv")
-        now = datetime.datetime.now()
+        now = timezone.now()
         response['Content-Disposition'] = 'attachment; filename="requests_report_{:%Y-%m-%d_%H:%M}.csv"'.format(now)
         response['X-Sendfile'] = smart_str('/Downloads')
         return response
@@ -584,7 +584,7 @@ class ActivationCodeCRUD(GenericCRUDView):
 
         activationCodes = []
 
-        for i in xrange(quantity):
+        for i in range(quantity):
             # create an activation code based on partnerId and period.
             activationCodeObj = ActivationCode()
             activationCodeObj.activationCode=str(uuid.uuid4())
@@ -612,7 +612,7 @@ class ActivationCodeCRUD(GenericCRUDView):
         activationCodeId = params['activationCodeId']
         deleteMarker = True if params['deleteMarker'] == 'true' else False
 
-        activationCodeIdList = map(int, activationCodeId.split(','))
+        activationCodeIdList = list(map(int, activationCodeId.split(',')))
 
         activationCodes = ActivationCode.objects.all().filter(activationCodeId__in=activationCodeIdList)
 

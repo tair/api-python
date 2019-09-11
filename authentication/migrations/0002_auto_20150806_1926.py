@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-from __future__ import unicode_literals
+
 
 from django.db import models, migrations
 
@@ -15,7 +15,7 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='user',
             name='partnerId',
-            field=models.ForeignKey(db_column=b'partnerId', default='test', to='partner.Partner'),
+            field=models.ForeignKey(db_column='partnerId', default='test', to='partner.Partner', on_delete=models.PROTECT),
             preserve_default=False,
         ),
         migrations.AddField(

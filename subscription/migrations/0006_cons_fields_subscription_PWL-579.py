@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-from __future__ import unicode_literals
+
 
 from django.db import models, migrations
 
@@ -20,7 +20,7 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='subscription',
             name='consortiumId',
-            field=models.ForeignKey(to='party.Party', null=True),
+            field=models.ForeignKey(to='party.Party', null=True, on_delete=models.PROTECT),
         ),
         migrations.AddField(
             model_name='subscription',
@@ -35,7 +35,7 @@ class Migration(migrations.Migration):
         migrations.AlterField(
             model_name='subscription',
             name='partyId',
-            field=models.ForeignKey(related_name='party_id', db_column=b'partyId', to='party.Party', null=True),
+            field=models.ForeignKey(related_name='party_id', db_column='partyId', to='party.Party', null=True, on_delete=models.PROTECT),
         ),
         migrations.AlterField(
             model_name='subscription',

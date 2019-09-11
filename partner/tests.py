@@ -7,7 +7,7 @@ import json
 from django.test import TestCase, Client
 from partner.models import Partner, PartnerPattern, SubscriptionTerm, SubscriptionDescription, SubscriptionDescriptionItem
 from common.tests import TestGenericInterfaces, GenericCRUDTest, GenericGETOnlyTest, checkMatch
-from testSamples import PartnerSample, PartnerPatternSample, SubscriptionTermSample, SubscriptionDescriptionSample, SubscriptionDescriptionItemSample
+from .testSamples import PartnerSample, PartnerPatternSample, SubscriptionTermSample, SubscriptionDescriptionSample, SubscriptionDescriptionItemSample
 
 # Create your tests here.                                                                                                                                                                                 
 django.setup()
@@ -77,7 +77,7 @@ class SubscriptionDescriptionItemCRUD(GenericCRUDTest, TestCase):
         self.descriptionId = self.descriptionSample.forcePost(self.descriptionSample.data)
         self.sample.data['subscriptionDescriptionId']=self.sample.updateData['subscriptionDescriptionId']=self.descriptionId
 
-print "Running unit tests on partner web services API........."
+print("Running unit tests on partner web services API.........")
 
 if __name__ == '__main__':
     sys.argv[1:] = []

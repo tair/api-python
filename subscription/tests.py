@@ -7,15 +7,14 @@ import json
 import copy
 from django.test import TestCase
 from subscription.models import Subscription, SubscriptionTransaction, ActivationCode
-from testSamples import SubscriptionSample, SubscriptionTransactionSample, ActivationCodeSample
+from .testSamples import SubscriptionSample, SubscriptionTransactionSample, ActivationCodeSample
 from party.testSamples import UserPartySample, CountrySample, OrganizationPartySample, IpRangeSample, ConsortiumPartySample, InstitutionPartySample, PartyAffiliationSample, ImageInfoSample
 from partner.testSamples import PartnerSample, SubscriptionTermSample
 from authentication.testSamples import CredentialSample
 from common.tests import TestGenericInterfaces, GenericCRUDTest, GenericTest, LoginRequiredTest, ManualTest, checkMatch
 from rest_framework import status
-from controls import PaymentControl
-# Python 3: module Cookie -> http.cookies
-from Cookie import SimpleCookie
+from .controls import PaymentControl
+from http.cookies import SimpleCookie
 
 # Create your tests here.                                                                                                                                                                                 
 django.setup()
@@ -448,8 +447,7 @@ class GetSubcriptionEndDateTest(GenericTest, TestCase):
         if expectedSubscriptionType and resObj['subscriptionType']:
             self.assertEqual(expectedSubscriptionType, resObj['subscriptionType'])
         if expectedExpDate and resObj['expDate']:
-            expDate = resObj['expDate'].replace('T', ' ').replace('Z', '')
-            self.assertEqual(expectedExpDate, expDate)
+            self.assertEqual(expectedExpDate, resObj['expDate'])
 
 # test for API end point /subscriptions/membership/
 # end point looks for the effective subscription with latest end date that covers the given IP address for a given partner
@@ -510,8 +508,7 @@ class CheckMembershipTest(GenericTest, TestCase):
         self.assertEqual(resObj['isMember'], True)
         self.assertEqual(resObj['name'], imageInfoSample.getName())
         self.assertEqual(resObj['imageUrl'], imageInfoSample.getImageUrl())
-        expDate = resObj['expDate'].replace('T', ' ').replace('Z', '')
-        self.assertEqual(expDate, orgSubscriptionSample.getEndDate())
+        self.assertEqual(resObj['expDate'], orgSubscriptionSample.getEndDate())
 
 # test for API end point /subscriptions/subscriptionrequest/
 # this end point seems not working. Will print a warning to ask manual test
@@ -835,7 +832,7 @@ class GetConsortiumActiveSubscriptionTest(GenericTest, TestCase):
 # test for API end point /subscriptions/renew/
 # an end point for sending renewal request email, assume it's deprecated
 
-print "Running unit tests on subscription web services API........."
+print("Running unit tests on subscription web services API.........")
 
 if __name__ == '__main__':
     sys.argv[1:] = []

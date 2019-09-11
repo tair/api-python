@@ -39,9 +39,9 @@ class UriPattern(models.Model):
 
 class AccessRule(models.Model):
     accessRuleId = models.AutoField(primary_key=True)
-    patternId = models.ForeignKey('UriPattern')
-    accessTypeId = models.ForeignKey('AccessType')
-    partnerId = models.ForeignKey('partner.Partner')
+    patternId = models.ForeignKey('UriPattern', on_delete=models.PROTECT)
+    accessTypeId = models.ForeignKey('AccessType', on_delete=models.PROTECT)
+    partnerId = models.ForeignKey('partner.Partner', on_delete=models.PROTECT)
     class Meta:
         db_table = "AccessRule"
 
