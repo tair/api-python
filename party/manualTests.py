@@ -3,7 +3,7 @@ import unittest
 import sys
 import json
 from django.test import TestCase
-from testSamples import UsageSample
+from .testSamples import UsageSample
 from django.core.mail import send_mail
 
 # test for API end point /parties/usage/
@@ -38,7 +38,7 @@ class GetUsageRequestTest(TestCase):
         recipient_list = [self.sample.RECEIPIENT_EMAIL]
         self.assertEqual(send_mail(subject=subject, message=message, from_email=from_email, recipient_list=recipient_list, fail_silently=False), 1)
 
-print "Running unit tests on consortium usage email request........."
+print("Running unit tests on consortium usage email request.........")
 
 if __name__ == '__main__':
     sys.argv[1:] = []

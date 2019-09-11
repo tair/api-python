@@ -7,15 +7,15 @@ import json
 import copy
 from django.test import TestCase
 from subscription.models import Subscription, SubscriptionTransaction, ActivationCode
-from testSamples import SubscriptionSample, SubscriptionTransactionSample, ActivationCodeSample
+from .testSamples import SubscriptionSample, SubscriptionTransactionSample, ActivationCodeSample
 from party.testSamples import UserPartySample, CountrySample, OrganizationPartySample, IpRangeSample, ConsortiumPartySample, InstitutionPartySample, PartyAffiliationSample, ImageInfoSample
 from partner.testSamples import PartnerSample, SubscriptionTermSample
 from authentication.testSamples import CredentialSample
 from common.tests import TestGenericInterfaces, GenericCRUDTest, GenericTest, LoginRequiredTest, ManualTest, checkMatch
 from rest_framework import status
-from controls import PaymentControl
+from .controls import PaymentControl
 # Python 3: module Cookie -> http.cookies
-from Cookie import SimpleCookie
+from http.cookies import SimpleCookie
 
 # Create your tests here.                                                                                                                                                                                 
 django.setup()
@@ -835,7 +835,7 @@ class GetConsortiumActiveSubscriptionTest(GenericTest, TestCase):
 # test for API end point /subscriptions/renew/
 # an end point for sending renewal request email, assume it's deprecated
 
-print "Running unit tests on subscription web services API........."
+print("Running unit tests on subscription web services API.........")
 
 if __name__ == '__main__':
     sys.argv[1:] = []

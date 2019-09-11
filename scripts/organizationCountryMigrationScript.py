@@ -14,7 +14,7 @@ from party.models import Country, Party
 # Begin main program:
 
 # Step1: Open the source CSV file and load into memory.
-organizationFilename = raw_input("Please enter a file name(*.csv) for organization list(not organization_country):\n")
+organizationFilename = input("Please enter a file name(*.csv) for organization list(not organization_country):\n")
 
 with open(organizationFilename, 'rb') as f:
     reader = csv.reader(f)
@@ -25,7 +25,7 @@ with open('organization_country.csv', 'rb') as f:
     organizationCountryData = list(reader)
 
 # Initializing organization country
-print "Initializing Organization Country Array"
+print("Initializing Organization Country Array")
 organizationCountryArray = {}
 for entry in organizationCountryData:
     organizationId = entry[0]
@@ -47,11 +47,11 @@ for entry in organizationCountryData:
         countryId = None;
     organizationCountryArray[organizationId] = [countryId, display]
 
-print "Processing Data"
+print("Processing Data")
 count = 0
 for entry in organizationData:
     count += 1
-    print count
+    print(count)
     organizationId = entry[0]
     if not organizationId.isdigit():
         continue
@@ -84,7 +84,7 @@ for entry in organizationData:
             if serializer.is_valid():
                 serializer.save()
             else:
-                print "CANNOT SAVE PARTY"
-                print data
+                print("CANNOT SAVE PARTY")
+                print(data)
     else:
-        print "organizationName NOT FOUND: "+organizationName
+        print("organizationName NOT FOUND: "+organizationName)

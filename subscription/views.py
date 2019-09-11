@@ -511,9 +511,9 @@ class SubscriptionRequestCRUD(GenericCRUDView):
         # preprocessing requestDate
         for request in requestJSONList:
             request['requestDate'] = datetime.datetime.strptime(request['requestDate'], '%Y-%m-%dT%H:%M:%S.%fZ').strftime('%m/%d/%Y')
-        rows = [request.values() for request in requestJSONList]
+        rows = [list(request.values()) for request in requestJSONList]
         try:
-            header = requestJSONList[0].keys()
+            header = list(requestJSONList[0].keys())
         except:
             return Response("requestJSONList[0] index out of range")
         rows.insert(0, header)
@@ -584,7 +584,7 @@ class ActivationCodeCRUD(GenericCRUDView):
 
         activationCodes = []
 
-        for i in xrange(quantity):
+        for i in range(quantity):
             # create an activation code based on partnerId and period.
             activationCodeObj = ActivationCode()
             activationCodeObj.activationCode=str(uuid.uuid4())
@@ -612,7 +612,7 @@ class ActivationCodeCRUD(GenericCRUDView):
         activationCodeId = params['activationCodeId']
         deleteMarker = True if params['deleteMarker'] == 'true' else False
 
-        activationCodeIdList = map(int, activationCodeId.split(','))
+        activationCodeIdList = list(map(int, activationCodeId.split(',')))
 
         activationCodes = ActivationCode.objects.all().filter(activationCodeId__in=activationCodeIdList)
 

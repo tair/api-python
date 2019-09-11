@@ -25,7 +25,7 @@ with open('organization_country.csv', 'rb') as f:
     organizationCountryData = list(reader)
 
 # Initializing organization country
-print "Initializing Organization Country Array"
+print("Initializing Organization Country Array")
 organizationCountryArray = {}
 for entry in organizationCountryData:
     organizationId = entry[0]
@@ -43,7 +43,7 @@ for entry in organizationCountryData:
         display = False
     if Party.objects.all().filter(name=organizationName).exists():
         countryId = int(Party.objects.all().filter(name=organizationName)[0].country.countryId)
-        print organizationName + ", " + str(countryId) + "\n"
+        print(organizationName + ", " + str(countryId) + "\n")
         # if Party.objects.all().filter(name=organizationName)[1].exists():
         #     countryId = int(Party.objects.all().filter(name=organizationName)[1].country.countryId)
         #     print organizationName + ", " + str(countryId) + "\n"

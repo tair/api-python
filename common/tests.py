@@ -2,14 +2,14 @@ import json
 import sys
 import time
 # Python 3: library urllib -> urllib.parse
-import urllib
-from testSamples import CommonApiKeySample, CommonPartnerSample, CommonUserPartySample, CommonCredentialSample
+import urllib.request, urllib.parse, urllib.error
+from .testSamples import CommonApiKeySample, CommonPartnerSample, CommonUserPartySample, CommonCredentialSample
 from partner.models import Partner
 from apikey.models import ApiKey
 from django.test import Client
 from django.conf import settings
 # Python 3: module Cookie -> http.cookies
-from Cookie import SimpleCookie
+from http.cookies import SimpleCookie
 
 class TestGenericInterfaces:
     @staticmethod
@@ -83,7 +83,7 @@ class LoginRequiredTest(GenericTest):
         self.secretKey = credentialSample.getSecretKey()
 
     def getUrl(self, url, pkName = None, pk = None):
-        secretKey = urllib.quote(self.secretKey)
+        secretKey = urllib.parse.quote(self.secretKey)
         fullUrl = url + '?credentialId=%s&secretKey=%s' % (self.credentialId, secretKey)
         if pkName and pk:
             fullUrl = '%s&%s=%s' % (fullUrl, pkName, str(pk))
@@ -108,7 +108,7 @@ def checkMatch(sampleData, retrievedData, pkName, pk):
                     hasMatch = False
                     break
     if not hasMatch:
-        print "\nERROR: sample data %s and retrieved data %s does not match" % (sampleData, retrievedData)
+        print("\nERROR: sample data %s and retrieved data %s does not match" % (sampleData, retrievedData))
     return hasMatch
 
 ## This function checks if sampleData is within the array of data retrieved
@@ -213,17 +213,17 @@ class ManualTest(object):
     testMethodStr = ""
 
     def test_warning(self):
-        print "\n----------------------------------------------------------------------"
-        print "\nWARNING: Please manually test API end point %s if necessary.\n\
+        print("\n----------------------------------------------------------------------")
+        print("\nWARNING: Please manually test API end point %s if necessary.\n\
         If you've \n\
         (1) upgraded Python version or\n\
         (2) upgraded Django version or\n\
         (3) updated module or setting params related to this end point\n\
-        Please make sure you test this end point by %s" % (self.path, self.testMethodStr)
-        print "\n----------------------------------------------------------------------"
+        Please make sure you test this end point by %s" % (self.path, self.testMethodStr))
+        print("\n----------------------------------------------------------------------")
 
 if not TestGenericInterfaces.hasHost():
-    print "WARNING: No HOSTNAME detected in settings.py."
+    print("WARNING: No HOSTNAME detected in settings.py.")
 
-print "Using server url %s" % TestGenericInterfaces.getHost()
+print("Using server url %s" % TestGenericInterfaces.getHost())
 

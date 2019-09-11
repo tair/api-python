@@ -14,14 +14,14 @@ from party.models import Country, Party
 # Begin main program:
 
 # Open the source CSV file and load into memory.
-orgCountriesFilename = raw_input('Please enter a file name(*.csv) for organization countires list:\n')
+orgCountriesFilename = input('Please enter a file name(*.csv) for organization countires list:\n')
 
 with open(orgCountriesFilename, 'rb') as f:
     reader = csv.reader(f)
     organizationCountryData = list(reader)
 
 # Processing Data
-print 'Processing Data'
+print('Processing Data')
 
 for entry in organizationCountryData:
     organizationName = entry[0]
@@ -32,16 +32,16 @@ for entry in organizationCountryData:
     if Country.objects.all().filter(name=countryName).exists():
         countryId = Country.objects.get(name=countryName).countryId
     else:
-        print 'cannot find country name: ' + countryName
+        print('cannot find country name: ' + countryName)
         continue
 
     if Party.objects.all().filter(name=organizationName).exists():
         if Party.objects.all().filter(name=organizationName).count() > 1:
-            print 'more than one Party returned: ' + organizationName
+            print('more than one Party returned: ' + organizationName)
             continue
         party = Party.objects.get(name=organizationName)
     else:
-        print 'cannot find party: ' + organizationName
+        print('cannot find party: ' + organizationName)
         continue
 
     data = {'country':countryId}
@@ -50,7 +50,7 @@ for entry in organizationCountryData:
     if serializer.is_valid():
         serializer.save()
     else:
-        print "cannot save party: " + organizationName
-        print data
+        print("cannot save party: " + organizationName)
+        print(data)
 
-print 'Loading Complete'
+print('Loading Complete')

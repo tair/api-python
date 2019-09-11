@@ -16,14 +16,14 @@ from party.models import IpRange, Party, PartyAffiliation, Country
 # Begin main program:
 
 # Open the source CSV file and load into memory.
-IpRangeFilename = raw_input('Please enter a file name(*.csv) for ip range list:\n')
+IpRangeFilename = input('Please enter a file name(*.csv) for ip range list:\n')
 
 with open(IpRangeFilename, 'rb') as f:
     reader = csv.reader(f)
     IpRangeListData = list(reader)
 
 # Processing Data
-print 'Processing Data'
+print('Processing Data')
 
 # count variable initialization
 ipRangeExists = 0
@@ -52,42 +52,42 @@ for entry in IpRangeListData:
         if not queryset.filter(name=institutionName).exists():
             #create party
             if not Country.objects.all().filter(name=countryName):
-                print '[Country Not Found] ' + countryName
+                print('[Country Not Found] ' + countryName)
                 continue
             elif Country.objects.all().filter(name=countryName).count() >1:
-                print '[More than one record found with country name] ' + countryName
+                print('[More than one record found with country name] ' + countryName)
                 continue
             else:
                 countryId = Country.objects.get(name=countryName).countryId
             partySerializer = PartySerializer(data={'name':institutionName, 'partyType': 'organization', 'country':countryId}, partial=True)
             if partySerializer.is_valid():
                 partySerializer.save()
-                print '[New Party Created] ' + institutionName
+                print('[New Party Created] ' + institutionName)
             else:
-                print '[Party serializer invalid] ' + \
+                print('[Party serializer invalid] ' + \
                       'type: ' + actionType + \
                       'institution: ' + institutionName + \
                       'start: ' + startIp + \
-                      'end: ' + endIp
+                      'end: ' + endIp)
                 ipRangeFailed += 1
                 continue
             partyId = partySerializer.data['partyId']
             childParty = Party.objects.get(partyId = partyId)
             parentParty = Party.objects.get(partyId = consortiumId)
             PartyAffiliation.objects.create(childPartyId = childParty, parentPartyId = parentParty)
-            print '[PartyAffiliation Created] ' + \
+            print('[PartyAffiliation Created] ' + \
                   'institution: ' + institutionName + \
-                  'consortium: ' + parentParty.name
+                  'consortium: ' + parentParty.name)
             partyCreated += 1
 
         # when the party exists
         else:
             if queryset.filter(name=institutionName).count() > 1:
-                print '[More than one party found with institution name] ' + \
+                print('[More than one party found with institution name] ' + \
                       'type: ' + actionType + \
                       'institution: ' + institutionName + \
                       'start: ' + startIp + \
-                      'end: ' + endIp
+                      'end: ' + endIp)
                 ipRangeFailed += 1
                 continue
             partyId = queryset.filter(name=institutionName)[0].partyId
@@ -95,11 +95,11 @@ for entry in IpRangeListData:
             nextIter = False
             for ipRange in ipRangeList:
                 if ipRange.start == startIp and ipRange.end == endIp:
-                    print '[Ip range already exists] ' + \
+                    print('[Ip range already exists] ' + \
                           'type: ' + actionType + \
                           'institution: ' + institutionName + \
                           'start: ' + startIp + \
-                          'end: ' + endIp
+                          'end: ' + endIp)
                     nextIter = True
                     ipRangeExists += 1
                     break
@@ -109,39 +109,39 @@ for entry in IpRangeListData:
         ipRangeSerializer = IpRangeSerializer(data={'start': startIp, 'end': endIp, 'partyId': partyId}, partial=True)
         if ipRangeSerializer.is_valid():
             ipRangeSerializer.save()
-            print '[IpRange Created] ' + \
+            print('[IpRange Created] ' + \
                   'type: ' + actionType + \
                   'institution: ' + institutionName + \
                   'start: ' + startIp + \
-                  'end: ' + endIp
+                  'end: ' + endIp)
             ipRangeLoaded += 1
         else:
-            print '[Ip range serializer invalid] ' + \
+            print('[Ip range serializer invalid] ' + \
                   'type: ' + actionType + \
                   'institution: ' + institutionName + \
                   'start: ' + startIp + \
-                  'end: ' + endIp
+                  'end: ' + endIp)
             ipRangeFailed += 1
 
     elif actionType == 'update':
         partyId = None
         # when the party doesn't exist
         if not queryset.filter(name=institutionName).exists():
-            print '[Party does not exist] ' + \
+            print('[Party does not exist] ' + \
                   'type: ' + actionType + \
                   'institution: ' + institutionName + \
                   'start: ' + startIp + \
-                  'end: ' + endIp
+                  'end: ' + endIp)
             ipRangeFailed += 1
             continue
 
         # when the party exists
         elif queryset.filter(name=institutionName).count() > 1:
-            print '[More than one party found with institution name] ' + \
+            print('[More than one party found with institution name] ' + \
                   'type: ' + actionType + \
                   'institution: ' + institutionName + \
                   'start: ' + startIp + \
-                  'end: ' + endIp
+                  'end: ' + endIp)
             ipRangeFailed +=1
             continue
         else:
@@ -154,22 +154,22 @@ for entry in IpRangeListData:
         ipRangeSerializer = IpRangeSerializer(data={'start': startIp, 'end': endIp, 'partyId': partyId}, partial=True)
         if ipRangeSerializer.is_valid():
             ipRangeSerializer.save()
-            print '[IpRange Created] ' + \
+            print('[IpRange Created] ' + \
                   'type: ' + actionType + \
                   'institution: ' + institutionName + \
                   'start: ' + startIp + \
-                  'end: ' + endIp
+                  'end: ' + endIp)
             ipRangeLoaded += 1
         else:
-            print '[Ip range serializer invalid] ' + \
+            print('[Ip range serializer invalid] ' + \
                   'type: ' + actionType + \
                   'institution: ' + institutionName + \
                   'start: ' + startIp + \
-                  'end: ' + endIp
+                  'end: ' + endIp)
             ipRangeFailed += 1
 
-print 'Loading Complete: ' + \
+print('Loading Complete: ' + \
     'ipRangeLoaded: ' + str(ipRangeLoaded) + \
     'ipRangeExists: ' + str(ipRangeExists) + \
     'ipRangeFailed: ' + str(ipRangeFailed) + \
-    'partyCreated: ' + str(partyCreated)
+    'partyCreated: ' + str(partyCreated))

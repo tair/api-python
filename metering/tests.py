@@ -10,9 +10,9 @@ from metering.models import IpAddressCount, LimitValue
 from partner.testSamples import PartnerSample
 from partner.models import Partner
 from common.tests import TestGenericInterfaces, GenericCRUDTest, GenericTest
-from testSamples import LimitValueSample, IpAddressCountSample, MeterBlacklistSample
+from .testSamples import LimitValueSample, IpAddressCountSample, MeterBlacklistSample
 # Python 3: module Cookie -> http.cookies
-from Cookie import SimpleCookie
+from http.cookies import SimpleCookie
 
 # Create your tests here.                                                                                                                                                                                 
 django.setup()
@@ -164,7 +164,7 @@ class CheckLimitTest(GenericTest, TestCase):
         url = '%smeters/ip/%s/limit/?partnerId=%s&uri=%s' % (serverUrl, self.successIpAddressCountSample.getIp(), self.partnerId, uri)
         self.assert_check_limit(url, 'BlackListBlock')
 
-print "Running unit tests on metering web services API........."
+print("Running unit tests on metering web services API.........")
 
 if __name__ == '__main__':
     sys.argv[1:] = []

@@ -1,7 +1,7 @@
 import django
 import sys
 from django.test import TestCase
-from models import ApiKey
+from .models import ApiKey
 from common.tests import TestGenericInterfaces
 
 genericForcePost = TestGenericInterfaces.forcePost

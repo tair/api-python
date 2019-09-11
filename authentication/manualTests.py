@@ -8,10 +8,10 @@ from django.test import TestCase, Client
 from partner.testSamples import PartnerSample
 from party.testSamples import UserPartySample
 from common.tests import TestGenericInterfaces, GenericTest
-from testSamples import CredentialSample
-from tests import CredentialGenericTest
+from .testSamples import CredentialSample
+from .tests import CredentialGenericTest
 # Python 3: module Cookie -> http.cookies
-from Cookie import SimpleCookie
+from http.cookies import SimpleCookie
 
 # Create your tests here.                                                                                                                                                                                 
 django.setup()
@@ -28,7 +28,7 @@ class ResetPasswordTest(CredentialGenericTest):
         res = self.client.put(url, None, content_type='application/json')
         self.assertEqual(res.status_code, 200)        
 
-print "Running unit tests on authentication/credential reset password web services API........."
+print("Running unit tests on authentication/credential reset password web services API.........")
 
 if __name__ == '__main__':
     sys.argv[1:] = []

@@ -5,7 +5,7 @@ import json
 
 from django.test import TestCase
 from common.tests import TestGenericInterfaces, GenericTest
-from Cookie import SimpleCookie
+from http.cookies import SimpleCookie
 
 # Create your tests here.
 django.setup()
@@ -21,7 +21,7 @@ class NullServiceTest(GenericTest, TestCase):
 
         self.assertEqual(res.status_code, 200)
 
-print "Running unit tests on nullservice web services API........."
+print("Running unit tests on nullservice web services API.........")
 
 if __name__ == '__main__':
     sys.argv[1:] = []

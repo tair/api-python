@@ -4,7 +4,7 @@ from django.utils import timezone
 import stripe
 from partner.models import SubscriptionTerm, Partner
 from subscription.models import Subscription, SubscriptionTransaction, ActivationCode
-from serializers import SubscriptionSerializer
+from .serializers import SubscriptionSerializer
 from party.models import Party
 
 import datetime
@@ -18,7 +18,7 @@ logger = logging.getLogger('phoenix.api.subscription')
 
 from django.conf import settings
 
-import urllib
+import urllib.request, urllib.parse, urllib.error
 
 class SubscriptionControl():
 
@@ -96,19 +96,19 @@ class PaymentControl():
         message['activationCodes'] = activationCodes
         try:
             pass
-        except stripe.error.InvalidRequestError, e:
+        except stripe.error.InvalidRequestError as e:
             status = False
             message['message'] = e.json_body['error']['message']
-        except stripe.error.CardError, e:
+        except stripe.error.CardError as e:
             status = False
             message['message'] = e.json_body['error']['message']
-        except stripe.error.AuthenticationError, e:
+        except stripe.error.AuthenticationError as e:
             status = False
             message['message'] = e.json_body['error']['message']
-        except stripe.error.APIConnectionError, e:
+        except stripe.error.APIConnectionError as e:
             status = False
             message['message'] = e.json_body['error']['message']
-        except Exception, e:
+        except Exception as e:
             status = False
             message['message'] = "Unexpected exception: %s" % (e)
 
@@ -120,7 +120,7 @@ class PaymentControl():
         
         termObj = SubscriptionTerm.objects.get(subscriptionTermId=termId)
         partnerObj = termObj.partnerId
-        loginURL = domain + partnerObj.loginUri + "?redirect=" + urllib.quote(domain + "/preferences.html", safe='~')
+        loginURL = domain + partnerObj.loginUri + "?redirect=" + urllib.parse.quote(domain + "/preferences.html", safe='~')
         registerURL = partnerObj.registerUri
         name = firstname+" "+lastname
         institute = institute
@@ -238,7 +238,7 @@ class PaymentControl():
 
         codeArray = []
 
-        for i in xrange(quantity):
+        for i in range(quantity):
             # create an activation code based on partnerId and period.
             activationCodeObj = ActivationCode()
             activationCodeObj.activationCode=str(uuid.uuid4())

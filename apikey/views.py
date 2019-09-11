@@ -3,8 +3,8 @@
 from django.http import HttpResponse
 from rest_framework import generics
 
-from models import ApiKey
-from serializers import ApiKeySerializer
+from .models import ApiKey
+from .serializers import ApiKeySerializer
 
 import json
 

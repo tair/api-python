@@ -72,14 +72,14 @@ for line in data:
         partyId = conn.insert_id()
         cur.execute(newUserSql%(username, digestedPw, email, partyId, partnerId, userIdentifier, firstName, lastName))
     except:
-        print "{} -- exception: {}".format(username, sys.exc_info()[0])
+        print("{} -- exception: {}".format(username, sys.exc_info()[0]))
 
     # Does 500 queries per transaction for performance improvement.
     if batchCount >= 500:
-        print "total commit %s" % totalCount
+        print("total commit %s" % totalCount)
         conn.commit()
         batchCount = 0
 
 conn.commit()
 
-print "total users migrated: %s" %totalCount
+print("total users migrated: %s" %totalCount)

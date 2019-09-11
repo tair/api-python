@@ -5,13 +5,13 @@ import sys
 import json
 import copy
 from django.test import TestCase, Client
-from testSamples import CountrySample, UserPartySample, OrganizationPartySample, InstitutionPartySample, ConsortiumPartySample, IpRangeSample, PartyAffiliationSample
+from .testSamples import CountrySample, UserPartySample, OrganizationPartySample, InstitutionPartySample, ConsortiumPartySample, IpRangeSample, PartyAffiliationSample
 from partner.testSamples import PartnerSample
 from subscription.testSamples import SubscriptionSample
 from authentication.testSamples import CredentialSample
 from common.tests import TestGenericInterfaces, GenericGETOnlyTest, GenericCRUDTest, LoginRequiredGETOnlyTest, LoginRequiredCRUDTest, LoginRequiredTest, ManualTest, checkMatch
 # Python 3: module Cookie -> http.cookies
-from Cookie import SimpleCookie
+from http.cookies import SimpleCookie
 
 django.setup()
 serverUrl = TestGenericInterfaces.getHost()
@@ -510,7 +510,7 @@ class GetUsageRequestTest(ManualTest, TestCase):
 # test for API end point /parties/consortiuminstitutions/{consortiumId}
 # this endpoint is not working
 
-print "Running unit tests on party web services API........."
+print("Running unit tests on party web services API.........")
 
 if __name__ == '__main__':
     sys.argv[1:] = []

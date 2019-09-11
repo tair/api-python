@@ -91,7 +91,7 @@ class SubscriptionTransaction(models.Model):
             'endDate':transactionEndDate,
             'transactionType':transactionType,
         }
-        from serializers import SubscriptionTransactionSerializer
+        from .serializers import SubscriptionTransactionSerializer
         transactionSerializer = SubscriptionTransactionSerializer(data=transactionJson)
         if transactionSerializer.is_valid():
             return transactionSerializer.save()

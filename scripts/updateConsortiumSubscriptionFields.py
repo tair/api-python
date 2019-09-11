@@ -63,7 +63,7 @@ for institution in institutions:
                 continue
         # if the obj exists then update
         if not created:
-            for k, v in updateData.iteritems():
+            for k, v in updateData.items():
                 if getattr(obj, k) != v:
                     setattr(obj, k, v)
                     obj.save()
