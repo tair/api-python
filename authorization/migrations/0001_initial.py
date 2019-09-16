@@ -43,16 +43,16 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='accessrule',
             name='accessTypeId',
-            field=models.ForeignKey(to='authorization.AccessType'),
+            field=models.ForeignKey(to='authorization.AccessType', on_delete=models.PROTECT),
         ),
         migrations.AddField(
             model_name='accessrule',
             name='partnerId',
-            field=models.ForeignKey(to='partner.Partner'),
+            field=models.ForeignKey(to='partner.Partner', on_delete=models.PROTECT),
         ),
         migrations.AddField(
             model_name='accessrule',
             name='patternId',
-            field=models.ForeignKey(to='authorization.UriPattern'),
+            field=models.ForeignKey(to='authorization.UriPattern', on_delete=models.PROTECT),
         ),
     ]

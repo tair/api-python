@@ -34,6 +34,6 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='iprange',
             name='partyId',
-            field=models.ForeignKey(to='party.Party', db_column=b'partyId'),
+            field=models.ForeignKey(to='party.Party', db_column=b'partyId', on_delete=models.PROTECT),
         ),
     ]

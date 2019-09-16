@@ -34,6 +34,6 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='party',
             name='country',
-            field=models.ForeignKey(db_column=b'countryId', default=334, to='party.Country', null=True),
+            field=models.ForeignKey(db_column=b'countryId', default=334, to='party.Country', null=True, on_delete=models.PROTECT),
         ),
     ]

@@ -24,17 +24,17 @@ class Migration(migrations.Migration):
         migrations.AlterField(
             model_name='party',
             name='country',
-            field=models.ForeignKey(db_column=b'countryId', to='party.Country', null=True),
+            field=models.ForeignKey(db_column=b'countryId', to='party.Country', null=True, on_delete=models.PROTECT),
         ),
         migrations.AddField(
             model_name='affiliation',
             name='consortiumId',
-            field=models.ForeignKey(related_name='consortiumId', db_column=b'consortiumId', to='party.Party'),
+            field=models.ForeignKey(related_name='consortiumId', db_column=b'consortiumId', to='party.Party', on_delete=models.PROTECT),
         ),
         migrations.AddField(
             model_name='affiliation',
             name='institutionId',
-            field=models.ForeignKey(related_name='institutionId', db_column=b'institutionId', to='party.Party'),
+            field=models.ForeignKey(related_name='institutionId', db_column=b'institutionId', to='party.Party', on_delete=models.PROTECT),
         ),
         migrations.AddField(
             model_name='party',

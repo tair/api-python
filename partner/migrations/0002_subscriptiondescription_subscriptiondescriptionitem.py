@@ -17,7 +17,7 @@ class Migration(migrations.Migration):
                 ('subscriptionDescriptionId', models.AutoField(serialize=False, primary_key=True)),
                 ('header', models.CharField(max_length=200)),
                 ('descriptionType', models.CharField(default=b'Default', max_length=200)),
-                ('partnerId', models.ForeignKey(to='partner.Partner', db_column=b'partnerId')),
+                ('partnerId', models.ForeignKey(to='partner.Partner', db_column=b'partnerId', on_delete=models.PROTECT)),
             ],
             options={
                 'db_table': 'SubscriptionDescription',
@@ -27,7 +27,7 @@ class Migration(migrations.Migration):
             name='SubscriptionDescriptionItem',
             fields=[
                 ('subscriptionDescriptionItemId', models.AutoField(serialize=False, primary_key=True)),
-                ('subscriptionDescriptionId', models.ForeignKey(to='partner.SubscriptionDescription', db_column=b'subscriptionDescriptionId')),
+                ('subscriptionDescriptionId', models.ForeignKey(to='partner.SubscriptionDescription', db_column=b'subscriptionDescriptionId', on_delete=models.PROTECT)),
             ],
             options={
                 'db_table': 'SubscriptionDescriptionItem',

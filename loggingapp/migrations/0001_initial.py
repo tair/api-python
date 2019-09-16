@@ -19,7 +19,7 @@ class Migration(migrations.Migration):
                 ('uri', models.CharField(max_length=250)),
                 ('pageViewDate', models.DateTimeField(default=datetime.datetime.utcnow)),
                 ('sessionId', models.CharField(max_length=250)),
-                ('partyId', models.ForeignKey(db_column=b'partyId', to='party.Party', null=True)),
+                ('partyId', models.ForeignKey(db_column=b'partyId', to='party.Party', null=True, on_delete=models.PROTECT)),
             ],
             options={
                 'db_table': 'PageView',

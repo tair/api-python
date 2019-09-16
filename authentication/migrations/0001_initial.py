@@ -16,7 +16,7 @@ class Migration(migrations.Migration):
             fields=[
                 ('id', models.AutoField(verbose_name='ID', serialize=False, auto_created=True, primary_key=True)),
                 ('gmail', models.CharField(max_length=128, db_index=True)),
-                ('partyId', models.ForeignKey(to='party.Party')),
+                ('partyId', models.ForeignKey(to='party.Party', on_delete=models.PROTECT)),
             ],
             options={
                 'db_table': 'GoogleEmail',
@@ -30,7 +30,7 @@ class Migration(migrations.Migration):
                 ('password', models.CharField(max_length=32)),
                 ('email', models.CharField(max_length=128, null=True)),
                 ('institution', models.CharField(max_length=64, null=True)),
-                ('partyId', models.ForeignKey(to='party.Party', db_column=b'partyId')),
+                ('partyId', models.ForeignKey(to='party.Party', db_column=b'partyId', on_delete=models.PROTECT)),
             ],
             options={
                 'db_table': 'User',

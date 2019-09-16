@@ -25,7 +25,7 @@ class Migration(migrations.Migration):
                 ('librarianName', models.CharField(max_length=100)),
                 ('librarianEmail', models.CharField(max_length=128)),
                 ('comments', models.CharField(max_length=5000)),
-                ('partnerId', models.ForeignKey(db_column=b'partnerId', to='partner.Partner', max_length=200)),
+                ('partnerId', models.ForeignKey(db_column=b'partnerId', to='partner.Partner', max_length=200, on_delete=models.PROTECT)),
             ],
             options={
                 'db_table': 'SubscriptionRequest',

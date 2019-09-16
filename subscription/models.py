@@ -14,13 +14,13 @@ class NumericField(models.Field):
 
 class Subscription(models.Model):
     subscriptionId = models.AutoField(primary_key=True)
-    partyId = models.ForeignKey("party.Party", null=True, db_column="partyId", related_name='party_id')
-    partnerId = models.ForeignKey("partner.Partner", null=True, db_column="partnerId")
+    partyId = models.ForeignKey("party.Party", null=True, db_column="partyId", related_name='party_id', on_delete=models.PROTECT)
+    partnerId = models.ForeignKey("partner.Partner", null=True, db_column="partnerId", on_delete=models.PROTECT)
     startDate = models.DateTimeField(null=True)
     endDate = models.DateTimeField(null=True)
     consortiumStartDate = models.DateTimeField(null=True)
     consortiumEndDate = models.DateTimeField(null=True)
-    consortiumId = models.ForeignKey("party.Party", null=True)
+    consortiumId = models.ForeignKey("party.Party", null=True, on_delete=models.PROTECT)
 
     @staticmethod
     def getByIp(ipAddress):
@@ -60,8 +60,8 @@ class Subscription(models.Model):
 class ActivationCode(models.Model):
     activationCodeId = models.AutoField(primary_key=True)
     activationCode = models.CharField(max_length=200, unique=True)
-    partnerId = models.ForeignKey('partner.Partner', db_column="partnerId")
-    partyId = models.ForeignKey('party.Party', null=True)
+    partnerId = models.ForeignKey('partner.Partner', db_column="partnerId", on_delete=models.PROTECT)
+    partyId = models.ForeignKey('party.Party', null=True, on_delete=models.PROTECT)
     period = models.IntegerField()
     purchaseDate = models.DateTimeField(default='2001-01-01T00:00:00Z')
     transactionType = models.CharField(max_length=200, null=True)
@@ -71,7 +71,7 @@ class ActivationCode(models.Model):
 
 class SubscriptionTransaction(models.Model):
     subscriptionTransactionId = models.AutoField(primary_key=True)
-    subscriptionId = models.ForeignKey('Subscription', db_column="subscriptionId")
+    subscriptionId = models.ForeignKey('Subscription', db_column="subscriptionId", on_delete=models.PROTECT)
     transactionDate = models.DateTimeField(default='2000-01-01T00:00:00Z')
     startDate = models.DateTimeField(default='2001-01-01T00:00:00Z')
     endDate = models.DateTimeField(default='2020-01-01T00:00:00Z')
@@ -111,7 +111,7 @@ class SubscriptionRequest(models.Model):
      librarianName = models.CharField(max_length=100)
      librarianEmail = models.CharField(max_length=128)
      comments = models.CharField(max_length=5000)
-     partnerId = models.ForeignKey('partner.Partner', max_length=200, db_column="partnerId")
+     partnerId = models.ForeignKey('partner.Partner', max_length=200, db_column="partnerId", on_delete=models.PROTECT)
      requestType = models.CharField(max_length=32)
 
      class Meta:

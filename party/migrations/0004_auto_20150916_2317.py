@@ -14,11 +14,11 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='party',
             name='consortium',
-            field=models.ForeignKey(to='party.Party', null=True),
+            field=models.ForeignKey(to='party.Party', null=True, on_delete=models.PROTECT),
         ),
         migrations.AlterField(
             model_name='party',
             name='country',
-            field=models.ForeignKey(db_column=b'countryId', default=10, to='party.Country', null=True),
+            field=models.ForeignKey(db_column=b'countryId', default=10, to='party.Country', null=True, on_delete=models.PROTECT),
         ),
     ]
