@@ -19,6 +19,6 @@ class Migration(migrations.Migration):
         migrations.AlterField(
             model_name='party',
             name='country',
-            field=models.ForeignKey(db_column=b'countryId', default=10, to='party.Country', null=True, on_delete=models.PROTECT),
+            field=models.ForeignKey(db_column='countryId', default=10, to='party.Country', null=True, on_delete=models.PROTECT),
         ),
     ]

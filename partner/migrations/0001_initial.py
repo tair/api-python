@@ -27,7 +27,7 @@ class Migration(migrations.Migration):
                 ('partnerPatternId', models.AutoField(serialize=False, primary_key=True)),
                 ('sourceUri', models.CharField(max_length=200)),
                 ('targetUri', models.CharField(max_length=200)),
-                ('partnerId', models.ForeignKey(to='partner.Partner', db_column=b'partnerId', on_delete=models.PROTECT)),
+                ('partnerId', models.ForeignKey(to='partner.Partner', db_column='partnerId', on_delete=models.PROTECT)),
             ],
             options={
                 'db_table': 'PartnerPattern',
@@ -40,7 +40,7 @@ class Migration(migrations.Migration):
                 ('period', models.IntegerField()),
                 ('price', models.DecimalField(max_digits=6, decimal_places=2)),
                 ('groupDiscountPercentage', models.DecimalField(max_digits=6, decimal_places=2)),
-                ('partnerId', models.ForeignKey(to='partner.Partner', db_column=b'partnerId', on_delete=models.PROTECT)),
+                ('partnerId', models.ForeignKey(to='partner.Partner', db_column='partnerId', on_delete=models.PROTECT)),
             ],
             options={
                 'db_table': 'SubscriptionTerm',

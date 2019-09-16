@@ -30,7 +30,7 @@ class Migration(migrations.Migration):
                 ('password', models.CharField(max_length=32)),
                 ('email', models.CharField(max_length=128, null=True)),
                 ('institution', models.CharField(max_length=64, null=True)),
-                ('partyId', models.ForeignKey(to='party.Party', db_column=b'partyId', on_delete=models.PROTECT)),
+                ('partyId', models.ForeignKey(to='party.Party', db_column='partyId', on_delete=models.PROTECT)),
             ],
             options={
                 'db_table': 'User',

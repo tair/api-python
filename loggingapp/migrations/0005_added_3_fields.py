@@ -25,6 +25,6 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='pageview',
             name='partnerId',
-            field=models.ForeignKey(db_column=b'partnerId', to='partner.Partner', null=True, on_delete=models.PROTECT),
+            field=models.ForeignKey(db_column='partnerId', to='partner.Partner', null=True, on_delete=models.PROTECT),
         ),
     ]

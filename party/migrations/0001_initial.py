@@ -25,7 +25,7 @@ class Migration(migrations.Migration):
             name='Party',
             fields=[
                 ('partyId', models.AutoField(serialize=False, primary_key=True)),
-                ('partyType', models.CharField(default=b'user', max_length=200)),
+                ('partyType', models.CharField(default='user', max_length=200)),
             ],
             options={
                 'db_table': 'Party',
@@ -34,6 +34,6 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='iprange',
             name='partyId',
-            field=models.ForeignKey(to='party.Party', db_column=b'partyId', on_delete=models.PROTECT),
+            field=models.ForeignKey(to='party.Party', db_column='partyId', on_delete=models.PROTECT),
         ),
     ]

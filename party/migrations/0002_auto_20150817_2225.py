@@ -29,11 +29,11 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='party',
             name='name',
-            field=models.CharField(default=b'', max_length=200),
+            field=models.CharField(default='', max_length=200),
         ),
         migrations.AddField(
             model_name='party',
             name='country',
-            field=models.ForeignKey(db_column=b'countryId', default=334, to='party.Country', null=True, on_delete=models.PROTECT),
+            field=models.ForeignKey(db_column='countryId', default=334, to='party.Country', null=True, on_delete=models.PROTECT),
         ),
     ]

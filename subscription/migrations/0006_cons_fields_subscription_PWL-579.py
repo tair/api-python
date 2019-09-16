@@ -35,7 +35,7 @@ class Migration(migrations.Migration):
         migrations.AlterField(
             model_name='subscription',
             name='partyId',
-            field=models.ForeignKey(related_name='party_id', db_column=b'partyId', to='party.Party', null=True, on_delete=models.PROTECT),
+            field=models.ForeignKey(related_name='party_id', db_column='partyId', to='party.Party', null=True, on_delete=models.PROTECT),
         ),
         migrations.AlterField(
             model_name='subscription',
