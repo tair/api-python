@@ -24,11 +24,11 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='partner',
             name='loginPasswordFieldPrompt',
-            field=models.CharField(default=b'Password', max_length=20),
+            field=models.CharField(default='Password', max_length=20),
         ),
         migrations.AddField(
             model_name='partner',
             name='loginUserNameFieldPrompt',
-            field=models.CharField(default=b'Username', max_length=20),
+            field=models.CharField(default='Username', max_length=20),
         ),
     ]

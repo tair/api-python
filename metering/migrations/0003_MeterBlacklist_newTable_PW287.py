@@ -15,8 +15,8 @@ class Migration(migrations.Migration):
             name='MeterBlacklist',
             fields=[
                 ('meterBlackListId', models.AutoField(serialize=False, primary_key=True)),
-                ('partnerId', models.CharField(default=b'', max_length=200)),
-                ('pattern', models.CharField(default=b'', max_length=5000)),
+                ('partnerId', models.CharField(default='', max_length=200)),
+                ('pattern', models.CharField(default='', max_length=5000)),
             ],
             options={
                 'db_table': 'MeterBlacklist',

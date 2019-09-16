@@ -14,6 +14,6 @@ class Migration(migrations.Migration):
         migrations.AlterField(
             model_name='uripattern',
             name='pattern',
-            field=models.CharField(default=b'', max_length=5000),
+            field=models.CharField(default='', max_length=5000),
         ),
     ]

@@ -16,7 +16,7 @@ class Migration(migrations.Migration):
             fields=[
                 ('subscriptionDescriptionId', models.AutoField(serialize=False, primary_key=True)),
                 ('header', models.CharField(max_length=200)),
-                ('descriptionType', models.CharField(default=b'Default', max_length=200)),
+                ('descriptionType', models.CharField(default='Default', max_length=200)),
                 ('partnerId', models.ForeignKey(to='partner.Partner', db_column='partnerId', on_delete=models.PROTECT)),
             ],
             options={

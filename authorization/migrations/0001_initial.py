@@ -34,7 +34,7 @@ class Migration(migrations.Migration):
             name='UriPattern',
             fields=[
                 ('patternId', models.AutoField(serialize=False, primary_key=True)),
-                ('pattern', models.CharField(default=b'', max_length=200)),
+                ('pattern', models.CharField(default='', max_length=200)),
             ],
             options={
                 'db_table': 'UriPattern',
