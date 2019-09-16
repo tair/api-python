@@ -4,6 +4,7 @@ from django.conf.urls import url
 from authentication import views
 from rest_framework.urlpatterns import format_suffix_patterns
 
+app_name = 'authentication'
 urlpatterns = [ 
     url(r'^$', views.listcreateuser.as_view(), name='listcreateuser'),
     url(r'^login/$', views.login, name='login'),
