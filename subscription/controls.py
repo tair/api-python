@@ -259,4 +259,4 @@ class PaymentControl():
         if so.groupDiscountPercentage > 0 and quantity > 1:
             calcprice = so.price*quantity*(1-(so.groupDiscountPercentage/100))
         calcprice = round(calcprice*100)/100
-	return (price == calcprice)
+        return (price == calcprice)
