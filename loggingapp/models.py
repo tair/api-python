@@ -15,7 +15,7 @@ class PageView(models.Model):
   ip = models.GenericIPAddressField(max_length=200)
   ipList = models.CharField(max_length=250, null=True)
   partnerId = models.ForeignKey(Partner, db_column='partnerId', null=True, on_delete=models.PROTECT)
-  isPaidContent = models.NullBooleanField()
+  isPaidContent = models.BooleanField(null=True)
 
   # meter choices
   METER_WARNING_STATUS = 'W'
