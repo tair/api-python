@@ -206,6 +206,9 @@ DATABASES = {
         'PASSWORD': None,
         'HOST': None,
         'PORT': '3306',
+        'OPTIONS': {
+            'use_pure': True
+        }
     }
 }
 

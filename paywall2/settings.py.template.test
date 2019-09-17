@@ -206,6 +206,9 @@ DATABASES = {
         'PASSWORD': '',
         'HOST': 'phoenix-api-test.cwyjt5kql77y.us-west-2.rds.amazonaws.com',
         'PORT': '3306',
+        'OPTIONS': {
+            'use_pure': True
+        }
     }
 }
 
