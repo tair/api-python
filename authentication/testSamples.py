@@ -5,7 +5,7 @@ from authentication.models import Credential
 from partner.models import Partner
 from party.models import Party
 from common.tests import TestGenericInterfaces
-from authentication.views import generateSecretKey
+from authentication.views import generateSecretKey, generatePasswordHash
 
 genericForcePost = TestGenericInterfaces.forcePost
 
@@ -92,7 +92,7 @@ class CredentialSample():
         return genericForcePost(self.model, self.pkName, postData)
 
     def hashPassword(self, password):
-        return hashlib.sha1(password).hexdigest()
+        return generatePasswordHash(password)
 
     def getLoginUrl(self):
         return self.serverUrl + self.loginPath + '?partnerId=%s' % self.data['partnerId']

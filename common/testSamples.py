@@ -2,7 +2,7 @@ from apikey.models import ApiKey
 from partner.models import Partner
 from party.models import Party
 from authentication.models import Credential
-from authentication.views import generateSecretKey
+from authentication.views import generateSecretKey, generatePasswordHash
 import copy
 import hashlib
 
@@ -94,7 +94,7 @@ class CommonCredentialSample():
         return forcePost(self.model, self.pkName, postData)
 
     def hashPassword(self, password):
-        return hashlib.sha1(password).hexdigest()
+        return generatePasswordHash(password)
 
     def getSecretKey(self):
         # this has dependency on authentication.views regarding argument
