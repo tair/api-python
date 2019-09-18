@@ -423,7 +423,8 @@ class GetOrgByIpTest(TestCase):
         res = self.client.get(self.url)
 
         self.assertEqual(res.status_code, 200)
-        self.assertEqual(res.content, self.partySample.getName())
+        # The raw response will be bytes so need to convert to string and then compare
+        self.assertEqual(res.content.decode(), self.partySample.getName())
 
 # test for API end point /parties/orgstatus/
 # get organization and its subscription status to partner by ip
