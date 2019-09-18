@@ -20,7 +20,6 @@ from django.core.mail import send_mail
 from common.permissions import isPhoenix
 
 from common.permissions import ApiKeyPermission
-import hashlib
 import datetime
 from authentication.serializers import CredentialSerializer, CredentialSerializerNoPassword
 from genericpath import exists
@@ -313,7 +312,7 @@ class ConsortiumCRUD(GenericCRUDView):
                 return Response({'error': 'PUT parties/consortiums/ password must not be empty'}, status=status.HTTP_400_BAD_REQUEST)
             else:
                 newPwd = data['password']
-                data['password'] = hashlib.sha1(newPwd).hexdigest()
+                data['password'] = Party.generatePasswordHash(newPwd)
                 try:
                     credential = Credential.objects.get(partyId=party)
                     credentialSerializer = CredentialSerializer(credential, data=data)
@@ -387,7 +386,7 @@ class ConsortiumCRUD(GenericCRUDView):
 
             if pwd == True:
                 newPwd = data['password']
-                data['password'] = hashlib.sha1(newPwd).hexdigest()
+                data['password'] = Party.generatePasswordHash(newPwd)
                 credentialSerializer = CredentialSerializer(data=data)
             else:
                 credentialSerializer = CredentialSerializerNoPassword(data=data)
@@ -505,7 +504,7 @@ class InstitutionCRUD(GenericCRUDView):
                 return Response({'error': 'PUT parties/institutions/ password must not be empty'}, status=status.HTTP_400_BAD_REQUEST)
             else:
                 newPwd = data['password']
-                data['password'] = hashlib.sha1(newPwd).hexdigest()
+                data['password'] = Party.generatePasswordHash(newPwd)
                 try:
                     credential = Credential.objects.get(partyId=party)
                     credentialSerializer = CredentialSerializer(credential, data=data)
@@ -577,7 +576,7 @@ class InstitutionCRUD(GenericCRUDView):
 
             if pwd == True:
                 newPwd = data['password']
-                data['password'] = hashlib.sha1(newPwd).hexdigest()
+                data['password'] = Party.generatePasswordHash(newPwd)
                 credentialSerializer = CredentialSerializer(data=data)
             else:
                 credentialSerializer = CredentialSerializerNoPassword(data=data)

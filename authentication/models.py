@@ -25,17 +25,26 @@ class Credential(models.Model):
       pu = Party.objects.filter(partyId=partyId)
       if Credential.objects.filter(partyId_id__in=pu.values('partyId')).exists():
         usu = Credential.objects.filter(partyId_id__in=pu.values('partyId')).first()
-        digested = base64.b64encode(hmac.new(str(partyId).encode('ascii'), usu.password.encode('ascii'), hashlib.sha1).digest())
+        digested = Credential.generateSecretKey(partyId, usu.password)
         if digested == secretKey:
           return True
       #TODO: validation still fail
       pu = pu.first().consortiums.all()
       if Credential.objects.filter(partyId_id__in=pu.values('partyId')).exists():
         for usu in Credential.objects.filter(partyId_id__in=pu.values('partyId')):
-          digested = base64.b64encode(hmac.new(str(usu.partyId).encode('ascii'), usu.password.encode('ascii'), hashlib.sha1).digest())
+          digested = Credential.generateSecretKey(usu.partyId, usu.password)
           if digested == secretKey:
             return True
     return False
+
+  @staticmethod
+  def generatePasswordHash(password):
+    return hashlib.sha1(password.encode('utf-8')).hexdigest()
+
+  @staticmethod
+  def generateSecretKey(partyId, password):
+    encoded = base64.b64encode(hmac.new(str(partyId).encode('ascii'), password.encode('ascii'), hashlib.sha1).digest())
+    return str(encoded, 'utf-8')
 
   class Meta:
     db_table = "Credential"

@@ -5,6 +5,7 @@ from django.db import connection
 from netaddr import IPAddress
 from django.utils import timezone
 from common.common import validateIpRange
+import hashlib
 
 import logging
 logger = logging.getLogger('phoenix.api.party')
@@ -41,6 +42,11 @@ class Party(models.Model):
         partyList.append(partyId)
         partyList.extend(consortiums)
         return partyList
+
+    # this is the same as the method in Credential class
+    @staticmethod
+    def generatePasswordHash(password):
+        return hashlib.sha1(password.encode('utf-8')).hexdigest()
 
     class Meta:
         db_table = "Party"
