@@ -20,7 +20,7 @@ from django.core.mail import send_mail
 from common.permissions import isPhoenix
 
 from common.permissions import ApiKeyPermission
-import datetime
+from django.utils import timezone
 from authentication.serializers import CredentialSerializer, CredentialSerializerNoPassword
 from genericpath import exists
 from django.db import connection
@@ -136,7 +136,7 @@ class OrganizationView(APIView):
 
         partyList = []
         #SELECT partyId FROM phoenix_api.Subscription where partnerId = 'tair';
-        now =datetime.datetime.now()
+        now = timezone.now()
         objs = Subscription.objects.all().filter(partnerId=partnerId).filter(startDate__lte=now).filter(endDate__gte=now).values('partyId')
         for entry in objs:
             partyList.append(entry['partyId'])

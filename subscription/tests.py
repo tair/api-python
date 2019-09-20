@@ -448,8 +448,7 @@ class GetSubcriptionEndDateTest(GenericTest, TestCase):
         if expectedSubscriptionType and resObj['subscriptionType']:
             self.assertEqual(expectedSubscriptionType, resObj['subscriptionType'])
         if expectedExpDate and resObj['expDate']:
-            expDate = resObj['expDate'].replace('T', ' ').replace('Z', '')
-            self.assertEqual(expectedExpDate, expDate)
+            self.assertEqual(expectedExpDate, resObj['expDate'])
 
 # test for API end point /subscriptions/membership/
 # end point looks for the effective subscription with latest end date that covers the given IP address for a given partner
@@ -510,8 +509,7 @@ class CheckMembershipTest(GenericTest, TestCase):
         self.assertEqual(resObj['isMember'], True)
         self.assertEqual(resObj['name'], imageInfoSample.getName())
         self.assertEqual(resObj['imageUrl'], imageInfoSample.getImageUrl())
-        expDate = resObj['expDate'].replace('T', ' ').replace('Z', '')
-        self.assertEqual(expDate, orgSubscriptionSample.getEndDate())
+        self.assertEqual(resObj['expDate'], orgSubscriptionSample.getEndDate())
 
 # test for API end point /subscriptions/subscriptionrequest/
 # this end point seems not working. Will print a warning to ask manual test
