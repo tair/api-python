@@ -39,12 +39,12 @@ class Credential(models.Model):
 
   @staticmethod
   def generatePasswordHash(password):
-    return hashlib.sha1(password.encode('utf-8')).hexdigest()
+    return hashlib.sha1(password.encode()).hexdigest()
 
   @staticmethod
   def generateSecretKey(partyId, password):
     encoded = base64.b64encode(hmac.new(str(partyId).encode('ascii'), password.encode('ascii'), hashlib.sha1).digest())
-    return str(encoded, 'utf-8')
+    return encoded.decode()
 
   class Meta:
     db_table = "Credential"

@@ -46,7 +46,7 @@ class Party(models.Model):
     # this is the same as the method in Credential class
     @staticmethod
     def generatePasswordHash(password):
-        return hashlib.sha1(password.encode('utf-8')).hexdigest()
+        return hashlib.sha1(password.encode()).hexdigest()
 
     class Meta:
         db_table = "Party"
