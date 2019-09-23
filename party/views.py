@@ -482,53 +482,56 @@ class InstitutionCRUD(GenericCRUDView):
         if not isPhoenix(request):
            return HttpResponse({'error':'credentialId and secretKey query parameters missing or invalid'},status=status.HTTP_400_BAD_REQUEST)
 
-        params = request.GET
         data = request.data.copy()
-
-        if not params:
-            return Response({'error':'does not allow update without query parameters'},status=status.HTTP_400_BAD_REQUEST)
-
-        if 'partyId' not in request.data:
-            return Response({'error':'partyId (aka institutionId) required'},status=status.HTTP_400_BAD_REQUEST)
-
-        institutionId = request.data['partyId']
-        #get party
-        party = Party.objects.get(partyId = institutionId)
-        partySerializer = PartySerializer(party, data=data)
-        if 'email' in data:
-            for partyId in Credential.objects.all().filter(email=data['email']).filter(partnerId='phoenix').values_list('partyId', flat=True):
-                if Party.objects.all().filter(partyId=partyId).filter(partyType='organization').exists():
-                    return Response({'error':'This email is already used by another institution.'}, status=status.HTTP_400_BAD_REQUEST)
-
-        if 'password' in request.data:
-            if (not data['password'] or data['password'] == ""):
-                return Response({'error': 'PUT parties/institutions/ password must not be empty'}, status=status.HTTP_400_BAD_REQUEST)
-            else:
-                newPwd = data['password']
-                data['password'] = hashlib.sha1(newPwd).hexdigest()
-                try:
-                    credential = Credential.objects.get(partyId=party)
-                    credentialSerializer = CredentialSerializer(credential, data=data)
-                except Credential.DoesNotExist:
-                    data['partnerId'] = 'phoenix'
-                    credentialSerializer = CredentialSerializer(data=data)
-        else:
-            credentialSerializer = CredentialSerializerNoPassword(credential, data=data, partial=True) #??
-
         out = []
-        if partySerializer.is_valid():
-            partySerializer.save()
-            partyReturnData = partySerializer.data
-            out.append(partyReturnData)
+
+        if 'partyId' not in data:
+            return Response({'error':'partyId (aka institutionId) required'},status=status.HTTP_400_BAD_REQUEST)
+        if any(param in PartySerializer.Meta.fields for param in data):
+
+            institutionId = data['partyId']
+            #get party
+            party = Party.objects.get(partyId = institutionId)
+            partySerializer = PartySerializer(party, data=data, partial=True)
+            if partySerializer.is_valid():
+                partySerializer.save()
+                partyReturnData = partySerializer.data
+                out.append(partyReturnData)
+            else:
+                return Response(partySerializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+        if any(param in CredentialSerializer.Meta.fields for param in data):
+
+            partner = Partner.objects.get(partnerId='phoenix')
+            try:
+                credential= Credential.objects.get(partyId=party, partnerId=partner)
+            except:
+                if not all(param in data for param in ('username', 'password')):
+                    return Response({'error': 'username and password required.'}, status=status.HTTP_400_BAD_REQUEST)
+                credential= Credential(partyId=party, partnerId=partner)
+
+            if 'email' in data:
+                for partyId in Credential.objects.all().filter(email=data['email']).filter(partnerId='phoenix').values_list('partyId', flat=True):
+                    if Party.objects.all().filter(partyId=partyId).filter(partyType='organization').exists():
+                        return Response({'error':'This email is already used by another institution.'}, status=status.HTTP_400_BAD_REQUEST)
+
+            if 'password' in data:
+                if (not data['password'] or data['password'] == ""):
+                    return Response({'error': 'password must not be empty'}, status=status.HTTP_400_BAD_REQUEST)
+                else:
+                    newPwd = data['password']
+                    data['password'] = hashlib.sha1(newPwd).hexdigest()
+                    credentialSerializer = CredentialSerializer(credential, data=data, partial=True)
+            else:
+                credentialSerializer = CredentialSerializerNoPassword(credential, data=data, partial=True) #??
             if credentialSerializer.is_valid():
                 credentialSerializer.save()
                 credentialReturnData = credentialSerializer.data
                 out.append(credentialReturnData)
-                return HttpResponse(json.dumps(out), content_type="application/json")
             else:
                 return Response(credentialSerializer.errors, status=status.HTTP_400_BAD_REQUEST)
-        else:
-            return Response(partySerializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+        return HttpResponse(json.dumps(out), content_type="application/json")
 
     #PW-161 POST https://demoapi.arabidopsis.org/parties/institutions/?credentialId=2&secretKey=7DgskfEF7jeRGn1h%2B5iDCpvIkRA%3D
     #NOTE ?/ in parties/institutions/?credentialId=
