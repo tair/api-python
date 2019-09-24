@@ -500,7 +500,7 @@ class InstitutionCRUD(GenericCRUDView):
             else:
                 return Response(partySerializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
-        if any(param in CredentialSerializer.Meta.fields for param in data):
+        if any(param in CredentialSerializer.Meta.fields for param in data if param != 'partyId'):
 
             partner = Partner.objects.get(partnerId='phoenix')
             try:
