@@ -493,12 +493,7 @@ class InstitutionCRUD(GenericCRUDView):
             #get party
             party = Party.objects.get(partyId = institutionId)
             partySerializer = PartySerializer(party, data=data, partial=True)
-            if partySerializer.is_valid():
-                partySerializer.save()
-                partyReturnData = partySerializer.data
-                out.append(partyReturnData)
-            else:
-                return Response(partySerializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
 
         if any(param in CredentialSerializer.Meta.fields for param in data if param != 'partyId'):
 
@@ -524,6 +519,14 @@ class InstitutionCRUD(GenericCRUDView):
                     credentialSerializer = CredentialSerializer(credential, data=data, partial=True)
             else:
                 credentialSerializer = CredentialSerializerNoPassword(credential, data=data, partial=True) #??
+        if any(param in PartySerializer.Meta.fields for param in data):
+            if partySerializer.is_valid():
+                partySerializer.save()
+                partyReturnData = partySerializer.data
+                out.append(partyReturnData)
+            else:
+                return Response(partySerializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        if any(param in CredentialSerializer.Meta.fields for param in data if param != 'partyId'):
             if credentialSerializer.is_valid():
                 credentialSerializer.save()
                 credentialReturnData = credentialSerializer.data
