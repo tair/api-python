@@ -91,7 +91,14 @@ LOGGING = {
             'class': 'logging.FileHandler',
             'filename': '/var/log/api/security_error.log',
             'formatter': 'standard'
-        }
+        },
+        # override default config
+        # see https://djangodeconstructed.com/2018/12/18/django-and-python-logging-in-plain-english/
+        # https://github.com/django/django/blob/1939dd49d142b65fa22eb5f85cee0d20864d3730/django/utils/log.py#L18
+        'console': {
+            'level': 'INFO',
+            'class': 'logging.StreamHandler',
+        },
         # 'sql_log': {
         #     'level': 'DEBUG',
         #     'class': 'logging.FileHandler',
@@ -117,6 +124,10 @@ LOGGING = {
             'handlers': ['security_log', 'mail_admins'],
             'propagate': True,
             'level': 'WARNING',
+        },
+        'django': {
+            'handlers': ['console'],
+            'level': 'INFO'
         },
         # SQL statement executed
         'django.db.backends': {
