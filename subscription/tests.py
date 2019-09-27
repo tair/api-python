@@ -14,7 +14,6 @@ from authentication.testSamples import CredentialSample
 from common.tests import TestGenericInterfaces, GenericCRUDTest, GenericTest, LoginRequiredTest, ManualTest, checkMatch
 from rest_framework import status
 from .controls import PaymentControl
-# Python 3: module Cookie -> http.cookies
 from http.cookies import SimpleCookie
 
 # Create your tests here.                                                                                                                                                                                 

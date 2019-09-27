@@ -10,14 +10,15 @@ from party.testSamples import UserPartySample
 from common.tests import TestGenericInterfaces, GenericTest
 from .testSamples import CredentialSample
 from .tests import CredentialGenericTest
-# Python 3: module Cookie -> http.cookies
 from http.cookies import SimpleCookie
+from django.test.utils import override_settings
 
 # Create your tests here.                                                                                                                                                                                 
 django.setup()
 serverUrl = TestGenericInterfaces.getHost()
 
 # test for API endpoint /credentials/resetPwd/
+@override_settings(EMAIL_BACKEND='django.core.mail.backends.smtp.EmailBackend')
 class ResetPasswordTest(CredentialGenericTest):
 
     def test_for_reset_password(self):

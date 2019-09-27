@@ -5,14 +5,12 @@ import unittest
 import sys
 import json
 import copy
-# Python 3: library urllib -> urllib.parse
 import urllib.request, urllib.parse, urllib.error
 from django.test import TestCase, Client
 from partner.testSamples import PartnerSample
 from party.testSamples import UserPartySample
 from common.tests import TestGenericInterfaces, GenericCRUDTest, GenericTest, ManualTest, checkMatch
 from .testSamples import CredentialSample
-# Python 3: module Cookie -> http.cookies
 from http.cookies import SimpleCookie
 
 # Create your tests here.                                                                                                                                                                                 

@@ -10,7 +10,6 @@ from partner.testSamples import PartnerSample
 from party.testSamples import UserPartySample
 from common.tests import TestGenericInterfaces, GenericCRUDTest, GenericTest
 from .testSamples import PageViewSample
-# Python 3: module Cookie -> http.cookies
 from http.cookies import SimpleCookie
 
 # Create your tests here.                                                                                                                                                                                 

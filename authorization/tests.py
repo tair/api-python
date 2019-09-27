@@ -12,7 +12,6 @@ from authentication.testSamples import CredentialSample
 from subscription.testSamples import SubscriptionSample
 from .testSamples import UriPatternSample, AccessRuleSample, AccessTypeSample
 from authorization.models import Status
-# Python 3: module Cookie -> http.cookies
 from http.cookies import SimpleCookie
 
 # Create your tests here.                                                                                                                                                                                 

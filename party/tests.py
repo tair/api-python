@@ -10,7 +10,6 @@ from partner.testSamples import PartnerSample
 from subscription.testSamples import SubscriptionSample
 from authentication.testSamples import CredentialSample
 from common.tests import TestGenericInterfaces, GenericGETOnlyTest, GenericCRUDTest, LoginRequiredGETOnlyTest, LoginRequiredCRUDTest, LoginRequiredTest, ManualTest, checkMatch
-# Python 3: module Cookie -> http.cookies
 from http.cookies import SimpleCookie
 
 django.setup()

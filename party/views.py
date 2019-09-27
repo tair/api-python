@@ -52,8 +52,6 @@ class PartyCRUD(GenericCRUDView):
                 return super(PartyCRUD, self).get_queryset().filter(partyType=partyType)
         return []
 
-
-
 # /org/
 class PartyOrgCRUD(GenericCRUDView):
     requireApiKey = False

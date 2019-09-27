@@ -9,7 +9,6 @@ from django.test import TestCase
 from .models import ApiKey
 from .testSamples import ApiKeySample
 from common.tests import TestGenericInterfaces, GenericCRUDTest
-# Python 3: module Cookie -> http.cookies
 from http.cookies import SimpleCookie
 
 # Create your tests here.                                                                                                                                                                                 

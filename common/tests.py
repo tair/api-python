@@ -1,14 +1,12 @@
 import json
 import sys
 import time
-# Python 3: library urllib -> urllib.parse
 import urllib.request, urllib.parse, urllib.error
 from .testSamples import CommonApiKeySample, CommonPartnerSample, CommonUserPartySample, CommonCredentialSample
 from partner.models import Partner
 from apikey.models import ApiKey
 from django.test import Client
 from django.conf import settings
-# Python 3: module Cookie -> http.cookies
 from http.cookies import SimpleCookie
 
 class TestGenericInterfaces:

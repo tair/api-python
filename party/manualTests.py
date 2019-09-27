@@ -5,9 +5,11 @@ import json
 from django.test import TestCase
 from .testSamples import UsageSample
 from django.core.mail import send_mail
+from django.test.utils import override_settings
 
 # test for API end point /parties/usage/
 # API used for requesting usage for consortiums/institutions
+@override_settings(EMAIL_BACKEND='django.core.mail.backends.smtp.EmailBackend')
 class GetUsageRequestTest(TestCase):
     sample = UsageSample()
     
@@ -16,6 +18,7 @@ class GetUsageRequestTest(TestCase):
         self.send_usage_email(self.sample.consortiumData)
 
     # this code is copied from party/views.py implementation
+    # since the original implementation hard coded recipient email
     def send_usage_email(self, data):
         partyName = ''
         partyTypeName = ''

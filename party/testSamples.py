@@ -232,7 +232,7 @@ class UsageSample():
     PARTNER = 'phoenix'
     COMMENTS = 'Please send us the usage data'
     NUM_DAYS_DELTA = 90
-    RECEIPIENT_EMAIL = 'xingguo.chen@arabidopsis.org'
+    RECEIPIENT_EMAIL = 'techteam@arabidopsis.org'
     startDateObj = datetime.today() - timedelta(days=NUM_DAYS_DELTA)
     startDate = startDateObj.strftime('%b %d, %Y')
     endDateObj = datetime.today()

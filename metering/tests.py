@@ -11,7 +11,6 @@ from partner.testSamples import PartnerSample
 from partner.models import Partner
 from common.tests import TestGenericInterfaces, GenericCRUDTest, GenericTest
 from .testSamples import LimitValueSample, IpAddressCountSample, MeterBlacklistSample
-# Python 3: module Cookie -> http.cookies
 from http.cookies import SimpleCookie
 
 # Create your tests here.                                                                                                                                                                                 
