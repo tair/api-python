@@ -220,4 +220,5 @@ if not TestGenericInterfaces.hasHost():
 
 print("Using server url %s" % TestGenericInterfaces.getHost())
 print("Test one...")
+print("Test two...")
 
