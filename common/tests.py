@@ -219,4 +219,5 @@ if not TestGenericInterfaces.hasHost():
     print("WARNING: No HOSTNAME detected in settings.py.")
 
 print("Using server url %s" % TestGenericInterfaces.getHost())
+print("Test one...")
 
