@@ -10,7 +10,7 @@ genericForcePost = TestGenericInterfaces.forcePost
 
 class CredentialSample():
     path = 'credentials/'
-    loginPath = 'credentials/login/'
+    loginPath = 'credentials/login/test/'
     serverUrl = None
     url = None
     USERNAME = 'test_user'
