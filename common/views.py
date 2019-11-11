@@ -1,5 +1,6 @@
 from rest_framework.response import Response
 from rest_framework import generics, status
+from django.db import models
 
 class GenericCRUDView(generics.GenericAPIView):
     requireApiKey = True
@@ -9,13 +10,16 @@ class GenericCRUDView(generics.GenericAPIView):
         for key in params:
             # fully backward compatiable version on get_fields method can be found here:
             # https://docs.djangoproject.com/en/1.10/ref/models/meta/#migrating-from-the-old-api
-            if key in queryset.model._meta.get_fields():
+            try:
+                f = queryset.model._meta.get_field(key)
                 value = params[key]
                 filters = {key:value}
                 try:
                     queryset = queryset.filter(**filters)
                 except ValueError:
                     return []
+            except models.FieldDoesNotExist:
+                return []
         return queryset
 
     def get(self, request, format=None):
