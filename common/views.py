@@ -19,7 +19,8 @@ class GenericCRUDView(generics.GenericAPIView):
                 except ValueError:
                     return []
             except models.FieldDoesNotExist:
-                return []
+                # do nothing, continue to check next key
+                continue
         return queryset
 
     def get(self, request, format=None):
