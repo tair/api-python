@@ -5,6 +5,8 @@ from django.db import connection
 from netaddr import IPAddress
 from django.utils import timezone
 from common.common import validateIpRange
+from rest_framework import serializers
+from django.utils.translation import ugettext_lazy as _
 
 import logging
 logger = logging.getLogger('phoenix.api.party')
@@ -22,6 +24,17 @@ class Party(models.Model):
     country = models.ForeignKey('Country', null=True, db_column="countryId")
     consortiums = models.ManyToManyField('self', through="PartyAffiliation", through_fields=('childPartyId', 'parentPartyId'), symmetrical=False, related_name="PartyAffiliation")
     label = models.CharField(max_length=64, null=True)
+
+    class Meta:
+        db_table = "Party"
+
+    def clean(self, *args, **kwargs):
+        self.validateInstitutionCountry()
+        super(Party, self).clean(*args, **kwargs)
+
+    def save(self, *args, **kwargs):
+        self.clean()
+        super(Party, self).save(*args, **kwargs)
 
     @staticmethod
     def getByIp(ipAddress):
@@ -42,8 +55,11 @@ class Party(models.Model):
         partyList.extend(consortiums)
         return partyList
 
-    class Meta:
-        db_table = "Party"
+    def validateInstitutionCountry(self):
+        if self.partyType == 'organization':
+            if not self.country:
+                raise serializers.ValidationError({'Party': _('Country field is required')})
+
 
 class PartyAffiliation(models.Model):
     partyAffiliationId = models.AutoField(verbose_name='ID', serialize=False, auto_created=True, primary_key=True)
