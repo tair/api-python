@@ -1,7 +1,7 @@
 #Copyright 2015 Phoenix Bioinformatics Corporation. All rights reserved.
 
-from party.models import Party, IpRange, Country, PartyAffiliation
-from party.serializers import PartySerializer, IpRangeSerializer, CountrySerializer
+from party.models import Party, IpRange, Country, PartyAffiliation, ImageInfo
+from party.serializers import PartySerializer, IpRangeSerializer, CountrySerializer, ImageInfoSerializer
 from subscription.models import Subscription
 from partner.models import Partner
 from django.db.models import Q
@@ -52,8 +52,6 @@ class PartyCRUD(GenericCRUDView):
                 partyType = self.request.GET.get('partyType')
                 return super(PartyCRUD, self).get_queryset().filter(partyType=partyType)
         return []
-
-
 
 # /org/
 class PartyOrgCRUD(GenericCRUDView):
@@ -125,6 +123,18 @@ class IpRangeCRUD(GenericCRUDView):
             return super(IpRangeCRUD, self).get_queryset().filter(partyId=partyId)
         return []
 # TODO: "post" is still a security vulnerability -SC
+
+# /imageinfo/
+# TODO: Write unit test cases
+class ImageInfoCRUD(GenericCRUDView):
+    requireApiKey = False
+    phoenixOnly = True
+    queryset = ImageInfo.objects.all()
+    serializer_class = ImageInfoSerializer
+
+    def get_queryset(self):
+        partyId = self.request.GET.get('partyId')
+        return super(ImageInfoCRUD, self).get_queryset().filter(partyId=partyId)
 
 #------------------- End of Basic CRUD operations --------------
 

@@ -1,7 +1,7 @@
 #Copyright 2015 Phoenix Bioinformatics Corporation. All rights reserved.
 
 
-from party.models import Party, IpRange, Country
+from party.models import Party, IpRange, Country, ImageInfo
 from rest_framework import serializers
 
 class PartySerializer(serializers.ModelSerializer):
@@ -21,3 +21,8 @@ class CountrySerializer(serializers.ModelSerializer):
     class Meta:
         model = Country
         fields = ('countryId','name')
+
+class ImageInfoSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = ImageInfo
+        fields = ('imageInfoId', 'partyId', 'name', 'imageUrl', 'createdAt')
