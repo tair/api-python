@@ -120,7 +120,10 @@ class PaymentControl():
         
         termObj = SubscriptionTerm.objects.get(subscriptionTermId=termId)
         partnerObj = termObj.partnerId
-        loginURL = domain + partnerObj.loginUri + "?redirect=" + urllib.quote(domain + "/preferences.html", safe='~')
+        loginURL = domain + partnerObj.loginUri
+        if partnerObj.defaultLoginRedirect is not None:
+            param = "?redirect=" + urllib.quote(partnerObj.defaultLoginRedirect, safe='~')
+            loginURL += param
         registerURL = partnerObj.registerUri
         name = firstname+" "+lastname
         institute = institute
