@@ -17,7 +17,7 @@ os.sys.path.append('../')
 os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'paywall2.settings')
 django.setup()
 
-from party.models import IpRange, Party, PartyAffiliation, Country
+from party.models import IpRange, Party
 
 # Begin main program:
 
