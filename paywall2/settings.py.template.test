@@ -241,3 +241,8 @@ EMAIL_PORT = 25
 # For AWS SES, this will be the username/password of the IAM created for SES.
 EMAIL_HOST_USER = None
 EMAIL_HOST_PASSWORD = None
+
+# Fill in the credentials for CIPRES password decryption
+CIPHER_CLIENT_SECRET = None
+CIPHER_SALT = None
+CIPHER_ITERATION = 200000 # 200,000

@@ -23,6 +23,9 @@ from party.models import Party
 
 from common.permissions import isPhoenix
 
+# CIPRES-13: add password decryption
+from common.utils.cipher import AESCipher
+
 import logging
 logger = logging.getLogger('phoenix.api.authentication')
 
@@ -80,7 +83,22 @@ class listcreateuser(GenericCRUDView):
     if ApiKeyPermission.has_permission(request, self):
       serializer_class = self.get_serializer_class()
       data = request.data.copy() # PW-660
-      data['password'] = hashlib.sha1(data['password']).hexdigest()
+      # CIPRES-13: Decrypt user password
+      if 'partnerId' not in data:
+        return Response({'error': 'partnerId is required'}, status=status.HTTP_400_BAD_REQUEST)
+      partnerId = data['partnerId']
+      if partnerId == 'cipres':
+        cipher = AESCipher()
+        try:
+          decryptedPassword = cipher.decrypt(data['password'])
+        except Exception as e:
+          return Response({'error': 'Cannot parse password: ' + str(e)}, status=status.HTTP_400_BAD_REQUEST)
+        else:
+          pass
+        data['password'] = hashlib.sha1(decryptedPassword).hexdigest()
+      else:
+        data['password'] = hashlib.sha1(data['password']).hexdigest()
+      # CIPRES-13 end
       if 'partyId' in data:
         partyId = data['partyId']
         if Credential.objects.all().filter(partyId=partyId).exists():
@@ -92,7 +110,12 @@ class listcreateuser(GenericCRUDView):
           if Credential.objects.all().filter(userIdentifier=userIdentifier).filter(partnerId=partnerId).exists():
             return Response({"non_field_errors": ["User identifier already exists, use PUT to update the credential or provide an unique user identifier."]}, status=status.HTTP_400_BAD_REQUEST)
       if 'partyId' not in data:
-        name = data['name']
+        if 'name' in data:
+          name = data['name']
+        elif 'username' in data:
+          name = data['username']
+        else:
+          return Response({'error': 'username is required'}, status=status.HTTP_400_BAD_REQUEST)
         if 'display' not in data:#PW-272 
             partyData = {'name':name, 'partyType':'user','display':'0'}
         else: 
@@ -125,7 +148,20 @@ class listcreateuser(GenericCRUDView):
     #http://stackoverflow.com/questions/18930234/django-modifying-the-request-object PW-123
     data = request.data.copy() # PW-123
     if 'password' in data:
-      data['password'] = hashlib.sha1(data['password']).hexdigest()
+      # CIPRES-13: Decrypt user password
+      partnerId = self.request.GET['partnerId']
+      if partnerId == 'cipres':
+        cipher = AESCipher()
+        try:
+          decryptedPassword = cipher.decrypt(data['password'])
+        except Exception as e:
+          return Response({'error': 'Cannot parse password: ' + str(e)}, status=status.HTTP_400_BAD_REQUEST)
+        else:
+          pass
+        data['password'] = hashlib.sha1(decryptedPassword).hexdigest()
+      else:
+        data['password'] = hashlib.sha1(data['password']).hexdigest()
+      # CIPRES-13 end
     serializer = serializer_class(obj, data=data, partial=True)
     if serializer.is_valid():
       serializer.save()
@@ -230,6 +266,7 @@ def login(request):
     logger.info("Authentication Login %s, %s: \n %s %s %s" % (ip, msg, requestUser, requestHashedPassword, request.GET['partnerId']))
     return HttpResponse(json.dumps({"message":msg}), status=401)
 
+#/credentials/resetPwd/
 def resetPwd(request):
   if request.method == 'PUT':
     if not 'user' in request.GET:
@@ -262,6 +299,7 @@ def resetPwd(request):
             
       return HttpResponse(json.dumps({'reset pwd':'success', 'username':user.username, 'useremail':user.email, 'temppwd':user.password}), content_type="application/json")#PW-215 unlikely
     return HttpResponse(json.dumps({"reset pwd failed":"No such user"}), status=401)
+
 #/credentials/register/
 #https://demoapi.arabidopsis.org/credentials/register
 def registerUser(request):
@@ -359,5 +397,4 @@ def checkAccountExists(request):
       username = params['username']
       result['usernameExist'] = Credential.objects.all().filter(username=username).filter(partnerId=partnerId).exists()
     return HttpResponse(json.dumps(result), status=status.HTTP_200_OK);
-
 
