@@ -20,7 +20,7 @@ class IpRangeSerializer(serializers.ModelSerializer):
 class CountrySerializer(serializers.ModelSerializer):
     class Meta:
         model = Country
-        fields = ('countryId','name')
+        fields = ('countryId','name','abbreviation')
 
 class ImageInfoSerializer(serializers.ModelSerializer):
     class Meta:

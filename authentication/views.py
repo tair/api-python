@@ -19,7 +19,7 @@ from authentication.serializers import CredentialSerializer, CredentialSerialize
 from subscription.models import Party
 from partner.models import Partner
 from party.serializers import PartySerializer
-from party.models import Party
+from party.models import Party, Country
 
 from common.permissions import isPhoenix
 
@@ -117,9 +117,22 @@ class listcreateuser(GenericCRUDView):
         else:
           return Response({'error': 'username is required'}, status=status.HTTP_400_BAD_REQUEST)
         if 'display' not in data:#PW-272 
-            partyData = {'name':name, 'partyType':'user','display':'0'}
-        else: 
-            partyData = {'name':name, 'partyType':'user','display': data['display']}
+          display = '0'
+        else:
+          display = data['display']
+        # CIPRES-13: Require country info for user registration
+        if partnerId == 'cipres':
+          if 'countryCode' not in data:
+            return Response({'error': 'countryCode is required'}, status=status.HTTP_400_BAD_REQUEST)
+          else:
+            try:
+              country = Country.objects.get(abbreviation=data['countryCode'])
+            except Exception as e:
+              return Response({'error': 'Cannot find country: ' + str(e)}, status=status.HTTP_400_BAD_REQUEST)
+            partyData = {'name':name, 'partyType':'user','display':display,'country':country.countryId}
+        else:
+          partyData = {'name':name, 'partyType':'user','display':display}
+        # CIPRES-13 end
         partySerializer = PartySerializer(data=partyData, partial =True)
         # pu = Party(); pu.save()
         # data['partyId'] = pu.partyId
