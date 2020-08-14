@@ -259,6 +259,11 @@ def login(request):
                 i = i+1
                 continue
             else:
+                #CIPRES-21: retrieve abbreviation code of the user country when the user logs in
+                countryAbbr = ""
+                country = dbUser.partyId.country
+                if country:
+                  countryAbbr = country.abbreviation
                 response = HttpResponse(json.dumps({
                      "message": "Correct password",
                      "credentialId": dbUser.partyId.partyId,
@@ -267,6 +272,7 @@ def login(request):
                      "role":"librarian",
                      "username": dbUser.username,
                      "userIdentifier": dbUser.userIdentifier,
+                     "countryCode": countryAbbr
                 }), status=200)
                 msg=" Authentication Login USER AND PWD MATCH. dbUser=%s requestUser=%s hashedRequestPassword=%s" % (dbUser.username, requestUser, requestHashedPassword)
                 logger.info(msg)
