@@ -2,6 +2,7 @@
 from django.utils.translation import ugettext_lazy as _
 from netaddr import IPAddress, IPRange, IPNetwork
 from rest_framework import serializers
+import json
 
 # Determine IP address of the host from which the given request has been received.
 #
@@ -16,11 +17,16 @@ def getRemoteIpAddress(request):
     return ip
 
 # validate ip range based on a series of conditions
-def validateIpRange(start, end):
+def validateIpRange(start, end, IpRange):
     if isIpRangePrivate(start, end):
         raise serializers.ValidationError({'IP Range': _('IP range contains private IP: %s - %s' % (start, end))})
     if not validateIpRangeSize(start, end):
         raise serializers.ValidationError({'IP Range': _('IP range too large: %s - %s' % (start, end))})
+    dupList = validateIpRangeOverlap(start, end, IpRange)
+    if dupList:
+        resList = [{'institution': ipRange.partyId.name, 'start': ipRange.start, 'end': ipRange.end} for ipRange in dupList]
+        res= json.dumps(resList)
+        raise serializers.ValidationError({'IP Range': _('IP range overlaps existing IP range(s): %s' % res) })
 
 # check if the ip range is private
 def isIpRangePrivate(start, end):
@@ -60,3 +66,15 @@ def validateIpRangeSize(start, end):
         return True if ipRange.size <= 65536 else False
     if ipRange.__getstate__()[2] == 6:
         return True if ipRange.size <= 324518553658426726783156020576256 else False
+
+def validateIpRangeOverlap(start, end, IpRange):
+    allIpRangeList = IpRange.objects.all()
+    dupList = []
+    for ipRange in allIpRangeList:
+        if IPAddress(end) < IPAddress(ipRange.start) or IPAddress(start) > IPAddress(ipRange.end):
+            continue
+        else:
+            dupList.append(ipRange)
+    return dupList
+
+
