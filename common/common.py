@@ -24,9 +24,9 @@ def validateIpRange(start, end, IpRange):
         raise serializers.ValidationError({'IP Range': _('IP range too large: %s - %s' % (start, end))})
     dupList = validateIpRangeOverlap(start, end, IpRange)
     if dupList:
-        resList = [{'institution': ipRange.partyId.name, 'start': ipRange.start, 'end': ipRange.end} for ipRange in dupList]
-        res= json.dumps(resList)
-        raise serializers.ValidationError({'IP Range': _('IP range overlaps existing IP range(s): %s' % res) })
+        resList = ['institution name: '+ ipRange.partyId.name + ', start: ' + ipRange.start + ', end: ' + ipRange.end for ipRange in dupList]
+        res= '\n'.join(resList)
+        raise serializers.ValidationError({'IP Range': _('IP range overlaps existing IP range(s):\n%s' % res) })
 
 # check if the ip range is private
 def isIpRangePrivate(start, end):
