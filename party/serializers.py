@@ -8,7 +8,7 @@ class PartySerializer(serializers.ModelSerializer):
     hasIpRange = serializers.SerializerMethodField() # Used SerializerMethodField to add a customized field which returns a boolean
     class Meta:
         model = Party
-        fields = ('partyId','partyType', 'name', 'country', 'display', 'consortiums', 'label', 'hasIpRange')
+        fields = ('partyId','partyType', 'name', 'country', 'display', 'consortiums', 'label', 'hasIpRange', 'serialId')
     def get_hasIpRange(self, obj): # Method for SerializerMethodField
         return True if obj.iprange_set.count() else False
 
