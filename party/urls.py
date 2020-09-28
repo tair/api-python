@@ -10,6 +10,7 @@ urlpatterns = [
     url(r'^organizations/$', views.OrganizationView.as_view()),#PW-265
     
     url(r'^ipranges/$', views.IpRangeCRUD.as_view()),
+    url(r'^imageinfo/$', views.ImageInfoCRUD.as_view()),
     #https://demoapi.arabidopsis.org/parties/?partyId=31627&credentialId=33197&secretKey=kZ5yK8hdSbncXwD4%2F2DJOxqFUds%3D
     url(r'^$', views.PartyCRUD.as_view()),
 
