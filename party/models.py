@@ -24,7 +24,7 @@ class Party(models.Model):
     country = models.ForeignKey('Country', null=True, db_column="countryId")
     consortiums = models.ManyToManyField('self', through="PartyAffiliation", through_fields=('childPartyId', 'parentPartyId'), symmetrical=False, related_name="PartyAffiliation")
     label = models.CharField(max_length=64, null=True)
-    serialId = models.IntegerField(unique=True, null=True)
+    serialId = models.CharField(max_length=16, unique=True, null=True)
 
     class Meta:
         db_table = "Party"
