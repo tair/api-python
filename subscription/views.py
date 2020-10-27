@@ -3,8 +3,8 @@
 from django.http import HttpResponse, StreamingHttpResponse
 
 from subscription.controls import PaymentControl, SubscriptionControl
-from subscription.models import Subscription, SubscriptionTransaction, ActivationCode, SubscriptionRequest
-from subscription.serializers import SubscriptionSerializer, SubscriptionTransactionSerializer, ActivationCodeSerializer, SubscriptionRequestSerializer
+from subscription.models import Subscription, SubscriptionTransaction, ActivationCode, SubscriptionRequest, UsageUnitPurchase
+from subscription.serializers import SubscriptionSerializer, SubscriptionTransactionSerializer, ActivationCodeSerializer, SubscriptionRequestSerializer, UsageUnitPurchaseSerializer
 
 from partner.models import Partner, SubscriptionTerm
 from party.models import Party, ImageInfo
@@ -660,3 +660,33 @@ class Membership(generics.GenericAPIView):
                     imageUrl = memberInfo.imageUrl
         return HttpResponse(json.dumps({'isMember':isMember, 'expDate':expDate, "name":name, "imageUrl":imageUrl }), content_type="application/json")
 
+# /active-usage-unit-purchase
+# CIPRES-20: End point for querying a user's usage units purchased from a given number of days before till now
+# params: partyId, partnerId, number of days as "activeDuration"
+# returns: a list of UsageUnitPurchase records in JSON format
+class ActiveUsageUnitPurchase(generics.GenericAPIView):
+    requireApiKey = False
+    def get(self,request):
+        params = request.GET
+        # not checking param existence since it is only used by Phoenix's resources
+        partnerId = params['partnerId']
+        partyId = params['partyId']
+        duration = int(params['activeDuration'])
+        activePurchases = UsageUnitPurchase.getActiveByIdAndPartner(partyId, partnerId, duration)
+        serializer = UsageUnitPurchaseSerializer(activePurchases, many=True)
+        return HttpResponse(json.dumps(dict(serializer.data)), content_type="application/json")
+
+# /active-usage-unit-purchase/sum
+# CIPRES-20: End point for querying the sum of a user's usage units purchased from a given number of days before till now
+# params: partyId, partnerId, number of days as "activeDuration"
+# returns: the sum of quantity of the matching UsageUnitPurchase records in JSON format as "totalActivePurchasedUnit"
+class ActiveUsageUnitPurchaseSum(generics.GenericAPIView):
+    requireApiKey = False
+    def get(self,request):
+        params = request.GET
+        # not checking param existence since it is only used by Phoenix's resources
+        partnerId = params['partnerId']
+        partyId = params['partyId']
+        duration = int(params['activeDuration'])
+        totalActiveUnit = UsageUnitPurchase.getActiveUnitSumByIdAndPartner(partyId, partnerId, duration)
+        return HttpResponse(json.dumps({'totalActivePurchasedUnit': totalActiveUnit}), content_type="application/json")
