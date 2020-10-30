@@ -24,7 +24,7 @@ from party.models import Party, Country
 from common.permissions import isPhoenix
 
 # CIPRES-13: add password decryption
-from common.utils.cipher import AESCipher
+from common.utils.cipresUtils import AESCipher
 
 import logging
 logger = logging.getLogger('phoenix.api.authentication')

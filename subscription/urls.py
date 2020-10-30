@@ -29,6 +29,7 @@ urlpatterns = [
     url(r'^active/$', views.SubscriptionActiveCRUD.as_view()),
     url(r'^active-usage-unit-purchase/$', views.ActiveUsageUnitPurchase.as_view()),
     url(r'^active-usage-unit-purchase/sum/$', views.ActiveUsageUnitPurchaseSum.as_view()),
+    url(r'^payments/usage-unit/$', views.UsageUnitsPayment.as_view()),
 
     # Templates
     url(r'^templates/block/$', TemplateView.as_view(template_name="subscription/block.html")),

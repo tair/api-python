@@ -1,18 +1,17 @@
+import stripe
+import uuid
+import datetime
 from django.shortcuts import render
 from django.http import HttpResponse
 from django.utils import timezone
-import stripe
 from partner.models import SubscriptionTerm, Partner
-from subscription.models import Subscription, SubscriptionTransaction, ActivationCode
+from subscription.models import Subscription, SubscriptionTransaction, ActivationCode, UsageUnitPurchase
 from serializers import SubscriptionSerializer
 from party.models import Party
-
-import datetime
 from django.utils import timezone
-
-import uuid
-
 from django.core.mail import send_mail
+from common.utils.cipresUtils import APICaller
+
 import logging
 logger = logging.getLogger('phoenix.api.subscription')
 
@@ -70,6 +69,141 @@ class SubscriptionControl():
 
 class PaymentControl():
 
+    # for CIPRES credit purchase payment
+    @staticmethod
+    def chargeForCIPRES(partyId, userIdentifier, secret_key, stripe_token, priceToCharge, partnerName, chargeDescription, termId, quantity, emailAddress, firstname, lastname, institute, street, city, state, country, zip, hostname, redirect, vat, domain):
+        message = {}
+        message['price'] = priceToCharge
+        message['termId'] = termId
+        message['quantity'] = quantity
+        if not PaymentControl.validateCharge(priceToCharge, termId, quantity):
+            message['message'] = "Charge validation error"
+            #message['status'] = False //PW-120 vet we will return 400 instead - see SubscriptionsPayment post - i.e. the caller 
+            return message
+        
+        # stripe.api_key = secret_key
+        # charge = stripe.Charge.create(
+        #     amount=int(priceToCharge*100), # stripe takes in cents; UI passes in dollars. multiply by 100 to convert.
+        #     currency="usd",
+        #     source=stripe_token,
+        #     description=chargeDescription, #PW-248
+        #     metadata = {'Email': emailAddress, 'Institute': institute, 'VAT': vat}
+        # )
+
+        status = True
+        # try:
+        #     pass
+        # except stripe.error.InvalidRequestError, e:
+        #     status = False
+        #     message['message'] = e.json_body['error']['message']
+        # except stripe.error.CardError, e:
+        #     status = False
+        #     message['message'] = e.json_body['error']['message']
+        # except stripe.error.AuthenticationError, e:
+        #     status = False
+        #     message['message'] = e.json_body['error']['message']
+        # except stripe.error.APIConnectionError, e:
+        #     status = False
+        #     message['message'] = e.json_body['error']['message']
+        # except Exception, e:
+        #     status = False
+        #     message['message'] = "Unexpected exception: %s" % (e)
+
+        message['status'] = status
+        
+        if status:
+
+            # transactionId = charge.id
+            transactionId = 'test_transaction_id'
+            termObj = SubscriptionTerm.objects.get(subscriptionTermId=termId)
+            partnerObj = termObj.partnerId
+            unitQty = termObj.period
+            purchaseDate = timezone.now()
+
+            partyObj = Party.objects.get(partyId=partyId)
+
+            unitPurchaseObj = PaymentControl.createUnitPurchase(partyObj, partnerObj, unitQty, purchaseDate);
+            purchaseId = unitPurchaseObj.purchaseId
+
+            caller = APICaller()
+            postUnitPurchasePostResponse = caller.postUnitPurchase(userIdentifier, unitQty, transactionId, purchaseDate)
+
+            if postUnitPurchasePostResponse.status_code == 201:
+                msg = "To access CIPRES resources, please visit phylo.org and log in using your CIPRES user account."
+                PaymentControl.sendCIPRESEmail(msg, purchaseId, termObj, partnerObj, emailAddress, firstname, lastname, priceToCharge, institute, transactionId, vat)
+                unitPurchaseObj.syncedToPartner = True
+                unitPurchaseObj.save()
+
+            else:
+                PaymentControl.sendCIPRESSyncFailedEmail(purchaseId, transactionId)
+                msg = "Your order has been processed, and the purchased CPU hours will be reflected in your CIPRES account within 24 hours."
+                PaymentControl.sendCIPRESEmail(msg, purchaseId, termObj, partnerObj, emailAddress, firstname, lastname, priceToCharge, institute, transactionId, vat)
+
+        return message
+
+    @staticmethod
+    def createUnitPurchase(partyId, partnerId, unitQty, purchaseDate):
+        unitPurchaseObj = UsageUnitPurchase()
+        unitPurchaseObj.partnerId=partnerId
+        unitPurchaseObj.quantity=unitQty
+        unitPurchaseObj.purchaseDate=purchaseDate
+        unitPurchaseObj.partyId=partyId
+        unitPurchaseObj.syncedToPartner=False
+        unitPurchaseObj.save()
+
+        return unitPurchaseObj
+
+    @staticmethod
+    def sendCIPRESEmail(msg, purchaseId, termObj, partnerObj, email, firstname, lastname, payment, institute, transactionId, vat):
+        name = firstname + " " + lastname
+        payment = "%.2f" % float(payment)
+        
+        html_message = partnerObj.activationEmailInstructionText % ( 
+            partnerObj.logoUri,
+            name,
+            msg,
+            institute,
+            termObj.description,
+            payment,
+            transactionId,
+            vat,
+            """
+            Phoenix Bioinformatics Corporation,<br>
+            7100 Stevenson Blvd., Suite 403,<br>
+            Fremont, CA 94538, USA<br>
+            """)
+        
+        subject = "Subscription Receipt"
+        from_email = "info@phoenixbioinformatics.org"
+        recipient_list = [email]
+
+        logger.info("------Sending CIPRES subscription email------")
+        logger.info("Receipient: %s" % recipient_list[0])
+        logger.info("Usage Unit Purchase ID: %s" % purchaseId)
+        logger.info("Transaction ID: %s" % transactionId)
+        logger.info("Main message: %s" % msg)
+        send_mail(subject=subject, from_email=from_email, recipient_list=recipient_list, html_message=html_message, message=None)
+        logger.info("------Done sending email------")
+
+    @staticmethod
+    def sendCIPRESSyncFailedEmail(purchaseId, transactionId):
+        subject = "Failed to sync CIPRES subscription"
+        from_email = "info@phoenixbioinformatics.org"
+        recipient_list = ["xingguo.chen@arabidopsis.org"]
+
+        msg = """Failed to sync CIPRES subscription to CIPRES database. Unit purchase id is 
+                """+purchaseId+""", transaction id is 
+                """+transactionId+""". Please address it ASAP."""
+
+        logger.info("------Sending CIPRES sync failed email------")
+        logger.info("Usage Unit Purchase ID: %s" % purchaseId)
+        logger.info("Transaction ID: %s" % transactionId)
+        logger.info("Main message: %s" % msg)
+        send_mail(subject=subject, from_email=from_email, recipient_list=recipient_list, message=msg)
+        logger.info("------Done sending email------")
+
+
+    # for regular Phoenix subscription payment
     @staticmethod
     def tryCharge(secret_key, stripe_token, priceToCharge, partnerName, chargeDescription, termId, quantity, emailAddress, firstname, lastname, institute, street, city, state, country, zip, hostname, redirect, vat, domain):
         message = {}
