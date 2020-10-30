@@ -169,8 +169,8 @@ class PaymentControl():
             vat,
             """
             Phoenix Bioinformatics Corporation,<br>
-            7100 Stevenson Blvd., Suite 403,<br>
-            Fremont, CA 94538, USA<br>
+            39221 Paseo Padre Parkway Ste J<br>
+            Fremont, CA, 94538, USA<br>
             """)
         
         subject = "Subscription Receipt"
@@ -189,7 +189,7 @@ class PaymentControl():
     def sendCIPRESSyncFailedEmail(purchaseId, transactionId, statusCode, error):
         subject = "Failed to sync CIPRES subscription"
         from_email = "info@phoenixbioinformatics.org"
-        recipient_list = ["xingguo.chen@arabidopsis.org"]
+        recipient_list = settings.ADMINS
 
         msg = """
         Failed to sync CIPRES subscription to CIPRES database.
