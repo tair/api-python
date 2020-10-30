@@ -135,7 +135,7 @@ class PaymentControl():
                 unitPurchaseObj.save()
 
             else:
-                PaymentControl.sendCIPRESSyncFailedEmail(purchaseId, transactionId)
+                PaymentControl.sendCIPRESSyncFailedEmail(purchaseId, transactionId, postUnitPurchasePostResponse.status_code, postUnitPurchasePostResponse.text)
                 msg = "Your order has been processed, and the purchased CPU hours will be reflected in your CIPRES account within 24 hours."
                 PaymentControl.sendCIPRESEmail(msg, purchaseId, termObj, partnerObj, emailAddress, firstname, lastname, priceToCharge, institute, transactionId, vat)
 
@@ -186,14 +186,19 @@ class PaymentControl():
         logger.info("------Done sending email------")
 
     @staticmethod
-    def sendCIPRESSyncFailedEmail(purchaseId, transactionId):
+    def sendCIPRESSyncFailedEmail(purchaseId, transactionId, statusCode, error):
         subject = "Failed to sync CIPRES subscription"
         from_email = "info@phoenixbioinformatics.org"
         recipient_list = ["xingguo.chen@arabidopsis.org"]
 
-        msg = """Failed to sync CIPRES subscription to CIPRES database. Unit purchase id is 
-                """+purchaseId+""", transaction id is 
-                """+transactionId+""". Please address it ASAP."""
+        msg = """
+        Failed to sync CIPRES subscription to CIPRES database.
+        HTTP status code: %s
+        Error: %s
+        Unit Purchase ID: %s
+        Transaction ID: %s
+        Please address it ASAP.
+        """ % (statusCode, error, purchaseId, transactionId)
 
         logger.info("------Sending CIPRES sync failed email------")
         logger.info("Usage Unit Purchase ID: %s" % purchaseId)
