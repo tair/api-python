@@ -189,7 +189,7 @@ class PaymentControl():
     def sendCIPRESSyncFailedEmail(purchaseId, transactionId, statusCode, error):
         subject = "Failed to sync CIPRES subscription"
         from_email = "info@phoenixbioinformatics.org"
-        recipient_list = settings.ADMINS
+        recipient_list = settings.CIPRES_ADMINS
 
         msg = """
         Failed to sync CIPRES subscription to CIPRES database.

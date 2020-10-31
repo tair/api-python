@@ -250,3 +250,5 @@ CIPHER_ITERATION = 200000 # 200,000
 CIPRES_API_BASE_URL = None
 CIPRES_BASIC_AUTH_TOKEN = None
 CIPRES_ACCESS_TOKEN = None
+# Email addresses for sending CIPRES sync failed email
+CIPRES_ADMINS = [techteam@arabidopsis.org']
