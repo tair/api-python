@@ -192,12 +192,12 @@ class PaymentControl():
         recipient_list = settings.CIPRES_ADMINS
 
         msg = """
-        Failed to sync CIPRES subscription to CIPRES database.
+    Failed to sync CIPRES subscription to CIPRES database.
         HTTP status code: %s
         Error: %s
         Unit Purchase ID: %s
         Transaction ID: %s
-        Please address it ASAP.
+    Please address it ASAP.
         """ % (statusCode, error, purchaseId, transactionId)
 
         logger.info("------Sending CIPRES sync failed email------")
