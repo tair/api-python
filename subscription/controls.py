@@ -78,6 +78,7 @@ class PaymentControl():
         message['quantity'] = quantity
         if not PaymentControl.validateCharge(priceToCharge, termId, quantity):
             message['message'] = "Charge validation error"
+            logPaymentError(partyId, userIdentifier, message['message'])
             #message['status'] = False //PW-120 vet we will return 400 instead - see SubscriptionsPayment post - i.e. the caller 
             return message
         
@@ -138,7 +139,18 @@ class PaymentControl():
                 msg = "Your order has been processed, and the purchased CPU hours will be reflected in your CIPRES account within 24 hours."
                 PaymentControl.sendCIPRESEmail(msg, purchaseId, termObj, partnerObj, emailAddress, firstname, lastname, priceToCharge, institute, transactionId, vat)
 
+        if message['message']:
+            logPaymentError(partyId, userIdentifier, message['message'])
+
         return message
+
+    @staticmethod
+    def logPaymentError(partyId, userIdentifier, message):
+         logger.info("------Payment Charge Failed------")
+         logger.info("User Party ID: %s" % partyId)
+         logger.info("User Identifier ID: %s" % userIdentifier)
+         logger.info("Error Message: %s" % message)
+         logger.info("---------------------------------")
 
     @staticmethod
     def createUnitPurchase(partyId, partnerId, unitQty, purchaseDate):
@@ -180,7 +192,7 @@ class PaymentControl():
         logger.info("Receipient: %s" % recipient_list[0])
         logger.info("Usage Unit Purchase ID: %s" % purchaseId)
         logger.info("Transaction ID: %s" % transactionId)
-        logger.info("Main message: %s" % msg)
+        logger.info("Main Message: %s" % msg)
         send_mail(subject=subject, from_email=from_email, recipient_list=recipient_list, html_message=html_message, message=None)
         logger.info("------Done sending email------")
 
@@ -202,7 +214,7 @@ class PaymentControl():
         logger.info("------Sending CIPRES sync failed email------")
         logger.info("Usage Unit Purchase ID: %s" % purchaseId)
         logger.info("Transaction ID: %s" % transactionId)
-        logger.info("Main message: %s" % msg)
+        logger.info("Main Message: %s" % msg)
         send_mail(subject=subject, from_email=from_email, recipient_list=recipient_list, message=msg)
         logger.info("------Done sending email------")
 
