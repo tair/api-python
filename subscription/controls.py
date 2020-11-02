@@ -81,40 +81,39 @@ class PaymentControl():
             #message['status'] = False //PW-120 vet we will return 400 instead - see SubscriptionsPayment post - i.e. the caller 
             return message
         
-        # stripe.api_key = secret_key
-        # charge = stripe.Charge.create(
-        #     amount=int(priceToCharge*100), # stripe takes in cents; UI passes in dollars. multiply by 100 to convert.
-        #     currency="usd",
-        #     source=stripe_token,
-        #     description=chargeDescription, #PW-248
-        #     metadata = {'Email': emailAddress, 'Institute': institute, 'VAT': vat}
-        # )
+        stripe.api_key = secret_key
+        charge = stripe.Charge.create(
+            amount=int(priceToCharge*100), # stripe takes in cents; UI passes in dollars. multiply by 100 to convert.
+            currency="usd",
+            source=stripe_token,
+            description=chargeDescription, #PW-248
+            metadata = {'Email': emailAddress, 'Institute': institute, 'VAT': vat}
+        )
 
         status = True
-        # try:
-        #     pass
-        # except stripe.error.InvalidRequestError, e:
-        #     status = False
-        #     message['message'] = e.json_body['error']['message']
-        # except stripe.error.CardError, e:
-        #     status = False
-        #     message['message'] = e.json_body['error']['message']
-        # except stripe.error.AuthenticationError, e:
-        #     status = False
-        #     message['message'] = e.json_body['error']['message']
-        # except stripe.error.APIConnectionError, e:
-        #     status = False
-        #     message['message'] = e.json_body['error']['message']
-        # except Exception, e:
-        #     status = False
-        #     message['message'] = "Unexpected exception: %s" % (e)
+        try:
+            pass
+        except stripe.error.InvalidRequestError, e:
+            status = False
+            message['message'] = e.json_body['error']['message']
+        except stripe.error.CardError, e:
+            status = False
+            message['message'] = e.json_body['error']['message']
+        except stripe.error.AuthenticationError, e:
+            status = False
+            message['message'] = e.json_body['error']['message']
+        except stripe.error.APIConnectionError, e:
+            status = False
+            message['message'] = e.json_body['error']['message']
+        except Exception, e:
+            status = False
+            message['message'] = "Unexpected exception: %s" % (e)
 
         message['status'] = status
         
         if status:
 
-            # transactionId = charge.id
-            transactionId = 'test_transaction_id'
+            transactionId = charge.id
             termObj = SubscriptionTerm.objects.get(subscriptionTermId=termId)
             partnerObj = termObj.partnerId
             unitQty = termObj.period
@@ -206,7 +205,6 @@ class PaymentControl():
         logger.info("Main message: %s" % msg)
         send_mail(subject=subject, from_email=from_email, recipient_list=recipient_list, message=msg)
         logger.info("------Done sending email------")
-
 
     # for regular Phoenix subscription payment
     @staticmethod
