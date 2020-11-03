@@ -83,6 +83,17 @@ class listcreateuser(GenericCRUDView):
     if ApiKeyPermission.has_permission(request, self):
       serializer_class = self.get_serializer_class()
       data = request.data.copy() # PW-660
+      # DEBUG: Print data
+      logger.info('------Print incoming data for user registration------') 
+      serializerFields = ('username', 'firstName', 'lastName', 'password', 'email', 'institution', 'partyId', 'partnerId', 'userIdentifier')
+      for key in serializerFields:
+        logger.info('Key: %s' % (key)) 
+        if key in data:
+          logger.info('Value: %s' % (data[key]))
+        else:
+          logger.info('Value missing')
+      logger.info("---------------------------------")
+      # DEBUG END
       # CIPRES-13: Decrypt user password
       if 'partnerId' not in data:
         return Response({'error': 'partnerId is required'}, status=status.HTTP_400_BAD_REQUEST)
