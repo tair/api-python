@@ -139,7 +139,7 @@ class PaymentControl():
                 msg = "Your order has been processed, and the purchased CPU hours will be reflected in your CIPRES account within 24 hours."
                 PaymentControl.sendCIPRESEmail(msg, purchaseId, termObj, partnerObj, emailAddress, firstname, lastname, priceToCharge, institute, transactionId, vat)
 
-        if message['message']:
+        if 'message' in message:
             logPaymentError(partyId, userIdentifier, message['message'])
 
         return message
