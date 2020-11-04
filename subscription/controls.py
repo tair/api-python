@@ -125,10 +125,11 @@ class PaymentControl():
             unitPurchaseObj = PaymentControl.createUnitPurchase(partyObj, partnerObj, unitQty, purchaseDate);
             purchaseId = unitPurchaseObj.purchaseId
 
-            caller = APICaller()
-            postUnitPurchasePostResponse = caller.postUnitPurchase(userIdentifier, unitQty, transactionId, purchaseDate)
+            # caller = APICaller()
+            # postUnitPurchasePostResponse = caller.postUnitPurchase(userIdentifier, unitQty, transactionId, purchaseDate)
 
-            if postUnitPurchasePostResponse.status_code == 201:
+            # if postUnitPurchasePostResponse.status_code == 201:
+            if true:
                 msg = "To access CIPRES resources, please visit phylo.org and log in using your CIPRES user account."
                 PaymentControl.sendCIPRESEmail(msg, purchaseId, termObj, partnerObj, emailAddress, firstname, lastname, priceToCharge, institute, transactionId, vat)
                 unitPurchaseObj.syncedToPartner = True
