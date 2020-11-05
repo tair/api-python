@@ -122,7 +122,7 @@ class PaymentControl():
 
             partyObj = Party.objects.get(partyId=partyId)
 
-            unitPurchaseObj = PaymentControl.createUnitPurchase(partyObj, partnerObj, unitQty, purchaseDate);
+            unitPurchaseObj = PaymentControl.createUnitPurchase(partyObj, partnerObj, unitQty, purchaseDate, transactionId);
             purchaseId = unitPurchaseObj.purchaseId
 
             caller = APICaller()
@@ -153,12 +153,13 @@ class PaymentControl():
          logger.info("---------------------------------")
 
     @staticmethod
-    def createUnitPurchase(partyId, partnerId, unitQty, purchaseDate):
+    def createUnitPurchase(partyId, partnerId, unitQty, purchaseDate, transactionId):
         unitPurchaseObj = UsageUnitPurchase()
         unitPurchaseObj.partnerId=partnerId
         unitPurchaseObj.quantity=unitQty
         unitPurchaseObj.purchaseDate=purchaseDate
         unitPurchaseObj.partyId=partyId
+        unitPurchaseObj.transactionId=transactionId
         unitPurchaseObj.syncedToPartner=False
         unitPurchaseObj.save()
 
