@@ -125,6 +125,7 @@ class UsageUnitPurchase(models.Model):
     partnerId = models.ForeignKey("partner.Partner", null=False, db_column="partnerId")
     quantity = models.IntegerField()
     purchaseDate = models.DateTimeField(null=False)
+    transactionId = models.CharField(max_length=64, null=True, unique=True)
     syncedToPartner = models.BooleanField(default=False)
 
     @staticmethod
