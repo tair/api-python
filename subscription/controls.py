@@ -135,7 +135,7 @@ class PaymentControl():
                 unitPurchaseObj.save()
 
             else:
-                PaymentControl.sendCIPRESSyncFailedEmail(purchaseId, transactionId, postUnitPurchasePostResponse.status_code, postUnitPurchasePostResponse.text)
+                PaymentControl.sendCIPRESSyncFailedEmail(purchaseId, transactionId, purchaseDate, postUnitPurchasePostResponse.status_code, postUnitPurchasePostResponse.text)
                 msg = "Your order has been processed, and the purchased CPU hours will be reflected in your CIPRES account within 24 hours."
                 PaymentControl.sendCIPRESEmail(msg, purchaseId, termObj, partnerObj, emailAddress, firstname, lastname, priceToCharge, institute, transactionId, vat)
 
@@ -179,9 +179,9 @@ class PaymentControl():
             transactionId,
             vat,
             """
-            Phoenix Bioinformatics Corporation,<br>
-            39221 Paseo Padre Parkway Ste J<br>
-            Fremont, CA, 94538, USA<br>
+            Phoenix Bioinformatics Corporation<br>
+            39899 Balentine Drive, Suite 200<br>
+            Newark, CA, 94560, USA<br>
             """)
         
         subject = "Subscription Receipt"
@@ -197,7 +197,7 @@ class PaymentControl():
         logger.info("------Done sending email------")
 
     @staticmethod
-    def sendCIPRESSyncFailedEmail(purchaseId, transactionId, statusCode, error):
+    def sendCIPRESSyncFailedEmail(purchaseId, transactionId, purchaseDate, statusCode, error):
         subject = "Failed to sync CIPRES subscription"
         from_email = "info@phoenixbioinformatics.org"
         recipient_list = settings.CIPRES_ADMINS
@@ -208,8 +208,9 @@ class PaymentControl():
         Error: %s
         Unit Purchase ID: %s
         Transaction ID: %s
+        Purchase Time: %s
     Please address it ASAP.
-        """ % (statusCode, error, purchaseId, transactionId)
+        """ % (statusCode, error, purchaseId, transactionId, purchaseDate)
 
         logger.info("------Sending CIPRES sync failed email------")
         logger.info("Usage Unit Purchase ID: %s" % purchaseId)
@@ -300,8 +301,8 @@ class PaymentControl():
             "transactionId": transactionId,
             "vat": vat,
             "addr1": "Phoenix Bioinformatics Corporation",
-            "addr2": "39221 Paseo Padre Parkway Ste J",
-            "addr3": "Fremont, CA, 94538, USA",
+            "addr2": "39899 Balentine Drive, Suite 200",
+            "addr3": "Newark, CA, 94560, USA",
             "recipientEmails": recipientEmails,
             "senderEmail": senderEmail,
             "subject":"Your %s Subscription Activation Code and Receipt" % partnerName,
