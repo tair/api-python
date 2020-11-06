@@ -3,8 +3,8 @@
 from django.http import HttpResponse, StreamingHttpResponse
 
 from subscription.controls import PaymentControl, SubscriptionControl
-from subscription.models import Subscription, SubscriptionTransaction, ActivationCode, SubscriptionRequest
-from subscription.serializers import SubscriptionSerializer, SubscriptionTransactionSerializer, ActivationCodeSerializer, SubscriptionRequestSerializer
+from subscription.models import Subscription, SubscriptionTransaction, ActivationCode, SubscriptionRequest, UsageUnitPurchase
+from subscription.serializers import SubscriptionSerializer, SubscriptionTransactionSerializer, ActivationCodeSerializer, SubscriptionRequestSerializer, UsageUnitPurchaseSerializer
 
 from partner.models import Partner, SubscriptionTerm
 from party.models import Party, ImageInfo
@@ -660,3 +660,84 @@ class Membership(generics.GenericAPIView):
                     imageUrl = memberInfo.imageUrl
         return HttpResponse(json.dumps({'isMember':isMember, 'expDate':expDate, "name":name, "imageUrl":imageUrl }), content_type="application/json")
 
+# /active-usage-unit-purchase
+# CIPRES-20: End point for querying a user's usage units purchased from a given number of days before till now
+# params: partyId, partnerId, number of days as "activeDuration"
+# returns: a list of UsageUnitPurchase records in JSON format
+class ActiveUsageUnitPurchase(generics.GenericAPIView):
+    requireApiKey = False
+    def get(self,request):
+        params = request.GET
+        # not checking param existence since it is only used by Phoenix's resources
+        partnerId = params['partnerId']
+        partyId = params['partyId']
+        duration = int(params['activeDuration'])
+        activePurchases = UsageUnitPurchase.getActiveByIdAndPartner(partyId, partnerId, duration)
+        serializer = UsageUnitPurchaseSerializer(activePurchases, many=True)
+        return HttpResponse(json.dumps(dict(serializer.data)), content_type="application/json")
+
+# /active-usage-unit-purchase/sum
+# CIPRES-20: End point for querying the sum of a user's usage units purchased from a given number of days before till now
+# params: partyId, partnerId, number of days as "activeDuration"
+# returns: the sum of quantity of the matching UsageUnitPurchase records in JSON format as "totalActivePurchasedUnit"
+class ActiveUsageUnitPurchaseSum(generics.GenericAPIView):
+    requireApiKey = False
+    def get(self,request):
+        params = request.GET
+        # not checking param existence since it is only used by Phoenix's resources
+        partnerId = params['partnerId']
+        partyId = params['partyId']
+        duration = int(params['activeDuration'])
+        totalActiveUnit = UsageUnitPurchase.getActiveUnitSumByIdAndPartner(partyId, partnerId, duration)
+        return HttpResponse(json.dumps({'totalActivePurchasedUnit': totalActiveUnit}), content_type="application/json")
+
+# /payments/usage-unit
+# CIPRES-10: End point for posting payment for CIPRES
+class UsageUnitsPayment(APIView):
+    requireApiKey = False
+
+    def get(self, request):
+        message = {}
+        if (not PaymentControl.isValidRequest(request, message)):
+            return HttpResponse(message['message'], 400)
+        #Currently assumes that subscription objects in database stores price in cents
+        #TODO: Handle more human readable price
+        termId = request.GET.get('termId')
+        message['price'] = int(SubscriptionTerm.objects.get(subscriptionTermId=termId).price)
+        message['quantity'] = request.GET.get('quantity')
+        message['termId'] = termId
+        message['stripeKey'] = settings.STRIPE_PUBLIC_KEY
+        return render(request, "subscription/paymentIndex.html", message)
+
+    def post(self, request):
+        stripe_api_secret_test_key = settings.STRIPE_PRIVATE_KEY
+        stripe.api_key = stripe_api_secret_test_key
+        partyId = request.POST['partyId']
+        userIdentifier = request.POST['userIdentifier']
+        token = request.POST['stripeToken']
+        price = float(request.POST['price'])
+        termId = request.POST['termId']
+        quantity = int(request.POST['quantity'])
+        email = request.POST['email']
+        firstname = request.POST['firstName']
+        lastname = request.POST['lastName']
+        institute = request.POST['institute']
+        street = request.POST['street']
+        city = request.POST['city']
+        state = request.POST['state']
+        country = request.POST['country']
+        zip = request.POST['zip']
+        hostname = request.META.get("HTTP_ORIGIN")
+        redirect = request.POST['redirect']
+        vat = request.POST['vat'] #PW-248. Let it be in two places - in descriptionPartnerDuration and in email body
+        descriptionDuration = SubscriptionTerm.objects.get(subscriptionTermId=termId).description
+        partnerName = SubscriptionTerm.objects.get(subscriptionTermId=termId).partnerId.name
+        descriptionPartnerDuration = '%s %s subscription vat: %s name: %s %s'%(partnerName,descriptionDuration,vat,firstname,lastname)
+        domain = request.POST['domain']
+
+        message = PaymentControl.chargeForCIPRES(partyId, userIdentifier, stripe_api_secret_test_key, token, price, partnerName, descriptionPartnerDuration, termId, quantity, email, firstname, lastname, institute, street, city, state, country, zip, hostname, redirect, vat, domain)
+        #PW-120 vet
+        status = 200
+        if 'message' in message:
+            status = 400
+        return HttpResponse(json.dumps(message), content_type="application/json", status=status)

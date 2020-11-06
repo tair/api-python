@@ -1,8 +1,10 @@
 #Copyright 2015 Phoenix Bioinformatics Corporation. All rights reserved.
 
 from django.db import models
+from django.db.models import Sum
 from django.db import connection
 from django.utils import timezone
+from datetime import timedelta
 from party.models import Party
 
 from datetime import datetime
@@ -116,3 +118,36 @@ class SubscriptionRequest(models.Model):
 
      class Meta:
         db_table = "SubscriptionRequest"
+
+class UsageUnitPurchase(models.Model):
+    purchaseId = models.AutoField(primary_key=True)
+    partyId = models.ForeignKey("party.Party", null=False, db_column="partyId")
+    partnerId = models.ForeignKey("partner.Partner", null=False, db_column="partnerId")
+    quantity = models.IntegerField()
+    purchaseDate = models.DateTimeField(null=False)
+    transactionId = models.CharField(max_length=64, null=True, unique=True)
+    syncedToPartner = models.BooleanField(default=False)
+
+    @staticmethod
+    def getByIdAndPartner(partyId, partnerId):
+        parties = Party.getById(partyId)
+        return UsageUnitPurchase.objects.filter(partyId__in=parties) \
+                                .filter(partnerId=partnerId) \
+
+    @staticmethod
+    def getActiveByIdAndPartner(partyId, partnerId, validDuration):
+        validStartDate = timezone.now() - timedelta(days=validDuration)
+        return UsageUnitPurchase.getByIdAndPartner(partyId, partnerId) \
+                                .filter(purchaseDate__gte=validStartDate)
+
+    @staticmethod
+    def getActiveUnitSumByIdAndPartner(partyId, partnerId, validDuration):
+        units = UsageUnitPurchase.getActiveByIdAndPartner(partyId, partnerId, validDuration)
+        totalUnitSum = units.aggregate(Sum('quantity'))
+        if totalUnitSum['quantity__sum']:
+            return totalUnitSum['quantity__sum']
+        else:
+            return 0
+
+    class Meta:
+        db_table = "UsageUnitPurchase"

@@ -16,7 +16,7 @@ class Credential(models.Model):
   institution = models.CharField(max_length=200, null=True)#PW-254
   partyId = models.ForeignKey(Party, db_column='partyId')
   partnerId = models.ForeignKey(Partner, db_column='partnerId')
-  userIdentifier = models.CharField(max_length=32, null=True)
+  userIdentifier = models.CharField(max_length=64, null=True)#CIPRES-22
   #name = models.CharField(max_length=64, null=True) vet PW-161
   
   @staticmethod
