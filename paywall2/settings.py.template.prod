@@ -241,3 +241,14 @@ EMAIL_PORT = 25
 # For AWS SES, this will be the username/password of the IAM created for SES.
 EMAIL_HOST_USER = None
 EMAIL_HOST_PASSWORD = None
+
+# Fill in the credentials for CIPRES password decryption
+CIPHER_CLIENT_SECRET = None
+CIPHER_SALT = None
+CIPHER_ITERATION = 200000 # 200,000
+# Fill in the credentials for CIPRES API call
+CIPRES_API_BASE_URL = None
+CIPRES_BASIC_AUTH_TOKEN = None
+CIPRES_ACCESS_TOKEN = None
+# Email addresses for sending CIPRES sync failed email
+CIPRES_ADMINS = [techteam@arabidopsis.org']
