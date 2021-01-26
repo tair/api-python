@@ -10,7 +10,7 @@ class Credential(models.Model):
   # PW-351: expand username/email fields to max email size 254
   username = models.CharField(max_length=254, db_index=True)
   firstName = models.CharField(max_length=32, null=True)
-  lastName = models.CharField(max_length=32, null=True)
+  lastName = models.CharField(max_length=64, null=True) #CIPRES-39
   password = models.CharField(max_length=64)
   email = models.CharField(max_length=254, null=True)
   institution = models.CharField(max_length=200, null=True)#PW-254
