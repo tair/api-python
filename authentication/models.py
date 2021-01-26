@@ -9,8 +9,8 @@ class Credential(models.Model):
   #usernameClean = models.CharField(max_length=32, db_index=True, db_column='username').lower().strip()#PW-215 ?
   # PW-351: expand username/email fields to max email size 254
   username = models.CharField(max_length=254, db_index=True)
-  firstName = models.CharField(max_length=32, null=True)
-  lastName = models.CharField(max_length=32, null=True)
+  firstName = models.CharField(max_length=255, null=True)
+  lastName = models.CharField(max_length=255, null=True)
   password = models.CharField(max_length=64)
   email = models.CharField(max_length=254, null=True)
   institution = models.CharField(max_length=200, null=True)#PW-254
