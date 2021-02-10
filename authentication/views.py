@@ -225,8 +225,13 @@ def login(request):
     #  logger.info("%s, %s: %s %s %s" % (ip, msg, request.POST['user'], request.POST['password'], request.GET['partnerId']))
     #  return HttpResponse(json.dumps({"message":msg}), status=401)
 
+    partnerId = request.GET.get('partnerId')
     requestPassword = request.POST.get('password')
-    requestHashedPassword = hashlib.sha1(request.POST.get('password')).hexdigest()
+    # CIPRES-47: handles UTF-8 passwords
+    if partnerId == 'cipres':
+      requestHashedPassword = hashlib.sha1(requestPassword.encode('utf-8')).hexdigest()
+    else:
+      requestHashedPassword = hashlib.sha1(requestPassword).hexdigest()
     requestUser = request.POST.get('user')
 
     # iexact does not work unfortunately. Steve to find out why
@@ -235,7 +240,7 @@ def login(request):
     # get list of users by partner and pwd -  less efficient though than fetching by (partner+username) as there could be many users with same pwd
     # more efficient is to fetch by partner+username
 
-    dbUserList = Credential.objects.filter(partnerId=request.GET.get('partnerId')).filter(password=requestHashedPassword)
+    dbUserList = Credential.objects.filter(partnerId=partnerId).filter(password=requestHashedPassword)
 
     i=0
     if not dbUserList.exists():
