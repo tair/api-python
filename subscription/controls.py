@@ -126,19 +126,25 @@ class PaymentControl():
             purchaseId = unitPurchaseObj.purchaseId
 
             caller = APICaller()
-            postUnitPurchasePostResponse = caller.postUnitPurchase(userIdentifier, unitQty, transactionId, purchaseDate)
+            try:
+                postUnitPurchasePostResponse = caller.postUnitPurchase(userIdentifier, unitQty, transactionId, purchaseDate)
+                
+                if postUnitPurchasePostResponse.status_code == 201:
+                    msg = "To access CIPRES resources, please visit phylo.org and log in using your CIPRES user account."
+                    PaymentControl.sendCIPRESEmail(msg, purchaseId, termObj, partnerObj, emailAddress, firstname, lastname, priceToCharge, institute, transactionId, vat)
+                    unitPurchaseObj.syncedToPartner = True
+                    unitPurchaseObj.save()
 
-            if postUnitPurchasePostResponse.status_code == 201:
-                msg = "To access CIPRES resources, please visit phylo.org and log in using your CIPRES user account."
-                PaymentControl.sendCIPRESEmail(msg, purchaseId, termObj, partnerObj, emailAddress, firstname, lastname, priceToCharge, institute, transactionId, vat)
-                unitPurchaseObj.syncedToPartner = True
-                unitPurchaseObj.save()
-
-            else:
-                PaymentControl.sendCIPRESSyncFailedEmail(purchaseId, transactionId, purchaseDate, postUnitPurchasePostResponse.status_code, postUnitPurchasePostResponse.text)
+                else:
+                    msg = "Your order has been processed, and the purchased CPU hours will be reflected in your CIPRES account within 24 hours."
+                    PaymentControl.sendCIPRESSyncFailedEmail(purchaseId, transactionId, purchaseDate, postUnitPurchasePostResponse.status_code, postUnitPurchasePostResponse.text)
+                    PaymentControl.sendCIPRESEmail(msg, purchaseId, termObj, partnerObj, emailAddress, firstname, lastname, priceToCharge, institute, transactionId, vat)
+            except Exception, e:
                 msg = "Your order has been processed, and the purchased CPU hours will be reflected in your CIPRES account within 24 hours."
+                PaymentControl.sendCIPRESSyncFailedEmail(purchaseId, transactionId, purchaseDate, postUnitPurchasePostResponse.status_code, postUnitPurchasePostResponse.text)
                 PaymentControl.sendCIPRESEmail(msg, purchaseId, termObj, partnerObj, emailAddress, firstname, lastname, priceToCharge, institute, transactionId, vat)
-
+                message['message'] = "Unexpected exception: %s" % (e)
+            
         if 'message' in message:
             logPaymentError(partyId, userIdentifier, message['message'])
 
