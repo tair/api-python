@@ -13,6 +13,8 @@ import base64, hmac, hashlib, codecs, requests
 class AESCipher(object):
 
     def __init__(self): 
+        # charset
+        self.charset = "utf-8"
         # constants for secret key
         self.clientSecret = settings.CIPHER_CLIENT_SECRET
         self.salt = settings.CIPHER_SALT
@@ -35,20 +37,20 @@ class AESCipher(object):
 
     def encrypt(self, raw):
         secretKey = self.getKey()
-        raw = self._pad(raw)
+        padded = self._pad(raw.encode(self.charset))
         iv = Random.new().read(self.blockSize)
         cipher = AES.new(secretKey, self.mode, iv)
-        return base64.b64encode(iv + cipher.encrypt(raw.encode('utf-8')))
+        return base64.b64encode(iv + cipher.encrypt(padded))
 
-    # throws TypeError for incorrect padded encryptedMsg
+    # throws TypeError for incorrectly padded encryptedMsg
     def decrypt(self, encryptedMsg):
         secretKey = self.getKey()
         msgArray = base64.b64decode(encryptedMsg + b'===') # handles padding issue
         iv = msgArray[:self.blockSize]
         cipher = AES.new(secretKey, self.mode, iv)
+        return self._unpad(cipher.decrypt(msgArray[self.blockSize:])).decode(self.charset)
 
-        return self._unpad(cipher.decrypt(msgArray[self.blockSize:])).decode('utf-8')
-
+    # add padding
     def _pad(self, s):
         return s + (self.blockSize - len(s) % self.blockSize) * chr(self.blockSize - len(s) % self.blockSize)
 
@@ -132,28 +134,46 @@ class APICaller(object):
 # from common.utils.cipresUtils import test
 # test()
 def test():
-    # cipher test
+    ## cipher test
     cipher = AESCipher()
-    # test encryption
-    raw = "PW@666.cipres"
-    encryptedMsg = cipher.encrypt(raw)
-    print raw
-    print encryptedMsg
-    print cipher.decrypt(encryptedMsg)
 
-    # api call test
-    caller = APICaller()
-    userIdentifier = "33ac7587-eb4d-49f0-a481-f12178efdd71"
+    # test encryption and decryption with UTF-8 char
+    raw = u'123\u212BM54@'
+    print "raw"
+    print raw.encode(cipher.charset)
+    encrypted = cipher.encrypt(raw)
+    print "encrypted"
+    print encrypted
+    decrypted = cipher.decrypt(encrypted)
+    print "decrypted"
+    print decrypted.encode(cipher.charset)
+    print "decrypted chars in hex"
+    for c in decrypted: 
+        print hex(ord(c))
+    hashed = hashlib.sha1(decrypted.encode(cipher.charset)).hexdigest()
+    print "hashed"
+    print hashed
 
-    getUserInfoResponse = caller.getUserInfo(userIdentifier)
-    print(getUserInfoResponse.status_code)
-    print(getUserInfoResponse.text)
+    ## test encryption
+    # raw = "PW@666.cipres"
+    # encryptedMsg = cipher.encrypt(raw)
+    # print raw
+    # print encryptedMsg
+    # print cipher.decrypt(encryptedMsg)
 
-    getUserUsageResponse = caller.getUserUsage(userIdentifier)   
-    print(getUserUsageResponse.status_code)
-    print(getUserUsageResponse.text)
+    ## api call test
+    # caller = APICaller()
+    # userIdentifier = "33ac7587-eb4d-49f0-a481-f12178efdd71"
 
-    # note this transactionId can only be used once
+    # getUserInfoResponse = caller.getUserInfo(userIdentifier)
+    # print(getUserInfoResponse.status_code)
+    # print(getUserInfoResponse.text)
+
+    # getUserUsageResponse = caller.getUserUsage(userIdentifier)   
+    # print(getUserUsageResponse.status_code)
+    # print(getUserUsageResponse.text)
+
+    ## note this transactionId can only be used once
     # transctionId = 'ch_1Gd2JxDbkoAs09FVq4snGjPk'
     # postUnitPurchasePostResponse = caller.postUnitPurchase(userIdentifier, 1000, transactionId, timezone.now())
     # print(postUnitPurchasePostResponse.status_code)
