@@ -40,7 +40,7 @@ class Party(models.Model):
     @staticmethod
     def getByIp(ipAddress):
         partyList = []
-        ipRanges = IpRange.getByIp(ipAddress)
+        ipRanges = ActiveIpRange.getByIp(ipAddress)
         for ipRange in ipRanges:
             partyId = ipRange.partyId.partyId
             consortiums = Party.objects.all().get(partyId = partyId).consortiums.values_list('partyId', flat=True)
@@ -77,6 +77,8 @@ class IpRange(models.Model):
     end = models.GenericIPAddressField()
     partyId = models.ForeignKey('Party', db_column="partyId")
     label = models.CharField(max_length=64, null=True, blank=True)
+    createdAt = models.DateTimeField(auto_now_add=True)
+    expiredAt = models.DateTimeField(null=True)
 
     class Meta:
         db_table = "IpRange"
@@ -88,32 +90,6 @@ class IpRange(models.Model):
     def save(self, *args, **kwargs):
         self.clean()
         super(IpRange, self).save(*args, **kwargs)
-
-    @staticmethod
-    def getByIp(ipAddress):
-        objList = []
-        objs = IpRange.objects.all()
-        try:
-            inputIpAddress = IPAddress(ipAddress)
-        except Exception:
-            logger.error("Party IpRange %s, %s" % (ipAddress, "invalid ip"))
-            pass
-        # for detail on comparison between IPAddress objects, see Python netaddr module.
-        for obj in objs:
-            try:
-                start = IPAddress(obj.start)
-            except Exception:
-                logger.error("Party IpRange %s, %s" % (obj.start, "invalid start ip"))
-                pass
-            try:
-                end = IPAddress(obj.end)
-            except Exception:
-                logger.error("Party IpRange %s, %s" % (obj.end, "invalid end ip"))
-                pass
-            
-            if inputIpAddress >= start and inputIpAddress <= end:
-                objList.append(obj)
-        return objList
 
 class Country(models.Model):
     countryId = models.AutoField(primary_key=True)
@@ -132,3 +108,42 @@ class ImageInfo(models.Model):
 
     class Meta:
         db_table = "ImageInfo"
+
+class ActiveIpRange(models.Model):
+    ipRangeId = models.AutoField(primary_key=True)
+    start = models.GenericIPAddressField()
+    end = models.GenericIPAddressField()
+    partyId = models.ForeignKey('Party', db_column="partyId")
+    label = models.CharField(max_length=64, null=True, blank=True)
+    createdAt = models.DateTimeField(auto_now_add=True)
+    expiredAt = models.DateTimeField(null=True)
+
+    class Meta:
+        managed = False
+        db_table = 'ActiveIpRange'
+
+    @staticmethod
+    def getByIp(ipAddress):
+        objList = []
+        objs = ActiveIpRange.objects.all()
+        try:
+            inputIpAddress = IPAddress(ipAddress)
+        except Exception:
+            logger.error("Party IpRange %s, %s" % (ipAddress, "invalid ip"))
+            pass
+        # for detail on comparison between IPAddress objects, see Python netaddr module.
+        for obj in objs:
+            try:
+                start = IPAddress(obj.start)
+            except Exception:
+                logger.error("Party IpRange %s, %s" % (obj.start, "invalid start ip"))
+                pass
+            try:
+                end = IPAddress(obj.end)
+            except Exception:
+                logger.error("Party IpRange %s, %s" % (obj.end, "invalid end ip"))
+                pass
+
+            if inputIpAddress >= start and inputIpAddress <= end:
+                objList.append(obj)
+        return objList

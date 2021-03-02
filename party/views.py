@@ -1,6 +1,6 @@
 #Copyright 2015 Phoenix Bioinformatics Corporation. All rights reserved.
 
-from party.models import Party, IpRange, Country, PartyAffiliation, ImageInfo
+from party.models import Party, IpRange, Country, PartyAffiliation, ImageInfo, ActiveIpRange
 from party.serializers import PartySerializer, IpRangeSerializer, CountrySerializer, ImageInfoSerializer
 from subscription.models import Subscription
 from partner.models import Partner
@@ -57,14 +57,14 @@ class PartyCRUD(GenericCRUDView):
 class PartyOrgCRUD(GenericCRUDView):
     requireApiKey = False
 
-    #https://demoapi.arabidopsis.org/parties/?ip=131.204.0.0  returns Auburn University
+    #https://demoapi.arabidopsis.org/parties/org/?ip=131.204.0.0  returns Auburn University
     def get(self, request, format=None):
         ip = request.GET.get('ip')
         if ip is None:
             return HttpResponse("Error. ip not provided")
         try:
             results = Party.objects.raw('SELECT p.partyId, p.name FROM Party p WHERE p.partyId in (\
-            SELECT ipr.partyId FROM IpRange ipr WHERE (INET_ATON(%s) BETWEEN INET_ATON(ipr.start) AND INET_ATON(ipr.end))) \
+            SELECT ipr.partyId FROM ActiveIpRange ipr WHERE (INET_ATON(%s) BETWEEN INET_ATON(ipr.start) AND INET_ATON(ipr.end))) \
             and (p.partyType="organization" or p.partyType="consortium")', [ip])
             out = []
             for entry in results:
@@ -91,7 +91,7 @@ class PartyOrgStatusView(APIView):
         ip = request.GET.get('ip')
         partnerId = request.GET.get('partnerId')
 
-        ipranges = IpRange.getByIp(ip)
+        ipranges = ActiveIpRange.getByIp(ip)
         if len(ipranges) <1:
             return HttpResponse("")
         partyId = ipranges[0].partyId.partyId
@@ -122,6 +122,7 @@ class IpRangeCRUD(GenericCRUDView):
             partyId = self.request.GET.get('partyId')
             return super(IpRangeCRUD, self).get_queryset().filter(partyId=partyId)
         return []
+
 # TODO: "post" is still a security vulnerability -SC
 
 # /imageinfo/
