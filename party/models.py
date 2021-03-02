@@ -84,7 +84,7 @@ class IpRange(models.Model):
         db_table = "IpRange"
 
     def clean(self, *args, **kwargs):
-        validateIpRange(self.start, self.end, type(self))
+        validateIpRange(self.start, self.end, self.ipRangeId, type(self))
         super(IpRange, self).clean(*args, **kwargs)
 
     def save(self, *args, **kwargs):

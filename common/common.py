@@ -17,12 +17,12 @@ def getRemoteIpAddress(request):
     return ip
 
 # validate ip range based on a series of conditions
-def validateIpRange(start, end, IpRange):
+def validateIpRange(start, end, ipRangeId, IpRange):
     if isIpRangePrivate(start, end):
         raise serializers.ValidationError({'IP Range': _('IP range contains private IP: %s - %s' % (start, end))})
     if not validateIpRangeSize(start, end):
         raise serializers.ValidationError({'IP Range': _('IP range too large: %s - %s' % (start, end))})
-    dupList = validateIpRangeOverlap(start, end, IpRange)
+    dupList = validateIpRangeOverlap(start, end, ipRangeId, IpRange)
     if dupList:
         resList = ['institution name: '+ ipRange.partyId.name + ', start: ' + ipRange.start + ', end: ' + ipRange.end for ipRange in dupList]
         res= '\n'.join(resList)
@@ -67,11 +67,14 @@ def validateIpRangeSize(start, end):
     if ipRange.__getstate__()[2] == 6:
         return True if ipRange.size <= 324518553658426726783156020576256 else False
 
-def validateIpRangeOverlap(start, end, IpRange):
+def validateIpRangeOverlap(start, end, ipRangeId, IpRange):
     allIpRangeList = IpRange.objects.all()
     dupList = []
     for ipRange in allIpRangeList:
-        if IPAddress(end) < IPAddress(ipRange.start) or IPAddress(start) > IPAddress(ipRange.end):
+        # skip this check for record update
+        if ipRange.ipRangeId == ipRangeId:
+            continue
+        elif IPAddress(end) < IPAddress(ipRange.start) or IPAddress(start) > IPAddress(ipRange.end):
             continue
         else:
             dupList.append(ipRange)
