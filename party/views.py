@@ -123,6 +123,19 @@ class IpRangeCRUD(GenericCRUDView):
             return super(IpRangeCRUD, self).get_queryset().filter(partyId=partyId)
         return []
 
+    def delete(self, request, format=None):
+        if (not self.phoenixOnly) or isPhoenix(self.request):
+            params = request.GET
+            # does not allow user to update everything, too dangerous
+            if not params:
+                return Response({'error':'does not allow delete without query parameters'})
+            obj = self.get_queryset()
+            for entry in obj:
+                entry.expiredAt = datetime.datetime.now()
+                entry.save()
+            return Response({'success':'expire ip range complete'})
+        return Response({'error':'Pheonix credential required'}, status=status.HTTP_400_BAD_REQUEST)
+
 # TODO: "post" is still a security vulnerability -SC
 
 # /imageinfo/
