@@ -130,10 +130,16 @@ class IpRangeCRUD(GenericCRUDView):
             if not params:
                 return Response({'error':'does not allow delete without query parameters'})
             obj = self.get_queryset()
+            serializer_class = self.get_serializer_class()
+            ret = []
             for entry in obj:
-                entry.expiredAt = datetime.datetime.now()
-                entry.save()
-            return Response({'success':'expire ip range complete'})
+                # do nothing if the record has already been expired
+                if not entry.expiredAt:
+                    entry.expiredAt = datetime.datetime.now()
+                    entry.save()
+                serializer = serializer_class(entry)
+                ret.append(serializer.data)
+            return Response(ret)
         return Response({'error':'Pheonix credential required'}, status=status.HTTP_400_BAD_REQUEST)
 
 # TODO: "post" is still a security vulnerability -SC
