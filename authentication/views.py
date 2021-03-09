@@ -95,7 +95,7 @@ class listcreateuser(GenericCRUDView):
           return Response({'error': 'Cannot parse password: ' + str(e)}, status=status.HTTP_400_BAD_REQUEST)
         else:
           pass
-        data['password'] = hashlib.sha1(decryptedPassword).hexdigest()
+        data['password'] = hashlib.sha1(decryptedPassword.encode(cipher.charset)).hexdigest()
       else:
         data['password'] = hashlib.sha1(data['password']).hexdigest()
       # CIPRES-13 end
@@ -171,7 +171,7 @@ class listcreateuser(GenericCRUDView):
           return Response({'error': 'Cannot parse password: ' + str(e)}, status=status.HTTP_400_BAD_REQUEST)
         else:
           pass
-        data['password'] = hashlib.sha1(decryptedPassword).hexdigest()
+        data['password'] = hashlib.sha1(decryptedPassword.encode(cipher.charset)).hexdigest()
       else:
         data['password'] = hashlib.sha1(data['password']).hexdigest()
       # CIPRES-13 end
