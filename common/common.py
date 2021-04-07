@@ -33,7 +33,10 @@ def validateIpRange(start, end, ipRangeId, IpRange):
 def isIpRangePrivate(start, end):
     if IPAddress(start).is_private() or IPAddress(end).is_private():
         return True
-    ipRange = IPRange(start, end)
+    try:
+        ipRange = IPRange(start, end)
+    except Exception as e:
+        raise serializers.ValidationError({'IP Range': _(str(e))})
     if ipRange.__getstate__()[2] == 4:
         for cidr in IPV4_PRIVATE:
 
@@ -62,7 +65,10 @@ IPV6_PRIVATE = (
 
 # check if the ip range is over the limit
 def validateIpRangeSize(start, end):
-    ipRange = IPRange(start, end)
+    try:
+        ipRange = IPRange(start, end)
+    except Exception as e:
+        raise serializers.ValidationError({'IP Range': _(str(e))})
     if ipRange.__getstate__()[2] == 4:
         return True if ipRange.size <= 65536 else False
     if ipRange.__getstate__()[2] == 6:
