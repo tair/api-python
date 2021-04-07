@@ -3,6 +3,7 @@ from django.utils.translation import ugettext_lazy as _
 from netaddr import IPAddress, IPRange, IPNetwork
 from rest_framework import serializers
 import json
+import ipaddress
 
 # Determine IP address of the host from which the given request has been received.
 #
@@ -80,4 +81,5 @@ def validateIpRangeOverlap(start, end, ipRangeId, IpRange):
             dupList.append(ipRange)
     return dupList
 
-
+def ip2long(ip):
+    return int(ipaddress.ip_address(ip))

@@ -7,6 +7,7 @@ from django.utils import timezone
 from common.common import validateIpRange
 from rest_framework import serializers
 from django.utils.translation import ugettext_lazy as _
+from common.common import ip2long
 
 import logging
 logger = logging.getLogger('phoenix.api.party')
@@ -71,10 +72,13 @@ class PartyAffiliation(models.Model):
         db_table = "PartyAffiliation"
         unique_together = ("childPartyId", "parentPartyId")
 
+# note that startLong and endLong does not work for IPV6 addresses
 class IpRange(models.Model):
     ipRangeId = models.AutoField(primary_key=True)
     start = models.GenericIPAddressField()
     end = models.GenericIPAddressField()
+    startLong = models.BigIntegerField()
+    endLong = models.BigIntegerField()
     partyId = models.ForeignKey('Party', db_column="partyId")
     label = models.CharField(max_length=64, null=True, blank=True)
     createdAt = models.DateTimeField(auto_now_add=True)
@@ -109,10 +113,13 @@ class ImageInfo(models.Model):
     class Meta:
         db_table = "ImageInfo"
 
+# note that startLong and endLong does not work for IPV6 addresses
 class ActiveIpRange(models.Model):
     ipRangeId = models.AutoField(primary_key=True)
     start = models.GenericIPAddressField()
     end = models.GenericIPAddressField()
+    startLong = models.BigIntegerField()
+    endLong = models.BigIntegerField()
     partyId = models.ForeignKey('Party', db_column="partyId")
     label = models.CharField(max_length=64, null=True, blank=True)
     createdAt = models.DateTimeField(auto_now_add=True)
