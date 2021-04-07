@@ -93,6 +93,8 @@ class IpRange(models.Model):
 
     def save(self, *args, **kwargs):
         self.clean()
+        self.startLong = ip2long(self.start)
+        self.endLong = ip2long(self.end)
         super(IpRange, self).save(*args, **kwargs)
 
 class Country(models.Model):

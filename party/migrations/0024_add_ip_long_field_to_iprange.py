@@ -13,13 +13,13 @@ class Migration(migrations.Migration):
     operations = [
         migrations.AddField(
             model_name='iprange',
-            name='endLong',
+            name='startLong',
             field=models.BigIntegerField(default=123),
             preserve_default=False,
         ),
         migrations.AddField(
             model_name='iprange',
-            name='startLong',
+            name='endLong',
             field=models.BigIntegerField(default=456),
             preserve_default=False,
         ),
