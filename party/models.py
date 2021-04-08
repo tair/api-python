@@ -7,7 +7,7 @@ from django.utils import timezone
 from common.common import validateIpRange
 from rest_framework import serializers
 from django.utils.translation import ugettext_lazy as _
-from common.common import ip2long
+from common.common import ip2long, is_valid_ipv4
 
 import logging
 logger = logging.getLogger('phoenix.api.party')
@@ -97,6 +97,11 @@ class IpRange(models.Model):
         self.endLong = ip2long(self.end)
         super(IpRange, self).save(*args, **kwargs)
 
+    @staticmethod
+    def getAllIPV6Objects():
+        ipv4_max_long = 4294967295
+        return IpRange.objects.all().filter(startLong__gt=ipv4_max_long)
+
 class Country(models.Model):
     countryId = models.AutoField(primary_key=True)
     name = models.CharField(max_length=200)
@@ -132,27 +137,37 @@ class ActiveIpRange(models.Model):
         db_table = 'ActiveIpRange'
 
     @staticmethod
+    def getAllIPV6Objects():
+        ipv4_max_long = 4294967295
+        return ActiveIpRange.objects.all().filter(startLong__gt=ipv4_max_long)
+
+    @staticmethod
     def getByIp(ipAddress):
         objList = []
-        objs = ActiveIpRange.objects.all()
         try:
             inputIpAddress = IPAddress(ipAddress)
         except Exception:
             logger.error("Party IpRange %s, %s" % (ipAddress, "invalid ip"))
             pass
-        # for detail on comparison between IPAddress objects, see Python netaddr module.
-        for obj in objs:
-            try:
-                start = IPAddress(obj.start)
-            except Exception:
-                logger.error("Party IpRange %s, %s" % (obj.start, "invalid start ip"))
-                pass
-            try:
-                end = IPAddress(obj.end)
-            except Exception:
-                logger.error("Party IpRange %s, %s" % (obj.end, "invalid end ip"))
-                pass
+        if is_valid_ipv4(ipAddress):
+            ip_long = ip2long(ipAddress)
+            return ActiveIpRange.objects.all().filter(startLong__lte=ip_long).filter(endLong__gte=ip_long)
+        # ipv6
+        else:    
+            # for detail on comparison between IPAddress objects, see Python netaddr module.
+            objs = ActiveIpRange.getAllIPV6Objects()
+            for obj in objs:
+                try:
+                    start = IPAddress(obj.start)
+                except Exception:
+                    logger.error("Party IpRange %s, %s" % (obj.start, "invalid start ip"))
+                    pass
+                try:
+                    end = IPAddress(obj.end)
+                except Exception:
+                    logger.error("Party IpRange %s, %s" % (obj.end, "invalid end ip"))
+                    pass
 
-            if inputIpAddress >= start and inputIpAddress <= end:
-                objList.append(obj)
+                if inputIpAddress >= start and inputIpAddress <= end:
+                    objList.append(obj)
         return objList

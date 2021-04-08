@@ -54,6 +54,7 @@ class PartyCRUD(GenericCRUDView):
         return []
 
 # /org/
+# seems not in use
 class PartyOrgCRUD(GenericCRUDView):
     requireApiKey = False
 
@@ -63,14 +64,20 @@ class PartyOrgCRUD(GenericCRUDView):
         if ip is None:
             return HttpResponse("Error. ip not provided")
         try:
-            results = Party.objects.raw('SELECT p.partyId, p.name FROM Party p WHERE p.partyId in (\
-            SELECT ipr.partyId FROM ActiveIpRange ipr WHERE (INET_ATON(%s) BETWEEN INET_ATON(ipr.start) AND INET_ATON(ipr.end))) \
-            and (p.partyType="organization" or p.partyType="consortium")', [ip])
             out = []
-            for entry in results:
-                #out.append("{'partyId':'%s','partyName':'%s','subscribed':'%s'}" % (str(entry.partyId), str(entry.name), str(entry.subscribed)))
-                out.append(str(entry.name)+"; ")
-                logger.info("/parties/org/?ip=%s, partyId=%s, name=%s" % (ip, entry.partyId, entry.name))
+            ipRanges = ActiveIpRange.getByIp(ip)
+            for ipRange in ipRanges:
+                party = ipRange.partyId
+                out.append(str(party.name)+"; ")
+                logger.info("/parties/org/?ip=%s, partyId=%s, name=%s" % (ip, party.partyId, party.name))
+
+            # version that appends consortium name as well
+            # partyIds = Party.getByIp(ip)
+            # for partyId in partyIds:
+            #     party = Party.objects.get(partyId=partyId)
+            #     out.append(str(party.name)+"; ")
+            #     logger.info("/parties/org/?ip=%s, partyId=%s, name=%s" % (ip, partyId, party.name))
+            
             orgNames = ''.join(out)
             orgNames = orgNames[:-2]
             return HttpResponse(orgNames)

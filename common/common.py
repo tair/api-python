@@ -4,6 +4,7 @@ from netaddr import IPAddress, IPRange, IPNetwork
 from rest_framework import serializers
 import json
 import ipaddress
+import socket
 
 # Determine IP address of the host from which the given request has been received.
 #
@@ -75,17 +76,61 @@ def validateIpRangeSize(start, end):
         return True if ipRange.size <= 324518553658426726783156020576256 else False
 
 def validateIpRangeOverlap(start, end, ipRangeId, IpRange):
-    allIpRangeList = IpRange.objects.all()
     dupList = []
-    for ipRange in allIpRangeList:
-        # skip this check for record update
-        if ipRange.ipRangeId == ipRangeId:
-            continue
-        elif IPAddress(end) < IPAddress(ipRange.start) or IPAddress(start) > IPAddress(ipRange.end):
-            continue
-        else:
-            dupList.append(ipRange)
+    try:
+        start_long = ip2long(start)
+        end_long = ip2long(end)
+    except Exception as e:
+        raise serializers.ValidationError({'IP Range': _(str(e))})
+
+    if is_valid_ipv4(start) and is_valid_ipv4(end):
+        dupList = IpRange.objects.all().filter(endLong__gte=start_long).filter(startLong__lte=end_long).exclude(ipRangeId=ipRangeId)
+    # ipv6
+    else:    
+        ranges = IpRange.getAllIPV6Objects()
+        for ipRange in ranges:
+            range_start = ip2long(ipRange.start)
+            range_end = ip2long(ipRange.end)
+            if end_long >= range_start and start_long <= range_end:
+                dupList.append(ipRange)
     return dupList
 
 def ip2long(ip):
+    if not is_valid_ip(ip):
+        raise Exception ("Invalid IP address")
     return int(ipaddress.ip_address(ip))
+
+def is_valid_ipv4(ip_str):
+    """
+    Check the validity of an IPv4 address
+    """
+    try:
+        socket.inet_pton(socket.AF_INET, ip_str)
+    except AttributeError:
+        try:
+            socket.inet_aton(ip_str)
+        except socket.error:
+            return False
+        return ip_str.count('.') == 3
+    except socket.error:
+        return False
+    return True
+
+
+def is_valid_ipv6(ip_str):
+    """
+    Check the validity of an IPv6 address
+    """
+    try:
+        socket.inet_pton(socket.AF_INET6, ip_str)
+    except socket.error:
+        return False
+    return True
+
+
+def is_valid_ip(ip_str):
+    """
+    Check the validity of an IP address
+    """
+    return is_valid_ipv4(ip_str) or is_valid_ipv6(ip_str)
+
