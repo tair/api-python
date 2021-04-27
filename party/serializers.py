@@ -1,7 +1,7 @@
 #Copyright 2015 Phoenix Bioinformatics Corporation. All rights reserved.
 
 
-from party.models import Party, IpRange, Country, ImageInfo
+from party.models import Party, IpRange, Country, ImageInfo, ActiveIpRange
 from rest_framework import serializers
 
 class PartySerializer(serializers.ModelSerializer):
@@ -10,12 +10,12 @@ class PartySerializer(serializers.ModelSerializer):
         model = Party
         fields = ('partyId','partyType', 'name', 'country', 'display', 'consortiums', 'label', 'hasIpRange', 'serialId')
     def get_hasIpRange(self, obj): # Method for SerializerMethodField
-        return True if obj.iprange_set.count() else False
+        return True if obj.activeiprange_set.count() else False
 
 class IpRangeSerializer(serializers.ModelSerializer):
     class Meta:
         model = IpRange
-        fields = ('ipRangeId','start','end','partyId', 'label')
+        fields = ('ipRangeId','start','end','partyId', 'label', 'createdAt', 'expiredAt')
 
 class CountrySerializer(serializers.ModelSerializer):
     class Meta:
@@ -26,3 +26,8 @@ class ImageInfoSerializer(serializers.ModelSerializer):
     class Meta:
         model = ImageInfo
         fields = ('imageInfoId', 'partyId', 'name', 'imageUrl', 'createdAt')
+
+class ActiveIpRangeSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = ActiveIpRange
+        fields = ('ipRangeId','start','end','partyId', 'label', 'createdAt', 'expiredAt')

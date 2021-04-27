@@ -3,6 +3,8 @@ from django.utils.translation import ugettext_lazy as _
 from netaddr import IPAddress, IPRange, IPNetwork
 from rest_framework import serializers
 import json
+import ipaddress
+import socket
 
 # Determine IP address of the host from which the given request has been received.
 #
@@ -17,12 +19,12 @@ def getRemoteIpAddress(request):
     return ip
 
 # validate ip range based on a series of conditions
-def validateIpRange(start, end, IpRange):
+def validateIpRange(start, end, ipRangeId, IpRange):
     if isIpRangePrivate(start, end):
         raise serializers.ValidationError({'IP Range': _('IP range contains private IP: %s - %s' % (start, end))})
     if not validateIpRangeSize(start, end):
         raise serializers.ValidationError({'IP Range': _('IP range too large: %s - %s' % (start, end))})
-    dupList = validateIpRangeOverlap(start, end, IpRange)
+    dupList = validateIpRangeOverlap(start, end, ipRangeId, IpRange)
     if dupList:
         resList = ['institution name: '+ ipRange.partyId.name + ', start: ' + ipRange.start + ', end: ' + ipRange.end for ipRange in dupList]
         res= '\n'.join(resList)
@@ -32,7 +34,10 @@ def validateIpRange(start, end, IpRange):
 def isIpRangePrivate(start, end):
     if IPAddress(start).is_private() or IPAddress(end).is_private():
         return True
-    ipRange = IPRange(start, end)
+    try:
+        ipRange = IPRange(start, end)
+    except Exception as e:
+        raise serializers.ValidationError({'IP Range': _(str(e))})
     if ipRange.__getstate__()[2] == 4:
         for cidr in IPV4_PRIVATE:
 
@@ -61,20 +66,71 @@ IPV6_PRIVATE = (
 
 # check if the ip range is over the limit
 def validateIpRangeSize(start, end):
-    ipRange = IPRange(start, end)
+    try:
+        ipRange = IPRange(start, end)
+    except Exception as e:
+        raise serializers.ValidationError({'IP Range': _(str(e))})
     if ipRange.__getstate__()[2] == 4:
         return True if ipRange.size <= 65536 else False
     if ipRange.__getstate__()[2] == 6:
         return True if ipRange.size <= 324518553658426726783156020576256 else False
 
-def validateIpRangeOverlap(start, end, IpRange):
-    allIpRangeList = IpRange.objects.all()
+def validateIpRangeOverlap(start, end, ipRangeId, IpRange):
     dupList = []
-    for ipRange in allIpRangeList:
-        if IPAddress(end) < IPAddress(ipRange.start) or IPAddress(start) > IPAddress(ipRange.end):
-            continue
-        else:
-            dupList.append(ipRange)
+    try:
+        start_long = ip2long(start)
+        end_long = ip2long(end)
+    except Exception as e:
+        raise serializers.ValidationError({'IP Range': _(str(e))})
+
+    if is_valid_ipv4(start) and is_valid_ipv4(end):
+        dupList = IpRange.objects.all().filter(endLong__gte=start_long).filter(startLong__lte=end_long).exclude(ipRangeId=ipRangeId)
+    # ipv6
+    else:    
+        ranges = IpRange.getAllIPV6Objects()
+        for ipRange in ranges:
+            range_start = ip2long(ipRange.start)
+            range_end = ip2long(ipRange.end)
+            if end_long >= range_start and start_long <= range_end:
+                dupList.append(ipRange)
     return dupList
 
+def ip2long(ip):
+    if not is_valid_ip(ip):
+        raise Exception ("Invalid IP address")
+    return int(ipaddress.ip_address(ip))
+
+def is_valid_ipv4(ip_str):
+    """
+    Check the validity of an IPv4 address
+    """
+    try:
+        socket.inet_pton(socket.AF_INET, ip_str)
+    except AttributeError:
+        try:
+            socket.inet_aton(ip_str)
+        except socket.error:
+            return False
+        return ip_str.count('.') == 3
+    except socket.error:
+        return False
+    return True
+
+
+def is_valid_ipv6(ip_str):
+    """
+    Check the validity of an IPv6 address
+    """
+    try:
+        socket.inet_pton(socket.AF_INET6, ip_str)
+    except socket.error:
+        return False
+    return True
+
+
+def is_valid_ip(ip_str):
+    """
+    Check the validity of an IP address
+    """
+    return is_valid_ipv4(ip_str) or is_valid_ipv6(ip_str)
 
