@@ -97,7 +97,7 @@ def validateIpRangeOverlap(start, end, ipRangeId, IpRange):
 
 def ip2long(ip):
     if not is_valid_ip(ip):
-        raise Exception ("Invalid IP address")
+        raise Exception ("Invalid IP address: %s " % ip)
     return int(ipaddress.ip_address(ip))
 
 def is_valid_ipv4(ip_str):
