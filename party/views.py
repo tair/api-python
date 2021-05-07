@@ -1,6 +1,6 @@
 #Copyright 2015 Phoenix Bioinformatics Corporation. All rights reserved.
 
-from party.models import Party, IpRange, Country, PartyAffiliation, ImageInfo
+from party.models import Party, IpRange, Country, PartyAffiliation, ImageInfo, ActiveIpRange
 from party.serializers import PartySerializer, IpRangeSerializer, CountrySerializer, ImageInfoSerializer
 from subscription.models import Subscription
 from partner.models import Partner
@@ -54,23 +54,30 @@ class PartyCRUD(GenericCRUDView):
         return []
 
 # /org/
+# seems not in use
 class PartyOrgCRUD(GenericCRUDView):
     requireApiKey = False
 
-    #https://demoapi.arabidopsis.org/parties/?ip=131.204.0.0  returns Auburn University
+    #https://demoapi.arabidopsis.org/parties/org/?ip=131.204.0.0  returns Auburn University
     def get(self, request, format=None):
         ip = request.GET.get('ip')
         if ip is None:
             return HttpResponse("Error. ip not provided")
         try:
-            results = Party.objects.raw('SELECT p.partyId, p.name FROM Party p WHERE p.partyId in (\
-            SELECT ipr.partyId FROM IpRange ipr WHERE (INET_ATON(%s) BETWEEN INET_ATON(ipr.start) AND INET_ATON(ipr.end))) \
-            and (p.partyType="organization" or p.partyType="consortium")', [ip])
             out = []
-            for entry in results:
-                #out.append("{'partyId':'%s','partyName':'%s','subscribed':'%s'}" % (str(entry.partyId), str(entry.name), str(entry.subscribed)))
-                out.append(str(entry.name)+"; ")
-                logger.info("/parties/org/?ip=%s, partyId=%s, name=%s" % (ip, entry.partyId, entry.name))
+            ipRanges = ActiveIpRange.getByIp(ip)
+            for ipRange in ipRanges:
+                party = ipRange.partyId
+                out.append(str(party.name)+"; ")
+                logger.info("/parties/org/?ip=%s, partyId=%s, name=%s" % (ip, party.partyId, party.name))
+
+            # version that appends consortium name as well
+            # partyIds = Party.getByIp(ip)
+            # for partyId in partyIds:
+            #     party = Party.objects.get(partyId=partyId)
+            #     out.append(str(party.name)+"; ")
+            #     logger.info("/parties/org/?ip=%s, partyId=%s, name=%s" % (ip, partyId, party.name))
+            
             orgNames = ''.join(out)
             orgNames = orgNames[:-2]
             return HttpResponse(orgNames)
@@ -91,7 +98,7 @@ class PartyOrgStatusView(APIView):
         ip = request.GET.get('ip')
         partnerId = request.GET.get('partnerId')
 
-        ipranges = IpRange.getByIp(ip)
+        ipranges = ActiveIpRange.getByIp(ip)
         if len(ipranges) <1:
             return HttpResponse("")
         partyId = ipranges[0].partyId.partyId
@@ -122,6 +129,26 @@ class IpRangeCRUD(GenericCRUDView):
             partyId = self.request.GET.get('partyId')
             return super(IpRangeCRUD, self).get_queryset().filter(partyId=partyId)
         return []
+
+    def delete(self, request, format=None):
+        if (not self.phoenixOnly) or isPhoenix(self.request):
+            params = request.GET
+            # does not allow user to update everything, too dangerous
+            if not params:
+                return Response({'error':'does not allow delete without query parameters'})
+            obj = self.get_queryset()
+            serializer_class = self.get_serializer_class()
+            ret = []
+            for entry in obj:
+                # do nothing if the record has already been expired
+                if not entry.expiredAt:
+                    entry.expiredAt = datetime.datetime.now()
+                    entry.save()
+                serializer = serializer_class(entry)
+                ret.append(serializer.data)
+            return Response(ret)
+        return Response({'error':'Pheonix credential required'}, status=status.HTTP_400_BAD_REQUEST)
+
 # TODO: "post" is still a security vulnerability -SC
 
 # /imageinfo/

@@ -8,6 +8,7 @@ from controls import Authorization
 from models import AccessType, AccessRule, UriPattern, Status
 from serializers import AccessTypeSerializer, AccessRuleSerializer, UriPatternSerializer
 from partner.models import Partner
+from party.models import Party
 from authentication.models import Credential
 from common.views import GenericCRUDView
 
@@ -53,8 +54,14 @@ class Access(APIView):
         # only get redirect uri when user have no access to the page
         if status != Status.ok:
             redirectUri = UriPattern.getRedirectUri(url, partnerId)
+        # PWL-847: get organization id for the ip
+        orgId = ''
+        parties = Party.getByIp(ipResult)
+        if len(parties) > 0:
+            orgId = parties[0]
         response = {
             "ip":ipResult,
+            "orgId":orgId,
             "status":status,
             "userIdentifier":userIdentifier,
             "isPaidContent":isPaidContent,

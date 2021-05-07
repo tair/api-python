@@ -7,6 +7,7 @@ from django.utils import timezone
 from common.common import validateIpRange
 from rest_framework import serializers
 from django.utils.translation import ugettext_lazy as _
+from common.common import ip2long, is_valid_ipv4
 
 import logging
 logger = logging.getLogger('phoenix.api.party')
@@ -40,7 +41,7 @@ class Party(models.Model):
     @staticmethod
     def getByIp(ipAddress):
         partyList = []
-        ipRanges = IpRange.getByIp(ipAddress)
+        ipRanges = ActiveIpRange.getByIp(ipAddress)
         for ipRange in ipRanges:
             partyId = ipRange.partyId.partyId
             consortiums = Party.objects.all().get(partyId = partyId).consortiums.values_list('partyId', flat=True)
@@ -71,49 +72,35 @@ class PartyAffiliation(models.Model):
         db_table = "PartyAffiliation"
         unique_together = ("childPartyId", "parentPartyId")
 
+# note that startLong and endLong does not work for IPV6 addresses
 class IpRange(models.Model):
     ipRangeId = models.AutoField(primary_key=True)
     start = models.GenericIPAddressField()
     end = models.GenericIPAddressField()
+    startLong = models.BigIntegerField()
+    endLong = models.BigIntegerField()
     partyId = models.ForeignKey('Party', db_column="partyId")
     label = models.CharField(max_length=64, null=True, blank=True)
+    createdAt = models.DateTimeField(auto_now_add=True)
+    expiredAt = models.DateTimeField(null=True)
 
     class Meta:
         db_table = "IpRange"
 
     def clean(self, *args, **kwargs):
-        validateIpRange(self.start, self.end, type(self))
+        validateIpRange(self.start, self.end, self.ipRangeId, type(self))
         super(IpRange, self).clean(*args, **kwargs)
 
     def save(self, *args, **kwargs):
         self.clean()
+        self.startLong = ip2long(self.start)
+        self.endLong = ip2long(self.end)
         super(IpRange, self).save(*args, **kwargs)
 
     @staticmethod
-    def getByIp(ipAddress):
-        objList = []
-        objs = IpRange.objects.all()
-        try:
-            inputIpAddress = IPAddress(ipAddress)
-        except Exception:
-            logger.error("Party IpRange %s, %s" % (ipAddress, "invalid ip"))
-            pass
-        # for detail on comparison between IPAddress objects, see Python netaddr module.
-        for obj in objs:
-            try:
-                start = IPAddress(obj.start)
-            except Exception:
-                logger.error("Party IpRange %s, %s" % (obj.start, "invalid start ip"))
-                pass
-            try:
-                end = IPAddress(obj.end)
-            except Exception:
-                logger.error("Party IpRange %s, %s" % (obj.end, "invalid end ip"))
-                pass
-            
-            if inputIpAddress >= start and inputIpAddress <= end:
-                objList.append(obj)
-        return objList
+    def getAllIPV6Objects():
+        ipv4_max_long = 4294967295
+        return IpRange.objects.all().filter(startLong__gt=ipv4_max_long)
 
 class Country(models.Model):
     countryId = models.AutoField(primary_key=True)
@@ -132,3 +119,55 @@ class ImageInfo(models.Model):
 
     class Meta:
         db_table = "ImageInfo"
+
+# note that startLong and endLong does not work for IPV6 addresses
+class ActiveIpRange(models.Model):
+    ipRangeId = models.AutoField(primary_key=True)
+    start = models.GenericIPAddressField()
+    end = models.GenericIPAddressField()
+    startLong = models.BigIntegerField()
+    endLong = models.BigIntegerField()
+    partyId = models.ForeignKey('Party', db_column="partyId")
+    label = models.CharField(max_length=64, null=True, blank=True)
+    createdAt = models.DateTimeField(auto_now_add=True)
+    expiredAt = models.DateTimeField(null=True)
+
+    class Meta:
+        managed = False
+        db_table = 'ActiveIpRange'
+
+    @staticmethod
+    def getAllIPV6Objects():
+        ipv4_max_long = 4294967295
+        return ActiveIpRange.objects.all().filter(startLong__gt=ipv4_max_long)
+
+    @staticmethod
+    def getByIp(ipAddress):
+        objList = []
+        try:
+            inputIpAddress = IPAddress(ipAddress)
+        except Exception:
+            logger.error("Party IpRange %s, %s" % (ipAddress, "invalid ip"))
+            pass
+        if is_valid_ipv4(ipAddress):
+            ip_long = ip2long(ipAddress)
+            return ActiveIpRange.objects.all().filter(startLong__lte=ip_long).filter(endLong__gte=ip_long)
+        # ipv6
+        else:    
+            # for detail on comparison between IPAddress objects, see Python netaddr module.
+            objs = ActiveIpRange.getAllIPV6Objects()
+            for obj in objs:
+                try:
+                    start = IPAddress(obj.start)
+                except Exception:
+                    logger.error("Party IpRange %s, %s" % (obj.start, "invalid start ip"))
+                    pass
+                try:
+                    end = IPAddress(obj.end)
+                except Exception:
+                    logger.error("Party IpRange %s, %s" % (obj.end, "invalid end ip"))
+                    pass
+
+                if inputIpAddress >= start and inputIpAddress <= end:
+                    objList.append(obj)
+        return objList
