@@ -160,9 +160,9 @@ class listcreateuser(GenericCRUDView):
         return Response({'error': 'cannot find any record.'}, status=status.HTTP_404_NOT_FOUND)
     #http://stackoverflow.com/questions/18930234/django-modifying-the-request-object PW-123
     data = request.data.copy() # PW-123
+    partnerId = self.request.GET['partnerId']
     # CIPRES-13: Decrypt user password
     if 'password' in data:
-      partnerId = self.request.GET['partnerId']
       if partnerId == 'cipres':
         cipher = AESCipher()
         try:
