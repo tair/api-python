@@ -160,8 +160,8 @@ class listcreateuser(GenericCRUDView):
         return Response({'error': 'cannot find any record.'}, status=status.HTTP_404_NOT_FOUND)
     #http://stackoverflow.com/questions/18930234/django-modifying-the-request-object PW-123
     data = request.data.copy() # PW-123
+    # CIPRES-13: Decrypt user password
     if 'password' in data:
-      # CIPRES-13: Decrypt user password
       partnerId = self.request.GET['partnerId']
       if partnerId == 'cipres':
         cipher = AESCipher()
@@ -174,7 +174,18 @@ class listcreateuser(GenericCRUDView):
         data['password'] = hashlib.sha1(decryptedPassword.encode(cipher.charset)).hexdigest()
       else:
         data['password'] = hashlib.sha1(data['password']).hexdigest()
-      # CIPRES-13 end
+    # CIPRES-13 end
+    # CIPRES-26: Allow update of country code
+    if partnerId == 'cipres' and 'countryCode' in data:
+      try:
+        country = Country.objects.get(abbreviation=data['countryCode'])
+        partyObj = obj.partyId
+        partySerializer = PartySerializer(partyObj, data={'country':country.countryId}, partial =True)
+        if partySerializer.is_valid():
+          partySerializer.save()
+      except Exception as e:
+        return Response({'error': 'Cannot find country: ' + str(e)}, status=status.HTTP_400_BAD_REQUEST)
+    # CIPRES-26 end
     serializer = serializer_class(obj, data=data, partial=True)
     if serializer.is_valid():
       serializer.save()
