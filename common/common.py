@@ -84,10 +84,10 @@ def validateIpRangeOverlap(start, end, ipRangeId, IpRange):
         raise serializers.ValidationError({'IP Range': _(str(e))})
 
     if is_valid_ipv4(start) and is_valid_ipv4(end):
-        dupList = IpRange.objects.all().filter(endLong__gte=start_long).filter(startLong__lte=end_long).exclude(ipRangeId=ipRangeId)
+        dupList = IpRange.objects.all().filter(expiredAt=None).filter(endLong__gte=start_long).filter(startLong__lte=end_long).exclude(ipRangeId=ipRangeId)
     # ipv6
     else:    
-        ranges = IpRange.getAllIPV6Objects()
+        ranges = IpRange.getAllIPV6Objects().filter(expiredAt=None)
         for ipRange in ranges:
             range_start = ip2long(ipRange.start)
             range_end = ip2long(ipRange.end)
