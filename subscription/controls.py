@@ -137,11 +137,11 @@ class PaymentControl():
 
                 else:
                     msg = "Your order has been processed, and the purchased CPU hours will be reflected in your CIPRES account within 24 hours."
-                    PaymentControl.sendCIPRESSyncFailedEmail(purchaseId, transactionId, purchaseDate, postUnitPurchasePostResponse.status_code, postUnitPurchasePostResponse.text)
+                    PaymentControl.sendCIPRESSyncFailedEmail(purchaseId, transactionId, purchaseDate, userIdentifier, unitQty, postUnitPurchasePostResponse.status_code, postUnitPurchasePostResponse.text)
                     PaymentControl.sendCIPRESEmail(msg, purchaseId, termObj, partnerObj, emailAddress, firstname, lastname, priceToCharge, institute, transactionId, vat)
             except Exception, e:
                 msg = "Your order has been processed, and the purchased CPU hours will be reflected in your CIPRES account within 24 hours."
-                PaymentControl.sendCIPRESSyncFailedEmail(purchaseId, transactionId, purchaseDate, postUnitPurchasePostResponse.status_code, postUnitPurchasePostResponse.text)
+                PaymentControl.sendCIPRESSyncFailedEmail(purchaseId, transactionId, purchaseDate, userIdentifier, unitQty, postUnitPurchasePostResponse.status_code, postUnitPurchasePostResponse.text)
                 PaymentControl.sendCIPRESEmail(msg, purchaseId, termObj, partnerObj, emailAddress, firstname, lastname, priceToCharge, institute, transactionId, vat)
                 message['message'] = "Unexpected exception: %s" % (e)
             
@@ -204,7 +204,7 @@ class PaymentControl():
         logger.info("------Done sending email------")
 
     @staticmethod
-    def sendCIPRESSyncFailedEmail(purchaseId, transactionId, purchaseDate, statusCode, error):
+    def sendCIPRESSyncFailedEmail(purchaseId, transactionId, purchaseDate, userIdentifier, unitQty, statusCode, error):
         subject = "Failed to sync CIPRES subscription"
         from_email = "info@phoenixbioinformatics.org"
         recipient_list = settings.CIPRES_ADMINS
@@ -216,8 +216,10 @@ class PaymentControl():
         Unit Purchase ID: %s
         Transaction ID: %s
         Purchase Time: %s
+        User Identifier: %s
+        Purchase Unit: %s
     Please address it ASAP.
-        """ % (statusCode, error, purchaseId, transactionId, purchaseDate)
+        """ % (statusCode, error, purchaseId, transactionId, purchaseDate, userIdentifier, unitQty)
 
         logger.info("------Sending CIPRES sync failed email------")
         logger.info("Usage Unit Purchase ID: %s" % purchaseId)
