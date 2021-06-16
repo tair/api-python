@@ -71,25 +71,71 @@ class PaymentControl():
 
     # for CIPRES credit purchase payment
     @staticmethod
-    def chargeForCIPRES(partyId, userIdentifier, secret_key, stripe_token, priceToCharge, partnerName, chargeDescription, termId, quantity, emailAddress, firstname, lastname, institute, street, city, state, country, zip, hostname, redirect, vat, domain):
+    def chargeForCIPRES(partyId, userIdentifier, secret_key, stripe_token, priceToCharge, partnerName, chargeDescription, termId, quantity, emailAddress, firstname, lastname, institute, street, city, state, country, zip, hostname, redirect, vat, paymentMethod, domain):
         message = {}
         message['price'] = priceToCharge
         message['termId'] = termId
         message['quantity'] = quantity
         if not PaymentControl.validateCharge(priceToCharge, termId, quantity):
             message['message'] = "Charge validation error"
-            logPaymentError(partyId, userIdentifier, message['message'])
+            PaymentControl.logPaymentError(partyId, userIdentifier, message['message'])
             #message['status'] = False //PW-120 vet we will return 400 instead - see SubscriptionsPayment post - i.e. the caller 
             return message
         
         stripe.api_key = secret_key
-        charge = stripe.Charge.create(
-            amount=int(priceToCharge*100), # stripe takes in cents; UI passes in dollars. multiply by 100 to convert.
-            currency="usd",
-            source=stripe_token,
-            description=chargeDescription, #PW-248
-            metadata = {'Email': emailAddress, 'Institute': institute, 'VAT': vat}
-        )
+        if paymentMethod == 'card':
+            charge = stripe.Charge.create(
+                amount=int(priceToCharge*100), # stripe takes in cents; UI passes in dollars. multiply by 100 to convert.
+                currency="usd",
+                source=stripe_token,
+                description=chargeDescription, #PW-248
+                metadata = {'Email': emailAddress, 'Institute': institute, 'VAT': vat}
+            )
+            transactionId = charge.id
+        elif paymentMethod == 'invoice':
+            try:
+                customer = stripe.Customer.retrieve('cus_' + partyId + '_' + userIdentifier + '_' + partnerName)
+            except stripe.error.InvalidRequestError as e:
+                customer = stripe.Customer.create(
+                    id='cus_' + partyId + '_' + userIdentifier + '_' + partnerName,
+                    name=firstname + lastname,
+                    email=emailAddress,
+                    address={
+                        'line1': street,
+                        'city': city,
+                        'state': state,
+                        'country': country,
+                        'postal_code': zip
+                    },
+                    metadata={'Institution Name': institute},
+                )
+            invoice_item = stripe.InvoiceItem.create(
+                customer=customer.id,
+                unit_amount= int(SubscriptionTerm.objects.get(subscriptionTermId=termId).price) * 100,
+                currency='usd',
+                quantity=quantity,
+                description=chargeDescription
+            )
+            invoice=stripe.Invoice.create(
+                customer=customer.id,
+                collection_method='send_invoice',
+                description = chargeDescription,
+                days_until_due=30,
+                metadata={'Institution Name': institute},
+                custom_fields = [{
+                    'name': 'institution',
+                    'value': institute
+                },{
+                    'name': 'vat',
+                    'value': vat
+                }]
+            )
+            stripe.Invoice.send_invoice(invoice.id)
+            transactionId = invoice.id
+        else:
+            message['message'] = "Payment method not recognized"
+            PaymentControl.logPaymentError(partyId, userIdentifier, message['message'])
+            return message
 
         status = True
         try:
@@ -113,8 +159,6 @@ class PaymentControl():
         message['status'] = status
         
         if status:
-
-            transactionId = charge.id
             termObj = SubscriptionTerm.objects.get(subscriptionTermId=termId)
             partnerObj = termObj.partnerId
             unitQty = termObj.period
@@ -146,7 +190,7 @@ class PaymentControl():
                 message['message'] = "Unexpected exception: %s" % (e)
             
         if 'message' in message:
-            logPaymentError(partyId, userIdentifier, message['message'])
+            PaymentControl.logPaymentError(partyId, userIdentifier, message['message'])
 
         return message
 
