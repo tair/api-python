@@ -116,19 +116,22 @@ class PaymentControl():
                 quantity=quantity,
                 description=chargeDescription
             )
+            custom_fields = [{
+                    'name': 'institution',
+                    'value': institute
+                }]
+            if vat:
+                custom_fields.append({
+                    'name': 'vat',
+                    'value': vat
+                })
             invoice=stripe.Invoice.create(
                 customer=customer.id,
                 collection_method='send_invoice',
                 description = chargeDescription,
                 days_until_due=30,
                 metadata={'Institution Name': institute},
-                custom_fields = [{
-                    'name': 'institution',
-                    'value': institute
-                },{
-                    'name': 'vat',
-                    'value': vat
-                }]
+                custom_fields = custom_fields
             )
             stripe.Invoice.send_invoice(invoice.id)
             transactionId = invoice.id
