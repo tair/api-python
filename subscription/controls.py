@@ -1,6 +1,7 @@
 import stripe
 import uuid
 import datetime
+import time
 from django.shortcuts import render
 from django.http import HttpResponse
 from django.utils import timezone
@@ -71,7 +72,7 @@ class PaymentControl():
 
     # for CIPRES credit purchase payment
     @staticmethod
-    def chargeForCIPRES(partyId, userIdentifier, secret_key, stripe_token, priceToCharge, partnerName, chargeDescription, termId, quantity, emailAddress, firstname, lastname, institute, street, city, state, country, zip, hostname, redirect, vat, paymentMethod, domain):
+    def chargeForCIPRES(partyId, userIdentifier, secret_key, stripe_token, priceToCharge, partnerName, chargeDescription, termId, quantity, emailAddress, firstname, lastname, institute, street, city, state, country, zip, hostname, redirect, vat, domain):
         message = {}
         message['price'] = priceToCharge
         message['termId'] = termId
@@ -83,62 +84,79 @@ class PaymentControl():
             return message
         
         stripe.api_key = secret_key
-        if paymentMethod == 'card':
-            charge = stripe.Charge.create(
-                amount=int(priceToCharge*100), # stripe takes in cents; UI passes in dollars. multiply by 100 to convert.
-                currency="usd",
+        try:
+            customer = stripe.Customer.modify(
+                'cus_' + partyId + '_' + userIdentifier + '_' + partnerName,
+                name=firstname + lastname,
+                email=emailAddress,
+                address={
+                  'line1': street,
+                  'city': city,
+                  'state': state,
+                  'country': country,
+                  'postal_code': zip
+                },
                 source=stripe_token,
-                description=chargeDescription, #PW-248
-                metadata = {'Email': emailAddress, 'Institute': institute, 'VAT': vat}
-            )
-            transactionId = charge.id
-        elif paymentMethod == 'invoice':
-            try:
-                customer = stripe.Customer.retrieve('cus_' + partyId + '_' + userIdentifier + '_' + partnerName)
-            except stripe.error.InvalidRequestError as e:
-                customer = stripe.Customer.create(
-                    id='cus_' + partyId + '_' + userIdentifier + '_' + partnerName,
-                    name=firstname + lastname,
-                    email=emailAddress,
-                    address={
-                        'line1': street,
-                        'city': city,
-                        'state': state,
-                        'country': country,
-                        'postal_code': zip
-                    },
-                    metadata={'Institution Name': institute},
-                )
-            invoice_item = stripe.InvoiceItem.create(
-                customer=customer.id,
-                unit_amount= int(SubscriptionTerm.objects.get(subscriptionTermId=termId).price) * 100,
-                currency='usd',
-                quantity=quantity,
-                description=chargeDescription
-            )
-            custom_fields = [{
-                    'name': 'institution',
-                    'value': institute
-                }]
-            if vat:
-                custom_fields.append({
-                    'name': 'vat',
-                    'value': vat
-                })
-            invoice=stripe.Invoice.create(
-                customer=customer.id,
-                collection_method='send_invoice',
-                description = chargeDescription,
-                days_until_due=30,
                 metadata={'Institution Name': institute},
-                custom_fields = custom_fields
             )
-            stripe.Invoice.send_invoice(invoice.id)
-            transactionId = invoice.id
-        else:
-            message['message'] = "Payment method not recognized"
-            PaymentControl.logPaymentError(partyId, userIdentifier, message['message'])
-            return message
+        except stripe.error.InvalidRequestError as e:
+            customer = stripe.Customer.create(
+                id='cus_' + partyId + '_' + userIdentifier + '_' + partnerName,
+                name=firstname + lastname,
+                email=emailAddress,
+                address={
+                    'line1': street,
+                    'city': city,
+                    'state': state,
+                    'country': country,
+                    'postal_code': zip
+                },
+                source=stripe_token,
+                metadata={'Institution Name': institute},
+            )
+        # get the existing bank account
+        bank_account = stripe.Customer.retrieve_source(
+            customer.id,
+            customer.default_source
+        )
+
+        # verify the account
+        bank_account.verify(amounts=[32, 45])
+        # charge = stripe.Charge.create(
+        #     amount=int(priceToCharge*100), # stripe takes in cents; UI passes in dollars. multiply by 100 to convert.
+        #     currency="usd",
+        #     source=stripe_token,
+        #     description=chargeDescription, #PW-248
+        #     metadata = {'Email': emailAddress, 'Institute': institute, 'VAT': vat}
+        # )
+        # transactionId = charge.id
+        invoice_item = stripe.InvoiceItem.create(
+            customer=customer.id,
+            unit_amount= int(SubscriptionTerm.objects.get(subscriptionTermId=termId).price) * 100,
+            currency='usd',
+            quantity=quantity,
+            description=chargeDescription
+        )
+        custom_fields = [{
+                'name': 'institution',
+                'value': institute
+            }]
+        if vat:
+            custom_fields.append({
+                'name': 'vat',
+                'value': vat
+            })
+        invoice=stripe.Invoice.create(
+            customer=customer.id,
+            collection_method='send_invoice',
+            description = chargeDescription,
+            due_date = int(time.time()),
+            custom_fields = custom_fields
+        )
+        invoice = stripe.Invoice.pay(invoice.id)
+        stripe.Invoice.send_invoice(invoice.id)
+        # invoice = stripe.Invoice.finalize_invoice(invoice.id)
+        transactionId = invoice.charge
 
         status = True
         try:
