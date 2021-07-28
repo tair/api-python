@@ -422,3 +422,18 @@ class PaymentControl():
             calcprice = so.price*quantity*(1-(so.groupDiscountPercentage/100))
         calcprice = round(calcprice*100)/100
 	return (price == calcprice)
+
+    @staticmethod
+    def testCIPRESEmailSending():
+        msg = "To access CIPRES resources, please visit phylo.org and log in using your CIPRES user account."
+        purchaseId = 145
+        termObj = SubscriptionTerm.objects.get(subscriptionTermId=20)
+        emailAddress = 'xingguo.chen@arabidopsis.org'
+        firstname = 'Ondrej'
+        lastname = 'Mikula'
+        priceToCharge = 100
+        institute = 'Institute of Vertebrate Biology - ASCR'
+        transactionId = 'ch_1JGRw9DbkoAs09FVhJp7U22l'
+        vat = ''
+        PaymentControl.sendCIPRESEmail(msg, purchaseId, termObj, partnerObj, emailAddress, firstname, lastname, priceToCharge, institute, transactionId, vat)
+
