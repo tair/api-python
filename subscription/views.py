@@ -769,7 +769,9 @@ class InvoiceWebHook(GenericCRUDView):
         firstname = metadata['firstname']
         lastname = metadata['lastname']
         institute = metadata['institute']
-        vat = metadata['vat']
+        vat = ''
+        if 'vat' in metadata:
+            vat = metadata['vat']
         termId = metadata['termId']
 
         customer = request_data['customer'].split('_')
