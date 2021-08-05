@@ -756,7 +756,8 @@ class InvoiceWebHook(GenericCRUDView):
     requireApiKey = False
 
     def post(self, request):
-
+        stripe_api_secret_test_key = settings.STRIPE_PRIVATE_KEY
+        stripe.api_key = stripe_api_secret_test_key
 
         # TODO: refactor the same logic to follow the DRY rule.
         request_data = request.data['data']['object']
@@ -784,6 +785,7 @@ class InvoiceWebHook(GenericCRUDView):
 
         emailAddress = request_data['customer_email']
         transactionId = request_data['charge']
+        invoiceId = request_data['id']
 
         termObj = SubscriptionTerm.objects.get(subscriptionTermId=termId)
         partnerObj = termObj.partnerId
@@ -805,6 +807,7 @@ class InvoiceWebHook(GenericCRUDView):
                                                priceToCharge, institute, transactionId, vat)
                 unitPurchaseObj.syncedToPartner = True
                 unitPurchaseObj.save()
+                stripe.Invoice.send_invoice(invoiceId)
 
             else:
                 msg = "Your order has been processed, and the purchased CPU hours will be reflected in your CIPRES account within 24 hours."
