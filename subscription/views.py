@@ -778,7 +778,7 @@ class InvoiceWebHook(GenericCRUDView):
         partyId = customer[1]
         userIdentifier = customer[2]
 
-        priceToCharge = request_data['total']
+        priceToCharge = request_data['total']/100
         quantity = int(request_data['lines']['data'][0]['quantity'])
         message = {}
         message['price'] = priceToCharge
