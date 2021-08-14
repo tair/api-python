@@ -97,7 +97,7 @@ class listcreateuser(GenericCRUDView):
           pass
         data['password'] = hashlib.sha1(decryptedPassword.encode(cipher.charset)).hexdigest()
       else:
-        data['password'] = hashlib.sha1(data['password']).hexdigest()
+        data['password'] = hashlib.sha1(data['password'].encode('utf-8')).hexdigest()
       # CIPRES-13 end
       if 'partyId' in data:
         partyId = data['partyId']
@@ -173,7 +173,7 @@ class listcreateuser(GenericCRUDView):
           pass
         data['password'] = hashlib.sha1(decryptedPassword.encode(cipher.charset)).hexdigest()
       else:
-        data['password'] = hashlib.sha1(data['password']).hexdigest()
+        data['password'] = hashlib.sha1(data['password'].encode("utf-8")).hexdigest()
     # CIPRES-13 end
     # CIPRES-26: Allow update of country code
     if partnerId == 'cipres' and 'countryCode' in data:
@@ -242,7 +242,7 @@ def login(request):
     if partnerId == 'cipres':
       requestHashedPassword = hashlib.sha1(requestPassword.encode('utf-8')).hexdigest()
     else:
-      requestHashedPassword = hashlib.sha1(requestPassword).hexdigest()
+      requestHashedPassword = hashlib.sha1(requestPassword.encode('utf-8')).hexdigest()
     requestUser = request.POST.get('user')
 
     # iexact does not work unfortunately. Steve to find out why
