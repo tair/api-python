@@ -19,7 +19,6 @@ from rest_framework import generics
 from common.views import GenericCRUDView
 from common.permissions import isPhoenix
 from common.common import getRemoteIpAddress
-from common.utils.cipresUtils import APICaller
 
 from django.shortcuts import render
 from django.utils.encoding import smart_str
@@ -731,101 +730,13 @@ class UsageUnitsPayment(APIView):
         hostname = request.META.get("HTTP_ORIGIN")
         redirect = request.POST['redirect']
         vat = request.POST['vat'] #PW-248. Let it be in two places - in descriptionPartnerDuration and in email body
-        paymentMethod = request.POST['paymentMethod']
         descriptionDuration = SubscriptionTerm.objects.get(subscriptionTermId=termId).description
         partnerName = SubscriptionTerm.objects.get(subscriptionTermId=termId).partnerId.name
         descriptionPartnerDuration = '%s %s subscription vat: %s name: %s %s'%(partnerName,descriptionDuration,vat,firstname,lastname)
         domain = request.POST['domain']
 
-        message = {}
-        if paymentMethod == 'card':
-            message = PaymentControl.chargeForCIPRES(partyId, userIdentifier, stripe_api_secret_test_key, token, price, partnerName, descriptionPartnerDuration, termId, quantity, email, firstname, lastname, institute, street, city, state, country, zip, hostname, redirect, vat, domain)
-        elif paymentMethod == 'invoice':
-            message = PaymentControl.createInvoice(partyId, userIdentifier, stripe_api_secret_test_key, token, price, partnerName, descriptionPartnerDuration, termId, quantity, email, firstname, lastname, institute, street, city, state, country, zip, hostname, redirect, vat, domain)
-        else:
-            message['message'] = 'Payment type not recognized'
+        message = PaymentControl.chargeForCIPRES(partyId, userIdentifier, stripe_api_secret_test_key, token, price, partnerName, descriptionPartnerDuration, termId, quantity, email, firstname, lastname, institute, street, city, state, country, zip, hostname, redirect, vat, domain)
         #PW-120 vet
-        status = 200
-        if 'message' in message:
-            status = 400
-        return HttpResponse(json.dumps(message), content_type="application/json", status=status)
-
-# /invoicewebhook
-# CIPRES-62
-class InvoiceWebHook(GenericCRUDView):
-    requireApiKey = False
-
-    def post(self, request):
-        stripe_api_secret_test_key = settings.STRIPE_PRIVATE_KEY
-        stripe.api_key = stripe_api_secret_test_key
-
-        # TODO: refactor the same logic to follow the DRY rule.
-        request_data = request.data['data']['object']
-
-        metadata = request_data['metadata']
-        paymentMethod = metadata['paymentmethod']
-        if paymentMethod != 'invoice':
-            return HttpResponse('Payment type not applicable')
-        firstname = metadata['firstname']
-        lastname = metadata['lastname']
-        institute = metadata['institute']
-        vat = ''
-        if 'vat' in metadata:
-            vat = metadata['vat']
-        termId = metadata['termId']
-
-        customer = request_data['customer'].split('_')
-        partyId = customer[1]
-        userIdentifier = customer[2]
-
-        priceToCharge = request_data['total']/100
-        quantity = int(request_data['lines']['data'][0]['quantity'])
-        message = {}
-        message['price'] = priceToCharge
-        message['termId'] = termId
-        message['quantity'] = quantity
-
-        emailAddress = request_data['customer_email']
-        transactionId = request_data['charge']
-        invoiceId = request_data['id']
-
-        termObj = SubscriptionTerm.objects.get(subscriptionTermId=termId)
-        partnerObj = termObj.partnerId
-        unitQty = termObj.period
-        purchaseDate = timezone.now()
-
-        partyObj = Party.objects.get(partyId=partyId)
-        unitPurchaseObj = PaymentControl.createUnitPurchase(partyObj, partnerObj, unitQty, purchaseDate, transactionId);
-        purchaseId = unitPurchaseObj.purchaseId
-
-        caller = APICaller()
-        try:
-            postUnitPurchasePostResponse = caller.postUnitPurchase(userIdentifier, unitQty, transactionId, purchaseDate)
-
-
-            if postUnitPurchasePostResponse.status_code == 201:
-                msg = "To access CIPRES resources, please visit phylo.org and log in using your CIPRES user account."
-                PaymentControl.sendCIPRESEmail(msg, purchaseId, termObj, partnerObj, emailAddress, firstname, lastname,
-                                               priceToCharge, institute, transactionId, vat)
-                unitPurchaseObj.syncedToPartner = True
-                unitPurchaseObj.save()
-                stripe.Invoice.send_invoice(invoiceId)
-
-            else:
-                msg = "Your order has been processed, and the purchased CPU hours will be reflected in your CIPRES account within 24 hours."
-                PaymentControl.sendCIPRESSyncFailedEmail(purchaseId, transactionId, purchaseDate, userIdentifier,
-                                                         unitQty, postUnitPurchasePostResponse.status_code,
-                                                         postUnitPurchasePostResponse.text)
-                PaymentControl.sendCIPRESEmail(msg, purchaseId, termObj, partnerObj, emailAddress, firstname, lastname,
-                                               priceToCharge, institute, transactionId, vat)
-        except Exception, e:
-            msg = "Your order has been processed, and the purchased CPU hours will be reflected in your CIPRES account within 24 hours."
-            PaymentControl.sendCIPRESSyncFailedEmail(purchaseId, transactionId, purchaseDate, userIdentifier, unitQty,
-                                                     postUnitPurchasePostResponse.status_code,
-                                                     postUnitPurchasePostResponse.text)
-            PaymentControl.sendCIPRESEmail(msg, purchaseId, termObj, partnerObj, emailAddress, firstname, lastname,
-                                           priceToCharge, institute, transactionId, vat)
-            message['message'] = "Unexpected exception: %s" % (e)
         status = 200
         if 'message' in message:
             status = 400
