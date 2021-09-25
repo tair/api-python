@@ -137,9 +137,6 @@ class PaymentControl():
             description = chargeDescription,
             due_date = int(time.time()),
             custom_fields = custom_fields,
-            metadata={
-                'paymentmethod': 'card',
-            },
         )
         invoice = stripe.Invoice.pay(invoice.id)
         stripe.Invoice.send_invoice(invoice.id)
@@ -197,107 +194,6 @@ class PaymentControl():
                 PaymentControl.sendCIPRESEmail(msg, purchaseId, termObj, partnerObj, emailAddress, firstname, lastname, priceToCharge, institute, transactionId, vat)
                 message['message'] = "Unexpected exception: %s" % (e)
             
-        if 'message' in message:
-            PaymentControl.logPaymentError(partyId, userIdentifier, message['message'])
-
-        return message
-
-    # for CIPRES credit purchase payment
-    @staticmethod
-    def createInvoice(partyId, userIdentifier, secret_key, stripe_token, priceToCharge, partnerName, chargeDescription, termId, quantity, emailAddress, firstname, lastname, institute, street, city, state, country, zip, hostname, redirect, vat, domain):
-        message = {}
-        message['price'] = priceToCharge
-        message['termId'] = termId
-        message['quantity'] = quantity
-        if not PaymentControl.validateCharge(priceToCharge, termId, quantity):
-            message['message'] = "Charge validation error"
-            PaymentControl.logPaymentError(partyId, userIdentifier, message['message'])
-            # message['status'] = False //PW-120 vet we will return 400 instead - see SubscriptionsPayment post - i.e. the caller
-            return message
-
-        stripe.api_key = secret_key
-        try:
-            customer = stripe.Customer.modify(
-                'cus_' + partyId + '_' + userIdentifier + '_' + partnerName,
-                name=firstname + lastname,
-                email=emailAddress,
-                address={
-                  'line1': street,
-                  'city': city,
-                  'state': state,
-                  'country': country,
-                  'postal_code': zip
-                },
-                metadata={'Institution Name': institute},
-            )
-        except stripe.error.InvalidRequestError as e:
-            customer = stripe.Customer.create(
-                id='cus_' + partyId + '_' + userIdentifier + '_' + partnerName,
-                name=firstname + lastname,
-                email=emailAddress,
-                address={
-                    'line1': street,
-                    'city': city,
-                    'state': state,
-                    'country': country,
-                    'postal_code': zip
-                },
-                metadata={'Institution Name': institute},
-            )
-        invoice_item = stripe.InvoiceItem.create(
-            customer=customer.id,
-            unit_amount=int(SubscriptionTerm.objects.get(subscriptionTermId=termId).price) * 100,
-            currency='usd',
-            quantity=quantity,
-            description=chargeDescription   #PW-248
-        )
-        custom_fields = [{
-            'name': 'institution',
-            'value': institute
-        }]
-        if vat:
-            custom_fields.append({
-                'name': 'vat',
-                'value': vat
-            })
-        invoice = stripe.Invoice.create(
-            customer=customer.id,
-            collection_method='send_invoice',
-            description=chargeDescription,
-            days_until_due=30,
-            metadata={
-                'paymentmethod': 'invoice',
-                'institute': institute,
-                'termId': termId,
-                'firstname': firstname,
-                'lastname': lastname,
-                'vat': vat
-            },
-            custom_fields=custom_fields
-        )
-        stripe.Invoice.send_invoice(invoice.id)
-
-        status = True
-        try:
-            pass
-        except stripe.error.InvalidRequestError, e:
-            status = False
-            message['message'] = e.json_body['error']['message']
-        except stripe.error.CardError, e:
-            status = False
-            message['message'] = e.json_body['error']['message']
-        except stripe.error.AuthenticationError, e:
-            status = False
-            message['message'] = e.json_body['error']['message']
-        except stripe.error.APIConnectionError, e:
-            status = False
-            message['message'] = e.json_body['error']['message']
-        except Exception, e:
-            status = False
-            message['message'] = "Unexpected exception: %s" % (e)
-
-        message['status'] = status
-
         if 'message' in message:
             PaymentControl.logPaymentError(partyId, userIdentifier, message['message'])
 
