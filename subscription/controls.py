@@ -1,6 +1,7 @@
 import stripe
 import uuid
 import datetime
+import time
 from django.shortcuts import render
 from django.http import HttpResponse
 from django.utils import timezone
@@ -78,18 +79,68 @@ class PaymentControl():
         message['quantity'] = quantity
         if not PaymentControl.validateCharge(priceToCharge, termId, quantity):
             message['message'] = "Charge validation error"
-            logPaymentError(partyId, userIdentifier, message['message'])
+            PaymentControl.logPaymentError(partyId, userIdentifier, message['message'])
             #message['status'] = False //PW-120 vet we will return 400 instead - see SubscriptionsPayment post - i.e. the caller 
             return message
         
         stripe.api_key = secret_key
-        charge = stripe.Charge.create(
-            amount=int(priceToCharge*100), # stripe takes in cents; UI passes in dollars. multiply by 100 to convert.
-            currency="usd",
-            source=stripe_token,
-            description=chargeDescription, #PW-248
-            metadata = {'Email': emailAddress, 'Institute': institute, 'VAT': vat}
+        try:
+            customer = stripe.Customer.modify(
+                'cus_' + partyId + '_' + userIdentifier + '_' + partnerName,
+                name=firstname + lastname,
+                email=emailAddress,
+                address={
+                  'line1': street,
+                  'city': city,
+                  'state': state,
+                  'country': country,
+                  'postal_code': zip
+                },
+                source=stripe_token,
+                metadata={'Institution Name': institute},
+            )
+        except stripe.error.InvalidRequestError as e:
+            customer = stripe.Customer.create(
+                id='cus_' + partyId + '_' + userIdentifier + '_' + partnerName,
+                name=firstname + lastname,
+                email=emailAddress,
+                address={
+                    'line1': street,
+                    'city': city,
+                    'state': state,
+                    'country': country,
+                    'postal_code': zip
+                },
+                source=stripe_token,
+                metadata={'Institution Name': institute},
+            )
+
+        invoice_item = stripe.InvoiceItem.create(
+            customer=customer.id,
+            unit_amount= int(SubscriptionTerm.objects.get(subscriptionTermId=termId).price) * 100,
+            currency='usd',
+            quantity=quantity,
+            description=chargeDescription   #PW-248
         )
+        custom_fields = [{
+                'name': 'institution',
+                'value': institute
+            }]
+        if vat:
+            custom_fields.append({
+                'name': 'vat',
+                'value': vat
+            })
+        invoice=stripe.Invoice.create(
+            customer=customer.id,
+            collection_method='send_invoice',
+            description = chargeDescription,
+            due_date = int(time.time()),
+            custom_fields = custom_fields,
+        )
+        invoice = stripe.Invoice.pay(invoice.id)
+        stripe.Invoice.send_invoice(invoice.id)
+        transactionId = invoice.charge
 
         status = True
         try:
@@ -113,8 +164,6 @@ class PaymentControl():
         message['status'] = status
         
         if status:
-
-            transactionId = charge.id
             termObj = SubscriptionTerm.objects.get(subscriptionTermId=termId)
             partnerObj = termObj.partnerId
             unitQty = termObj.period
@@ -146,7 +195,7 @@ class PaymentControl():
                 message['message'] = "Unexpected exception: %s" % (e)
             
         if 'message' in message:
-            logPaymentError(partyId, userIdentifier, message['message'])
+            PaymentControl.logPaymentError(partyId, userIdentifier, message['message'])
 
         return message
 
