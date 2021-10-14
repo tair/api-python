@@ -133,13 +133,10 @@ class PaymentControl():
             })
         invoice=stripe.Invoice.create(
             customer=customer.id,
-            collection_method='send_invoice',
             description = chargeDescription,
-            due_date = int(time.time()),
             custom_fields = custom_fields,
         )
         invoice = stripe.Invoice.pay(invoice.id)
-        stripe.Invoice.send_invoice(invoice.id)
         transactionId = invoice.charge
         stripe.PaymentIntent.modify(
             invoice.payment_intent,
@@ -183,7 +180,7 @@ class PaymentControl():
                 
                 if postUnitPurchasePostResponse.status_code == 201:
                     msg = "To access CIPRES resources, please visit phylo.org and log in using your CIPRES user account."
-                    PaymentControl.sendCIPRESEmail(msg, purchaseId, termObj, partnerObj, emailAddress, firstname, lastname, priceToCharge, institute, transactionId, vat)
+                    #PaymentControl.sendCIPRESEmail(msg, purchaseId, termObj, partnerObj, emailAddress, firstname, lastname, priceToCharge, institute, transactionId, vat)
                     unitPurchaseObj.syncedToPartner = True
                     unitPurchaseObj.save()
 
