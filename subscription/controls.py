@@ -141,7 +141,10 @@ class PaymentControl():
         invoice = stripe.Invoice.pay(invoice.id)
         stripe.Invoice.send_invoice(invoice.id)
         transactionId = invoice.charge
-
+        stripe.PaymentIntent.modify(
+            invoice.payment_intent,
+            description = chargeDescription
+        )
         status = True
         try:
             pass
