@@ -140,7 +140,12 @@ class PaymentControl():
         transactionId = invoice.charge
         stripe.PaymentIntent.modify(
             invoice.payment_intent,
-            description = chargeDescription
+            description = chargeDescription,
+            metadata={
+                'Email': emailAddress,
+                'Institute': institute,
+                'VAT': vat
+            }
         )
         status = True
         try:
