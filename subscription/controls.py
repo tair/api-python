@@ -2,11 +2,13 @@ import stripe
 import uuid
 import datetime
 import time
+import string
 from django.shortcuts import render
 from django.http import HttpResponse
 from django.utils import timezone
 from partner.models import SubscriptionTerm, Partner
-from subscription.models import Subscription, SubscriptionTransaction, ActivationCode, UsageUnitPurchase
+from authentication.models import Credential
+from subscription.models import Subscription, SubscriptionTransaction, ActivationCode, UsageUnitPurchase, UsageTierTerm, UsageTierPurchase
 from serializers import SubscriptionSerializer
 from party.models import Party
 from django.utils import timezone
@@ -79,7 +81,7 @@ class PaymentControl():
         message['quantity'] = quantity
         if not PaymentControl.validateCharge(priceToCharge, termId, quantity):
             message['message'] = "Charge validation error"
-            PaymentControl.logPaymentError(partyId, userIdentifier, message['message'])
+            PaymentControl.logPaymentError(partyId, userIdentifier, emailAddress, message['message'])
             #message['status'] = False //PW-120 vet we will return 400 instead - see SubscriptionsPayment post - i.e. the caller 
             return message
         
@@ -200,15 +202,16 @@ class PaymentControl():
                 message['message'] = "Unexpected exception: %s" % (e)
             
         if 'message' in message:
-            PaymentControl.logPaymentError(partyId, userIdentifier, message['message'])
+            PaymentControl.logPaymentError(partyId, userIdentifier, emailAddress, message['message'])
 
         return message
 
     @staticmethod
-    def logPaymentError(partyId, userIdentifier, message):
+    def logPaymentError(partyId, userIdentifier, emailAddress, message):
          logger.info("------Payment Charge Failed------")
          logger.info("User Party ID: %s" % partyId)
          logger.info("User Identifier ID: %s" % userIdentifier)
+         logger.info("User Email for Purchase: %s" % emailAddress)
          logger.info("Error Message: %s" % message)
          logger.info("---------------------------------")
 
@@ -279,6 +282,148 @@ class PaymentControl():
         logger.info("Usage Unit Purchase ID: %s" % purchaseId)
         logger.info("Transaction ID: %s" % transactionId)
         logger.info("Main Message: %s" % msg)
+        send_mail(subject=subject, from_email=from_email, recipient_list=recipient_list, message=msg)
+        logger.info("------Done sending email------")
+
+
+    @staticmethod
+    def chargeForCyVerse(stripe_api_key, stripe_token, priceToCharge, stripeDescription, username, partnerName, tierId, emailAddress, firstname, lastname, institute, street, city, state, country, zip, hostname, redirect, cardLast4, vat, domain):
+        message = {}
+        message['price'] = priceToCharge
+        message['tierId'] = tierId
+        status = True
+
+        try:
+            stripe.api_key = stripe_api_key
+            charge = stripe.Charge.create(
+                amount=int(priceToCharge*100), # stripe takes in cents; UI passes in dollars. multiply by 100 to convert.
+                currency="usd",
+                source=stripe_token,
+                description=stripeDescription,
+                metadata = {'Email': emailAddress, 'Institute': institute, 'VAT': vat}
+            )
+            pass
+        except stripe.error.InvalidRequestError, e:
+            status = False
+            message['message'] = e.json_body['error']['message']
+        except stripe.error.CardError, e:
+            status = False
+            message['message'] = e.json_body['error']['message']
+        except stripe.error.AuthenticationError, e:
+            status = False
+            message['message'] = e.json_body['error']['message']
+        except stripe.error.APIConnectionError, e:
+            status = False
+            message['message'] = e.json_body['error']['message']
+        except Exception, e:
+            status = False
+            message['message'] = "Unexpected exception: %s" % (e)
+
+        message['status'] = status
+        
+        if status:
+            transactionId = charge.id
+            termObj = UsageTierTerm.objects.get(tierId=tierId)
+            partnerObj = termObj.partnerId
+            purchaseDate = timezone.now()
+
+            partyObj = Credential.getByUsernameAndPartner(username, partnerObj.partnerId).partyId
+
+            tierPurchaseObj = PaymentControl.createUsageTierPurchase(partyObj, partnerObj, termObj, purchaseDate, transactionId);
+            purchaseId = tierPurchaseObj.purchaseId
+            expirationDate = tierPurchaseObj.expirationDate
+
+            termName = termObj.name
+            if termName:
+                termName = string.capwords(termName)
+
+            # TODO: send to CyVerse API later
+            msg = "Your order has been processed, and your CyVerse account will be credited within 48 hours."
+            PaymentControl.sendCyVerseEmail(msg, purchaseId, termName, partnerObj, emailAddress, firstname, lastname, priceToCharge, institute, transactionId, expirationDate, cardLast4, vat)
+            PaymentControl.sendCyVerseAdminEmail(termName, username, purchaseDate, transactionId)
+            tierPurchaseObj.syncedToPartner = True
+            tierPurchaseObj.save()
+
+        if 'message' in message:
+            logPaymentError(partyObj.partyId, userIdentifier, emailAddress, message['message'])
+
+        return message
+
+    @staticmethod
+    def createUsageTierPurchase(partyId, partnerId, termObj, purchaseDate, transactionId):
+        unitPurchaseObj = UsageTierPurchase()
+        unitPurchaseObj.partnerId=partnerId
+        unitPurchaseObj.partyId=partyId
+        unitPurchaseObj.tierId=termObj
+        unitPurchaseObj.purchaseDate=purchaseDate
+        unitPurchaseObj.expirationDate = PaymentControl.getExpirationDate(purchaseDate, termObj.durationInDays)
+        unitPurchaseObj.transactionId=transactionId
+        unitPurchaseObj.syncedToPartner=False
+        unitPurchaseObj.save()
+
+        return unitPurchaseObj
+
+    @staticmethod
+    def getExpirationDate(purchaseDate, durationInDays):
+        expirationDate = purchaseDate+datetime.timedelta(days=(durationInDays))
+        return expirationDate.strftime("%Y-%m-%d 23:59:59")
+
+    @staticmethod
+    def sendCyVerseEmail(msg, purchaseId, termName, partnerObj, email, firstname, lastname, payment, institute, transactionId, expirationDate, cardLast4, vat):
+        name = firstname + " " + lastname
+        payment = "%.2f" % float(payment)
+        expirationDateDisplay = expirationDate + " GMT"
+        
+        html_message = partnerObj.activationEmailInstructionText % ( 
+            partnerObj.logoUri,
+            name,
+            msg,
+            institute,
+            termName,
+            payment,
+            transactionId,
+            cardLast4,
+            expirationDateDisplay,
+            vat,
+            """
+            Phoenix Bioinformatics Corporation<br>
+            39899 Balentine Drive, Suite 200<br>
+            Newark, CA, 94560, USA<br>
+            """)
+        
+        subject = "Subscription Receipt"
+        from_email = "info@phoenixbioinformatics.org"
+        recipient_list = [email]
+
+        logger.info("------Sending CyVerse subscription email------")
+        logger.info("Receipient: %s" % recipient_list[0])
+        logger.info("Subscription Tier Purchase ID: %s" % purchaseId)
+        logger.info("Transaction ID: %s" % transactionId)
+        logger.info("Main Message: %s" % msg)
+        send_mail(subject=subject, from_email=from_email, recipient_list=recipient_list, html_message=html_message, message=None)
+        logger.info("------Done sending email------")
+
+    @staticmethod
+    def sendCyVerseAdminEmail(termName, username, purchaseDate, transactionId):
+        subject = settings.CYVERSE_PURCHASE_EMAIL_SUBJECT
+        from_email = "info@phoenixbioinformatics.org"
+        recipient_list = settings.CYVERSE_ADMINS
+
+        msg = """
+    CyVerse subscription purchased:
+        term: %s
+        username: %s
+        Transaction ID: %s
+        Purchase Time: %s
+        """ % (termName, username, transactionId, purchaseDate)
+
+        logger.info("------Sending CyVerse admin email------")
+        logger.info("Term: %s" % termName)
+        logger.info("username: %s" % username)
+        logger.info("Transaction ID: %s" % transactionId)
+        logger.info("Subject: %s" % subject)
+        logger.info("Message: %s" % msg)
+        logger.info("recipients: %s" % recipient_list)
         send_mail(subject=subject, from_email=from_email, recipient_list=recipient_list, message=msg)
         logger.info("------Done sending email------")
 

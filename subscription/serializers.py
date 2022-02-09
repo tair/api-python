@@ -1,7 +1,7 @@
 #Copyright 2015 Phoenix Bioinformatics Corporation. All rights reserved.
 
 
-from subscription.models import Subscription, SubscriptionTransaction, ActivationCode, SubscriptionRequest, UsageUnitPurchase
+from subscription.models import Subscription, SubscriptionTransaction, ActivationCode, SubscriptionRequest, UsageUnitPurchase, UsageTierTerm, UsageTierPurchase
 from rest_framework import serializers
 from partner.models import Partner
 
@@ -28,4 +28,19 @@ class SubscriptionRequestSerializer(serializers.ModelSerializer):
 class UsageUnitPurchaseSerializer(serializers.ModelSerializer):
     class Meta:
         model = UsageUnitPurchase
-        fields = ('purchaseId', 'partyId', 'partnerId', 'quantity', 'purchaseDate', 'syncedToPartner')
+        fields = ('purchaseId', 'partyId', 'partnerId', 'quantity', 'purchaseDate', 'transactionId', 'syncedToPartner')
+
+class UsageTierTermSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = UsageTierTerm
+        fields = ('tierId', 'partnerId', 'name', 'price', 'isAcademic', 'durationInDays')
+
+class UsageTierPurchaseSerializer(serializers.ModelSerializer):
+    tierName = serializers.SerializerMethodField('get_term_name')
+
+    def get_term_name(self, purchase):
+        return purchase.tierId.name
+
+    class Meta:
+        model = UsageTierPurchase
+        fields = ('purchaseId', 'partyId', 'partnerId', 'tierId', 'tierName', 'purchaseDate', 'expirationDate', 'transactionId', 'syncedToPartner')

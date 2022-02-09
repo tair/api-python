@@ -56,7 +56,7 @@ class Party(models.Model):
         partyList.append(partyId)
         partyList.extend(consortiums)
         return partyList
-
+    
     def validateInstitutionCountry(self):
         if self.partyType == 'organization':
             if not self.country:
