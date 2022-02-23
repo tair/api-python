@@ -297,6 +297,20 @@ class PaymentControl():
         send_mail(subject=subject, from_email=from_email, recipient_list=recipient_list, html_message=html_msg, message=None)
         logger.info("------Done sending email------")
 
+    @staticmethod
+    def sendChargeFailedEmail(chargeId, email, msg, partnerName):
+        subject = partnerName + " Payment Failed"
+        from_email = "info@phoenixbioinformatics.org"
+        recipient_list = [email]
+
+        html_msg = 'Sorry, there is an error submitting your payment. Please try again later or contact us at <a href="mailto:subscriptions@phoenixbioinformatics.org">subscriptions@phoenixbioinformatics.org</a>'
+
+        logger.info("------Sending " + partnerName + " charge failed email------")
+        logger.info("Charge ID: %s" % chargeId)
+        logger.info("Error Message: %s" % msg)
+        send_mail(subject=subject, from_email=from_email, recipient_list=recipient_list, html_message=html_msg, message=None)
+        logger.info("------Done sending email------")
+
     # for regular Phoenix subscription payment
     @staticmethod
     def tryCharge(secret_key, stripe_token, priceToCharge, partnerName, chargeDescription, termId, quantity, emailAddress, firstname, lastname, institute, street, city, state, country, zip, hostname, redirect, vat, domain):
@@ -339,6 +353,9 @@ class PaymentControl():
         except Exception, e:
             status = False
             message['message'] = "Unexpected exception: %s" % (e)
+
+        if not status:
+            PaymentControl.sendChargeFailedEmail(charge.id, emailAddress, message['message'], partnerName )
 
         message['status'] = status
         return message
