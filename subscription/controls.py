@@ -201,6 +201,7 @@ class PaymentControl():
             
         if 'message' in message:
             PaymentControl.logPaymentError(partyId, userIdentifier, message['message'])
+            PaymentControl.sendCIPRESChargeFailedEmail(transactionId, emailAddress, message['message'])
 
         return message
 
@@ -280,6 +281,20 @@ class PaymentControl():
         logger.info("Transaction ID: %s" % transactionId)
         logger.info("Main Message: %s" % msg)
         send_mail(subject=subject, from_email=from_email, recipient_list=recipient_list, message=msg)
+        logger.info("------Done sending email------")
+
+    @staticmethod
+    def sendCIPRESChargeFailedEmail(transactionId, email, msg):
+        subject = "CIPRES Payment Failed"
+        from_email = "info@phoenixbioinformatics.org"
+        recipient_list = [email]
+
+        html_msg = 'Sorry, there is an error submitting your payment. Please try again later or contact us at <a href="mailto:subscriptions@phoenixbioinformatics.org">subscriptions@phoenixbioinformatics.org</a>'
+
+        logger.info("------Sending CIPRES charge failed email------")
+        logger.info("Transaction ID: %s" % transactionId)
+        logger.info("Error Message: %s" % msg)
+        send_mail(subject=subject, from_email=from_email, recipient_list=recipient_list, html_message=html_msg, message=None)
         logger.info("------Done sending email------")
 
     # for regular Phoenix subscription payment
