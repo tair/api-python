@@ -1,4 +1,4 @@
-from permissions import rolePermission
+from permissions import rolePermission, isLoggedIn
 from rest_framework.response import Response
 from rest_framework import status
 from functools import wraps
@@ -13,6 +13,9 @@ def compatible_jwt(*roleList):
                 roleListStr = ','.join(roleList)
                 if not rolePermission(request, roleList):
                     return Response({'error': 'roles needed: ' + roleListStr}, status=status.HTTP_400_BAD_REQUEST)
+            else:
+                if not isLoggedIn(request):
+                    return Response({'error': 'authentication failed'}, status=status.HTTP_400_BAD_REQUEST)
             return func(self, request, *args, **kwargs)
         return inner
     return decorator

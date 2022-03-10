@@ -27,6 +27,7 @@ def isPhoenix(request):
     credentialId = request.GET.get('credentialId')
     secretKey = request.GET.get('secretKey')
     token = None
+    # TODO: this is the same function as isLoggedIn(). we need to check if it's phoenix and make api functions compatible.
     if credentialId and secretKey and Credential.validate(credentialId, token, secretKey):
         return True
     return False
@@ -49,6 +50,7 @@ def rolePermission(request, roleList):
         try:
             payload = jwt_decode_handler(token)
         except Exception:
+            raise Exception('ex')
             return False
         user_id = payload['user_id']
         partyType = ''
@@ -59,4 +61,16 @@ def rolePermission(request, roleList):
         for role in roleList:
             if partyType == role:
                 return True
+    raise Exception(request.META)
     return False
+
+class CompatibleJWTRolePermission():
+    @staticmethod
+    def has_permission(request, view):
+        if request.version == '2.0' and hasattr(view, 'roleList'):
+            return rolePermission(request, view.roleList)
+        else:
+            return isLoggedIn(request)
+
+    def has_object_permission(self, request, view, obj):
+        return True

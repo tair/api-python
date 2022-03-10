@@ -3,6 +3,9 @@ from django.http import StreamingHttpResponse
 from rest_framework.response import Response
 from rest_framework import generics
 from rest_framework.views import APIView
+from rest_framework.decorators import api_view,permission_classes,renderer_classes
+from rest_framework.permissions import AllowAny
+from rest_framework.renderers import JSONRenderer
 import datetime
 import csv
 import re
@@ -30,6 +33,7 @@ from netaddr import IPAddress
 class PageViewCRUD(GenericCRUDView):
   queryset = PageView.objects.all()
   serializer_class = PageViewSerializer
+  http_method_names = ['get', 'post']
 
   def get(self, request, format=None):
     params = request.GET
@@ -47,12 +51,6 @@ class PageViewCRUD(GenericCRUDView):
       serializer.save()
       return Response(serializer.data, status=status.HTTP_201_CREATED)
     return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-
-  def delete(self, request, format=None):
-    return Response({'message':'delete is not enabled for Page View'}, status=status.HTTP_400_BAD_REQUEST)
-
-  def update(self, request):
-    return Response({'message':'update is not enabled for Page View'}, status=status.HTTP_400_BAD_REQUEST)
 
 # /sessions/counts/
 class SessionCountView(generics.GenericAPIView):
@@ -84,6 +82,9 @@ class Echo:
         """Write the value by returning it, instead of storing in a buffer."""
         return value
 
+@api_view(('get',))
+@permission_classes((AllowAny,))
+@renderer_classes((JSONRenderer,))
 def page_view_to_csv(request):
     """A view that streams a large CSV file."""
     pageViews = PageView.objects.all()

@@ -26,6 +26,7 @@ class PartnerCRUD(GenericCRUDView):
     queryset = Partner.objects.all()
     serializer_class = PartnerSerializer
     requireApiKey = False
+    http_method_names = ['get']
 
     def get(self, request, format=None):
         obj = self.get_queryset()
@@ -37,20 +38,12 @@ class PartnerCRUD(GenericCRUDView):
         serializer = self.serializer_class(obj, many=True)
         return Response(serializer.data)
 
-    def post(self, request):
-        return Response({'msg':'cannot create'}, status=status.HTTP_400_BAD_REQUEST)
-
-    def put(self, request):
-        return Response({'msg':'cannot update'}, status=status.HTTP_400_BAD_REQUEST)
-
-    def delete(self, request):
-        return Response({'msg':'cannot delete'}, status=status.HTTP_400_BAD_REQUEST)
-
 # /patterns
 class PartnerPatternCRUD(GenericCRUDView):
     queryset = PartnerPattern.objects.all()
     serializer_class = PartnerPatternSerializer
     requireApiKey = False
+    http_method_names = ['get']
 
     def get(self, request, format=None):
         params = request.GET
@@ -71,21 +64,14 @@ class TermsCRUD(GenericCRUDView):
     queryset = SubscriptionTerm.objects.all()
     serializer_class = SubscriptionTermSerializer
     requireApiKey = False
-
-    def post(self, request):
-        return Response({'msg':'cannot create'}, status=status.HTTP_400_BAD_REQUEST)
-
-    def put(self, request):
-        return Response({'msg':'cannot update'}, status=status.HTTP_400_BAD_REQUEST)
-
-    def delete(self, request):
-        return Response({'msg':'cannot delete'}, status=status.HTTP_400_BAD_REQUEST)
+    http_method_names = ['get']
 
 # /descriptions/
 class SubscriptionDescriptionCRUD(GenericCRUDView):
     queryset = SubscriptionDescription.objects.all()
     serializer_class = SubscriptionDescriptionSerializer
     requireApiKey = False
+    http_method_names = ['get']
 
     def get(self, request, format=None):
         obj = self.get_queryset()
@@ -106,17 +92,9 @@ class SubscriptionDescriptionCRUD(GenericCRUDView):
         serializer = self.serializer_class(obj, many=True)
         return Response(serializer.data)
 
-    def post(self, request):
-        return Response({'msg':'cannot create'}, status=status.HTTP_400_BAD_REQUEST)
-
-    def put(self, request):
-        return Response({'msg':'cannot update'}, status=status.HTTP_400_BAD_REQUEST)
-
-    def delete(self, request):
-        return Response({'msg':'cannot delete'}, status=status.HTTP_400_BAD_REQUEST)
-
 # /descriptionItems/
 class SubscriptionDescriptionItemCRUD(GenericCRUDView):
     queryset = SubscriptionDescriptionItem.objects.all()
     serializer_class = SubscriptionDescriptionItemSerializer
+    http_method_names = ['get']
 

@@ -19,6 +19,7 @@ from rest_framework import generics
 from common.views import GenericCRUDView
 from common.permissions import isPhoenix
 from common.common import getRemoteIpAddress
+from common.decorators import compatible_jwt
 
 from django.shortcuts import render
 from django.utils.encoding import smart_str
@@ -177,6 +178,7 @@ class SubscriptionRenewal(generics.GenericAPIView):
     queryset = Subscription.objects.all()
     serializer_class = SubscriptionSerializer
 
+    @compatible_jwt('staff')
     def put(self, request, pk):
         subscription = Subscription.objects.get(subscriptionId=pk)
         serializer = SubscriptionSerializer(subscription, data=request.data)
@@ -332,6 +334,7 @@ class CommercialSubscription(APIView):
 # Upon success, returns the expiration date of the found subscription and 'subscribed' status as True; otherwise, the returned expiration date is null and status is False.
 class EndDate(generics.GenericAPIView):
     requireApiKey = False
+    @compatible_jwt('staff','consortium','organization','user')
     def get(self, request):
         partnerId=request.GET.get("partnerId")
         if 'ipAddress' in request.GET:
@@ -374,6 +377,7 @@ class EndDate(generics.GenericAPIView):
         return HttpResponse(json.dumps({'expDate':expDate, 'subscribed':subscribed, 'subscriptionType':subscriptionType}), content_type="application/json")
 
 # /activesubscriptions/<partyId>
+@compatible_jwt('staff','consortium','organization')
 class ActiveSubscriptions(generics.GenericAPIView):
     requireApiKey = False
     def get(self, request, partyId):
@@ -387,6 +391,7 @@ class ActiveSubscriptions(generics.GenericAPIView):
         return HttpResponse(json.dumps(ret), status=200)
 
 # /allsubscriptions/<partyId>
+@compatible_jwt('staff','consortium','organization')
 class AllSubscriptions(generics.GenericAPIView):
     requireApiKey = False
     def get(self, request, partyId):
@@ -401,6 +406,7 @@ class AllSubscriptions(generics.GenericAPIView):
 # /consortiums/
 class ConsortiumSubscriptions(generics.GenericAPIView):
     requireApiKey = False
+    @compatible_jwt('staff', 'consortium', 'organization')
     def get(self, request):
         params = request.GET
         if not 'partyId' in params:
@@ -426,6 +432,7 @@ class ConsortiumSubscriptions(generics.GenericAPIView):
 # /consactsubscriptions/<partyId>
 class ConsActSubscriptions(generics.GenericAPIView):
     requireApiKey = False
+    @compatible_jwt('staff', 'consortium', 'organization')
     def get(self, request, partyId):
         ret = {}
         now = datetime.datetime.now()
@@ -501,6 +508,7 @@ class SubscriptionRequestCRUD(GenericCRUDView):
     serializer_class = SubscriptionRequestSerializer
     requireApiKey = False
 
+    @compatible_jwt('staff')
     def get(self, request):
         allSubscriptionRequests = SubscriptionRequest.objects.all()
         serializer = self.serializer_class(allSubscriptionRequests, many=True)
@@ -524,6 +532,7 @@ class SubscriptionRequestCRUD(GenericCRUDView):
         response['X-Sendfile'] = smart_str('/Downloads')
         return response
 
+    @compatible_jwt('consortium', 'organization')
     def post(self, request):
         serializer = self.serializer_class(data=request.data)
         if serializer.is_valid():

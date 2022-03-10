@@ -27,20 +27,26 @@ class IpAddressCountCRUD(GenericCRUDView):
     requireApiKey = False
     queryset = IpAddressCount.objects.all()
     serializer_class = IpAddressCountSerializer
+    http_method_names = ['get','put']
+    # TODO: credentialId and secretKey check for put funciton
 
 # /limits/
 class LimitValueCRUD(GenericCRUDView):
     queryset = LimitValue.objects.all()
     serializer_class = LimitValueSerializer
+    http_method_names = ['get']
+
 
 # /meterblacklist
 class MeterBlacklistCRUD(GenericCRUDView):
     queryset = MeterBlacklist.objects.all()
     serializer_class = MeterBlacklistSerializer
+    http_method_names = ['get']
 
 #Increment request for an IP
 # /ip/<pk>/increment/
 class increment(APIView):
+    http_method_names = ['post']
     def post(self, request, ip, format=None):
         partnerId = request.GET.get('partnerId')
         if IpAddressCount.objects.filter(ip=ip).filter(partnerId=partnerId).exists():
@@ -74,6 +80,7 @@ class check_limit(APIView):
     complete URI (required)
     status (required)
     '''
+    http_method_names = ['get']
     def get(self, request, ip, format=None):
         partnerId = request.GET.get('partnerId')
         uri = request.GET.get('uri').decode('utf8')

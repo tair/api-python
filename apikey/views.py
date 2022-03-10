@@ -17,7 +17,7 @@ from rest_framework.response import Response
 
 
 # Basic CRUD operation for Partner
-
+# TODO: remove ApiKeyPermission from default permission_classes and set it in specific places using permission_classes param or decorator.
 # /apikeys/
 class ApiKeyCRUD(GenericCRUDView):
     queryset = ApiKey.objects.all()

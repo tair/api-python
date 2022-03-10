@@ -10,5 +10,5 @@ class CredentialSerializer(serializers.ModelSerializer):
 class CredentialSerializerNoPassword(serializers.ModelSerializer):
     class Meta:
         model = Credential
-        fields = ('username', 'firstName', 'lastName', 'email', 'institution', 'partyId', 'partnerId', 'userIdentifier', 'user')#PW-161
+        fields = ('username', 'firstName', 'lastName', 'email', 'institution', 'partyId', 'partnerId', 'userIdentifier')#PW-161
 

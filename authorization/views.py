@@ -10,6 +10,7 @@ from serializers import AccessTypeSerializer, AccessRuleSerializer, UriPatternSe
 from partner.models import Partner
 from authentication.models import Credential
 from common.views import GenericCRUDView
+from common.decorators import compatible_jwt
 
 from rest_framework.response import Response
 from rest_framework import status
@@ -30,11 +31,12 @@ import logging
 # https://demoapi.arabidopsis.org/authorizations/access/?partnerId=tair&url=http%3A%2F%2Fwww.arabidopsis.org%2Fcgi-bin%2Fbulk%2Fsequences%2F&ip=203.255.24.127
 class Access(APIView):
     requireApiKey = False
+    http_method_names = ['get']
     def get(self, request, format=None):
         partyId = request.COOKIES.get('credentialId')
         loginKey = request.COOKIES.get('secretKey')
         token = None
-        if 'token' in request.COOKIES:
+        if request.version == '2.0':
             token = request.COOKIES.get('token')
         ipList = request.GET.get('ipList')
         url = request.GET.get('url').decode('utf8')
@@ -78,6 +80,7 @@ class Access(APIView):
 # /subscriptions/
 # https://demoapi.arabidopsis.org/authorizations/subscriptions/
 class SubscriptionsAccess(APIView):
+    http_method_names = ['get']
     def get(self, request, format=None):
         ip = request.GET.get('ip')
         url = request.GET.get('url')
@@ -93,6 +96,7 @@ class SubscriptionsAccess(APIView):
 
 # /authentications/
 class AuthenticationsAccess(APIView):
+    http_method_names = ['get']
     def get(self, request, format=None):
         credentialId = request.COOKIES.get('credentialId')
         loginKey = request.COOKIES.get('secretKey')
@@ -127,7 +131,8 @@ class URIAccess(APIView):
             else:
                 logging.error("Authorization URIAccess %s%s %s" % ("GET URIAccess error: requestPatternId:",requestPatternId,"not found"))
                 return Response({'GET error: patternId' + requestPatternId + ' not found'})
-        
+
+    @compatible_jwt('staff', 'partner')
     def delete(self, request, format=None):
        params = request.GET
        if 'patternId' not in params:
@@ -140,7 +145,8 @@ class URIAccess(APIView):
            return Response({'DELETE success':'delete of patternId '+requestPatternId+' completed'},status=status.HTTP_200_OK)
        else:
            return Response({'DELETE error':'delete of patternId '+requestPatternId+' failed. patternId not found'},status=status.HTTP_400_BAD_REQUEST)
-          
+
+    @compatible_jwt('staff', 'partner')
     def put(self, request, format=None):
         params = request.GET
         if 'patternId' not in params:
@@ -166,7 +172,8 @@ class URIAccess(APIView):
             return Response(serializer.data, status=status.HTTP_200_OK)
         else:
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-    
+
+    @compatible_jwt('staff', 'partner')
     def post(self,request, format=None):
         data = request.data
         if 'pattern' not in data:
@@ -190,19 +197,15 @@ class URIAccess(APIView):
 class AccessTypeCRUD(GenericCRUDView):
     queryset = AccessType.objects.all()
     serializer_class = AccessTypeSerializer
+    http_method_names = ['get']
 
 # /accessRules/
 class AccessRuleCRUD(GenericCRUDView):
     queryset = AccessRule.objects.all()
     serializer_class = AccessRuleSerializer
+    http_method_names = ['get']
 
-# /patterns/
-class UriPatternCRUD(GenericCRUDView):
-    queryset = UriPattern.objects.all()
-    serializer_class = UriPatternSerializer
-
-# Utility functions
-
+# Utility functions TODO: move to common app
 def getHostUrlFromRequest(request):
     if (request.is_secure()):
         protocol = 'https'

@@ -26,7 +26,7 @@ class Party(models.Model):
     # TODO: learn post_delete and add it for Credential in case there will be bulk delete
     def delete(self):
         credentialModel = apps.get_model('authentication', 'Credential')
-        credentialModel.objects.get(partyId = self).delete()
+        credentialModel.objects.filter(partyId = self).delete()
         return super(Party, self).delete()
 
     @staticmethod

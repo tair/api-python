@@ -15,9 +15,11 @@ from django.http import HttpResponse
 from rest_framework.views import APIView
 from rest_framework import status
 from rest_framework.response import Response
+from rest_framework.decorators import api_view
 
 from django.core.mail import send_mail
-from common.permissions import isPhoenix
+from common.permissions import isPhoenix, CompatibleJWTRolePermission
+from common.decorators import compatible_jwt
 
 from common.permissions import ApiKeyPermission
 import hashlib
@@ -27,6 +29,7 @@ from genericpath import exists
 from django.db import connection
 from collections import namedtuple
 from django.contrib.auth.models import User
+from django.utils.decorators import method_decorator
 
 #below three added by Andrey for PW-277
 import logging
@@ -42,6 +45,8 @@ class PartyCRUD(GenericCRUDView):
     requireApiKey = False
     queryset = Party.objects.all()
     serializer_class = PartySerializer
+    permission_classes = (CompatibleJWTRolePermission,)
+    roleList = ('staff','consortium','organization','user')
 
     def get_queryset(self):
         if isPhoenix(self.request):
@@ -53,11 +58,10 @@ class PartyCRUD(GenericCRUDView):
                 return super(PartyCRUD, self).get_queryset().filter(partyType=partyType)
         return []
 
-
-
 # /org/
 class PartyOrgCRUD(GenericCRUDView):
     requireApiKey = False
+    http_method_names = ['get']
 
     #https://demoapi.arabidopsis.org/parties/?ip=131.204.0.0  returns Auburn University
     def get(self, request, format=None):
@@ -84,6 +88,7 @@ class PartyOrgCRUD(GenericCRUDView):
 # /orgstatus/
 class PartyOrgStatusView(APIView):
     requireApiKey = False
+    http_method_names = ['get']
 
     def get(self, request, format=None):
         if 'ip' not in request.GET:
@@ -118,13 +123,14 @@ class IpRangeCRUD(GenericCRUDView):
     requireApiKey = False
     queryset = IpRange.objects.all()
     serializer_class = IpRangeSerializer
+    permission_classes = (CompatibleJWTRolePermission,)
+    roleList = ('staff','consortium','institution')
 
     def get_queryset(self):
         if isPhoenix(self.request):
             partyId = self.request.GET.get('partyId')
             return super(IpRangeCRUD, self).get_queryset().filter(partyId=partyId)
         return []
-# TODO: "post" is still a security vulnerability -SC
 
 #------------------- End of Basic CRUD operations --------------
 
@@ -188,10 +194,11 @@ class CountryView(APIView):
 # /usage/
 class Usage(APIView):
     requireApiKey = False
+    @compatible_jwt('staff','consortium','organization')
     def post(self, request, format=None):
         # security vulnerability: consortiumId should come from partyId in cookie that's been validated via isPhoenix -SC
         if not isPhoenix(request):
-            return HttpResponse(status=400)
+            return HttpResponse('error: credential information is invalid.',status=400)
         data = request.data
         partyName = ''
         partyTypeName = ''
@@ -255,6 +262,7 @@ class ConsortiumCRUD(GenericCRUDView):
                 return super(ConsortiumCRUD, self).get_queryset().filter(partyId=partyId).filter(partyType="consortium") #PW-161 consortium
         return []
 
+    @compatible_jwt('staff', 'consortium')
     def get(self, request, format=None):
         if not isPhoenix(request):
            return HttpResponse({'error':'credentialId and secretKey query parameters missing or invalid'},status=status.HTTP_400_BAD_REQUEST)
@@ -286,6 +294,7 @@ class ConsortiumCRUD(GenericCRUDView):
     #PW-161 PUT https://demoapi.arabidopsis.org/parties/consortiums?credentialId=2&secretKey=7DgskfEF7jeRGn1h%2B5iDCpvIkRA%3D
     #FORM DATA partyId is required. If pwd passed it will be updated in Credential if not - not.
     # output data from both tables for a given partyId (aka consortiumId)
+    @compatible_jwt('staff', 'consortium')
     def put(self, request, format=None):
         if not isPhoenix(request):
            return HttpResponse({'error':'PUT parties/consortiums/ credentialId and secretKey query parameters missing or invalid'},status=status.HTTP_400_BAD_REQUEST)
@@ -366,6 +375,8 @@ class ConsortiumCRUD(GenericCRUDView):
         #password NOT required (latest requirement change)
         #partnerId required (tair/phoenix); (username+partnerId) must make a unique set.
         #partyType required and must be "consortium"
+
+    @compatible_jwt('staff')
     def post(self, request, format=None):
         if not isPhoenix(request):
            return HttpResponse({'error':'POST parties/consortiums/ credentialId and secretKey query parameters missing or invalid'},status=status.HTTP_400_BAD_REQUEST)
@@ -435,6 +446,8 @@ class ConsortiumCRUD(GenericCRUDView):
             return Response(partySerializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 #
+
+    @compatible_jwt('staff')
     def delete(self, request, format=None):
         if not isPhoenix(request):
           return HttpResponse({'error':'DELETE parties/consortiums/ credentialId and secretKey query parameters missing or invalid'},status=status.HTTP_400_BAD_REQUEST)
@@ -477,6 +490,7 @@ class InstitutionCRUD(GenericCRUDView):
                 return super(InstitutionCRUD, self).get_queryset().filter(partyId=partyId).filter(partyType="organization")
         return []
 
+    @compatible_jwt('staff', 'consortium', 'organization')
     def get(self, request, format=None):
         if not isPhoenix(request):
            return HttpResponse({'error':'credentialId and secretKey query parameters missing or invalid'},status=status.HTTP_400_BAD_REQUEST)
@@ -509,6 +523,7 @@ class InstitutionCRUD(GenericCRUDView):
     #PW-161 PUT https://demoapi.arabidopsis.org/parties/institutions?credentialId=2&secretKey=7DgskfEF7jeRGn1h%2B5iDCpvIkRA%3D
     #FORM DATA partyId is required. If pwd passed it will be updated in Credential if not - not.
     # output data from both tables for a given partyId
+    @compatible_jwt('staff', 'consortium', 'organization')
     def put(self, request, format=None):
         if not isPhoenix(request):
            return HttpResponse({'error':'credentialId and secretKey query parameters missing or invalid'},status=status.HTTP_400_BAD_REQUEST)
@@ -612,6 +627,8 @@ class InstitutionCRUD(GenericCRUDView):
         #password NOT required (latest requirement change)
         #partnerId required (tair/phoenix); (username+partnerId) must make a unique set.
         #partyType required and must be "organization"
+
+    @compatible_jwt('staff', 'consortium')
     def post(self, request, format=None):
         if not isPhoenix(request):
            return HttpResponse({'error':'POST parties/institutions/ credentialId and secretKey query parameters missing or invalid'},status=status.HTTP_400_BAD_REQUEST)
@@ -680,6 +697,7 @@ class InstitutionCRUD(GenericCRUDView):
             return Response(partySerializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 #
+    @compatible_jwt('staff')
     def delete(self, request, format=None):
         if not isPhoenix(request):
            return HttpResponse({'error':'credentialId and secretKey query parameters missing or invalid'},status=status.HTTP_400_BAD_REQUEST)
@@ -718,6 +736,7 @@ class AffiliationCRUD(GenericCRUDView):
                 return super(AffiliationCRUD, self).get_queryset().get(partyId=partyId)
         return []
 
+    @compatible_jwt('staff', 'consortium', 'organization')
     def get(self, request, format=None):
        serializer_class = self.get_serializer_class()
        params = request.GET
@@ -739,6 +758,7 @@ class AffiliationCRUD(GenericCRUDView):
            return Response({'error':'invalid partyType'})
        return HttpResponse(json.dumps(out), content_type="application/json")
 
+    @compatible_jwt('staff', 'consortium', 'organization')
     def post(self, request, format=None):
        if not isPhoenix(self.request):
            return HttpResponse(status=400)
@@ -760,6 +780,7 @@ class AffiliationCRUD(GenericCRUDView):
        serializer = serializer_class(childParty)
        return Response(serializer.data, status=status.HTTP_201_CREATED)
 
+    @compatible_jwt('staff', 'consortium', 'organization')
     def delete(self, request, format=None):
        if not isPhoenix(self.request):
            return HttpResponse(status=400)
