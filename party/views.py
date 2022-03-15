@@ -711,11 +711,11 @@ class AffiliationCRUD(GenericCRUDView):
            return Response({'error':'does not allow creation without parentPartyId or childPartyId'},status=status.HTTP_400_BAD_REQUEST)
        parentPartyId = params['parentPartyId']
        childPartyId = params['childPartyId']
-       if Party.objects.all().get(partyId = parentPartyId):
+       if Party.objects.all().filter(partyId = parentPartyId).exists():
            parentParty = Party.objects.all().get(partyId=parentPartyId)
        else:
            return Response({'error':'parentParty does not exist'},status=status.HTTP_400_BAD_REQUEST)
-       if Party.objects.all().get(partyId = childPartyId):
+       if Party.objects.all().filter(partyId = childPartyId).exists():
            childParty=Party.objects.all().get(partyId=childPartyId)
        else:
            return Response({'error':'childParty does not exist'},status=status.HTTP_400_BAD_REQUEST)
@@ -732,11 +732,11 @@ class AffiliationCRUD(GenericCRUDView):
            return Response({'error':'does not allow deletion without query parameters'})
        parentPartyId = params['parentPartyId']
        childPartyId = params['childPartyId']
-       if Party.objects.all().get(partyId=parentPartyId):
+       if Party.objects.all().filter(partyId=parentPartyId).exists():
            parentParty = Party.objects.all().get(partyId=parentPartyId)
        else:
            return Response({'error':'cannot find parent party'}, status=status.HTTP_400_BAD_REQUEST)
-       if Party.objects.all().get(partyId=childPartyId):
+       if Party.objects.all().filter(partyId=childPartyId).exists():
            childParty=Party.objects.all().get(partyId=childPartyId)
        else:
            return Response({'error':'cannot find child party'}, status=status.HTTP_400_BAD_REQUEST)
