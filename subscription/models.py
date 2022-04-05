@@ -151,3 +151,47 @@ class UsageUnitPurchase(models.Model):
 
     class Meta:
         db_table = "UsageUnitPurchase"
+
+class UsageTierTerm(models.Model):
+    tierId = models.AutoField(primary_key=True)
+    partnerId = models.ForeignKey("partner.Partner", null=False, db_column="partnerId")
+    name = models.CharField(max_length=20)
+    price = models.IntegerField(null=False)
+    description = models.CharField(max_length=200)
+    isAcademic = models.BooleanField(null=False, default=False)
+    durationInDays = models.IntegerField(null=False)
+
+    @staticmethod
+    def getByPartner(partnerId):
+        return UsageTierTerm.objects.filter(partnerId=partnerId)
+
+    class Meta:
+        db_table = "UsageTierTerm"
+
+class UsageTierPurchase(models.Model):
+    purchaseId = models.AutoField(primary_key=True)
+    partyId = models.ForeignKey("party.Party", null=False, db_column="partyId")
+    partnerId = models.ForeignKey("partner.Partner", null=False, db_column="partnerId")
+    tierId = models.ForeignKey("subscription.UsageTierTerm", null=False, db_column="tierId")
+    purchaseDate = models.DateTimeField(null=False, default=datetime.now)
+    expirationDate = models.DateTimeField(null=False)
+    transactionId = models.CharField(max_length=64, null=True, unique=True)
+    syncedToPartner = models.BooleanField(default=False)
+
+    @staticmethod
+    def getByIdAndPartner(partyId, partnerId):
+        try:
+            return UsageTierPurchase.objects.filter(partyId=partyId).filter(partnerId=partnerId)
+        except Party.MultipleObjectsReturned:
+            pass
+        except Party.DoesNotExist:
+            pass
+
+    @staticmethod
+    def getActiveByIdAndPartner(partyId, partnerId, validDuration):
+        validStartDate = timezone.now() - timedelta(days=validDuration)
+        return UsageTierPurchase.getByIdAndPartner(partyId, partnerId) \
+                                .filter(purchaseDate__gte=validStartDate)
+
+    class Meta:
+        db_table = "UsageTierPurchase"

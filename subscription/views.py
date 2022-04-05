@@ -3,8 +3,8 @@
 from django.http import HttpResponse, StreamingHttpResponse
 
 from subscription.controls import PaymentControl, SubscriptionControl
-from subscription.models import Subscription, SubscriptionTransaction, ActivationCode, SubscriptionRequest, UsageUnitPurchase
-from subscription.serializers import SubscriptionSerializer, SubscriptionTransactionSerializer, ActivationCodeSerializer, SubscriptionRequestSerializer, UsageUnitPurchaseSerializer
+from subscription.models import Subscription, SubscriptionTransaction, ActivationCode, SubscriptionRequest, UsageUnitPurchase, UsageTierTerm, UsageTierPurchase
+from subscription.serializers import SubscriptionSerializer, SubscriptionTransactionSerializer, ActivationCodeSerializer, SubscriptionRequestSerializer, UsageUnitPurchaseSerializer, UsageTierTermSerializer, UsageTierPurchaseSerializer
 
 from partner.models import Partner, SubscriptionTerm
 from party.models import Party, ImageInfo
@@ -700,7 +700,7 @@ class UsageUnitsPayment(APIView):
         message = {}
         if (not PaymentControl.isValidRequest(request, message)):
             return HttpResponse(message['message'], 400)
-        #Currently assumes that subscription objects in database stores price in cents
+        #Currently assumes that subscription objects in database stores price in dollars
         #TODO: Handle more human readable price
         termId = request.GET.get('termId')
         message['price'] = int(SubscriptionTerm.objects.get(subscriptionTermId=termId).price)
@@ -737,6 +737,80 @@ class UsageUnitsPayment(APIView):
 
         message = PaymentControl.chargeForCIPRES(partyId, userIdentifier, stripe_api_secret_test_key, token, price, partnerName, descriptionPartnerDuration, termId, quantity, email, firstname, lastname, institute, street, city, state, country, zip, hostname, redirect, vat, domain)
         #PW-120 vet
+        status = 200
+        if 'message' in message:
+            status = 400
+        return HttpResponse(json.dumps(message), content_type="application/json", status=status)
+
+# /usage-tier/terms
+# CYV-10: End point for querying usage tiers for CyVerse
+# params: partnerId
+# returns: a list of UsageTierTerm records in JSON format
+class UsageTierTermCRUD(GenericCRUDView):
+    requireApiKey = False
+    queryset = UsageTierTerm.objects.all()
+    serializer_class = UsageTierTermSerializer
+
+    def post(self, request):
+        return Response({'msg':'cannot create'}, status=status.HTTP_400_BAD_REQUEST)
+
+    def put(self, request):
+        return Response({'msg':'cannot update'}, status=status.HTTP_400_BAD_REQUEST)
+
+    def delete(self, request):
+        return Response({'msg':'cannot delete'}, status=status.HTTP_400_BAD_REQUEST)
+
+# /active-usage-tier-purchase
+# CYV-5: End point for querying a user's usage tier purchased from a given number of days before till now
+# params: username, partnerId, number of days as "activeDuration"
+# returns: a list of UsageTier records in JSON format
+class ActiveUsageTierPurchase(generics.GenericAPIView):
+    requireApiKey = False
+    def get(self,request):
+        params = request.GET
+        # not checking param existence since it is only used by Phoenix's resources
+        partnerId = params['partnerId']
+        username = params['username']
+        duration = int(params['activeDuration'])
+        credentialObj = Credential.getByUsernameAndPartner(username, partnerId)
+        if credentialObj:
+            partyId = credentialObj.partyId.partyId
+            activePurchases = UsageTierPurchase.getActiveByIdAndPartner(partyId, partnerId, duration)
+            if activePurchases:
+                serializer = UsageTierPurchaseSerializer(activePurchases[0])
+                return HttpResponse(json.dumps(dict(serializer.data)), content_type="application/json")
+        return HttpResponse(json.dumps(None), content_type="application/json")
+
+# /payments/usage-tier
+# CYV-17: End point for posting payment for CIPRES
+class UsageTierPayment(APIView):
+    requireApiKey = False
+
+    def post(self, request):
+        stripe_api_key = settings.STRIPE_PRIVATE_KEY
+        username = request.POST['username']
+        token = request.POST['stripeToken']
+        price = float(request.POST['price'])
+        tierId = request.POST['tierId']
+        email = request.POST['email']
+        firstname = request.POST['firstName']
+        lastname = request.POST['lastName']
+        institute = request.POST['institute']
+        street = request.POST['street']
+        city = request.POST['city']
+        state = request.POST['state']
+        country = request.POST['country']
+        zip = request.POST['zip']
+        hostname = request.META.get("HTTP_ORIGIN")
+        redirect = request.POST['redirect']
+        cardLast4 = request.POST['cardLast4']
+        vat = request.POST['vat'] #PW-248. Let it be in two places - in descriptionPartnerDuration and in email body
+        partnerName = UsageTierTerm.objects.get(tierId=tierId).partnerId.name
+        termName = UsageTierTerm.objects.get(tierId=tierId).name
+        stripeDescription = '%s %s subscription vat: %s name: %s %s'%(partnerName, termName, vat,firstname,lastname)
+        domain = request.POST['domain']
+
+        message = PaymentControl.chargeForCyVerse(stripe_api_key, token, price, stripeDescription, username, partnerName, tierId, email, firstname, lastname, institute, street, city, state, country, zip, hostname, redirect, cardLast4, vat, domain)
         status = 200
         if 'message' in message:
             status = 400
