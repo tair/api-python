@@ -133,6 +133,11 @@ class listcreateuser(GenericCRUDView):
         else:
           partyData = {'name':name, 'partyType':'user','display':display}
         # CIPRES-13 end
+        # CYV-32: check unique constraint on username + partyId
+        userAccount = Credential.objects.all().filter(username = name, partnerId = partnerId)
+        if len(userAccount) > 0:
+          return Response({'error': 'Combination of %s + %s already exists' % (name, partnerId)}, status=status.HTTP_400_BAD_REQUEST) 
+        # CYV-32 end
         partySerializer = PartySerializer(data=partyData, partial =True)
         # pu = Party(); pu.save()
         # data['partyId'] = pu.partyId
@@ -432,4 +437,3 @@ def checkAccountExists(request):
       username = params['username']
       result['usernameExist'] = Credential.objects.all().filter(username=username).filter(partnerId=partnerId).exists()
     return HttpResponse(json.dumps(result), status=status.HTTP_200_OK);
-
