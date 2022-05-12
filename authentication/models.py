@@ -39,10 +39,7 @@ class Credential(models.Model):
 
   @staticmethod
   def getByUsernameAndPartner(username, partnerId):
-    try:
-      return Credential.objects.all().get(username = username, partnerId = partnerId)
-    except Credential.DoesNotExist:
-      pass
+      return Credential.objects.get(username = username, partnerId = partnerId)
 
   class Meta:
     db_table = "Credential"

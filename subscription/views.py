@@ -772,13 +772,17 @@ class ActiveUsageTierPurchase(generics.GenericAPIView):
         partnerId = params['partnerId']
         username = params['username']
         duration = int(params['activeDuration'])
-        credentialObj = Credential.getByUsernameAndPartner(username, partnerId)
-        if credentialObj:
+        try:
+            credentialObj = Credential.getByUsernameAndPartner(username, partnerId)
             partyId = credentialObj.partyId.partyId
             activePurchases = UsageTierPurchase.getActiveByIdAndPartner(partyId, partnerId, duration)
             if activePurchases:
                 serializer = UsageTierPurchaseSerializer(activePurchases[0])
                 return HttpResponse(json.dumps(dict(serializer.data)), content_type="application/json")
+        except Credential.DoesNotExist:
+            pass
+        except Credential.MultipleObjectsReturned:
+            pass
         return HttpResponse(json.dumps(None), content_type="application/json")
 
 # /payments/usage-tier

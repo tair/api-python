@@ -210,7 +210,7 @@ class PaymentControl():
     def logPaymentError(partyId, userIdentifier, emailAddress, message):
          logger.info("------Payment Charge Failed------")
          logger.info("User Party ID: %s" % partyId)
-         logger.info("User Identifier ID: %s" % userIdentifier)
+         logger.info("User Identifier: %s" % userIdentifier)
          logger.info("User Email for Purchase: %s" % emailAddress)
          logger.info("Error Message: %s" % message)
          logger.info("---------------------------------")
@@ -291,43 +291,54 @@ class PaymentControl():
         message = {}
         message['price'] = priceToCharge
         message['tierId'] = tierId
+        termObj = UsageTierTerm.objects.get(tierId=tierId)
+        partnerObj = termObj.partnerId
+        partnerId = partnerObj.partnerId
         status = True
 
         try:
-            stripe.api_key = stripe_api_key
-            charge = stripe.Charge.create(
-                amount=int(priceToCharge*100), # stripe takes in cents; UI passes in dollars. multiply by 100 to convert.
-                currency="usd",
-                source=stripe_token,
-                description=stripeDescription,
-                metadata = {'Email': emailAddress, 'Institute': institute, 'VAT': vat}
-            )
-            pass
-        except stripe.error.InvalidRequestError, e:
+            partyObj = Credential.getByUsernameAndPartner(username, partnerId).partyId
+            partyId = partyObj.partyId
+
+            try:
+                stripe.api_key = stripe_api_key
+                charge = stripe.Charge.create(
+                    amount=int(priceToCharge*100), # stripe takes in cents; UI passes in dollars. multiply by 100 to convert.
+                    currency="usd",
+                    source=stripe_token,
+                    description=stripeDescription,
+                    metadata = {'Email': emailAddress, 'Institute': institute, 'VAT': vat}
+                )
+                pass
+            except stripe.error.InvalidRequestError, e:
+                status = False
+                message['message'] = e.json_body['error']['message']
+            except stripe.error.CardError, e:
+                status = False
+                message['message'] = e.json_body['error']['message']
+            except stripe.error.AuthenticationError, e:
+                status = False
+                message['message'] = e.json_body['error']['message']
+            except stripe.error.APIConnectionError, e:
+                status = False
+                message['message'] = e.json_body['error']['message']
+            except Exception, e:
+                status = False
+                message['message'] = "Unexpected exception: %s" % (e)
+        except Credential.DoesNotExist:
             status = False
-            message['message'] = e.json_body['error']['message']
-        except stripe.error.CardError, e:
+            message['message'] = "Cannot find user %s for partner %s" % (username, partnerId)
+            partyId = "Cannot find"
+        except Credential.MultipleObjectsReturned:
             status = False
-            message['message'] = e.json_body['error']['message']
-        except stripe.error.AuthenticationError, e:
-            status = False
-            message['message'] = e.json_body['error']['message']
-        except stripe.error.APIConnectionError, e:
-            status = False
-            message['message'] = e.json_body['error']['message']
-        except Exception, e:
-            status = False
-            message['message'] = "Unexpected exception: %s" % (e)
+            message['message'] = "Find more than one user %s for partner %s" % (username, partnerId)
+            partyId = "More than one"
 
         message['status'] = status
         
         if status:
             transactionId = charge.id
-            termObj = UsageTierTerm.objects.get(tierId=tierId)
-            partnerObj = termObj.partnerId
             purchaseDate = timezone.now()
-
-            partyObj = Credential.getByUsernameAndPartner(username, partnerObj.partnerId).partyId
 
             tierPurchaseObj = PaymentControl.createUsageTierPurchase(partyObj, partnerObj, termObj, purchaseDate, transactionId);
             purchaseId = tierPurchaseObj.purchaseId
@@ -345,7 +356,7 @@ class PaymentControl():
             tierPurchaseObj.save()
 
         if 'message' in message:
-            logPaymentError(partyObj.partyId, userIdentifier, emailAddress, message['message'])
+            PaymentControl.logPaymentError(partyId, username, emailAddress, message['message'])
 
         return message
 
