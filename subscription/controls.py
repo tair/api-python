@@ -450,21 +450,20 @@ class PaymentControl():
             #message['status'] = False //PW-120 vet we will return 400 instead - see SubscriptionsPayment post - i.e. the caller 
             return message
         
-        stripe.api_key = secret_key
-        charge = stripe.Charge.create(
-            amount=int(priceToCharge*100), # stripe takes in cents; UI passes in dollars. multiply by 100 to convert.
-            currency="usd",
-            source=stripe_token,
-            description=chargeDescription, #PW-248
-            metadata = {'Email': emailAddress, 'Institute': institute, 'VAT': vat}
-            )
-        activationCodes = PaymentControl.postPaymentHandling(termId, quantity)
-        emailInfo = PaymentControl.getEmailInfo(activationCodes, partnerName, termId, quantity, priceToCharge, charge.id, emailAddress, firstname, lastname, institute, street, city, state, country, zip, hostname, redirect, vat, domain)
-        PaymentControl.emailReceipt(emailInfo, termId)
-        status = True
-        message['activationCodes'] = activationCodes
         try:
-            pass
+            stripe.api_key = secret_key
+            charge = stripe.Charge.create(
+                amount=int(priceToCharge*100), # stripe takes in cents; UI passes in dollars. multiply by 100 to convert.
+                currency="usd",
+                source=stripe_token,
+                description=chargeDescription, #PW-248
+                metadata = {'Email': emailAddress, 'Institute': institute, 'VAT': vat}
+                )
+            activationCodes = PaymentControl.postPaymentHandling(termId, quantity)
+            emailInfo = PaymentControl.getEmailInfo(activationCodes, partnerName, termId, quantity, priceToCharge, charge.id, emailAddress, firstname, lastname, institute, street, city, state, country, zip, hostname, redirect, vat, domain)
+            PaymentControl.emailReceipt(emailInfo, termId)
+            status = True
+            message['activationCodes'] = activationCodes
         except stripe.error.InvalidRequestError, e:
             status = False
             message['message'] = e.json_body['error']['message']
