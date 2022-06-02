@@ -224,14 +224,14 @@ class SubscriptionsPayment(APIView):
         zip = request.POST['zip']
         hostname = request.META.get("HTTP_ORIGIN")
         redirect = request.POST['redirect']
-        vat = request.POST['vat'] #PW-248. Let it be in two places - in descriptionPartnerDuration and in email body
+        other = request.POST['other'] #PW-248. Let it be in two places - in descriptionPartnerDuration and in email body
         #PW-204 requirement: "TAIR 1-year subscription" would suffice.
         descriptionDuration = SubscriptionTerm.objects.get(subscriptionTermId=termId).description
         partnerName = SubscriptionTerm.objects.get(subscriptionTermId=termId).partnerId.name
-        descriptionPartnerDuration = '%s %s subscription vat: %s name: %s %s'%(partnerName,descriptionDuration,vat,firstname,lastname)
+        descriptionPartnerDuration = '%s %s subscription other: %s name: %s %s'%(partnerName,descriptionDuration,other,firstname,lastname)
         domain = request.POST['domain']
 
-        message = PaymentControl.tryCharge(stripe_api_secret_test_key, token, price, partnerName, descriptionPartnerDuration, termId, quantity, email, firstname, lastname, institute, street, city, state, country, zip, hostname, redirect, vat, domain)
+        message = PaymentControl.tryCharge(stripe_api_secret_test_key, token, price, partnerName, descriptionPartnerDuration, termId, quantity, email, firstname, lastname, institute, street, city, state, country, zip, hostname, redirect, other, domain)
         #PW-120 vet
         status = 200
         if 'message' in message:
@@ -729,13 +729,13 @@ class UsageUnitsPayment(APIView):
         zip = request.POST['zip']
         hostname = request.META.get("HTTP_ORIGIN")
         redirect = request.POST['redirect']
-        vat = request.POST['vat'] #PW-248. Let it be in two places - in descriptionPartnerDuration and in email body
+        other = request.POST['other'] #PW-248. Let it be in two places - in descriptionPartnerDuration and in email body
         descriptionDuration = SubscriptionTerm.objects.get(subscriptionTermId=termId).description
         partnerName = SubscriptionTerm.objects.get(subscriptionTermId=termId).partnerId.name
-        descriptionPartnerDuration = '%s %s subscription vat: %s name: %s %s'%(partnerName,descriptionDuration,vat,firstname,lastname)
+        descriptionPartnerDuration = '%s %s subscription other info: %s name: %s %s'%(partnerName,descriptionDuration,other,firstname,lastname)
         domain = request.POST['domain']
 
-        message = PaymentControl.chargeForCIPRES(partyId, userIdentifier, stripe_api_secret_test_key, token, price, partnerName, descriptionPartnerDuration, termId, quantity, email, firstname, lastname, institute, street, city, state, country, zip, hostname, redirect, vat, domain)
+        message = PaymentControl.chargeForCIPRES(partyId, userIdentifier, stripe_api_secret_test_key, token, price, partnerName, descriptionPartnerDuration, termId, quantity, email, firstname, lastname, institute, street, city, state, country, zip, hostname, redirect, other, domain)
         #PW-120 vet
         status = 200
         if 'message' in message:
