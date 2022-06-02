@@ -133,25 +133,25 @@ class PaymentControl():
                 'name': 'Other information',
                 'value': other
             })
-        invoice=stripe.Invoice.create(
-            customer=customer.id,
-            description = chargeDescription,
-            custom_fields = custom_fields,
-        )
-        invoice = stripe.Invoice.pay(invoice.id)
-        transactionId = invoice.charge
-        stripe.PaymentIntent.modify(
-            invoice.payment_intent,
-            description = chargeDescription,
-            metadata={
-                'Email': emailAddress,
-                'Institute': institute,
-                'Other': other
-            }
-        )
+        
         status = True
         try:
-            pass
+            invoice=stripe.Invoice.create(
+                customer=customer.id,
+                description = chargeDescription,
+                custom_fields = custom_fields,
+            )
+            invoice = stripe.Invoice.pay(invoice.id)
+            transactionId = invoice.charge
+            stripe.PaymentIntent.modify(
+                invoice.payment_intent,
+                description = chargeDescription,
+                metadata={
+                    'Email': emailAddress,
+                    'Institute': institute,
+                    'Other': other
+                }
+            )
         except stripe.error.InvalidRequestError, e:
             status = False
             message['message'] = e.json_body['error']['message']
@@ -287,7 +287,7 @@ class PaymentControl():
 
 
     @staticmethod
-    def chargeForCyVerse(stripe_api_key, stripe_token, priceToCharge, stripeDescription, username, partnerName, tierId, emailAddress, firstname, lastname, institute, street, city, state, country, zip, hostname, redirect, cardLast4, vat, domain):
+    def chargeForCyVerse(stripe_api_key, stripe_token, priceToCharge, stripeDescription, username, partnerName, tierId, emailAddress, firstname, lastname, institute, street, city, state, country, zip, hostname, redirect, cardLast4, other, domain):
         message = {}
         message['price'] = priceToCharge
         message['tierId'] = tierId
@@ -307,7 +307,7 @@ class PaymentControl():
                     currency="usd",
                     source=stripe_token,
                     description=stripeDescription,
-                    metadata = {'Email': emailAddress, 'Institute': institute, 'VAT': vat}
+                    metadata = {'Email': emailAddress, 'Institute': institute, 'Other': other}
                 )
                 pass
             except stripe.error.InvalidRequestError, e:
@@ -350,7 +350,7 @@ class PaymentControl():
 
             # TODO: send to CyVerse API later
             msg = "Your order has been processed, and your CyVerse account will be credited within 48 hours."
-            PaymentControl.sendCyVerseEmail(msg, purchaseId, termName, partnerObj, emailAddress, firstname, lastname, priceToCharge, institute, transactionId, expirationDate, cardLast4, vat)
+            PaymentControl.sendCyVerseEmail(msg, purchaseId, termName, partnerObj, emailAddress, firstname, lastname, priceToCharge, institute, transactionId, expirationDate, cardLast4, other)
             PaymentControl.sendCyVerseAdminEmail(termName, username, purchaseDate, transactionId)
             tierPurchaseObj.syncedToPartner = True
             tierPurchaseObj.save()
@@ -380,7 +380,7 @@ class PaymentControl():
         return expirationDate.strftime("%Y-%m-%d 23:59:59")
 
     @staticmethod
-    def sendCyVerseEmail(msg, purchaseId, termName, partnerObj, email, firstname, lastname, payment, institute, transactionId, expirationDate, cardLast4, vat):
+    def sendCyVerseEmail(msg, purchaseId, termName, partnerObj, email, firstname, lastname, payment, institute, transactionId, expirationDate, cardLast4, other):
         name = firstname + " " + lastname
         payment = "%.2f" % float(payment)
         expirationDateDisplay = expirationDate + " GMT"
@@ -395,7 +395,7 @@ class PaymentControl():
             transactionId,
             cardLast4,
             expirationDateDisplay,
-            vat,
+            other,
             """
             Phoenix Bioinformatics Corporation<br>
             39899 Balentine Drive, Suite 200<br>
@@ -456,10 +456,10 @@ class PaymentControl():
                 currency="usd",
                 source=stripe_token,
                 description=chargeDescription, #PW-248
-                metadata = {'Email': emailAddress, 'Institute': institute, 'VAT': vat}
+                metadata = {'Email': emailAddress, 'Institute': institute, 'Other': other}
                 )
             activationCodes = PaymentControl.postPaymentHandling(termId, quantity)
-            emailInfo = PaymentControl.getEmailInfo(activationCodes, partnerName, termId, quantity, priceToCharge, charge.id, emailAddress, firstname, lastname, institute, street, city, state, country, zip, hostname, redirect, vat, domain)
+            emailInfo = PaymentControl.getEmailInfo(activationCodes, partnerName, termId, quantity, priceToCharge, charge.id, emailAddress, firstname, lastname, institute, street, city, state, country, zip, hostname, redirect, other, domain)
             PaymentControl.emailReceipt(emailInfo, termId)
             status = True
             message['activationCodes'] = activationCodes

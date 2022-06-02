@@ -808,13 +808,13 @@ class UsageTierPayment(APIView):
         hostname = request.META.get("HTTP_ORIGIN")
         redirect = request.POST['redirect']
         cardLast4 = request.POST['cardLast4']
-        vat = request.POST['vat'] #PW-248. Let it be in two places - in descriptionPartnerDuration and in email body
+        other = request.POST['other'] #PW-248. Let it be in two places - in descriptionPartnerDuration and in email body
         partnerName = UsageTierTerm.objects.get(tierId=tierId).partnerId.name
         termName = UsageTierTerm.objects.get(tierId=tierId).name
-        stripeDescription = '%s %s subscription vat: %s name: %s %s'%(partnerName, termName, vat,firstname,lastname)
+        stripeDescription = '%s %s subscription other info: %s name: %s %s'%(partnerName, termName, other,firstname,lastname)
         domain = request.POST['domain']
 
-        message = PaymentControl.chargeForCyVerse(stripe_api_key, token, price, stripeDescription, username, partnerName, tierId, email, firstname, lastname, institute, street, city, state, country, zip, hostname, redirect, cardLast4, vat, domain)
+        message = PaymentControl.chargeForCyVerse(stripe_api_key, token, price, stripeDescription, username, partnerName, tierId, email, firstname, lastname, institute, street, city, state, country, zip, hostname, redirect, cardLast4, other, domain)
         status = 200
         if 'message' in message:
             status = 400
