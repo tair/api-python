@@ -133,25 +133,25 @@ class PaymentControl():
                 'name': 'Other information',
                 'value': other
             })
-        invoice=stripe.Invoice.create(
-            customer=customer.id,
-            description = chargeDescription,
-            custom_fields = custom_fields,
-        )
-        invoice = stripe.Invoice.pay(invoice.id)
-        transactionId = invoice.charge
-        stripe.PaymentIntent.modify(
-            invoice.payment_intent,
-            description = chargeDescription,
-            metadata={
-                'Email': emailAddress,
-                'Institute': institute,
-                'Other': other
-            }
-        )
+        
         status = True
         try:
-            pass
+            invoice=stripe.Invoice.create(
+                customer=customer.id,
+                description = chargeDescription,
+                custom_fields = custom_fields,
+            )
+            invoice = stripe.Invoice.pay(invoice.id)
+            transactionId = invoice.charge
+            stripe.PaymentIntent.modify(
+                invoice.payment_intent,
+                description = chargeDescription,
+                metadata={
+                    'Email': emailAddress,
+                    'Institute': institute,
+                    'Other': other
+                }
+            )
         except stripe.error.InvalidRequestError, e:
             status = False
             message['message'] = e.json_body['error']['message']
