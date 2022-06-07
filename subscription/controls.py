@@ -74,7 +74,7 @@ class PaymentControl():
 
     # for CIPRES credit purchase payment
     @staticmethod
-    def chargeForCIPRES(partyId, userIdentifier, secret_key, stripe_token, priceToCharge, partnerName, chargeDescription, termId, quantity, emailAddress, firstname, lastname, institute, street, city, state, country, zip, hostname, redirect, vat, domain):
+    def chargeForCIPRES(partyId, userIdentifier, secret_key, stripe_token, priceToCharge, partnerName, chargeDescription, termId, quantity, emailAddress, firstname, lastname, institute, street, city, state, country, zip, hostname, redirect, other, domain):
         message = {}
         message['price'] = priceToCharge
         message['termId'] = termId
@@ -128,30 +128,30 @@ class PaymentControl():
                 'name': 'institution',
                 'value': institute
             }]
-        if vat:
+        if other:
             custom_fields.append({
-                'name': 'vat',
-                'value': vat
+                'name': 'Other information',
+                'value': other
             })
-        invoice=stripe.Invoice.create(
-            customer=customer.id,
-            description = chargeDescription,
-            custom_fields = custom_fields,
-        )
-        invoice = stripe.Invoice.pay(invoice.id)
-        transactionId = invoice.charge
-        stripe.PaymentIntent.modify(
-            invoice.payment_intent,
-            description = chargeDescription,
-            metadata={
-                'Email': emailAddress,
-                'Institute': institute,
-                'VAT': vat
-            }
-        )
+        
         status = True
         try:
-            pass
+            invoice=stripe.Invoice.create(
+                customer=customer.id,
+                description = chargeDescription,
+                custom_fields = custom_fields,
+            )
+            invoice = stripe.Invoice.pay(invoice.id)
+            transactionId = invoice.charge
+            stripe.PaymentIntent.modify(
+                invoice.payment_intent,
+                description = chargeDescription,
+                metadata={
+                    'Email': emailAddress,
+                    'Institute': institute,
+                    'Other': other
+                }
+            )
         except stripe.error.InvalidRequestError, e:
             status = False
             message['message'] = e.json_body['error']['message']
@@ -187,18 +187,18 @@ class PaymentControl():
                 
                 if postUnitPurchasePostResponse.status_code == 201:
                     msg = "To access CIPRES resources, please visit phylo.org and log in using your CIPRES user account."
-                    #PaymentControl.sendCIPRESEmail(msg, purchaseId, termObj, partnerObj, emailAddress, firstname, lastname, priceToCharge, institute, transactionId, vat)
+                    #PaymentControl.sendCIPRESEmail(msg, purchaseId, termObj, partnerObj, emailAddress, firstname, lastname, priceToCharge, institute, transactionId, other)
                     unitPurchaseObj.syncedToPartner = True
                     unitPurchaseObj.save()
 
                 else:
                     msg = "Your order has been processed, and the purchased CPU hours will be reflected in your CIPRES account within 24 hours."
                     PaymentControl.sendCIPRESSyncFailedEmail(purchaseId, transactionId, purchaseDate, userIdentifier, unitQty, postUnitPurchasePostResponse.status_code, postUnitPurchasePostResponse.text)
-                    PaymentControl.sendCIPRESEmail(msg, purchaseId, termObj, partnerObj, emailAddress, firstname, lastname, priceToCharge, institute, transactionId, vat)
+                    PaymentControl.sendCIPRESEmail(msg, purchaseId, termObj, partnerObj, emailAddress, firstname, lastname, priceToCharge, institute, transactionId, other)
             except Exception, e:
                 msg = "Your order has been processed, and the purchased CPU hours will be reflected in your CIPRES account within 24 hours."
                 PaymentControl.sendCIPRESSyncFailedEmail(purchaseId, transactionId, purchaseDate, userIdentifier, unitQty, postUnitPurchasePostResponse.status_code, postUnitPurchasePostResponse.text)
-                PaymentControl.sendCIPRESEmail(msg, purchaseId, termObj, partnerObj, emailAddress, firstname, lastname, priceToCharge, institute, transactionId, vat)
+                PaymentControl.sendCIPRESEmail(msg, purchaseId, termObj, partnerObj, emailAddress, firstname, lastname, priceToCharge, institute, transactionId, other)
                 message['message'] = "Unexpected exception: %s" % (e)
             
         if 'message' in message:
@@ -229,7 +229,7 @@ class PaymentControl():
         return unitPurchaseObj
 
     @staticmethod
-    def sendCIPRESEmail(msg, purchaseId, termObj, partnerObj, email, firstname, lastname, payment, institute, transactionId, vat):
+    def sendCIPRESEmail(msg, purchaseId, termObj, partnerObj, email, firstname, lastname, payment, institute, transactionId, other):
         name = firstname + " " + lastname
         payment = "%.2f" % float(payment)
         
@@ -241,7 +241,7 @@ class PaymentControl():
             termObj.description,
             payment,
             transactionId,
-            vat,
+            other,
             """
             Phoenix Bioinformatics Corporation<br>
             39899 Balentine Drive, Suite 200<br>
@@ -287,7 +287,7 @@ class PaymentControl():
 
 
     @staticmethod
-    def chargeForCyVerse(stripe_api_key, stripe_token, priceToCharge, stripeDescription, username, partnerName, tierId, emailAddress, firstname, lastname, institute, street, city, state, country, zip, hostname, redirect, cardLast4, vat, domain):
+    def chargeForCyVerse(stripe_api_key, stripe_token, priceToCharge, stripeDescription, username, partnerName, tierId, emailAddress, firstname, lastname, institute, street, city, state, country, zip, hostname, redirect, cardLast4, other, domain):
         message = {}
         message['price'] = priceToCharge
         message['tierId'] = tierId
@@ -307,7 +307,7 @@ class PaymentControl():
                     currency="usd",
                     source=stripe_token,
                     description=stripeDescription,
-                    metadata = {'Email': emailAddress, 'Institute': institute, 'VAT': vat}
+                    metadata = {'Email': emailAddress, 'Institute': institute, 'Other': other}
                 )
                 pass
             except stripe.error.InvalidRequestError, e:
@@ -350,7 +350,7 @@ class PaymentControl():
 
             # TODO: send to CyVerse API later
             msg = "Your order has been processed, and your CyVerse account will be credited within 48 hours."
-            PaymentControl.sendCyVerseEmail(msg, purchaseId, termName, partnerObj, emailAddress, firstname, lastname, priceToCharge, institute, transactionId, expirationDate, cardLast4, vat)
+            PaymentControl.sendCyVerseEmail(msg, purchaseId, termName, partnerObj, emailAddress, firstname, lastname, priceToCharge, institute, transactionId, expirationDate, cardLast4, other)
             PaymentControl.sendCyVerseAdminEmail(termName, username, purchaseDate, transactionId)
             tierPurchaseObj.syncedToPartner = True
             tierPurchaseObj.save()
@@ -380,7 +380,7 @@ class PaymentControl():
         return expirationDate.strftime("%Y-%m-%d 23:59:59")
 
     @staticmethod
-    def sendCyVerseEmail(msg, purchaseId, termName, partnerObj, email, firstname, lastname, payment, institute, transactionId, expirationDate, cardLast4, vat):
+    def sendCyVerseEmail(msg, purchaseId, termName, partnerObj, email, firstname, lastname, payment, institute, transactionId, expirationDate, cardLast4, other):
         name = firstname + " " + lastname
         payment = "%.2f" % float(payment)
         expirationDateDisplay = expirationDate + " GMT"
@@ -395,7 +395,7 @@ class PaymentControl():
             transactionId,
             cardLast4,
             expirationDateDisplay,
-            vat,
+            other,
             """
             Phoenix Bioinformatics Corporation<br>
             39899 Balentine Drive, Suite 200<br>
@@ -440,7 +440,7 @@ class PaymentControl():
 
     # for regular Phoenix subscription payment
     @staticmethod
-    def tryCharge(secret_key, stripe_token, priceToCharge, partnerName, chargeDescription, termId, quantity, emailAddress, firstname, lastname, institute, street, city, state, country, zip, hostname, redirect, vat, domain):
+    def tryCharge(secret_key, stripe_token, priceToCharge, partnerName, chargeDescription, termId, quantity, emailAddress, firstname, lastname, institute, street, city, state, country, zip, hostname, redirect, other, domain):
         message = {}
         message['price'] = priceToCharge
         message['termId'] = termId
@@ -449,7 +449,6 @@ class PaymentControl():
             message['message'] = "Charge validation error"
             #message['status'] = False //PW-120 vet we will return 400 instead - see SubscriptionsPayment post - i.e. the caller 
             return message
-        
         try:
             stripe.api_key = secret_key
             charge = stripe.Charge.create(
@@ -457,10 +456,10 @@ class PaymentControl():
                 currency="usd",
                 source=stripe_token,
                 description=chargeDescription, #PW-248
-                metadata = {'Email': emailAddress, 'Institute': institute, 'VAT': vat}
+                metadata = {'Email': emailAddress, 'Institute': institute, 'Other': other}
                 )
             activationCodes = PaymentControl.postPaymentHandling(termId, quantity)
-            emailInfo = PaymentControl.getEmailInfo(activationCodes, partnerName, termId, quantity, priceToCharge, charge.id, emailAddress, firstname, lastname, institute, street, city, state, country, zip, hostname, redirect, vat, domain)
+            emailInfo = PaymentControl.getEmailInfo(activationCodes, partnerName, termId, quantity, priceToCharge, charge.id, emailAddress, firstname, lastname, institute, street, city, state, country, zip, hostname, redirect, other, domain)
             PaymentControl.emailReceipt(emailInfo, termId)
             status = True
             message['activationCodes'] = activationCodes
@@ -484,7 +483,7 @@ class PaymentControl():
         return message
 
     @staticmethod
-    def getEmailInfo(activationCodes, partnerName, termId, quantity, payment, transactionId, email, firstname, lastname, institute, street, city, state, country, zip, hostname, redirect, vat, domain):
+    def getEmailInfo(activationCodes, partnerName, termId, quantity, payment, transactionId, email, firstname, lastname, institute, street, city, state, country, zip, hostname, redirect, other, domain):
         
         termObj = SubscriptionTerm.objects.get(subscriptionTermId=termId)
         partnerObj = termObj.partnerId
@@ -517,7 +516,7 @@ class PaymentControl():
             "subscriptionQuantity": quantity,
             "payment": payment,
             "transactionId": transactionId,
-            "vat": vat,
+            "other": other,
             "addr1": "Phoenix Bioinformatics Corporation",
             "addr2": "39899 Balentine Drive, Suite 200",
             "addr3": "Newark, CA, 94560, USA",
@@ -552,7 +551,7 @@ class PaymentControl():
                 kwargs['subscriptionQuantity'],
                 kwargs['payment'],
                 kwargs['transactionId'],
-                kwargs['vat'],
+                kwargs['other'],
                 """
                 """+kwargs['addr1']+""",<br>
                 """+kwargs['addr2']+""",<br>
