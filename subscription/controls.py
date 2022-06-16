@@ -24,6 +24,8 @@ import urllib
 
 class SubscriptionControl():
 
+    EXCEPTION_ERROR_CODE = 500
+
     @staticmethod
     def createOrUpdateSubscription(partyId, partnerId, period):
         now = timezone.now()
@@ -197,7 +199,7 @@ class PaymentControl():
                     PaymentControl.sendCIPRESEmail(msg, purchaseId, termObj, partnerObj, emailAddress, firstname, lastname, priceToCharge, institute, transactionId, other)
             except Exception, e:
                 msg = "Your order has been processed, and the purchased CPU hours will be reflected in your CIPRES account within 24 hours."
-                PaymentControl.sendCIPRESSyncFailedEmail(purchaseId, transactionId, purchaseDate, userIdentifier, unitQty, postUnitPurchasePostResponse.status_code, postUnitPurchasePostResponse.text)
+                PaymentControl.sendCIPRESSyncFailedEmail(purchaseId, transactionId, purchaseDate, userIdentifier, unitQty, EXCEPTION_ERROR_CODE, e)
                 PaymentControl.sendCIPRESEmail(msg, purchaseId, termObj, partnerObj, emailAddress, firstname, lastname, priceToCharge, institute, transactionId, other)
                 message['message'] = "Unexpected exception: %s" % (e)
             
