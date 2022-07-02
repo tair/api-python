@@ -176,7 +176,7 @@ MIDDLEWARE = [
     'corsheaders.middleware.CorsMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
-    'django.middleware.csrf.CsrfViewMiddleware',
+    #'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
@@ -185,14 +185,14 @@ MIDDLEWARE = [
 
 # CORS Setting to allow ui sites to access the API server
 CORS_ORIGIN_WHITELIST = (
-    'testui.steveatgetexp.com',
-    'azeem.steveatgetexp.com',
 )
 
 CORS_ALLOW_CREDENTIALS = True
 
 CORS_ALLOW_METHODS = (
     'GET',
+    'POST',
+    'PUT',
 )
 
 CORS_ALLOW_HEADERS = (
@@ -219,7 +219,7 @@ DATABASES = {
         'NAME': 'phoenix_api',
         'USER': 'phoenix',
         'PASSWORD': '',
-        'HOST': 'phoenix-api-test.cwyjt5kql77y.us-west-2.rds.amazonaws.com',
+        'HOST': 'phoenix-api-uat.cwyjt5kql77y.us-west-2.rds.amazonaws.com',
         'PORT': '3306',
         'OPTIONS': {
             'use_pure': True
@@ -274,3 +274,24 @@ EMAIL_PORT = 25
 # For AWS SES, this will be the username/password of the IAM created for SES.
 EMAIL_HOST_USER = None
 EMAIL_HOST_PASSWORD = None
+
+# Credentials for CIPRES password decryption
+CIPHER_CLIENT_SECRET = None
+CIPHER_SALT = None
+CIPHER_ITERATION = 200000 # 200,000
+# Credentials for CIPRES API end point
+CIPRES_API_BASE_URL = "https://ciprescibeta.ucsd.edu/portalrest/api"
+CIPRES_BASIC_AUTH_TOKEN = None
+CIPRES_ACCESS_TOKEN = None
+# Email addresses for sending CIPRES sync failed email
+CIPRES_ADMINS = ['techteam@arabidopsis.org']
+
+# Fill in parameters for CyVerse API call
+CYVERSE_DOMAIN = 'https://kc.cyverse.org/auth'
+CYVERSE_REALM = 'CyVerse'
+CYVERSE_CLIENT_ID = 'phoenix-bio'
+CYVERSE_SECRET = None
+
+# Email Subject for CyVerse purchase
+CYVERSE_PURCHASE_EMAIL_SUBJECT = 'New Subscription Purchase'
+CYVERSE_ADMINS = ['xingguo.chen@arabidopsis.org', 'support@cyverse.org']

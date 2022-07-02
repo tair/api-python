@@ -1,0 +1,13 @@
+version: '3'
+
+services:
+  paywall-api-python3:
+    build: .
+    image: paywall-api-python3:1.0
+    platform: linux/amd64
+    container_name: paywall-api-container-python3
+    volumes:
+      - ".:/var/www/api-python"
+    ports:
+      - "9001:80"
+    
