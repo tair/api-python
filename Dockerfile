@@ -11,7 +11,7 @@ COPY dependencies.list /etc/
 RUN easy_install-3.6 pip && pip3 install --upgrade pip
 RUN pip3 install -r /etc/dependencies.list && rm /etc/dependencies.list
 # update this to pipe to AWS log later
-RUN mkdir /var/log/api && chown apache:apache /var/log/api
+RUN mkdir /var/log/api && chown -R apache:apache /var/log/api
 RUN echo "ServerName 172.*" >> /etc/httpd/conf/httpd.conf
 EXPOSE 80
 CMD ["/usr/sbin/httpd","-D","FOREGROUND"]
