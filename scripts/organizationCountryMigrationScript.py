@@ -76,10 +76,10 @@ for entry in organizationData:
         'display':display,
         'country':countryId,
     }
-    
+
     if Party.objects.all().filter(name=organizationName).exists():
         for partyInstance in Party.objects.all().filter(name=organizationName):
-    
+
             serializer = PartySerializer(partyInstance, data=data)
             if serializer.is_valid():
                 serializer.save()

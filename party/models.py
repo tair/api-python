@@ -99,7 +99,7 @@ class IpRange(models.Model):
             except Exception:
                 logger.error("Party IpRange %s, %s" % (obj.end, "invalid end ip"))
                 pass
-            
+
             if inputIpAddress >= start and inputIpAddress <= end:
                 objList.append(obj)
         return objList

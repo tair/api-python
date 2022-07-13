@@ -17,7 +17,7 @@ def connect():
     user="phoenix"
     password="password"
     dbName="phoenix_api"
-    
+
     conn = MySQLdb.connect(host=host,
                          user=user,
                          passwd=password,

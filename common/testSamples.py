@@ -84,7 +84,7 @@ class CommonCredentialSample():
 
     def setPartyId(self, partyId):
         self.data['partyId'] = partyId
-    
+
     def forcePost(self,data):
         postData = copy.deepcopy(data)
         postData['partyId'] = Party.objects.get(partyId=self.data['partyId'])

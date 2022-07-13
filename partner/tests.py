@@ -35,7 +35,7 @@ class PartnerPatternCRUD(GenericCRUDTest, TestCase):
         sample = self.sample
         pk = sample.forcePost(sample.data)
         url = sample.url + '?%s=%s' % ('sourceUri', sample.data['sourceUri'])
-        
+
         # no cookie needed
         res = self.client.get(url)
 

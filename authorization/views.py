@@ -124,12 +124,12 @@ class URIAccess(APIView):
             else:
                 logger.info("Authorization URIAccess %s%s %s" % ("GET URIAccess error: requestPatternId:",requestPatternId,"not found"))
                 return Response({'GET error: patternId' + requestPatternId + ' not found'})
-        
+
     def delete(self, request, format=None):
        params = request.GET
        if 'patternId' not in params:
            return Response({'DELETE error':'patternId required'},status=status.HTTP_400_BAD_REQUEST)
-        
+
        requestPatternId = params['patternId']
        if UriPattern.objects.filter(patternId = requestPatternId).exists():
            pattern = UriPattern.objects.get(patternId = requestPatternId)
@@ -137,7 +137,7 @@ class URIAccess(APIView):
            return Response({'DELETE success':'delete of patternId '+requestPatternId+' completed'},status=status.HTTP_200_OK)
        else:
            return Response({'DELETE error':'delete of patternId '+requestPatternId+' failed. patternId not found'},status=status.HTTP_400_BAD_REQUEST)
-          
+
     def put(self, request, format=None):
         params = request.GET
         if 'patternId' not in params:
@@ -145,7 +145,7 @@ class URIAccess(APIView):
         data = request.data
         if 'pattern' not in data:
             return Response({'error':'PUT method:pattern is required as form-data'}, status=status.HTTP_400_BAD_REQUEST)
-        
+
         patternFromRequest = data['pattern']
         isREValid = isRegExpValid(patternFromRequest)
         if not isREValid:
@@ -154,7 +154,7 @@ class URIAccess(APIView):
         patternIdFromRequest = request.GET.get('patternId')
         if not UriPattern.objects.filter(patternId = patternIdFromRequest).exists():
             return Response({'error':'PUT method:patternId '+patternIdFromRequest+' not found'}, status=status.HTTP_400_BAD_REQUEST)
-              
+
         pattern = UriPattern.objects.get(patternId=patternIdFromRequest)
         serializer = UriPatternSerializer(pattern,data=data)
 
@@ -163,17 +163,17 @@ class URIAccess(APIView):
             return Response(serializer.data, status=status.HTTP_200_OK)
         else:
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-    
+
     def post(self,request, format=None):
         data = request.data
         if 'pattern' not in data:
             return Response({'error':'POST method:pattern is required as form-data'}, status=status.HTTP_400_BAD_REQUEST)
-        
+
         patternFromRequest = data['pattern']
         isREValid = isRegExpValid(patternFromRequest)
         if not isREValid:
             return Response({'error':'POST method:pattern '+patternFromRequest+' is not valid regexp'}, status=status.HTTP_400_BAD_REQUEST)
-        
+
         serializer = UriPatternSerializer(data=data)
         if serializer.is_valid():
             serializer.save()

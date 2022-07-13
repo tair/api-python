@@ -18,7 +18,7 @@ class Credential(models.Model):
   partnerId = models.ForeignKey(Partner, db_column='partnerId', on_delete=models.PROTECT)
   userIdentifier = models.CharField(max_length=32, null=True)
   #name = models.CharField(max_length=64, null=True) vet PW-161
-  
+
   @staticmethod
   def validate(partyId, secretKey):
     if partyId and secretKey and partyId.isdigit() and Party.objects.filter(partyId=partyId).exists():

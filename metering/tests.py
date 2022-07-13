@@ -45,7 +45,7 @@ class LimitValueCRUD(GenericCRUDTest, TestCase):
 
 # test for API endpoint /meters/meterblacklist/
 class MeterBlacklistCRUD(GenericCRUDTest, TestCase):
-    
+
     sample = MeterBlacklistSample(serverUrl)
     partnerSample = PartnerSample(serverUrl)
 
@@ -104,7 +104,7 @@ class CheckLimitTest(GenericTest, TestCase):
     limitBlockedIpAddressCountSample = IpAddressCountSample(serverUrl)
 
     meterBlacklistSample = MeterBlacklistSample(serverUrl)
-    
+
     def setUp(self):
         super(CheckLimitTest, self).setUp()
         Partner.objects.filter(partnerId=self.partnerSample.data['partnerId']).delete()

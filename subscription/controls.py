@@ -37,7 +37,7 @@ class SubscriptionControl():
         transactionType = None
         transactionStartDate = None
         transactionEndDate = None
-        
+
         if subscription == None:
             # case1: new subscription
             partyObj = Party.objects.get(partyId=partyId)
@@ -65,7 +65,7 @@ class SubscriptionControl():
                 transactionType = 'renew'
                 transactionStartDate = endDate
                 transactionEndDate = subscription.endDate
-        
+
         return (subscription, transactionType, transactionStartDate, transactionEndDate)
 
 class PaymentControl():
@@ -80,7 +80,7 @@ class PaymentControl():
             message['message'] = "Charge validation error"
             #message['status'] = False //PW-120 vet we will return 400 instead - see SubscriptionsPayment post - i.e. the caller 
             return message
-        
+
         stripe.api_key = secret_key
         charge = stripe.Charge.create(
             amount=int(priceToCharge*100), # stripe takes in cents; UI passes in dollars. multiply by 100 to convert.
@@ -117,7 +117,7 @@ class PaymentControl():
 
     @staticmethod
     def getEmailInfo(activationCodes, partnerName, termId, quantity, payment, transactionId, email, firstname, lastname, institute, street, city, state, country, zip, hostname, redirect, vat, domain):
-        
+
         termObj = SubscriptionTerm.objects.get(subscriptionTermId=termId)
         partnerObj = termObj.partnerId
         loginURL = domain + partnerObj.loginUri + "?redirect=" + urllib.parse.quote(domain + "/preferences.html", safe='~')
@@ -165,7 +165,7 @@ class PaymentControl():
 
         termObj = SubscriptionTerm.objects.get(subscriptionTermId=termId)
         partnerObj = termObj.partnerId
-        
+
         html_message = partnerObj.activationEmailInstructionText % ( 
                 kwargs['partnerLogo'],
                 kwargs['name'],
@@ -187,8 +187,8 @@ class PaymentControl():
                 """+kwargs['addr2']+""",<br>
                 """+kwargs['addr3']+"""<br>
                 """)
-        
-        
+
+
         subject = kwargs['subject']
         from_email = kwargs['senderEmail']
         recipient_list = kwargs['recipientEmails']
@@ -199,7 +199,7 @@ class PaymentControl():
 #        logger.info("%s" % recipient_list[0])
         send_mail(subject=subject, from_email=from_email, recipient_list=recipient_list, html_message=html_message, message=None)
 #        logger.info("------Done sending individual email------")
-        
+
     @staticmethod
     def isValidRequest(request, message):
         ret = True
@@ -251,7 +251,7 @@ class PaymentControl():
             codeArray.append(activationCodeObj.activationCode)
 
         return codeArray
-    
+
     @staticmethod
     def validateCharge(price, termId, quantity):
         so = SubscriptionTerm.objects.get(subscriptionTermId=termId)

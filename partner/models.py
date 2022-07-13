@@ -30,7 +30,7 @@ class Partner(models.Model):
     resetPasswordEmailBody = models.CharField(max_length=2000, null=True)
     loginRedirectErrorText = models.CharField(max_length=100, null=True)
     guideUri = models.CharField(max_length=200, null=True)
-    
+
     class Meta:
         db_table = "Partner"
 
@@ -39,7 +39,7 @@ class PartnerPattern(models.Model):
     partnerId = models.ForeignKey('Partner', db_column='partnerId', on_delete=models.PROTECT)
     sourceUri = models.CharField(max_length=200)
     targetUri = models.CharField(max_length=200)
-    
+
     class Meta:
         db_table = "PartnerPattern"
 

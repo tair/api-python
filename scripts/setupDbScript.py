@@ -6,7 +6,7 @@ def connect():
     user="phoenix"
     password="password"
     dbName="demo1"
-    
+
     conn = MySQLdb.connect(host=host,
                          user=user,
                          passwd=password,

@@ -84,7 +84,7 @@ class IpAddressCountSample():
         postData = copy.deepcopy(data)
         postData['partnerId'] = Partner.objects.get(partnerId=data['partnerId'])
         return genericForcePost(self.model, self.pkName, postData)
-  
+
 class MeterBlacklistSample():
     path = 'meters/meterblacklist/'  
     url = None

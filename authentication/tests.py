@@ -64,7 +64,7 @@ class CredentialCRUDTest(GenericTest, TestCase):
         sample = self.sample
         pk = sample.forcePost(sample.data)
         partnerId = self.partnerId 
-        
+
         # test get by user identifier
         queryByUserIdentifier = 'userIdentifier=%s&partnerId=%s' % (sample.getUserIdentifier(), partnerId)
         self.assertGetRequestByQueryParam(queryByUserIdentifier)
@@ -124,7 +124,7 @@ class CredentialCRUDTest(GenericTest, TestCase):
                 updateData[key] = sample.updateData[key]
         # manipulate sample data to match the test condition
         self.assertEqual(checkMatch(updateData, resObj, 'partyId', sample.getPartyId()), True)
-    
+
     # test for API endpoint /credentials/profile/
     # this is smiliar to the UPDATE methods above except that it only accepts 
     # pratyId as query param and returns status code 201 when succeed
@@ -151,7 +151,7 @@ class CredentialCRUDTest(GenericTest, TestCase):
                 updateData[key] = sample.updateData[key]
         # manipulate sample data to match the test condition
         self.assertEqual(checkMatch(updateData, resObj, 'partyId', sample.getPartyId()), True)
-    
+
     def getUserLoginCredential(self):
         sample = self.sample
         secretKey = urllib.parse.quote(sample.getSecretKey())
@@ -176,7 +176,7 @@ class CredentialGenericTest(TestCase):
 
 # test for API endpoint /crendetials/login/
 class CredentialLoginTest(CredentialGenericTest):
-    
+
     def test_for_login(self):
         loginUrl = self.sample.getLoginUrl()
         loginData = self.sample.getLoginData()

@@ -17,7 +17,7 @@ def connect():
     user="phoenix"
     password="password"
     dbName="phoenix_api"
-    
+
     conn = MySQLdb.connect(host=host,
                          user=user,
                          passwd=password,
@@ -52,7 +52,7 @@ for line in data:
     if digestedPw.rstrip() == '':
         continue
     totalCount += 1
-    
+
     # Execute the update.
     try: 
         cur.execute(passwordSql%(digestedPw,partyId,))

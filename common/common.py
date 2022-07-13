@@ -6,7 +6,7 @@ from netaddr import IPAddress, IPRange, IPNetwork
 # Determine IP address of the host from which the given request has been received.
 #
 def getRemoteIpAddress(request):
- 
+
     # If the request comes through an HTTP proxy, use the first of the IP addresses specified in the XFF header.     
     x_forwarded_for = request.META.get('HTTP_X_FORWARDED_FOR') 
     if x_forwarded_for: 

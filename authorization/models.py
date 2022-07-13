@@ -48,7 +48,7 @@ class AccessRule(models.Model):
 class AccessType(models.Model):
     accessTypeId = models.AutoField(primary_key=True)
     name = models.CharField(max_length=200)
-    
+
     @staticmethod
     def checkHasAccessRule(url, accessTypeName, partnerId):
         if not (url and accessTypeName and partnerId):

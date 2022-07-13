@@ -62,7 +62,7 @@ for entry in personData:
     else:
         print("not good %s" % communityId)
         continue
-    
+
     startDate = parseTime("21-DEC-12")
     endDate = parseTime(expirationDate)
     data = {

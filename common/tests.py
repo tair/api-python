@@ -188,7 +188,7 @@ class GenericCRUDTest(GenericGETOnlyTest):
         url = self.getUrl(sample.url, sample.pkName, pk)
         if self.apiKey:
             self.client.cookies = SimpleCookie({'apiKey':self.apiKey})
-            
+
         res = self.client.delete(url)
 
         self.assertIsNone(TestGenericInterfaces.forceGet(sample.model,sample.pkName,pk))
@@ -196,7 +196,7 @@ class GenericCRUDTest(GenericGETOnlyTest):
 class LoginRequiredGETOnlyTest(LoginRequiredTest, GenericGETOnlyTest):
     # just inherit methods from two parent classes
     pass
-    
+
 class LoginRequiredCRUDTest(LoginRequiredTest, GenericCRUDTest):
     # just inherit methods from two parent classes
     pass

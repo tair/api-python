@@ -107,7 +107,7 @@ class listcreateuser(GenericCRUDView):
         serializer.save()
         return Response(serializer.data, status=status.HTTP_201_CREATED)
     return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST) 
-  
+
   def put(self, request, format=None):
     # TODO: security risk here, get username based on the partyId verified in isPhoenix -SC
     if not isPhoenix(self.request):
@@ -170,7 +170,7 @@ def login(request):
     #   msg = "Incorrect password"
     #   logger.info("%s, %s: %s %s %s" % (ip, msg, request.POST['user'], request.POST['password'], request.GET['partnerId']))
     #   return HttpResponse(json.dumps({"message":msg}), status=401)
-    
+
     #  msg = "No such user"
     #  logger.info("%s, %s: %s %s %s" % (ip, msg, request.POST['user'], request.POST['password'], request.GET['partnerId']))
     #  return HttpResponse(json.dumps({"message":msg}), status=401)
@@ -245,7 +245,7 @@ def resetPwd(request):
       password = ''.join(random.choice(string.ascii_uppercase + string.digits) for _ in range(8))
       user.password = Credential.generatePasswordHash(password)
       user.save()
-      
+
       subject = "Temporary password for %s (%s)" % (user.username, user.email)#PW-215 unlikely
       '''
       message = "username: %s (%s)\n\nYour temp password is %s \n\n" \
@@ -253,12 +253,12 @@ def resetPwd(request):
                 % (user.username, user.email, password)#PW-215
       '''          
       message = partnerObj.resetPasswordEmailBody % (user.username, user.email, password)
-                
+
       from_email = "info@phoenixbioinformatics.org"
-      
+
       recipient_list = [user.email]
       send_mail(subject=subject, message=message, from_email=from_email, recipient_list=recipient_list)
-            
+
       return HttpResponse(json.dumps({'reset pwd':'success', 'username':user.username, 'useremail':user.email, 'temppwd':user.password}), content_type="application/json")#PW-215 unlikely
     return HttpResponse(json.dumps({"reset pwd failed":"No such user"}), status=401)
 #/credentials/register/

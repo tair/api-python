@@ -12,7 +12,7 @@ from django.test.utils import override_settings
 @override_settings(EMAIL_BACKEND='django.core.mail.backends.smtp.EmailBackend')
 class GetUsageRequestTest(TestCase):
     sample = UsageSample()
-    
+
     def test_for_send_usage_request(self):
         self.send_usage_email(self.sample.institutionData)
         self.send_usage_email(self.sample.consortiumData)

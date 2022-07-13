@@ -72,7 +72,7 @@ class IpRangeCRUDTest(LoginRequiredCRUDTest, TestCase):
         # need partyId for filter
         fullUrl = super(IpRangeCRUDTest,self).getUrl(url, pkName, pk) + '&%s=%s' % ('partyId', self.partyId)
         return fullUrl
-        
+
 # test for API end point /parties/consortiums/
 # returns consortium info and associated credential info
 class ConsortiumPartyCRUDTest(LoginRequiredCRUDTest, TestCase):
@@ -283,7 +283,7 @@ class InstitutionPartyCRUDTest(LoginRequiredCRUDTest, TestCase):
         institutionCredentialSample = CredentialSample(serverUrl)
 
         institutionCredentialSample.data['partnerId'] = institutionCredentialSample.updateData['partnerId'] = self.partnerId
-        
+
         return institutionCredentialSample
 
     # alternative method is to post data by call create API
@@ -395,7 +395,7 @@ class PartyAffiliationCRUDTest(LoginRequiredTest, TestCase):
 
         url = self.getUrl(sample.url) 
         url = '%s&parentPartyId=%s&childPartyId=%s' % (url, parentPartyId, childPartyId)
-            
+
         res = self.client.delete(url)
 
         self.assertIsNone(TestGenericInterfaces.forceGet(sample.model,sample.pkName,pk))

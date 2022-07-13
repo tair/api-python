@@ -60,7 +60,7 @@ def parseTime(inString):
 
     timeArr = inArr[1].split('.')
     timeStr = "%s:%s:%s" % (timeArr[0], timeArr[1], timeArr[2])
-    
+
     outString = "%s-%s-%sT%sZ" % (year, month, day, timeStr)
     return outString
 
@@ -113,7 +113,7 @@ for entry in organizationData:
     organizationName = organizationName.decode('utf8')
     startDate = entry[offset+1]
     endDate = entry[offset+2]
-    
+
     if not endDate or endDate == "":
         endDate = "01-JAN-99 01.00.00.000000000 AM AMERICA/LOS_ANGELES"
     startDate = parseTime(startDate)

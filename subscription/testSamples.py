@@ -145,7 +145,7 @@ class SubscriptionTransactionSample():
         self.updateData['transactionDate'] = getDateTimeString(updateTransactionDateObj)
         self.updateData['startDate'] = self.updateData['transactionDate']
         self.updateData['endDate'] = getDateTimeString(updateTransactionDateObj + timedelta(days=UPDATE_NUM_DAYS_AFTER_PURCHASE))
-     
+
 
     def forcePost(self,data):
         postData = copy.deepcopy(data)

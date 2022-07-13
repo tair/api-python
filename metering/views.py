@@ -84,7 +84,7 @@ class check_limit(APIView):
          and iterate through them to find any matches, 
          returning status: Block if matched and going on to the current logic if not matched.
         """
-        
+
         """
         Matching Versus Searching http://www.tutorialspoint.com/python/python_reg_expressions.htm
             Python offers two different primitive operations based on regular expressions: 
@@ -104,7 +104,7 @@ class check_limit(APIView):
                 ret = {'status': "BlackListBlock"}
                 logger.info("Metering check_limit %s%s %s%s %s%s %s" % ("ip:",ip,"partnerId:",partnerId,"uri:",uri,ret))
                 return HttpResponse(json.dumps(ret), content_type="application/json", status=200)
-            
+
         if IpAddressCount.objects.filter(ip=ip).filter(partnerId=partnerId).exists():
             currIp = IpAddressCount.objects.get(ip=ip,partnerId=partnerId)
             if (currIp.count >= LimitValue.objects.filter(partnerId=partnerId).aggregate(Max('val'))['val__max']):

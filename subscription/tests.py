@@ -38,7 +38,7 @@ class SubscriptionCRUDTest(LoginRequiredTest, TestCase):
 
         partySample = UserPartySample(serverUrl)
         self.partyId = partySample.forcePost(partySample.data)
-        
+
         self.sample.data['partyId']=self.sample.updateData['partyId']=self.partyId
         self.sample.data['partnerId']=self.sample.updateData['partnerId']=self.partnerId
 
@@ -50,7 +50,7 @@ class SubscriptionCRUDTest(LoginRequiredTest, TestCase):
     def test_for_create(self):
         sample = self.sample
         url = self.getUrl(sample.url)
-        
+
         res = self.client.post(url, sample.data)
         self.assertEqual(res.status_code, status.HTTP_201_CREATED)
         resObj = json.loads(res.content)
@@ -96,7 +96,7 @@ class SubscriptionCRUDTest(LoginRequiredTest, TestCase):
         credentialSample.setPartyId(self.partyId)
         credentialSample.setPartnerId(self.partnerId)
         credentialSample.forcePost(credentialSample.data)
-        
+
         url = self.getUrl(sample.url, 'userIdentifier', credentialSample.getUserIdentifier())
         # need to pass ipAddress as arg even when not needed
         url = '%s&partnerId=%s&ipAddress=' % (url, self.partnerId)
@@ -126,7 +126,7 @@ class SubscriptionCRUDTest(LoginRequiredTest, TestCase):
         # need to pass userIdentifier as arg even when not needed
         url = '%s&partnerId=%s&userIdentifier=' % (url, self.partnerId)
         self.runGetTestByIdentifier(url, pk)
-    
+
     def runGetTestByIdentifier(self, url, pk):
         sample = self.sample
 
@@ -182,7 +182,7 @@ class ActivationCodeCreateAndUpdateTest(LoginRequiredTest, TestCase):
 
         self.assertEqual(res.status_code, 200)
         self.assertIsNotNone(TestGenericInterfaces.forceGet(sample.model,'activationCode',json.loads(res.content)[0]))
-    
+
     # update activation code as deleted
     def test_for_update(self):
         sample = self.sample
@@ -206,12 +206,12 @@ class ActivationCodeGetAndDeleteTest(GenericCRUDTest, TestCase):
         partnerId = partnerSample.forcePost(partnerSample.data)
         self.sample.data['partnerId'] = self.sample.updateData['partnerId']=partnerId
 
-    
+
     def test_for_get(self):
         sample = self.sample
         pk = sample.forcePost(sample.data)
         url = self.getUrl(sample.url, sample.pkName, pk) 
-        
+
         res = self.client.get(url)
 
         self.assertEqual(res.status_code, 200)
@@ -235,7 +235,7 @@ class ActivationCodeGetAndDeleteTest(GenericCRUDTest, TestCase):
     # Tested in above class
     def test_for_create(self):
         pass
-     
+
     # Tested in above class
     def test_for_update(self):
         pass
@@ -292,7 +292,7 @@ class SubscriptionRenewalTest(GenericTest, TestCase):
 
         partySample = UserPartySample(serverUrl)
         partyId = partySample.forcePost(partySample.data)
-        
+
         sample = self.sample
         sample.data['partnerId']=sample.updateData['partnerId']=partnerId
         sample.data['partyId']=sample.updateData['partyId']=partyId
@@ -300,7 +300,7 @@ class SubscriptionRenewalTest(GenericTest, TestCase):
     def test_for_update(self):
         sample = self.sample
         subscriptionId = sample.forcePost(sample.data)
-        
+
         url = serverUrl + 'subscriptions/' + str(subscriptionId) + '/renewal/'
         # the default content type for put is 'application/octet-stream'
         res = self.client.put(url, json.dumps(sample.updateData), content_type='application/json')
@@ -419,7 +419,7 @@ class GetSubcriptionEndDateTest(GenericTest, TestCase):
         userSubscriptionSample.setPartyId(self.userPartyId)
         userSubscriptionSample.setPartnerId(self.partnerId)
         userSubscriptionSample.forcePost(userSubscriptionSample.data)
-        
+
         # organization (IP based) subscription will shadow individual subscription on subscription type 
         # but end date will be the latest of both so there could be inconsistency between end date and 
         # subscription type
@@ -515,7 +515,7 @@ class CheckMembershipTest(GenericTest, TestCase):
 class SubscriptionRequestTest(ManualTest, TestCase):
     path = "/subscriptions/subscriptionrequest/"
     testMethodStr = "clicking Subcription - Download All Requests on ui.arabidopsis.org/adminportal/"
-    
+
 # test for API end point /subscriptions/active/
 # endpoint returns ALL ACTIVE subscription and party info that covers the given IP address or belongs to the given 
 # user identifier for a given partner
@@ -622,7 +622,7 @@ class GetActiveSubscriptionTest(GenericTest, TestCase):
 class GetActiveSubscriptionByPartyIdTest(GenericTest, TestCase):
     partnerId = None
     subscriptionSample = SubscriptionSample(serverUrl)
-    
+
     def setUp(self):
         super(GetActiveSubscriptionByPartyIdTest,self).setUp()
 
@@ -630,13 +630,13 @@ class GetActiveSubscriptionByPartyIdTest(GenericTest, TestCase):
         self.partnerId = partnerSample.forcePost(partnerSample.data)
 
         self.subscriptionSample.setPartnerId(self.partnerId)
-    
+
     def test_for_get_individual_subscription(self):
         userPartySample = UserPartySample(serverUrl)
         partyId = userPartySample.forcePost(userPartySample.data)
 
         self.runTest(partyId)
-        
+
     def test_for_get_organization_subscription(self):
         countrySample = CountrySample(serverUrl)
         countryId = countrySample.forcePost(countrySample.data)
@@ -670,7 +670,7 @@ class GetSubscriptionHistoryByPartyIdTest(GenericTest, TestCase):
     subscriptionSample = SubscriptionSample(serverUrl)
     expiredSubscriptionSample = SubscriptionSample(serverUrl)
     expiredSubscriptionSample.setAsExpired()
-    
+
     def setUp(self):
         super(GetSubscriptionHistoryByPartyIdTest,self).setUp()
 
@@ -681,13 +681,13 @@ class GetSubscriptionHistoryByPartyIdTest(GenericTest, TestCase):
 
         self.subscriptionSample.setPartnerId(self.partnerIdWithActiveSubscription)
         self.expiredSubscriptionSample.setPartnerId(self.partnerIdWithExpiredSubscription)
-    
+
     def test_for_get_individual_subscription(self):
         userPartySample = UserPartySample(serverUrl)
         partyId = userPartySample.forcePost(userPartySample.data)
 
         self.runTest(partyId)
-        
+
     def test_for_get_organization_subscription(self):
         countrySample = CountrySample(serverUrl)
         countryId = countrySample.forcePost(countrySample.data)

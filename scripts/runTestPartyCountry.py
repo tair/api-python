@@ -50,7 +50,7 @@ for entry in organizationCountryData:
         #     if Party.objects.all().filter(name=organizationName)[2].exists():
         #         countryId = int(Party.objects.all().filter(name=organizationName)[2].country.countryId)
         #         print organizationName + ", " + str(countryId) + "\n"
-            
+
     else:
         countryId = None;
     #print organizationName + ", " + countryId + "\n"
