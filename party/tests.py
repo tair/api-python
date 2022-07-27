@@ -64,6 +64,64 @@ class IpRangeCRUDTest(LoginRequiredCRUDTest, TestCase):
         self.partySample.data['country']=countryId
         self.partyId = self.partySample.forcePost(self.partySample.data)
         self.sample.data['partyId']=self.sample.updateData['partyId']=self.partyId
+        self.sample.invalidData_oversize['partyId'] = self.partyId
+        self.sample.invalidData_private['partyId'] = self.partyId
+
+    def test_for_update_private_ipRange(self):
+        sample = self.sample
+        pk = sample.forcePost(sample.data)
+        url = self.getUrl(sample.url, sample.pkName, pk)
+        if self.apiKey:
+            self.client.cookies = SimpleCookie({'apiKey':self.apiKey})
+
+        # the default content type for put is 'application/octet-stream'
+        res = self.client.put(url, json.dumps(sample.invalidData_private), content_type='application/json')
+
+        self.assertEqual(res.status_code, 400)
+        is_private = json.loads(res.content)['IP Range'] = sample.getPrivateRangeIPErrorMessage()
+        self.assertTrue(is_private, 'Private_IpRange_Test_for_Update: Expected \
+                                     IpRange to have a private IP address, but failed.')
+
+    def test_for_update_oversize_ipRange(self):
+        sample = self.sample
+        pk = sample.forcePost(sample.data)
+        url = self.getUrl(sample.url, sample.pkName, pk)
+        if self.apiKey:
+            self.client.cookies = SimpleCookie({'apiKey':self.apiKey})
+
+        # the default content type for put is 'application/octet-stream'
+        res = self.client.put(url, json.dumps(sample.invalidData_oversize), content_type='application/json')
+
+        self.assertEqual(res.status_code, 400)
+        is_oversize = json.loads(res.content)['IP Range'] = sample.getOutRangeIPErrorMessage()
+        self.assertTrue(is_oversize, 'Oversize_IpRange_Test_for_Update: Expected \
+                                     IpRange to be out of range, but failed.')
+
+    def test_for_create_private_ipRange(self):
+        sample = self.sample
+        url = self.getUrl(sample.url)
+        if self.apiKey:
+            self.client.cookies = SimpleCookie({'apikey': self.apiKey})
+
+        res = self.client.post(url, sample.invalidData_private)
+
+        self.assertEqual(res.status_code, 400)
+        is_private = json.loads(res.content)['IP Range'] == sample.getPrivateRangeIPErrorMessage()
+        self.assertTrue(is_private, 'Private_IpRange_Test_for_Create: Expected \
+                                     IpRange to have a private IP address, but failed.')
+
+    def test_for_create_oversize_ipRange(self):
+        sample = self.sample
+        url = self.getUrl(sample.url)
+        if self.apiKey:
+            self.client.cookies = SimpleCookie({'apikey': self.apiKey})
+
+        res = self.client.post(url, sample.invalidData_oversize)
+
+        self.assertEqual(res.status_code, 400)
+        is_oversize = json.loads(res.content)['IP Range'] == sample.getOutRangeIPErrorMessage()
+        self.assertTrue(is_oversize, 'Oversize_IpRange_Test_for_Create: Expected \
+                                      IpRange to be out of range, but failed.')
 
     def test_for_get(self):
         pass

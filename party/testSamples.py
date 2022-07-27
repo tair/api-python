@@ -151,6 +151,18 @@ class IpRangeSample():
         'partyId': None,
         'label': 'test_label_II',
     }
+    invalidData_private = {
+        'start':'192.168.1.0',
+        'end':'192.168.255.255',
+        'partyId': None,
+        'label': 'test_label_III',
+    }
+    invalidData_oversize = {
+        'start':'120.10.0.0',
+        'end':'120.11.255.255',
+        'partyId': None,
+        'label': 'test_label_IV',
+    }
     pkName = 'ipRangeId'
     model = IpRange
 
@@ -168,6 +180,12 @@ class IpRangeSample():
 
     def getOutRangeIp(self):
         return '133.1.8.52'
+
+    def getOutRangeIPErrorMessage(self):
+        return 'IP range too large: %s - %s' % (self.invalidData_oversize['start'], self.invalidData_oversize['end'])
+
+    def getPrivateRangeIPErrorMessage(self):
+        return 'IP range contains private IP: %s - %s' % (self.invalidData_private['start'], self.invalidData_private['end'])
 
     def forcePost(self,data):
         postData = copy.deepcopy(data)
