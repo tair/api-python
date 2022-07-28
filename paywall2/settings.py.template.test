@@ -253,6 +253,12 @@ CIPRES_ACCESS_TOKEN = None
 # Email addresses for sending CIPRES sync failed email
 CIPRES_ADMINS = ['techteam@arabidopsis.org']
 
+# Fill in parameters for CyVerse API call
+CYVERSE_AUTH_URL = 'https://kc.cyverse.org/auth/realms/CyVerseTest/protocol/openid-connect/token'
+CYVERSE_CLIENT_ID = None
+CYVERSE_SECRET = None
+CYVERSE_API_URL = "https://qa.cyverse.org/terrain/service/qms/users/%s/plan/%s"
+
 # Email Subject for CyVerse purchase
 CYVERSE_PURCHASE_EMAIL_SUBJECT = 'New Subscription Purchase'
 CYVERSE_ADMINS = ['techteam@phoenixbioinformatics.org', 'support@cyverse.org']

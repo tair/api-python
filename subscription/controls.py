@@ -14,6 +14,7 @@ from party.models import Party
 from django.utils import timezone
 from django.core.mail import send_mail
 from common.utils.cipresUtils import APICaller
+from common.utils.cyverseUtils import CyVerseClient
 
 import logging
 logger = logging.getLogger('phoenix.api.subscription')
@@ -348,12 +349,19 @@ class PaymentControl():
             if termName:
                 termName = string.capwords(termName)
 
-            # TODO: send to CyVerse API later
-            msg = "Your order has been processed, and your CyVerse account will be credited within 48 hours."
+            client = CyVerseClient()
+            # test for invalid user. Note that API does not return error for invalid username
+            try:
+                client.postUnitPurchase(username, termName)
+                tierPurchaseObj.syncedToPartner = True
+                tierPurchaseObj.save()
+                msg = "Your order has been processed and your CyVerse account has been credited."
+            except RuntimeError as error:
+                msg = "Your order has been processed, and your CyVerse account will be credited within 48 hours."
+                message['message'] = error
+
             PaymentControl.sendCyVerseEmail(msg, purchaseId, termName, partnerObj, emailAddress, firstname, lastname, priceToCharge, institute, transactionId, expirationDate, cardLast4, other)
             PaymentControl.sendCyVerseAdminEmail(termName, username, purchaseDate, transactionId)
-            tierPurchaseObj.syncedToPartner = True
-            tierPurchaseObj.save()
 
         if 'message' in message:
             PaymentControl.logPaymentError(partyId, username, emailAddress, message['message'])
