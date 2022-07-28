@@ -346,8 +346,9 @@ class PaymentControl():
             expirationDate = tierPurchaseObj.expirationDate
 
             termName = termObj.name
-            if termName:
-                termName = string.capwords(termName)
+            termLabel = termObj.label
+            if termLabel:
+                termLabel = string.capwords(termLabel)
 
             client = CyVerseClient()
             # test for invalid user. Note that API does not return error for invalid username
@@ -356,12 +357,13 @@ class PaymentControl():
                 tierPurchaseObj.syncedToPartner = True
                 tierPurchaseObj.save()
                 msg = "Your order has been processed and your CyVerse account has been credited."
+                PaymentControl.sendCyVerseAdminEmail(termLabel, username, purchaseDate, transactionId)
             except RuntimeError as error:
                 msg = "Your order has been processed, and your CyVerse account will be credited within 48 hours."
                 message['message'] = error
+                PaymentControl.sendCyVerseSyncFailedEmail(termLabel, username, purchaseDate, transactionId, error)
 
-            PaymentControl.sendCyVerseEmail(msg, purchaseId, termName, partnerObj, emailAddress, firstname, lastname, priceToCharge, institute, transactionId, expirationDate, cardLast4, other)
-            PaymentControl.sendCyVerseAdminEmail(termName, username, purchaseDate, transactionId)
+            PaymentControl.sendCyVerseEmail(msg, purchaseId, termLabel, partnerObj, emailAddress, firstname, lastname, priceToCharge, institute, transactionId, expirationDate, cardLast4, other)
 
         if 'message' in message:
             PaymentControl.logPaymentError(partyId, username, emailAddress, message['message'])
@@ -388,7 +390,7 @@ class PaymentControl():
         return expirationDate.strftime("%Y-%m-%d 23:59:59")
 
     @staticmethod
-    def sendCyVerseEmail(msg, purchaseId, termName, partnerObj, email, firstname, lastname, payment, institute, transactionId, expirationDate, cardLast4, other):
+    def sendCyVerseEmail(msg, purchaseId, termLabel, partnerObj, email, firstname, lastname, payment, institute, transactionId, expirationDate, cardLast4, other):
         name = firstname + " " + lastname
         payment = "%.2f" % float(payment)
         expirationDateDisplay = expirationDate + " GMT"
@@ -398,7 +400,7 @@ class PaymentControl():
             name,
             msg,
             institute,
-            termName,
+            termLabel,
             payment,
             transactionId,
             cardLast4,
@@ -423,7 +425,7 @@ class PaymentControl():
         logger.info("------Done sending email------")
 
     @staticmethod
-    def sendCyVerseAdminEmail(termName, username, purchaseDate, transactionId):
+    def sendCyVerseAdminEmail(termLabel, username, purchaseDate, transactionId):
         subject = settings.CYVERSE_PURCHASE_EMAIL_SUBJECT
         from_email = "info@phoenixbioinformatics.org"
         recipient_list = settings.CYVERSE_ADMINS
@@ -434,15 +436,42 @@ class PaymentControl():
         username: %s
         Transaction ID: %s
         Purchase Time: %s
-        """ % (termName, username, transactionId, purchaseDate)
+        """ % (termLabel, username, transactionId, purchaseDate)
 
         logger.info("------Sending CyVerse admin email------")
-        logger.info("Term: %s" % termName)
+        logger.info("Term: %s" % termLabel)
         logger.info("username: %s" % username)
         logger.info("Transaction ID: %s" % transactionId)
         logger.info("Subject: %s" % subject)
         logger.info("Message: %s" % msg)
         logger.info("recipients: %s" % recipient_list)
+        send_mail(subject=subject, from_email=from_email, recipient_list=recipient_list, message=msg)
+        logger.info("------Done sending email------")
+
+    @staticmethod
+    def sendCyVerseSyncFailedEmail(termLabel, username, purchaseDate, transactionId, error):
+        subject = settings.CYVERSE_PURCHASE_EMAIL_SUBJECT
+        from_email = "info@phoenixbioinformatics.org"
+        recipient_list = settings.CYVERSE_ADMINS
+
+        msg = """
+    CyVerse subscription purchased:
+        term: %s
+        username: %s
+        Transaction ID: %s
+        Purchase Time: %s
+
+    Failed to sync to the CyVerse database. Error message: %s
+        """ % (termLabel, username, transactionId, purchaseDate, error)
+
+        logger.info("------Sending CyVerse sync failed email------")
+        logger.info("Term: %s" % termLabel)
+        logger.info("username: %s" % username)
+        logger.info("Transaction ID: %s" % transactionId)
+        logger.info("Subject: %s" % subject)
+        logger.info("Message: %s" % msg)
+        logger.info("Recipients: %s" % recipient_list)
+        logger.info("Error Message: %s" % error)
         send_mail(subject=subject, from_email=from_email, recipient_list=recipient_list, message=msg)
         logger.info("------Done sending email------")
 
