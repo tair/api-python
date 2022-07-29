@@ -192,13 +192,13 @@ class PaymentControl():
         subject = kwargs['subject']
         from_email = kwargs['senderEmail']
         recipient_list = kwargs['recipientEmails']
-#        logging.basicConfig(filename="/home/ec2-user/logs/debug.log",
-#                            format='%(asctime)s %(message)s'
-#        )
-#        logger.info("------Sending individual email------")
-#        logger.info("%s" % recipient_list[0])
+        logger.info("------Sending activation code email------")
+        logger.info("Receipient: %s" % recipient_list[0])
+        logger.info("ActivationCodes:")
+        for l in kwargs['accessCodes']:
+            logger.info(l)
         send_mail(subject=subject, from_email=from_email, recipient_list=recipient_list, html_message=html_message, message=None)
-#        logger.info("------Done sending individual email------")
+        logger.info("------Done sending activation code email------")
 
     @staticmethod
     def isValidRequest(request, message):
