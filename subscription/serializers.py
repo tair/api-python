@@ -42,7 +42,7 @@ class UsageTierPurchaseSerializer(serializers.ModelSerializer):
     def get_term_name(self, purchase):
         return purchase.tierId.name
 
-    def get_term_label(self, purchase)
+    def get_term_label(self, purchase):
         return purchase.tierId.label
 
     class Meta:
