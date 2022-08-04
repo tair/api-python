@@ -57,6 +57,8 @@ TEMPLATES = [
 ADMINS = [('Phoenix', 'techteam@arabidopsis.org'), ('Dev', 'dev@arabidopsis.org'), ('Xingguo', 'xingguo.chen@arabidopsis.org')]
 SERVER_EMAIL = 'dev@arabidopsis.org' # override the email address that error messages come from
 
+TEST_RUNNER = 'common.utils.test_runner.NoLoggingTestRunner'
+
 LOGGING = {
     'version': 1,
     'formatters': {
