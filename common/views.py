@@ -37,13 +37,27 @@ class GenericCRUDView(generics.GenericAPIView):
         if not params:
             return Response({'error':'does not allow update without query parameters'})
         obj = self.get_queryset()
-        ret = []
+        errorRes = []
+        serializerList = []
+        valid = True
         for entry in obj:
             serializer = serializer_class(entry, data=request.data)
-            if serializer.is_valid():
-                serializer.save()
-                ret.append(serializer.data)
-        return Response(ret)
+            if not serializer.is_valid():
+                valid = False
+                errorRes.append(serializer.errors)
+            else:
+                serializerList.append(serializer)
+
+        if not valid:
+            return Response(errorRes, status=status.HTTP_400_BAD_REQUEST)
+
+        successRes = []
+
+        for serializer in serializerList:
+            serializer.save()
+            successRes.append(serializer.data)
+
+        return Response(successRes)
 
     def post(self, request, format=None):
         serializer_class = self.get_serializer_class()

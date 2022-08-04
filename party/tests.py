@@ -78,7 +78,7 @@ class IpRangeCRUDTest(LoginRequiredCRUDTest, TestCase):
         res = self.client.put(url, json.dumps(sample.invalidData_private), content_type='application/json')
 
         self.assertEqual(res.status_code, 400)
-        is_private = json.loads(res.content)['IP Range'] = sample.getPrivateRangeIPErrorMessage()
+        is_private = json.loads(res.content)['IP Range'] == sample.getPrivateRangeIPErrorMessage()
         self.assertTrue(is_private, 'Private_IpRange_Test_for_Update: Expected \
                                      IpRange to have a private IP address, but failed.')
 
@@ -93,7 +93,7 @@ class IpRangeCRUDTest(LoginRequiredCRUDTest, TestCase):
         res = self.client.put(url, json.dumps(sample.invalidData_oversize), content_type='application/json')
 
         self.assertEqual(res.status_code, 400)
-        is_oversize = json.loads(res.content)['IP Range'] = sample.getOutRangeIPErrorMessage()
+        is_oversize = json.loads(res.content)['IP Range'] == sample.getOutRangeIPErrorMessage()
         self.assertTrue(is_oversize, 'Oversize_IpRange_Test_for_Update: Expected \
                                      IpRange to be out of range, but failed.')
 
