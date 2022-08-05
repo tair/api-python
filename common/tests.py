@@ -1,6 +1,7 @@
 import json
 import sys
-import time
+import pytz
+from datetime import datetime
 import urllib.request, urllib.parse, urllib.error
 from .testSamples import CommonApiKeySample, CommonPartnerSample, CommonUserPartySample, CommonCredentialSample
 from partner.models import Partner
@@ -88,7 +89,7 @@ class LoginRequiredTest(GenericTest):
         return fullUrl
 
 # This function checks if sampleData is within the array of data retrieved
-# from API call.
+# from API call
 def checkMatch(sampleData, retrievedData, pkName, pk):
     hasMatch = False
     if not isinstance(retrievedData, list):
@@ -101,12 +102,51 @@ def checkMatch(sampleData, retrievedData, pkName, pk):
             for key in sampleData:
                 # makes sure that all contents from sample is the
                 # same as content retrieved from request
-                if not key in item or not (item[key] == sampleData[key] or float(item[key]) == float(sampleData[key])):
+                if not key in item or not (checkValueMatch(sampleData[key], item[key])):
                     hasMatch = False
                     break
     if not hasMatch:
         print("\nERROR: sample data %s and retrieved data %s does not match" % (sampleData, retrievedData))
     return hasMatch
+
+# This function checks if sampleData is within the array of data retrieved
+# from the database for the same pk
+def checkMatchDB(sampleData, model, pkName, pk):
+    dbRecord = TestGenericInterfaces.forceGet(model, pkName, pk)
+    if not dbRecord:
+        print("\nERROR: cannot find database record %s with %s = %s" % (model, pkName, pk))
+        return False
+    hasMatch = True
+    for key in sampleData:
+        # makes sure that all keys from sample have the same value as their
+        # corresponding fields in the db record if exist
+        if (key in dbRecord.__dict__ and not checkValueMatch(sampleData[key], dbRecord.__dict__[key])):
+            print("\nERROR: sample data %s:%s and database record %s:%s does not match" % (key, sampleData[key], key, dbRecord.__dict__[key]))
+            hasMatch = False
+            break
+    if not hasMatch:
+        print("\nERROR: sample data %s and database record %s does not match" % (sampleData, dbRecord.__dict__))
+    return hasMatch
+
+def checkValueMatch(feedValue, dbValue):
+    if isinstance(feedValue, datetime):
+        if isinstance(dbValue, datetime):
+            return feedValue == dbValue
+        else:
+            return feedValue == getDateTime(dbValue)
+    else:
+        if isinstance(dbValue, datetime):
+            return getDateTime(feedValue) == dbValue
+    return feedValue == dbValue or float(feedValue) == float(dbValue)
+
+def getDateTime(str):
+    try:
+        return datetime.strptime(str, '%Y-%m-%dT%H:%M:%S.%fZ').replace(tzinfo=pytz.UTC)
+    except ValueError:
+        try:
+           return datetime.strptime(str, '%Y-%m-%dT%H:%M:%SZ').replace(tzinfo=pytz.UTC)
+        except ValueError:
+            return None
 
 ## This function checks if sampleData is within the array of data retrieved
 # from API call, and skip common key we use for authentication, such as apiKey, 
@@ -165,7 +205,8 @@ class GenericCRUDTest(GenericGETOnlyTest):
         res = self.client.post(url, sample.data)
 
         self.assertEqual(res.status_code, 201)
-        self.assertIsNotNone(TestGenericInterfaces.forceGet(sample.model,sample.pkName,json.loads(res.content)[sample.pkName]))
+        pk = json.loads(res.content)[sample.pkName]
+        self.assertEqual(checkMatchDB(sample.data, sample.model, sample.pkName, pk), True)
 
     def test_for_update(self):
         sample = self.sample
@@ -181,6 +222,7 @@ class GenericCRUDTest(GenericGETOnlyTest):
 
         self.assertEqual(res.status_code, 200)
         self.assertEqual(checkMatch(sample.updateData, json.loads(res.content), sample.pkName, pk), True)
+        self.assertEqual(checkMatchDB(sample.updateData, sample.model, sample.pkName, pk), True)
 
     def test_for_delete(self):
         sample = self.sample

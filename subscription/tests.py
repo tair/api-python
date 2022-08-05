@@ -11,7 +11,7 @@ from .testSamples import SubscriptionSample, SubscriptionTransactionSample, Acti
 from party.testSamples import UserPartySample, CountrySample, OrganizationPartySample, IpRangeSample, ConsortiumPartySample, InstitutionPartySample, PartyAffiliationSample, ImageInfoSample
 from partner.testSamples import PartnerSample, SubscriptionTermSample
 from authentication.testSamples import CredentialSample
-from common.tests import TestGenericInterfaces, GenericCRUDTest, GenericTest, LoginRequiredTest, ManualTest, checkMatch
+from common.tests import TestGenericInterfaces, GenericCRUDTest, GenericTest, LoginRequiredTest, ManualTest, checkMatch, checkMatchDB
 from rest_framework import status
 from .controls import PaymentControl
 from http.cookies import SimpleCookie
@@ -54,7 +54,7 @@ class SubscriptionCRUDTest(LoginRequiredTest, TestCase):
         res = self.client.post(url, sample.data)
         self.assertEqual(res.status_code, status.HTTP_201_CREATED)
         resObj = json.loads(res.content)
-        self.assertIsNotNone(TestGenericInterfaces.forceGet(sample.model,sample.pkName,resObj[sample.pkName]))
+        self.assertEqual(checkMatchDB(sample.data, sample.model,sample.pkName,resObj[sample.pkName]), True)
         transactionId = resObj['subscriptionTransactionId']
         self.assertIsNotNone(TestGenericInterfaces.forceGet(SubscriptionTransaction,'subscriptionTransactionId',transactionId))
 
@@ -146,6 +146,7 @@ class SubscriptionCRUDTest(LoginRequiredTest, TestCase):
 
         self.assertEqual(res.status_code, 200)
         self.assertEqual(checkMatch(sample.updateData, json.loads(res.content), sample.pkName, pk), True)
+        self.assertEqual(checkMatchDB(sample.updateData, sample.model, sample.pkName, pk), True)
 
     # can only delete by party id
     def test_for_delete(self):
@@ -307,6 +308,7 @@ class SubscriptionRenewalTest(GenericTest, TestCase):
 
         self.assertEqual(res.status_code, 200)
         self.assertEqual(checkMatch(sample.updateData, json.loads(res.content), sample.pkName, subscriptionId), True)
+        self.assertEqual(checkMatchDB(sample.updateData, sample.model, sample.pkName, subscriptionId), True)
         transactionId = json.loads(res.content)['subscriptionTransactionId']
         self.assertIsNotNone(TestGenericInterfaces.forceGet(SubscriptionTransaction,'subscriptionTransactionId',transactionId))
 

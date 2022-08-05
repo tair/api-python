@@ -61,7 +61,7 @@ class CommonCredentialSample():
     PASSWORD = 'phoenix123'
     EMAIL = 'info@phoenixbioinformatics.org'
     INSTITUTION = 'Phoenix Bioinformatics'
-    USER_IDENTIFIER = 123
+    USER_IDENTIFIER = 1
     data = {
         'username': USERNAME,
         'firstName': FIRSTNAME,

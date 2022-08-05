@@ -12,16 +12,16 @@ class PartnerSample():
     url = None
     path = 'partners/'
     data = {
-        'partnerId':'test',
-        'name':'testPartner',
+        'partnerId':'phoenix',
+        'name':'phoenixTestPartner',
         'logoUri':'randomuri.com',
         'termOfServiceUri':'anotherrandomuri.com',
         'description':'Genome database for the reference plant Arabidopsis thaliana',
         'resetPasswordEmailBody': 'Test Partner username: %s (%s). Your temp password is %s.'
     }
     updateData = {
-        'partnerId':'test',
-        'name':'testPartner2',
+        'partnerId':'phoenix',
+        'name':'phoenixTestPartner2',
         'logoUri':'randomuri2.com',
         'termOfServiceUri':'anotherrandomuri2.com',
         'description':'Updated description: Genome database for the reference plant Arabidopsis thaliana',

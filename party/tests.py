@@ -9,7 +9,7 @@ from .testSamples import CountrySample, UserPartySample, OrganizationPartySample
 from partner.testSamples import PartnerSample
 from subscription.testSamples import SubscriptionSample
 from authentication.testSamples import CredentialSample
-from common.tests import TestGenericInterfaces, GenericGETOnlyTest, GenericCRUDTest, LoginRequiredGETOnlyTest, LoginRequiredCRUDTest, LoginRequiredTest, ManualTest, checkMatch
+from common.tests import TestGenericInterfaces, GenericGETOnlyTest, GenericCRUDTest, LoginRequiredGETOnlyTest, LoginRequiredCRUDTest, LoginRequiredTest, ManualTest, checkMatch, checkMatchDB
 from http.cookies import SimpleCookie
 
 django.setup()
@@ -243,9 +243,11 @@ class ConsortiumPartyCRUDTest(LoginRequiredCRUDTest, TestCase):
 
     def assertConsortiumItem(self, consortiumSampleData, consortiumCredentialSampleData, consortiumCredentialSample, resObj, pkName, pk):
         self.assertEqual(checkMatch(consortiumSampleData, resObj[0], pkName, pk), True)
+        self.assertEqual(checkMatchDB(consortiumSampleData, self.sample.model, pkName, pk), True)
         # manipulate sample data to match the test condition
         consortiumCredentialSampleData['password'] = consortiumCredentialSample.hashPassword(consortiumCredentialSampleData['password'])
         self.assertEqual(checkMatch(consortiumCredentialSampleData, resObj[1], pkName, pk), True)
+        self.assertEqual(checkMatchDB(consortiumCredentialSampleData, consortiumCredentialSample.model, pkName, pk), True)
 
 # test for API end point /parties/institutions/
 # returns organization info and associated credential info
@@ -371,9 +373,12 @@ class InstitutionPartyCRUDTest(LoginRequiredCRUDTest, TestCase):
 
     def assertInstitutionItem(self, institutionSampleData, institutionCredentialSampleData, institutionCredentialSample, resObj, pkName, pk):
         self.assertEqual(checkMatch(institutionSampleData, resObj[0], pkName, pk), True)
+        self.assertEqual(checkMatchDB(institutionSampleData, self.sample.model, pkName, pk), True)
+
         # manipulate sample data to match the test condition
         institutionCredentialSampleData['password'] = institutionCredentialSample.hashPassword(institutionCredentialSampleData['password'])
         self.assertEqual(checkMatch(institutionCredentialSampleData, resObj[1], pkName, pk), True)
+        self.assertEqual(checkMatchDB(institutionCredentialSampleData, institutionCredentialSample.model, pkName, pk), True)
 
 # test for end point /parties/affiliations/
 # get_all and update methods unavailable, all available methods need to be override
@@ -561,9 +566,10 @@ class GetSubOrgListByPartnerTest(TestCase):
 
 # test for API end point /parties/usage/
 # test in manualTests.py
-class GetUsageRequestTest(ManualTest, TestCase):
-    path = "/parties/usage/"
-    testMethodStr = "running ./manage.py test party.manualTests (the UI invocation from librarians is not public yet)"
+# deprecated and replaced by POL functions
+# class GetUsageRequestTest(ManualTest, TestCase):
+#     path = "/parties/usage/"
+#     testMethodStr = "running ./manage.py test party.manualTests (the UI invocation from librarians is not public yet)"
 
 # test for API end point /parties/consortiuminstitutions/{consortiumId}
 # this endpoint is not working
