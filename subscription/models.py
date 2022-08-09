@@ -156,6 +156,7 @@ class UsageTierTerm(models.Model):
     tierId = models.AutoField(primary_key=True)
     partnerId = models.ForeignKey("partner.Partner", null=False, db_column="partnerId")
     name = models.CharField(max_length=20)
+    label = models.CharField(max_length=20)
     price = models.IntegerField(null=False)
     description = models.CharField(max_length=200)
     isAcademic = models.BooleanField(null=False, default=False)

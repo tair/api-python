@@ -33,14 +33,18 @@ class UsageUnitPurchaseSerializer(serializers.ModelSerializer):
 class UsageTierTermSerializer(serializers.ModelSerializer):
     class Meta:
         model = UsageTierTerm
-        fields = ('tierId', 'partnerId', 'name', 'price', 'isAcademic', 'durationInDays')
+        fields = ('tierId', 'partnerId', 'name', 'label', 'price', 'isAcademic', 'durationInDays')
 
 class UsageTierPurchaseSerializer(serializers.ModelSerializer):
     tierName = serializers.SerializerMethodField('get_term_name')
+    tierLabel = serializers.SerializerMethodField('get_term_label')
 
     def get_term_name(self, purchase):
         return purchase.tierId.name
 
+    def get_term_label(self, purchase):
+        return purchase.tierId.label
+
     class Meta:
         model = UsageTierPurchase
-        fields = ('purchaseId', 'partyId', 'partnerId', 'tierId', 'tierName', 'purchaseDate', 'expirationDate', 'transactionId', 'syncedToPartner')
+        fields = ('purchaseId', 'partyId', 'partnerId', 'tierId', 'tierName', 'tierLabel', 'purchaseDate', 'expirationDate', 'transactionId', 'syncedToPartner')
