@@ -11,4 +11,4 @@ sqlparse==0.3.1
 pandas==0.24.2
 xlsxwriter==2.0.0
 xlrd==2.0.1
-pycrypto==2.6.1
+pycryptodome==3.15.0
