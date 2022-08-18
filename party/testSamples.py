@@ -113,6 +113,13 @@ class ConsortiumPartySample():
         'country': None,
         'label': 'Test Consortium Label II'
     }
+    updateData_invalid = {
+        'partyType':PARTY_TYPE_CONSORTIUM,
+        'name': True,
+        'display': False,
+        'country': None,
+        'label': 'Test Consortium Label III'
+    }
     pkName = 'partyId'
     model = Party
 

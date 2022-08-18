@@ -26,7 +26,7 @@ class CredentialSample():
     data = {
         'username': USERNAME,
         'firstName': FIRSTNAME,
-        'lastName': LASTNAME,
+        'lastName': 1234567890,
         'password': PASSWORD,
         'email': EMAIL,
         'institution': INSTITUTION,
@@ -40,7 +40,28 @@ class CredentialSample():
         'lastName': LASTNAME + '_update',
         'password': PASSWORD_UPDATE,
         'email': EMAIL_UPDATE,
-        'institution': INSTITUTION + ' Update', 
+        'institution': INSTITUTION + ' Update',
+        'partyId': None,
+        'partnerId': None,
+        'userIdentifier': USER_IDENTIFIER_UPDATE
+    }
+    updateData_no_pwd = {
+        'username': USERNAME + '_update',
+        'firstName': FIRSTNAME + '_update',
+        'lastName': LASTNAME + '_update',
+        'email': EMAIL_UPDATE,
+        'institution': INSTITUTION + ' Update',
+        'partyId': None,
+        'partnerId': None,
+        'userIdentifier': USER_IDENTIFIER_UPDATE
+    }
+    updateData_invalid = {
+        'username': USERNAME + '_update',
+        'firstName': True,
+        'lastName': LASTNAME + '_update',
+        'password': PASSWORD_UPDATE,
+        'email': EMAIL_UPDATE,
+        'institution': INSTITUTION + ' Update',
         'partyId': None,
         'partnerId': None,
         'userIdentifier': USER_IDENTIFIER_UPDATE
