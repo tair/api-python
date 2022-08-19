@@ -72,6 +72,13 @@ class OrganizationPartySample():
         'country': None,
         'label': 'Test Organization Label II'
     }
+    updateData_invalid = {
+        'partyType':PARTY_TYPE_ORG,
+        'name': True,
+        'display': False,
+        'country': None,
+        'label': 'Test Consortium Label III'
+    }
     pkName = 'partyId'
     model = Party
 

@@ -114,6 +114,8 @@ def checkMatch(sampleData, retrievedData, pkName, pk):
 def checkMatchDB(sampleData, model, pkName, pk):
     dbRecord = TestGenericInterfaces.forceGet(model, pkName, pk)
     if not dbRecord:
+        if not sampleData:
+            return True
         print("\nERROR: cannot find database record %s with %s = %s" % (model, pkName, pk))
         return False
     hasMatch = True

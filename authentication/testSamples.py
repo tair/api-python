@@ -26,7 +26,7 @@ class CredentialSample():
     data = {
         'username': USERNAME,
         'firstName': FIRSTNAME,
-        'lastName': 1234567890,
+        'lastName': LASTNAME,
         'password': PASSWORD,
         'email': EMAIL,
         'institution': INSTITUTION,

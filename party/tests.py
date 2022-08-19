@@ -192,14 +192,14 @@ class ConsortiumPartyCRUDTest(LoginRequiredCRUDTest, TestCase):
         # construct credential on Database
         consortiumCredentialSample.forcePost(consortiumCredentialSample.data)
 
-        # combine two updateData from partySample and CredentialSample into one data "putData"
+        # combine updateData from partySample and invalid updateData from CredentialSample into one data "putData"
         putData = self.composeConsortiumPostData(sample.updateData, consortiumCredentialSample.updateData_invalid)
         url = self.getUrl(sample.url, sample.pkName, pk)
 
         # pushing putData into Database
         res = self.client.put(url, json.dumps(putData), content_type='application/json')
 
-        # test pushing successfully into the database
+        # test failing to push into the database
         self.assertEqual(res.status_code, 400)
         # test data from party on Database == sample.data
         self.assertEqual(checkMatchDB(sample.data, sample.model, sample.pkName, pk), True)
@@ -224,14 +224,14 @@ class ConsortiumPartyCRUDTest(LoginRequiredCRUDTest, TestCase):
         # construct credential on Database
         consortiumCredentialSample.forcePost(consortiumCredentialSample.data)
 
-        # combine two updateData from partySample and CredentialSample into one data "putData"
+        # combine invalid updateData from partySample and updateData from CredentialSample into one data "putData"
         putData = self.composeConsortiumPostData(sample.updateData_invalid, consortiumCredentialSample.updateData)
         url = self.getUrl(sample.url, sample.pkName, pk)
 
         # pushing putData into Database
         res = self.client.put(url, json.dumps(putData), content_type='application/json')
 
-        # test pushing successfully into the database
+        # test failing to push into the database
         self.assertEqual(res.status_code, 400)
         # test data from party on Database == sample.data
         self.assertEqual(checkMatchDB(sample.data, sample.model, sample.pkName, pk), True)
@@ -241,7 +241,7 @@ class ConsortiumPartyCRUDTest(LoginRequiredCRUDTest, TestCase):
         self.assertEqual(checkMatchDB(consortiumCredentialSample.data, consortiumCredentialSample.model, sample.pkName, pk), True)
 
     # testcase 3: update party only
-    def case3(self):
+    def test_for_put_case3(self):
         # create new consortium party and get partyId "pk"
         sample = self.sample
         pk = sample.forcePost(sample.data)
@@ -257,7 +257,7 @@ class ConsortiumPartyCRUDTest(LoginRequiredCRUDTest, TestCase):
 
         # test pushing successfully into the database
         self.assertEqual(res.status_code, 200)
-        # test party data and credential data from the database = party sample's updateData and credential sample's updateData
+        # test party data from the database = party sample's updateData
         self.assertEqual(checkMatchDB(sample.updateData, sample.model, sample.pkName, pk), True)
 
     # testcase 2: throw error if credential not exist & username/pwd not exist
@@ -271,19 +271,19 @@ class ConsortiumPartyCRUDTest(LoginRequiredCRUDTest, TestCase):
         consortiumCredentialSample.updateData_no_pwd['partnerId'] = self.partnerId
         consortiumCredentialSample.updateData_no_pwd['partyId'] = pk
 
-        # combine two updateData from partySample and CredentialSample into one data "putData"
+        # combine updateData from partySample and updateData w/o pwd from CredentialSample into one data "putData"
         putData = self.composeConsortiumPostData(sample.updateData, consortiumCredentialSample.updateData_no_pwd)
         url = self.getUrl(sample.url, sample.pkName, pk)
 
         # pushing putData into Database
         res = self.client.put(url, json.dumps(putData), content_type='application/json')
 
-        # test pushing successfully into the database
+        # test failing to push into the database
         self.assertEqual(res.status_code, 400)
-        # test party data and credential data from the database = party sample's updateData and credential sample's updateData
+        # test party data from the database = party sample's data
         self.assertEqual(checkMatchDB(sample.data, sample.model, sample.pkName, pk), True)
         # test credential does not exist
-        self.assertEqual(checkMatchDB(None, consortiumCredentialSample.model, sample.pkName, pk), False)
+        self.assertEqual(checkMatchDB(None, consortiumCredentialSample.model, sample.pkName, pk), True)
 
     # testcase 1: create credential when no exist
     def test_for_put_case1(self):
@@ -306,9 +306,10 @@ class ConsortiumPartyCRUDTest(LoginRequiredCRUDTest, TestCase):
 
         # test pushing successfully into the database
         self.assertEqual(res.status_code, 200)
-        # test if party data and credential data from the database = party sample's updateData and credential sample's updateData
+        # test if party data from the database = party sample's updateData
         self.assertEqual(checkMatchDB(sample.updateData, sample.model, sample.pkName, pk), True)
 
+        # hashing the password and test data from credential on Database == consortiumCredentialSample.updateData
         consortiumCredentialSample.updateData['password'] = consortiumCredentialSample.hashPassword(consortiumCredentialSample.updateData['password'])
         self.assertEqual(checkMatchDB(consortiumCredentialSample.updateData, consortiumCredentialSample.model, sample.pkName, pk), True)
 
@@ -436,6 +437,142 @@ class InstitutionPartyCRUDTest(LoginRequiredCRUDTest, TestCase):
         resObj = json.loads(res.content)
         self.assertEqual(resObj[0]['hasIpRange'], True)
 
+    # testcase 5 : throw error & does not save when credential serializer failed
+    def test_for_put_case5(self):
+        # create new consortium party and get partyId "pk"
+        sample = self.sample
+        pk = sample.forcePost(sample.data)
+
+        # initialize data from credentialSample
+        institutionCredentialSample = CredentialSample(serverUrl)
+        institutionCredentialSample.updateData_invalid['partnerId'] = self.partnerId
+        institutionCredentialSample.data['partnerId'] = self.partnerId
+        institutionCredentialSample.data['partyId'] = pk
+        institutionCredentialSample.updateData_invalid['partyId'] = pk
+
+        # construct credential on Database
+        institutionCredentialSample.forcePost(institutionCredentialSample.data)
+
+        # combine updateData from partySample and invalid updateData from CredentialSample into one data "putData"
+        putData = self.composeInstitutionPostData(sample.updateData, institutionCredentialSample.updateData_invalid)
+        url = self.getUrl(sample.url, sample.pkName, pk)
+
+        # pushing putData into Database
+        res = self.client.put(url, json.dumps(putData), content_type='application/json')
+
+        # test failing to push into the database
+        self.assertEqual(res.status_code, 400)
+        # test data from party on Database == sample.data
+        self.assertEqual(checkMatchDB(sample.data, sample.model, sample.pkName, pk), True)
+
+        # hashing the password and test data from credential on Database == institutionCredentialSample.data
+        institutionCredentialSample.data['password'] = institutionCredentialSample.hashPassword(institutionCredentialSample.data['password'])
+        self.assertEqual(checkMatchDB(institutionCredentialSample.data, institutionCredentialSample.model, sample.pkName, pk), True)
+
+    # testcase 4 : throw error & does not save when party serializer failed
+    def test_for_put_case4(self):
+        # create new consortium party and get partyId "pk"
+        sample = self.sample
+        pk = sample.forcePost(sample.data)
+
+        # initialize data from credentialSample
+        institutionCredentialSample = CredentialSample(serverUrl)
+        institutionCredentialSample.updateData['partnerId'] = self.partnerId
+        institutionCredentialSample.data['partnerId'] = self.partnerId
+        institutionCredentialSample.data['partyId'] = pk
+        institutionCredentialSample.updateData['partyId'] = pk
+
+        # construct credential on Database
+        institutionCredentialSample.forcePost(institutionCredentialSample.data)
+
+        # combine invalid updateData from partySample and updateData from CredentialSample into one data "putData"
+        putData = self.composeInstitutionPostData(sample.updateData_invalid, institutionCredentialSample.updateData)
+        url = self.getUrl(sample.url, sample.pkName, pk)
+
+        # pushing putData into Database
+        res = self.client.put(url, json.dumps(putData), content_type='application/json')
+
+        # test failing to push into the database
+        self.assertEqual(res.status_code, 400)
+        # test data from party on Database == sample.data
+        self.assertEqual(checkMatchDB(sample.data, sample.model, sample.pkName, pk), True)
+
+        # hashing the password and test data from credential on Database == institutionCredentialSample.data
+        institutionCredentialSample.data['password'] = institutionCredentialSample.hashPassword(institutionCredentialSample.data['password'])
+        self.assertEqual(checkMatchDB(institutionCredentialSample.data, institutionCredentialSample.model, sample.pkName, pk), True)
+
+    # testcase 3: update party only
+    def test_for_put_case3(self):
+        # create new consortium party and get partyId "pk"
+        sample = self.sample
+        pk = sample.forcePost(sample.data)
+
+        # set putData to exclude update data from credential
+        putData = copy.deepcopy(sample.updateData)
+        putData['partyId'] = pk
+
+        url = self.getUrl(sample.url, sample.pkName, pk)
+
+        # pushing putData into Database
+        res = self.client.put(url, json.dumps(putData), content_type='application/json')
+
+        # test pushing successfully into the database
+        self.assertEqual(res.status_code, 200)
+        # test party data from the database = party sample's updateData
+        self.assertEqual(checkMatchDB(sample.updateData, sample.model, sample.pkName, pk), True)
+
+    # testcase 2: throw error if credential not exist & username/pwd not exist
+    def test_for_put_case2(self):
+        # create new consortium party and get partyId "pk"
+        sample = self.sample
+        pk = sample.forcePost(sample.data)
+
+        # initialize data from credentialSample
+        institutionCredentialSample = CredentialSample(serverUrl)
+        institutionCredentialSample.updateData_no_pwd['partnerId'] = self.partnerId
+        institutionCredentialSample.updateData_no_pwd['partyId'] = pk
+
+        # combine updateData from partySample and updateData w/o pwd from CredentialSample into one data "putData"
+        putData = self.composeInstitutionPostData(sample.updateData, institutionCredentialSample.updateData_no_pwd)
+        url = self.getUrl(sample.url, sample.pkName, pk)
+
+        # pushing putData into Database
+        res = self.client.put(url, json.dumps(putData), content_type='application/json')
+
+        # test failing to push into the database
+        self.assertEqual(res.status_code, 400)
+        # test party data from the database = party sample's data
+        self.assertEqual(checkMatchDB(sample.data, sample.model, sample.pkName, pk), True)
+        # test credential does not exist
+        self.assertEqual(checkMatchDB(None, institutionCredentialSample.model, sample.pkName, pk), True)
+
+    # testcase 1: create credential when no exist
+    def test_for_put_case1(self):
+        # create new consortium party and get partyId "pk"
+        sample = self.sample
+        pk = sample.forcePost(sample.data)
+
+        # initialize data from credentialSample
+        institutionCredentialSample = CredentialSample(serverUrl)
+        institutionCredentialSample.updateData['partnerId'] = self.partnerId
+        institutionCredentialSample.data['partyId'] = pk
+        institutionCredentialSample.updateData['partyId'] = pk
+
+        # combine two updateData from partySample and CredentialSample into one data "putData"
+        putData = self.composeInstitutionPostData(sample.updateData, institutionCredentialSample.updateData)
+        url = self.getUrl(sample.url, sample.pkName, pk)
+
+        # pushing putData into Database
+        res = self.client.put(url, json.dumps(putData), content_type='application/json')
+
+        # test pushing successfully into the database
+        self.assertEqual(res.status_code, 200)
+        # test if party data from the database = party sample's updateData
+        self.assertEqual(checkMatchDB(sample.updateData, sample.model, sample.pkName, pk), True)
+
+        # hashing the password and test data from credential on Database == institutionCredentialSample.updateData
+        institutionCredentialSample.updateData['password'] = institutionCredentialSample.hashPassword(institutionCredentialSample.updateData['password'])
+        self.assertEqual(checkMatchDB(institutionCredentialSample.updateData, institutionCredentialSample.model, sample.pkName, pk), True)
 
     def test_for_get_all(self):
         pass
