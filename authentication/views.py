@@ -125,10 +125,11 @@ class listcreateuser(GenericCRUDView):
           if 'countryCode' not in data:
             return Response({'error': 'countryCode is required'}, status=status.HTTP_400_BAD_REQUEST)
           else:
+            countryCode = data['countryCode'].strip()
             try:
-              country = Country.objects.get(abbreviation=data['countryCode'])
+              country = Country.objects.get(abbreviation=countryCode)
             except Exception as e:
-              return Response({'error': 'Cannot find country: ' + str(e)}, status=status.HTTP_400_BAD_REQUEST)
+              return Response({'error': 'Cannot find country %s: %s' % (countryCode, str(e))}, status=status.HTTP_400_BAD_REQUEST)
             partyData = {'name':name, 'partyType':'user','display':display,'country':country.countryId}
         else:
           partyData = {'name':name, 'partyType':'user','display':display}
@@ -182,14 +183,15 @@ class listcreateuser(GenericCRUDView):
     # CIPRES-13 end
     # CIPRES-26: Allow update of country code
     if partnerId == 'cipres' and 'countryCode' in data:
+      countryCode = data['countryCode'].strip()
       try:
-        country = Country.objects.get(abbreviation=data['countryCode'])
+        country = Country.objects.get(abbreviation=countryCode)
         partyObj = obj.partyId
         partySerializer = PartySerializer(partyObj, data={'country':country.countryId}, partial =True)
         if partySerializer.is_valid():
           partySerializer.save()
       except Exception as e:
-        return Response({'error': 'Cannot find country: ' + str(e)}, status=status.HTTP_400_BAD_REQUEST)
+        return Response({'error': 'Cannot find country %s: %s ' % (countryCode, str(e))}, status=status.HTTP_400_BAD_REQUEST)
     # CIPRES-26 end
     serializer = serializer_class(obj, data=data, partial=True)
     if serializer.is_valid():
