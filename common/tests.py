@@ -7,20 +7,12 @@ from .testSamples import CommonApiKeySample, CommonPartnerSample, CommonUserPart
 from partner.models import Partner
 from apikey.models import ApiKey
 from django.test import Client
-from django.conf import settings
 from http.cookies import SimpleCookie
 
 class TestGenericInterfaces:
     @staticmethod
     def getHost():
-        if TestGenericInterfaces.hasHost():
-            return settings.HOSTNAME
-        # default connection to localhost
-        return "http://localhost/"
-
-    @staticmethod
-    def hasHost():
-        return hasattr(settings, 'HOSTNAME')
+        return "/"
 
     @staticmethod
     def forceGet(model, pkName, pk):
@@ -258,9 +250,3 @@ class ManualTest(object):
         (3) updated module or setting params related to this end point\n\
         Please make sure you test this end point by %s" % (self.path, self.testMethodStr))
         print("\n----------------------------------------------------------------------")
-
-if not TestGenericInterfaces.hasHost():
-    print("WARNING: No HOSTNAME detected in settings.py.")
-
-print("Using server url %s" % TestGenericInterfaces.getHost())
-

@@ -29,8 +29,6 @@ STRIPE_PUBLIC_KEY = None # ACTION: Add Stripe production public key here
 
 STRIPE_PRIVATE_KEY = None # ACTION: Add Stripe production private key here
 
-HOSTNAME = 'http://localhost:9000/'
-
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = False
 
