@@ -3,7 +3,7 @@ import sys
 import pytz
 from datetime import datetime
 import urllib.request, urllib.parse, urllib.error
-from .testSamples import CommonApiKeySample, CommonPartnerSample, CommonUserPartySample, CommonCredentialSample
+from .testSamples import CommonApiKeySample, CommonPartnerSample, CommonUserPartySample, CommonCredentialSample, GenericSample
 from partner.models import Partner
 from apikey.models import ApiKey
 from django.test import Client
@@ -187,6 +187,7 @@ class GenericGETOnlyTest(GenericTest):
             self.assertEqual(checkMatch(sample.data, json.loads(res.content), sample.pkName, pk), True)
 
 class GenericCRUDTest(GenericGETOnlyTest):
+    sample = GenericSample(serverUrl)
 
     # GET tests defined in GenericGETOnlyTest class
 

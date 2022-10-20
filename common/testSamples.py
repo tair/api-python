@@ -20,6 +20,22 @@ class CommonApiKeySample():
     def forcePost(self,data):
         return forcePost(self.model, self.pkName, data)
 
+# a template sample class for all the test case sample classes
+class GenericSample():
+    url = None
+    path = 'path'
+    data = {
+        'key':'value'
+    }
+    pkName = ''
+    model = Party # just a placeholder, need to be the corresponding ClassName
+
+    def __init__(self, serverUrl):
+        self.url = serverUrl+self.path
+
+    def forcePost(self,data):
+        return forcePost(self.model, self.pkName, data)
+
 class CommonPartnerSample():
     url = None
     path = 'partners/'
