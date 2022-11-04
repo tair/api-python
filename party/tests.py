@@ -1,4 +1,4 @@
-#Copyright 2015 Phoenix Bioinformatics Corporation. All rights reserved.                                                                                                                              
+#Copyright 2015 Phoenix Bioinformatics Corporation. All rights reserved.
 import django
 import unittest
 import sys
@@ -27,7 +27,7 @@ class UserPartyCRUDTest(LoginRequiredCRUDTest, TestCase):
         url = self.getUrl(self.sample.url, 'partyType', self.sample.PARTY_TYPE_USER)
         self.getAllHelper(url, 'partyId', self.credentialId)
 
-# test for API end point /parties with party type organization 
+# test for API end point /parties with party type organization
 # TODO: test for party type consortium
 class OrganizationPartyCRUDTest(LoginRequiredCRUDTest, TestCase):
     sample = OrganizationPartySample(serverUrl)
@@ -142,7 +142,7 @@ class ConsortiumPartyCRUDTest(LoginRequiredCRUDTest, TestCase):
 
         countrySample = CountrySample(serverUrl)
         countryId = countrySample.forcePost(countrySample.data)
-        self.sample.data['country']=self.sample.updateData['country']=countryId   
+        self.sample.data['country']=self.sample.updateData['country']=countryId
 
         partnerSample = PartnerSample(serverUrl)
         self.partnerId = partnerSample.forcePost(partnerSample.data)
@@ -150,12 +150,12 @@ class ConsortiumPartyCRUDTest(LoginRequiredCRUDTest, TestCase):
 
     def test_for_get(self):
         sample = self.sample
-        # note this should not override the parent credential sample used for login 
+        # note this should not override the parent credential sample used for login
         # so use a different name
         consortiumCredentialSample = self.initForcePostConsortiumCredentialSample(serverUrl)
         pk = self.forcePostConsortiumItem(consortiumCredentialSample)
 
-        url = self.getUrl(sample.url, sample.pkName, pk) 
+        url = self.getUrl(sample.url, sample.pkName, pk)
         res = self.client.get(url)
 
         self.assertEqual(res.status_code, 200)
@@ -175,6 +175,7 @@ class ConsortiumPartyCRUDTest(LoginRequiredCRUDTest, TestCase):
 
         resObj = json.loads(res.content)
         self.assertEqual(resObj[0]['hasIpRange'], True)
+
 
     # testcase 5 : throw error & does not save when credential serializer failed
     def test_for_put_case5(self):
@@ -387,7 +388,7 @@ class ConsortiumPartyCRUDTest(LoginRequiredCRUDTest, TestCase):
 
 # test for API end point /parties/institutions/
 # returns organization info and associated credential info
-# difference between this API and /parties API is this API will include 
+# difference between this API and /parties API is this API will include
 # affliated consortium info and credential info
 class InstitutionPartyCRUDTest(LoginRequiredCRUDTest, TestCase):
     sample = InstitutionPartySample(serverUrl)
@@ -400,8 +401,8 @@ class InstitutionPartyCRUDTest(LoginRequiredCRUDTest, TestCase):
 
         countrySample = CountrySample(serverUrl)
         countryId = countrySample.forcePost(countrySample.data)
-        self.sample.data['country']=self.sample.updateData['country']=countryId   
-        consortiumSample.data['country']=countryId   
+        self.sample.data['country']=self.sample.updateData['country']=countryId
+        consortiumSample.data['country']=countryId
 
         partnerSample = PartnerSample(serverUrl)
         self.partnerId = partnerSample.forcePost(partnerSample.data)
@@ -410,12 +411,12 @@ class InstitutionPartyCRUDTest(LoginRequiredCRUDTest, TestCase):
 
     def test_for_get(self):
         sample = self.sample
-        # note this should not override the parent credential sample used for login 
+        # note this should not override the parent credential sample used for login
         # so use a different name
         institutionCredentialSample = self.initForcePostInstitutionCredentialSample(serverUrl)
         pk = self.forcePostInstitutionItem(institutionCredentialSample)
 
-        url = self.getUrl(sample.url, sample.pkName, pk) 
+        url = self.getUrl(sample.url, sample.pkName, pk)
         res = self.client.get(url)
 
         self.assertEqual(res.status_code, 200)
@@ -436,6 +437,26 @@ class InstitutionPartyCRUDTest(LoginRequiredCRUDTest, TestCase):
 
         resObj = json.loads(res.content)
         self.assertEqual(resObj[0]['hasIpRange'], True)
+
+    #update country to null and expect an error
+    def test_for_put_case6(self):
+        # create new institution party and get partyId "pk"
+        sample = self.sample
+        pk = sample.forcePost(sample.data)
+
+        # set putData to exclude update data from credential
+        putData = copy.deepcopy(sample.updateData)
+        putData['country'] = None
+        url = self.getUrl(sample.url, sample.pkName, pk)
+
+        # pushing putData into Database
+        res = self.client.put(url, json.dumps(putData), content_type='application/json')
+
+        # test pushing successfully into the database
+        # need to check this
+        self.assertEqual(res.status_code, 400)
+        # test party data from the database = party sample's data
+        self.assertEqual(checkMatchDB(sample.data, sample.model, sample.pkName, pk), True)
 
     # testcase 5 : throw error & does not save when credential serializer failed
     def test_for_put_case5(self):
@@ -577,6 +598,20 @@ class InstitutionPartyCRUDTest(LoginRequiredCRUDTest, TestCase):
     def test_for_get_all(self):
         pass
 
+    # Post test for creating a new consortium with no country
+    def test_for_post(self):
+        sample = self.sample
+        institutionCredentialSample = CredentialSample(serverUrl)
+        institutionCredentialSample.data['partnerId'] = self.partnerId
+        postData = self.composeInstitutionPostData(sample.data, institutionCredentialSample.data)
+        print(postData)
+        postData.pop('country',None)
+        print(postData)
+        url = self.getUrl(sample.url)
+        res = self.client.post(url, postData, content_type='application/json')
+
+        self.assertEqual(res.status_code, 400)
+
     # API end point requires to create consortium and its user together
     def test_for_create(self):
         sample = self.sample
@@ -665,10 +700,10 @@ class PartyAffiliationCRUDTest(LoginRequiredTest, TestCase):
 
         countrySample = CountrySample(serverUrl)
         countryId = countrySample.forcePost(countrySample.data)
-        self.parentPartySample.data['country']=self.childPartySample.data['country']=countryId  
+        self.parentPartySample.data['country']=self.childPartySample.data['country']=countryId
 
-        parentPartyId = self.parentPartySample.forcePost(self.parentPartySample.data) 
-        childPartyId = self.childPartySample.forcePost(self.childPartySample.data) 
+        parentPartyId = self.parentPartySample.forcePost(self.parentPartySample.data)
+        childPartyId = self.childPartySample.forcePost(self.childPartySample.data)
 
         self.sample.setParentId(parentPartyId)
         self.sample.setChildId(childPartyId)
@@ -684,7 +719,7 @@ class PartyAffiliationCRUDTest(LoginRequiredTest, TestCase):
         childPartyType = self.childPartySample.getPartyType()
 
         # get by consortium (parent organization)
-        url = self.getUrl(sample.url) 
+        url = self.getUrl(sample.url)
         url = '%s&partyId=%s&partyType=%s' % (url, parentPartyId, parentPartyType)
 
         res = self.client.get(url)
@@ -695,7 +730,7 @@ class PartyAffiliationCRUDTest(LoginRequiredTest, TestCase):
         self.assertEqual(resObj[0]['consortiums'][0], parentPartyId)
 
         # get by institution (child organization)
-        url = self.getUrl(sample.url) 
+        url = self.getUrl(sample.url)
         url = '%s&partyId=%s&partyType=%s' % (url, childPartyId, childPartyType)
 
         res = self.client.get(url)
@@ -708,7 +743,7 @@ class PartyAffiliationCRUDTest(LoginRequiredTest, TestCase):
         parentPartyId = sample.getParentId()
         childPartyId = sample.getChildId()
 
-        url = self.getUrl(sample.url) 
+        url = self.getUrl(sample.url)
         url = '%s&parentPartyId=%s&childPartyId=%s' % (url, parentPartyId, childPartyId)
 
         res = self.client.post(url, sample.data)
@@ -728,7 +763,7 @@ class PartyAffiliationCRUDTest(LoginRequiredTest, TestCase):
         parentPartyId = sample.getParentId()
         childPartyId = sample.getChildId()
 
-        url = self.getUrl(sample.url) 
+        url = self.getUrl(sample.url)
         url = '%s&parentPartyId=%s&childPartyId=%s' % (url, parentPartyId, childPartyId)
 
         res = self.client.delete(url)
