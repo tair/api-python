@@ -83,7 +83,6 @@ class PaymentControl():
         if not PaymentControl.validateCharge(priceToCharge, termId, quantity):
             message['message'] = "Charge validation error"
             PaymentControl.logPaymentError(partyId, userIdentifier, emailAddress, message['message'])
-            #message['status'] = False //PW-120 vet we will return 400 instead - see SubscriptionsPayment post - i.e. the caller
             return message
 
         stripe.api_key = secret_key
@@ -117,6 +116,10 @@ class PaymentControl():
                 source=stripe_token,
                 metadata={'Institution Name': institute},
             )
+        except Exception, e:
+            message['message'] = "Unexpected exception: %s" % (e)
+            PaymentControl.logPaymentError(partyId, userIdentifier, emailAddress, message['message'])
+            return message
 
         invoice_item = stripe.InvoiceItem.create(
             customer=customer.id,
