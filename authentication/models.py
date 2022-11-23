@@ -18,7 +18,7 @@ class Credential(models.Model):
   partnerId = models.ForeignKey(Partner, db_column='partnerId')
   userIdentifier = models.CharField(max_length=64, null=True)#CIPRES-22
   #name = models.CharField(max_length=64, null=True) vet PW-161
-  
+
   @staticmethod
   def validate(partyId, secretKey):
     if partyId and secretKey and partyId.isdigit() and Party.objects.filter(partyId=partyId).exists():
@@ -40,6 +40,10 @@ class Credential(models.Model):
   @staticmethod
   def getByUsernameAndPartner(username, partnerId):
       return Credential.objects.get(username = username, partnerId = partnerId)
+
+  @staticmethod
+  def getFirstByUsernameAndPartner(username, partnerId):
+      return Credential.objects.filter(username = username, partnerId = partnerId).first()
 
   class Meta:
     db_table = "Credential"

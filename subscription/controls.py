@@ -40,7 +40,7 @@ class SubscriptionControl():
         transactionType = None
         transactionStartDate = None
         transactionEndDate = None
-        
+
         if subscription == None:
             # case1: new subscription
             partyObj = Party.objects.get(partyId=partyId)
@@ -68,7 +68,7 @@ class SubscriptionControl():
                 transactionType = 'renew'
                 transactionStartDate = endDate
                 transactionEndDate = subscription.endDate
-        
+
         return (subscription, transactionType, transactionStartDate, transactionEndDate)
 
 class PaymentControl():
@@ -83,9 +83,9 @@ class PaymentControl():
         if not PaymentControl.validateCharge(priceToCharge, termId, quantity):
             message['message'] = "Charge validation error"
             PaymentControl.logPaymentError(partyId, userIdentifier, emailAddress, message['message'])
-            #message['status'] = False //PW-120 vet we will return 400 instead - see SubscriptionsPayment post - i.e. the caller 
+            #message['status'] = False //PW-120 vet we will return 400 instead - see SubscriptionsPayment post - i.e. the caller
             return message
-        
+
         stripe.api_key = secret_key
         try:
             customer = stripe.Customer.modify(
@@ -134,7 +134,7 @@ class PaymentControl():
                 'name': 'Other information',
                 'value': other
             })
-        
+
         status = True
         try:
             invoice=stripe.Invoice.create(
@@ -170,7 +170,7 @@ class PaymentControl():
             message['message'] = "Unexpected exception: %s" % (e)
 
         message['status'] = status
-        
+
         if status:
             termObj = SubscriptionTerm.objects.get(subscriptionTermId=termId)
             partnerObj = termObj.partnerId
@@ -185,7 +185,7 @@ class PaymentControl():
             caller = APICaller()
             try:
                 postUnitPurchasePostResponse = caller.postUnitPurchase(userIdentifier, unitQty, transactionId, purchaseDate)
-                
+
                 if postUnitPurchasePostResponse.status_code == 201:
                     msg = "To access CIPRES resources, please visit phylo.org and log in using your CIPRES user account."
                     #PaymentControl.sendCIPRESEmail(msg, purchaseId, termObj, partnerObj, emailAddress, firstname, lastname, priceToCharge, institute, transactionId, other)
@@ -201,7 +201,7 @@ class PaymentControl():
                 PaymentControl.sendCIPRESSyncFailedEmail(purchaseId, transactionId, purchaseDate, userIdentifier, unitQty, postUnitPurchasePostResponse.status_code, postUnitPurchasePostResponse.text)
                 PaymentControl.sendCIPRESEmail(msg, purchaseId, termObj, partnerObj, emailAddress, firstname, lastname, priceToCharge, institute, transactionId, other)
                 message['message'] = "Unexpected exception: %s" % (e)
-            
+
         if 'message' in message:
             PaymentControl.logPaymentError(partyId, userIdentifier, emailAddress, message['message'])
 
@@ -233,8 +233,8 @@ class PaymentControl():
     def sendCIPRESEmail(msg, purchaseId, termObj, partnerObj, email, firstname, lastname, payment, institute, transactionId, other):
         name = firstname + " " + lastname
         payment = "%.2f" % float(payment)
-        
-        html_message = partnerObj.activationEmailInstructionText % ( 
+
+        html_message = partnerObj.activationEmailInstructionText % (
             partnerObj.logoUri,
             name,
             msg,
@@ -248,7 +248,7 @@ class PaymentControl():
             39899 Balentine Drive, Suite 200<br>
             Newark, CA, 94560, USA<br>
             """)
-        
+
         subject = "Subscription Receipt"
         from_email = "info@phoenixbioinformatics.org"
         recipient_list = [email]
@@ -296,15 +296,33 @@ class PaymentControl():
         partnerObj = termObj.partnerId
         partnerId = partnerObj.partnerId
         status = True
+        #display error boolean for error capturing 
+        displayError = False
+        errMsg = ''
+        charge_amount = int(priceToCharge*100)# stripe takes in cents; UI passes in dollars. multiply by 100 to convert.
 
         try:
             partyObj = Credential.getByUsernameAndPartner(username, partnerId).partyId
             partyId = partyObj.partyId
+        except Credential.DoesNotExist:
+            status = False
+            message['message'] = "Cannot find user %s for partner %s" % (username, partnerId)
+            errMsg = message['message']
+            partyId = "Cannot find"
+        except Credential.MultipleObjectsReturned:
+            #get the first username from the list if there are duplicates and set the party ID
+            partyObj = Credential.getFirstByUsernameAndPartner(username, partnerId).partyId
+            partyId = partyObj.partyId
+            errMsg = "Find more than one user %s for partner %s" % (username, partnerId)
+            PaymentControl.sendCyVersePaymentErrorEmail(username, charge_amount, errMsg)
 
+        message['status'] = status
+
+        if status:
             try:
                 stripe.api_key = stripe_api_key
                 charge = stripe.Charge.create(
-                    amount=int(priceToCharge*100), # stripe takes in cents; UI passes in dollars. multiply by 100 to convert.
+                    amount = charge_amount,
                     currency="usd",
                     source=stripe_token,
                     description=stripeDescription,
@@ -313,30 +331,30 @@ class PaymentControl():
                 pass
             except stripe.error.InvalidRequestError, e:
                 status = False
+                displayError = True
                 message['message'] = e.json_body['error']['message']
+                errMsg = message['message']
             except stripe.error.CardError, e:
                 status = False
+                displayError = True
                 message['message'] = e.json_body['error']['message']
+                errMsg = message['message']
             except stripe.error.AuthenticationError, e:
                 status = False
                 message['message'] = e.json_body['error']['message']
+                errMsg = message['message']
             except stripe.error.APIConnectionError, e:
                 status = False
                 message['message'] = e.json_body['error']['message']
+                errMsg = message['message']
             except Exception, e:
                 status = False
                 message['message'] = "Unexpected exception: %s" % (e)
-        except Credential.DoesNotExist:
-            status = False
-            message['message'] = "Cannot find user %s for partner %s" % (username, partnerId)
-            partyId = "Cannot find"
-        except Credential.MultipleObjectsReturned:
-            status = False
-            message['message'] = "Find more than one user %s for partner %s" % (username, partnerId)
-            partyId = "More than one"
+                errMsg = message['message']
 
-        message['status'] = status
-        
+        #capture any changes in whether an error that should be displayed or not
+        message['displayError'] = displayError
+
         if status:
             transactionId = charge.id
             purchaseDate = timezone.now()
@@ -361,12 +379,16 @@ class PaymentControl():
             except RuntimeError as error:
                 msg = "Your order has been processed, and your CyVerse account will be credited within 48 hours."
                 message['message'] = error
+                errMsg = message['message']
                 PaymentControl.sendCyVerseSyncFailedEmail(termLabel, username, purchaseDate, transactionId, error)
 
             PaymentControl.sendCyVerseEmail(msg, purchaseId, termLabel, partnerObj, emailAddress, firstname, lastname, priceToCharge, institute, transactionId, expirationDate, cardLast4, other)
+        else:
+            #Covers the payment failure case
+            PaymentControl.sendCyVersePaymentErrorEmail(username, charge_amount, errMsg)
 
-        if 'message' in message:
-            PaymentControl.logPaymentError(partyId, username, emailAddress, message['message'])
+        if errMsg != '':
+            PaymentControl.logPaymentError(partyId, username, emailAddress, errMsg)
 
         return message
 
@@ -389,13 +411,32 @@ class PaymentControl():
         expirationDate = purchaseDate+datetime.timedelta(days=(durationInDays))
         return expirationDate.strftime("%Y-%m-%d 23:59:59")
 
+    #send email to the tech team that a payment has failed
+    @staticmethod
+    def sendCyVersePaymentErrorEmail(username, charge_amount, errMsg):
+        subject = "An error has occurred while a user was making a purchase"
+        from_email = "info@phoenixbioinformatics.org"
+        recipient_list = ["techteam@arabidopsis.org"]
+        msg = """
+    Following user tried to create a purchase and got the error:
+        username: %s
+        amount: %s
+        Error message: %s
+        """ % (username, charge_amount, errMsg)
+        logger.info("------Sending Phoenix Bioinformatics an email about failed purchase------")
+        logger.info("username: %s" % username)
+        logger.info("amount: %s" % charge_amount)
+        logger.info("Error Message: %s" % errMsg)
+        send_mail(subject=subject, from_email=from_email, recipient_list=recipient_list, message=msg)
+        logger.info("------Done sending email------")
+
     @staticmethod
     def sendCyVerseEmail(msg, purchaseId, termLabel, partnerObj, email, firstname, lastname, payment, institute, transactionId, expirationDate, cardLast4, other):
         name = firstname + " " + lastname
         payment = "%.2f" % float(payment)
         expirationDateDisplay = expirationDate + " GMT"
-        
-        html_message = partnerObj.activationEmailInstructionText % ( 
+
+        html_message = partnerObj.activationEmailInstructionText % (
             partnerObj.logoUri,
             name,
             msg,
@@ -411,7 +452,7 @@ class PaymentControl():
             39899 Balentine Drive, Suite 200<br>
             Newark, CA, 94560, USA<br>
             """)
-        
+
         subject = "Subscription Receipt"
         from_email = "info@phoenixbioinformatics.org"
         recipient_list = [email]
@@ -484,7 +525,7 @@ class PaymentControl():
         message['quantity'] = quantity
         if not PaymentControl.validateCharge(priceToCharge, termId, quantity):
             message['message'] = "Charge validation error"
-            #message['status'] = False //PW-120 vet we will return 400 instead - see SubscriptionsPayment post - i.e. the caller 
+            #message['status'] = False //PW-120 vet we will return 400 instead - see SubscriptionsPayment post - i.e. the caller
             return message
         try:
             stripe.api_key = secret_key
@@ -521,7 +562,7 @@ class PaymentControl():
 
     @staticmethod
     def getEmailInfo(activationCodes, partnerName, termId, quantity, payment, transactionId, email, firstname, lastname, institute, street, city, state, country, zip, hostname, redirect, other, domain):
-        
+
         termObj = SubscriptionTerm.objects.get(subscriptionTermId=termId)
         partnerObj = termObj.partnerId
         loginURL = domain + partnerObj.loginUri
@@ -572,8 +613,8 @@ class PaymentControl():
 
         termObj = SubscriptionTerm.objects.get(subscriptionTermId=termId)
         partnerObj = termObj.partnerId
-        
-        html_message = partnerObj.activationEmailInstructionText % ( 
+
+        html_message = partnerObj.activationEmailInstructionText % (
                 kwargs['partnerLogo'],
                 kwargs['name'],
                 kwargs['partnerName'],
@@ -594,8 +635,8 @@ class PaymentControl():
                 """+kwargs['addr2']+""",<br>
                 """+kwargs['addr3']+"""<br>
                 """)
-        
-        
+
+
         subject = kwargs['subject']
         from_email = kwargs['senderEmail']
         recipient_list = kwargs['recipientEmails']
@@ -606,7 +647,7 @@ class PaymentControl():
             logger.info(l)
         send_mail(subject=subject, from_email=from_email, recipient_list=recipient_list, html_message=html_message, message=None)
         logger.info("------Done sending activation code email------")
-        
+
     @staticmethod
     def isValidRequest(request, message):
         ret = True
@@ -658,7 +699,7 @@ class PaymentControl():
             codeArray.append(activationCodeObj.activationCode)
 
         return codeArray
-    
+
     @staticmethod
     def validateCharge(price, termId, quantity):
         so = SubscriptionTerm.objects.get(subscriptionTermId=termId)
