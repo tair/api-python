@@ -178,6 +178,7 @@ class UsageTierPurchase(models.Model):
     expirationDate = models.DateTimeField(null=False)
     transactionId = models.CharField(max_length=64, null=True, unique=True)
     syncedToPartner = models.BooleanField(default=False)
+    partnerUUID = models.CharField(max_length=64, null=True, unique=True)
 
     @staticmethod
     def getByIdAndPartner(partyId, partnerId):
@@ -189,10 +190,112 @@ class UsageTierPurchase(models.Model):
             pass
 
     @staticmethod
-    def getActiveByIdAndPartner(partyId, partnerId, validDuration):
-        validStartDate = timezone.now() - timedelta(days=validDuration)
+    def getActiveByIdAndPartner(partyId, partnerId):
+        now = timezone.now()
         return UsageTierPurchase.getByIdAndPartner(partyId, partnerId) \
-                                .filter(purchaseDate__gte=validStartDate)
+                                .filter(purchaseDate__lte=now) \
+                                .filter(expirationDate__gte=now)
+
+    def getByPartnerUUID(partner, uuid):
+        return UsageTierPurchase.objects.filter(partnerUUID=uuid).filter(partnerId=partnerId)
 
     class Meta:
         db_table = "UsageTierPurchase"
+
+class UsageAddonOption(models.Model):
+    optionId = models.AutoField(primary_key=True)
+    partnerId = models.ForeignKey("partner.Partner", null=False, db_column="partnerId")
+    partnerUUID = models.CharField(max_length=64)
+    quantity = models.IntegerField()
+    unit = models.CharField(max_length=20)
+    name = models.CharField(max_length=64)
+    description = models.CharField(max_length=200)
+    durationInDays = models.IntegerField(null=False)
+    proportional = models.BooleanField(null=False, default=True)
+
+    @staticmethod
+    def getByPartner(partnerId):
+        return UsageAddonOption.objects.filter(partnerId=partnerId)
+
+    class Meta:
+        db_table = "UsageAddonOption"
+
+class UsageAddonPricing(models.Model):
+    pricingId = models.AutoField(primary_key=True)
+    # need related_name for nested serializer reference
+    optionId = models.ForeignKey("subscription.UsageAddonOption", null=False, db_column="optionId", related_name="pricing")
+    price = models.IntegerField()
+    priority = models.IntegerField()
+    threshold = models.IntegerField()
+
+    @staticmethod
+    def getByOption(optionId):
+        return UsageAddonPricing.objects.filter(optionId=optionId).order_by(priority)
+
+    class Meta:
+        db_table = "UsageAddonPricing"
+        ordering = ['priority']
+
+class UsageAddonPurchase(models.Model):
+    purchaseId = models.AutoField(primary_key=True)
+    partyId = models.ForeignKey("party.Party", null=False, db_column="partyId")
+    partnerId = models.ForeignKey("partner.Partner", null=False, db_column="partnerId")
+    optionId = models.ForeignKey("subscription.UsageAddonOption", null=False, db_column="optionId")
+    partnerSubscriptionUUID = models.CharField(max_length=64, null=False)
+    optionItemQty = models.IntegerField() # the number of add on term item purchased
+    purchaseDate = models.DateTimeField(null=False, default=datetime.now)
+    expirationDate = models.DateTimeField(null=False)
+    transactionId = models.CharField(max_length=64, null=True, unique=True)
+    amountPaid = models.DecimalField(max_digits=10, decimal_places=2)
+
+    @staticmethod
+    def getByIdAndPartner(partyId, partnerId):
+        try:
+            return UsageAddonPurchase.objects.filter(partyId=partyId).filter(partnerId=partnerId)
+        except Party.MultipleObjectsReturned:
+            pass
+        except Party.DoesNotExist:
+            pass
+
+    @staticmethod
+    def getActiveByIdAndPartner(partyId, partnerId, validDuration):
+        validStartDate = timezone.now() - timedelta(days=validDuration)
+        return UsageAddonPurchase.getByIdAndPartner(partyId, partnerId) \
+                                .filter(purchaseDate__gte=validStartDate)
+
+    class Meta:
+        db_table = "UsageAddonPurchase"
+
+# This class obj will only be created & saved when synchronized to partner, so no need for sync flag
+class UsageAddonPurchaseSync(models.Model):
+    purchaseId = models.ForeignKey("subscription.UsageAddonPurchase", null=False, db_column="purchaseId")
+    partnerUUID = models.CharField(max_length=64)
+
+    @staticmethod
+    def getSyncById(purchaseId):
+        return UsageAddonPurchaseSync.objects.filter(purchaseId=purchaseId)
+
+    @staticmethod
+    def getAllUnsyncedPurchases():
+        return UsageAddonPurchaseSync.objects.filter(syncedToPartner=False)
+
+    @staticmethod
+    def getIsAllSynced():
+        if not getAllUnsyncedPurchases():
+            return True
+        else:
+            return False
+
+    @staticmethod
+    def getIsPurchaseSyncedById(purchaseId):
+        if UsageAddonPurchaseSync.objects.filter(purchaseId=purchaseId).filter(syncedToPartner=False):
+            return False
+        else:
+            return True
+
+    @staticmethod
+    def getUnsyncedPurchaseById(purchaseId):
+        return UsageAddonPurchaseSync.objects.filter(purchaseId=purchaseId).filter(syncedToPartner=False)
+
+    class Meta:
+        db_table = "UsageAddonPurchaseSync"
