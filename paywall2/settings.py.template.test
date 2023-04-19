@@ -257,7 +257,8 @@ CIPRES_ADMINS = ['techteam@arabidopsis.org']
 CYVERSE_AUTH_URL = 'https://kc.cyverse.org/auth/realms/CyVerseTest/protocol/openid-connect/token'
 CYVERSE_CLIENT_ID = None
 CYVERSE_SECRET = None
-CYVERSE_API_URL = "https://qa.cyverse.org/terrain/service/qms/users/%s/plan/%s"
+CYVERSE_API_URL = "https://qa.cyverse.org/terrain/service/qms/users/%s/plan"
+CYVERSE_ADDON_API_URL = "https://qa.cyverse.org/terrain/service/qms/subscriptions/%s/addons"
 
 # Email Subject for CyVerse purchase
 CYVERSE_PURCHASE_EMAIL_SUBJECT = 'New Subscription Purchase'

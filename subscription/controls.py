@@ -1,6 +1,8 @@
 import stripe
 import uuid
-import datetime
+from datetime import timedelta
+import pytz
+from dateutil.parser import parse
 import time
 import string
 from django.shortcuts import render
@@ -8,7 +10,7 @@ from django.http import HttpResponse
 from django.utils import timezone
 from partner.models import SubscriptionTerm, Partner
 from authentication.models import Credential
-from subscription.models import Subscription, SubscriptionTransaction, ActivationCode, UsageUnitPurchase, UsageTierTerm, UsageTierPurchase
+from subscription.models import *
 from serializers import SubscriptionSerializer
 from party.models import Party
 from django.utils import timezone
@@ -49,7 +51,7 @@ class SubscriptionControl():
             subscription.partnerId = partnerObj
             subscription.partyId = partyObj
             subscription.startDate = now
-            subscription.endDate = now+datetime.timedelta(days=period)
+            subscription.endDate = now + timedelta(days=period)
 
             transactionType = 'create'
             transactionStartDate = subscription.startDate
@@ -58,13 +60,13 @@ class SubscriptionControl():
             endDate = subscription.endDate
             if (endDate<now):
                 # case2: expired subscription
-                subscription.endDate = now + datetime.timedelta(days=period)
+                subscription.endDate = now + timedelta(days=period)
                 transactionType = 'renew'
                 transactionStartDate = now
                 transactionEndDate = subscription.endDate
             else:
                 # case3: active subscription
-                subscription.endDate = endDate + datetime.timedelta(days=period)
+                subscription.endDate = endDate + timedelta(days=period)
                 transactionType = 'renew'
                 transactionStartDate = endDate
                 transactionEndDate = subscription.endDate
@@ -291,13 +293,11 @@ class PaymentControl():
 
 
     @staticmethod
-    def chargeForCyVerse(stripe_api_key, stripe_token, priceToCharge, stripeDescription, username, partnerName, tierId, emailAddress, firstname, lastname, institute, street, city, state, country, zip, hostname, redirect, cardLast4, other, domain):
+    def chargeForCyVerse(stripe_api_key, stripe_token, priceToCharge, subscription, username, emailAddress, firstname, lastname, institute, street, city, state, country, zip, hostname, redirect, cardLast4, other, domain):
         message = {}
         message['price'] = priceToCharge
-        message['tierId'] = tierId
-        termObj = UsageTierTerm.objects.get(tierId=tierId)
-        partnerObj = termObj.partnerId
-        partnerId = partnerObj.partnerId
+        partnerId = "cyverse" # hard code until other partner adopts the same model
+        stripeDescription = PaymentControl.createCyVerseStripeDescription(subscription, other, firstname, lastname)
         status = True
         #display error boolean for error capturing 
         displayError = False
@@ -361,57 +361,150 @@ class PaymentControl():
         if status:
             transactionId = charge.id
             purchaseDate = timezone.now()
-
-            tierPurchaseObj = PaymentControl.createUsageTierPurchase(partyObj, partnerObj, termObj, purchaseDate, transactionId);
-            purchaseId = tierPurchaseObj.purchaseId
-            expirationDate = tierPurchaseObj.expirationDate
-
-            termName = termObj.name
-            termLabel = termObj.label
-            if termLabel:
-                termLabel = string.capwords(termLabel)
-
             client = CyVerseClient()
+            termLabel = 'N/A'
+            addOnDescription = 'N/A'
+            subscriptionUUID = ''
+            expirationDate = ''
+            syncStatus = True
             # test for invalid user. Note that API does not return error for invalid username
-            try:
-                client.postUnitPurchase(username, termName)
-                tierPurchaseObj.syncedToPartner = True
-                tierPurchaseObj.save()
-                msg = "Your order has been processed and your CyVerse account has been credited."
-                PaymentControl.sendCyVerseAdminEmail(termLabel, username, purchaseDate, transactionId)
-            except RuntimeError as error:
-                msg = "Your order has been processed, and your CyVerse account will be credited within 48 hours."
-                message['message'] = error
-                errMsg = message['message']
-                PaymentControl.sendCyVerseSyncFailedEmail(termLabel, username, purchaseDate, transactionId, error)
 
-            PaymentControl.sendCyVerseEmail(msg, purchaseId, termLabel, partnerObj, emailAddress, firstname, lastname, priceToCharge, institute, transactionId, expirationDate, cardLast4, other)
+            if 'subscription' in subscription:
+                tierId = subscription['subscription']['tierId']
+                termObj = UsageTierTerm.objects.get(tierId=tierId)
+                partnerObj = termObj.partnerId
+                tierPurchaseObj = PaymentControl.createUsageTierPurchase(partyObj, partnerObj, termObj, purchaseDate, transactionId);
+                purchaseId = tierPurchaseObj.purchaseId
+                expirationDate = tierPurchaseObj.expirationDate
+                termName = termObj.name
+                termLabel = termObj.label
+                if termLabel:
+                    termLabel = string.capwords(termLabel)
+
+                try:
+                    client.postTierPurchase(username, termName)
+                    cyverseSubscription = client.getSubscriptionTier(username)
+                    if (cyverseSubscription['tier'] != termName):
+                        raise RuntimeError("CyVerse tier name %s and local tier name %s does not match" % (cyverseSubscription['tier'], termName))
+                    tierPurchaseObj.partnerUUID = cyverseSubscription['uuid']
+                    tierPurchaseObj.expirationDate = cyverseSubscription['endDate']
+                    subscriptionUUID = cyverseSubscription['uuid']
+                    expirationDate = cyverseSubscription['endDate']
+                    tierPurchaseObj.syncedToPartner = True
+                    tierPurchaseObj.save()
+                except RuntimeError as error:
+                    syncStatus = False
+                    message['message'] = error
+                    errMsg = message['message']
+
+            if 'addons' in subscription:
+                addOnDescription = ''
+                for addOnPurchase in subscription['addons']:
+                    optionId = addOnPurchase['optionId']
+                    qty = addOnPurchase['purchaseQty']
+                    if not subscriptionUUID:
+                        subscriptionUUID = addOnPurchase['subscriptionUUID']
+                    if not expirationDate:
+                        expirationDate = addOnPurchase['expirationDate']
+                    chargeAmount = addOnPurchase['chargeAmount']
+                    optionObj = UsageAddonOption.objects.get(optionId=optionId)
+                    partnerObj = optionObj.partnerId
+                    addOnPurchaseObj = PaymentControl.createAddonPurchase(partyObj, partnerObj, optionObj, purchaseDate, transactionId, qty, subscriptionUUID, expirationDate, chargeAmount)
+                    if (qty > 1):
+                        addOnDescription += '%s * %s;' % (optionObj.name, qty)
+                    else:
+                        addOnDescription += optionObj.name
+
+                    try:
+                        PaymentControl.postAddonPurchase(addOnPurchaseObj, client)
+                    except RuntimeError as error:
+                        syncStatus = False
+                        message['message'] = error
+                        errMsg = message['message']
+
+            if syncStatus:
+                msg = "Your order has been processed and your CyVerse account has been credited."
+                PaymentControl.sendCyVerseAdminEmail(termLabel, addOnDescription, username, purchaseDate, transactionId)
+            else:
+                msg = "Your order has been processed, and your CyVerse account will be credited within 48 hours."
+                PaymentControl.sendCyVerseSyncFailedEmail(termLabel, addOnDescription, username, purchaseDate, transactionId, errMsg)
+
+            PaymentControl.sendCyVerseEmail(msg, username, termLabel, addOnDescription, partnerObj, emailAddress, firstname, lastname, priceToCharge, institute, transactionId, expirationDate, cardLast4, other)
         else:
             #Covers the payment failure case
             PaymentControl.sendCyVersePaymentErrorEmail(username, charge_amount, errMsg)
 
-        if errMsg != '':
+        if errMsg:
             PaymentControl.logPaymentError(partyId, username, emailAddress, errMsg)
 
         return message
 
     @staticmethod
-    def createUsageTierPurchase(partyId, partnerId, termObj, purchaseDate, transactionId):
-        unitPurchaseObj = UsageTierPurchase()
-        unitPurchaseObj.partnerId=partnerId
-        unitPurchaseObj.partyId=partyId
-        unitPurchaseObj.tierId=termObj
-        unitPurchaseObj.purchaseDate=purchaseDate
-        unitPurchaseObj.expirationDate = PaymentControl.getExpirationDate(purchaseDate, termObj.durationInDays)
-        unitPurchaseObj.transactionId=transactionId
-        unitPurchaseObj.syncedToPartner=False
-        unitPurchaseObj.save()
+    def createCyVerseStripeDescription(subscription, other, firstname, lastname):
+        stripeDescription = "CyVerse"
+        if 'subscription' in subscription:
+            tierId = subscription['subscription']['tierId']
+            termObj = UsageTierTerm.objects.get(tierId=tierId)
+            stripeDescription += " %s subscription ($%s USD)" % (termObj.name, termObj.price)
 
-        return unitPurchaseObj
+        if 'addons' in subscription:
+            for addOnPurchase in subscription['addons']:
+                optionId = addOnPurchase['optionId']
+                amountPaid = addOnPurchase['chargeAmount']
+                optionName = UsageAddonOption.objects.get(optionId=optionId).name
+                qty = addOnPurchase['purchaseQty']
+                stripeDescription += " %s add on options * %s ($%s USD)" % (optionName, qty, amountPaid)
+
+        stripeDescription += 'other info: %s name: %s %s' % (other,firstname,lastname)
+        return stripeDescription
+
+    @staticmethod
+    def postAddonPurchase(addOnPurchaseObj, client):
+        subscriptionUUID = addOnPurchaseObj.partnerSubscriptionUUID
+        optionUUID = addOnPurchaseObj.optionId.partnerUUID
+        for i in range(addOnPurchaseObj.optionItemQty):
+            addOnPurchaseSync = UsageAddonPurchaseSync()
+            addOnPurchaseSync.purchaseId = addOnPurchaseObj
+            try:
+                uuid = client.postAddonPurchase(subscriptionUUID, optionUUID)
+                addOnPurchaseSync.partnerUUID = uuid
+                addOnPurchaseSync.save()
+            except RuntimeError as error:
+                raise 
+
+    @staticmethod
+    def createUsageTierPurchase(partyId, partnerId, termObj, purchaseDate, transactionId):
+        tierPurchaseObj = UsageTierPurchase()
+        tierPurchaseObj.partnerId=partnerId
+        tierPurchaseObj.partyId=partyId
+        tierPurchaseObj.tierId=termObj
+        tierPurchaseObj.purchaseDate=purchaseDate
+        tierPurchaseObj.expirationDate = PaymentControl.getExpirationDate(purchaseDate, termObj.durationInDays)
+        tierPurchaseObj.transactionId=transactionId
+        tierPurchaseObj.syncedToPartner=False
+        tierPurchaseObj.save()
+
+        return tierPurchaseObj
+
+    @staticmethod
+    def createAddonPurchase(partyObj, partnerObj, optionObj, purchaseDate, transactionId, qty, subscriptionUUID, expirationDate, chargeAmount):
+        addOnPurchaseObj = UsageAddonPurchase()
+        addOnPurchaseObj.partnerId=partnerObj
+        addOnPurchaseObj.partyId=partyObj
+        addOnPurchaseObj.optionId=optionObj
+        addOnPurchaseObj.partnerSubscriptionUUID = subscriptionUUID
+        addOnPurchaseObj.purchaseDate=purchaseDate
+        addOnPurchaseObj.expirationDate = expirationDate
+        addOnPurchaseObj.transactionId=transactionId
+        addOnPurchaseObj.optionItemQty = qty
+        addOnPurchaseObj.amountPaid = chargeAmount
+        addOnPurchaseObj.save()
+
+        return addOnPurchaseObj
 
     @staticmethod
     def getExpirationDate(purchaseDate, durationInDays):
-        expirationDate = purchaseDate+datetime.timedelta(days=(durationInDays))
+        expirationDate = purchaseDate + timedelta(days=(durationInDays))
         return expirationDate.strftime("%Y-%m-%d 23:59:59")
 
     #send email to the tech team that a payment has failed
@@ -427,17 +520,21 @@ class PaymentControl():
         Error message: %s
         """ % (username, charge_amount, errMsg)
         logger.info("------Sending Phoenix Bioinformatics an email about failed purchase------")
-        logger.info("username: %s" % username)
-        logger.info("amount: %s" % charge_amount)
+        logger.info("Username: %s" % username)
+        logger.info("Amount: %s" % charge_amount)
         logger.info("Error Message: %s" % errMsg)
         send_mail(subject=subject, from_email=from_email, recipient_list=recipient_list, message=msg)
         logger.info("------Done sending email------")
 
     @staticmethod
-    def sendCyVerseEmail(msg, purchaseId, termLabel, partnerObj, email, firstname, lastname, payment, institute, transactionId, expirationDate, cardLast4, other):
+    def sendCyVerseEmail(msg, username, termLabel, addOnDescription, partnerObj, email, firstname, lastname, payment, institute, transactionId, expirationDate, cardLast4, other):
         name = firstname + " " + lastname
         payment = "%.2f" % float(payment)
-        expirationDateDisplay = expirationDate + " GMT"
+
+        dt = parse(expirationDate)
+        gmt_timezone = pytz.timezone('Etc/GMT')
+        dt = dt.astimezone(gmt_timezone)
+        expirationDateDisplay = dt.strftime('%Y-%m-%d %H:%M %Z')
 
         html_message = partnerObj.activationEmailInstructionText % (
             partnerObj.logoUri,
@@ -445,6 +542,7 @@ class PaymentControl():
             msg,
             institute,
             termLabel,
+            addOnDescription,
             payment,
             transactionId,
             cardLast4,
@@ -462,29 +560,31 @@ class PaymentControl():
 
         logger.info("------Sending CyVerse subscription email------")
         logger.info("Receipient: %s" % recipient_list[0])
-        logger.info("Subscription Tier Purchase ID: %s" % purchaseId)
+        logger.info("Username: %s" % username)
         logger.info("Transaction ID: %s" % transactionId)
         logger.info("Main Message: %s" % msg)
         send_mail(subject=subject, from_email=from_email, recipient_list=recipient_list, html_message=html_message, message=None)
         logger.info("------Done sending email------")
 
     @staticmethod
-    def sendCyVerseAdminEmail(termLabel, username, purchaseDate, transactionId):
+    def sendCyVerseAdminEmail(termLabel, addOnDescription, username, purchaseDate, transactionId):
         subject = settings.CYVERSE_PURCHASE_EMAIL_SUBJECT
         from_email = "info@phoenixbioinformatics.org"
         recipient_list = settings.CYVERSE_ADMINS
 
         msg = """
     CyVerse subscription purchased:
-        term: %s
-        username: %s
+        Term: %s
+        Add-on Options: %s
+        Username: %s
         Transaction ID: %s
         Purchase Time: %s
-        """ % (termLabel, username, transactionId, purchaseDate)
+        """ % (termLabel, addOnDescription, username, transactionId, purchaseDate)
 
         logger.info("------Sending CyVerse admin email------")
         logger.info("Term: %s" % termLabel)
-        logger.info("username: %s" % username)
+        logger.info("Add-on Options: %s" % addOnDescription)
+        logger.info("Username: %s" % username)
         logger.info("Transaction ID: %s" % transactionId)
         logger.info("Subject: %s" % subject)
         logger.info("Message: %s" % msg)
@@ -493,24 +593,26 @@ class PaymentControl():
         logger.info("------Done sending email------")
 
     @staticmethod
-    def sendCyVerseSyncFailedEmail(termLabel, username, purchaseDate, transactionId, error):
+    def sendCyVerseSyncFailedEmail(termLabel, addOnDescription, username, purchaseDate, transactionId, error):
         subject = settings.CYVERSE_PURCHASE_EMAIL_SUBJECT
         from_email = "info@phoenixbioinformatics.org"
         recipient_list = settings.CYVERSE_ADMINS
 
         msg = """
     CyVerse subscription purchased:
-        term: %s
-        username: %s
+        Term: %s
+        Add-on Options: %s
+        Username: %s
         Transaction ID: %s
         Purchase Time: %s
 
     Failed to sync to the CyVerse database. Error message: %s
-        """ % (termLabel, username, transactionId, purchaseDate, error)
+        """ % (termLabel, addOnDescription, username, transactionId, purchaseDate, error)
 
         logger.info("------Sending CyVerse sync failed email------")
         logger.info("Term: %s" % termLabel)
-        logger.info("username: %s" % username)
+        logger.info("Add-on Options: %s" % addOnDescription)
+        logger.info("Username: %s" % username)
         logger.info("Transaction ID: %s" % transactionId)
         logger.info("Subject: %s" % subject)
         logger.info("Message: %s" % msg)
