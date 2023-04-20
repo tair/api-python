@@ -257,6 +257,7 @@ CIPRES_ADMINS = ['techteam@arabidopsis.org']
 CYVERSE_AUTH_URL = 'https://kc.cyverse.org/auth/realms/CyVerse/protocol/openid-connect/token'
 CYVERSE_CLIENT_ID = None
 CYVERSE_SECRET = None
+CYVERSE_DOMAIN = "https://de.cyverse.org"
 CYVERSE_API_URL = "https://de.cyverse.org/terrain/service/qms/users/%s/plan"
 CYVERSE_ADDON_API_URL = "https://de.cyverse.org/terrain/service/qms/subscriptions/%s/addons"
 

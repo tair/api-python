@@ -10,6 +10,7 @@ class CyVerseClient(object):
         self.authUrl = settings.CYVERSE_AUTH_URL
         self.clientId = settings.CYVERSE_CLIENT_ID
         self.clientSecret = settings.CYVERSE_SECRET
+        self.domain = settings.CYVERSE_DOMAIN
         self.apiUrl = settings.CYVERSE_API_URL
         self.addOnApiUrl = settings.CYVERSE_ADDON_API_URL
 
@@ -103,7 +104,7 @@ class CyVerseClient(object):
             raise
 
     def getAddonOptions(self):
-        url = "https://qa.cyverse.org/terrain/service/qms/addons"
+        url = "%s/terrain/service/qms/addons" % self.domain
         try:
             headers = self.getAuthHeader()
             response = requests.get(url, headers=headers)
@@ -190,10 +191,11 @@ def test():
     # # test for getting purchase UUID
     try:
         # client.testPayment()
-        client.postTierPurchase('xingguo', 'Basic')
+        # client.postTierPurchase('xingguo', 'Basic')
         subscription = client.getSubscriptionTier('xingguo')
         print(subscription)
         print(client.getAddonPurchases(subscription['uuid']))
+        print(client.getAddonOptions())
         # print(client.getSubscriptionTier('shabari'))
         # print(client.getSubscriptionTier('edwins'))
         # print(client.getSubscriptionTier('elyons'))
