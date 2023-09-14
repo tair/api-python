@@ -2,7 +2,7 @@ import sys
 import django
 import unittest
 from unittest import TestCase
-from partner.models import Partner, PartnerPattern, SubscriptionTerm, SubscriptionDescription, SubscriptionDescriptionItem
+from partner.models import Partner, PartnerPattern, SubscriptionTerm, SubscriptionDescription, SubscriptionDescriptionItem, SubscriptionTermCategoryEnum
 import copy
 from common.pyTests import PyTestGenerics
 
@@ -73,14 +73,16 @@ class SubscriptionTermSample():
         'period':180,
         'price':360.00,
         'groupDiscountPercentage':0.7,
-        'description':'test'
+        'description':'test',
+        'category': SubscriptionTermCategoryEnum.ACADEMIC.value
     }
     updateData = {
         'partnerId':None,
         'period':365,
         'price':180.00,
         'groupDiscountPercentage':0.8,
-        'description':'test2'
+        'description':'test2',
+        'category': SubscriptionTermCategoryEnum.COMMERCIAL.value
     }
     pkName = 'subscriptionTermId'
     model = SubscriptionTerm
