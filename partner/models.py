@@ -1,6 +1,6 @@
 #Copyright 2015 Phoenix Bioinformatics Corporation. All rights reserved.
 
-
+from enum import Enum
 from django.db import models
 from django.http import Http404
 
@@ -43,12 +43,21 @@ class PartnerPattern(models.Model):
     class Meta:
         db_table = "PartnerPattern"
 
+class SubscriptionTermCategoryEnum(Enum):
+    ACADEMIC = 'academic'
+    COMMERCIAL = 'commercial'
+
 class SubscriptionTerm(models.Model):
     subscriptionTermId = models.AutoField(primary_key=True)
     description = models.CharField(max_length=200)
     partnerId = models.ForeignKey('partner.Partner', db_column="partnerId")
     period = models.IntegerField()
     price = models.DecimalField(decimal_places=2,max_digits=6)
+    category = models.CharField(
+        max_length=10,
+        choices=[(tag.name, tag.value) for tag in SubscriptionTermCategoryEnum],
+        default=SubscriptionTermCategoryEnum.ACADEMIC.value,
+    )
     groupDiscountPercentage = models.DecimalField(decimal_places=2,max_digits=6)
 
     class Meta:
