@@ -731,12 +731,13 @@ class UsageUnitsPayment(APIView):
         hostname = request.META.get("HTTP_ORIGIN")
         redirect = request.POST['redirect']
         other = request.POST['other'] #PW-248. Let it be in two places - in descriptionPartnerDuration and in email body
-        descriptionDuration = SubscriptionTerm.objects.get(subscriptionTermId=termId).description
-        partnerName = SubscriptionTerm.objects.get(subscriptionTermId=termId).partnerId.name
-        descriptionPartnerDuration = '%s %s subscription other info: %s name: %s %s'%(partnerName,descriptionDuration,other,firstname,lastname)
+        termObj = SubscriptionTerm.objects.get(subscriptionTermId=termId)
+        subDescription = termObj.category + "|"  + termObj.description
+        partnerName = termObj.partnerId.name
+        chargeDescription = '%s %s subscription; other info: %s; name: %s %s'%(partnerName,subDescription,other,firstname,lastname)
         domain = request.POST['domain']
 
-        message = PaymentControl.chargeForCIPRES(partyId, userIdentifier, stripe_api_secret_test_key, token, price, partnerName, descriptionPartnerDuration, termId, quantity, email, firstname, lastname, institute, street, city, state, country, zip, hostname, redirect, other, domain)
+        message = PaymentControl.chargeForCIPRES(partyId, userIdentifier, stripe_api_secret_test_key, token, price, partnerName, chargeDescription, termId, quantity, email, firstname, lastname, institute, street, city, state, country, zip, hostname, redirect, other, domain)
         #PW-120 vet
         status = 200
         if 'message' in message:
