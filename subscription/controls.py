@@ -193,7 +193,7 @@ class PaymentControl():
 
                 if postUnitPurchasePostResponse.status_code == 201:
                     msg = "To access CIPRES resources, please visit phylo.org and log in using your CIPRES user account."
-                    PaymentControl.sendCIPRESEmail(msg, purchaseId, termObj, partnerObj, emailAddress, firstname, lastname, priceToCharge, institute, transactionId, other)
+                    #PaymentControl.sendCIPRESEmail(msg, purchaseId, termObj, partnerObj, emailAddress, firstname, lastname, priceToCharge, institute, transactionId, other)
                     unitPurchaseObj.syncedToPartner = True
                     unitPurchaseObj.save()
 
