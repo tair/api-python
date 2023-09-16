@@ -732,7 +732,7 @@ class UsageUnitsPayment(APIView):
         redirect = request.POST['redirect']
         other = request.POST['other'] #PW-248. Let it be in two places - in descriptionPartnerDuration and in email body
         termObj = SubscriptionTerm.objects.get(subscriptionTermId=termId)
-        subDescription = termObj.category + "|"  + termObj.description
+        subDescription = termObj.category + " | "  + termObj.description
         partnerName = termObj.partnerId.name
         chargeDescription = '%s %s subscription; other info: %s; name: %s %s'%(partnerName,subDescription,other,firstname,lastname)
         domain = request.POST['domain']
