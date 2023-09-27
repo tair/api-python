@@ -20,7 +20,7 @@ class PartnerPatternSerializer(serializers.ModelSerializer):
 class SubscriptionTermSerializer(serializers.ModelSerializer):
     class Meta:
         model = SubscriptionTerm
-        fields = ('subscriptionTermId','period','price','groupDiscountPercentage','partnerId','description')
+        fields = ('subscriptionTermId','period','price','groupDiscountPercentage','partnerId','description', 'category')
 
 class SubscriptionDescriptionSerializer(serializers.ModelSerializer):
     class Meta:

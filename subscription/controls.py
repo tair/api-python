@@ -238,13 +238,16 @@ class PaymentControl():
     def sendCIPRESEmail(msg, purchaseId, termObj, partnerObj, email, firstname, lastname, payment, institute, transactionId, other):
         name = firstname + " " + lastname
         payment = "%.2f" % float(payment)
+        category = termObj.category
+        category_cap = category[0].capitalize() + category[1:]
+        description = category_cap + " | " + termObj.description
 
         html_message = partnerObj.activationEmailInstructionText % (
             partnerObj.logoUri,
             name,
             msg,
             institute,
-            termObj.description,
+            description,
             payment,
             transactionId,
             other,
