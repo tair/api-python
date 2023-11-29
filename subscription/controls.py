@@ -266,7 +266,10 @@ class PaymentControl():
         logger.info("Usage Unit Purchase ID: %s" % purchaseId)
         logger.info("Transaction ID: %s" % transactionId)
         logger.info("Main Message: %s" % msg)
-        send_mail(subject=subject, from_email=from_email, recipient_list=recipient_list, html_message=html_message, message=None)
+        try:
+            send_mail(subject=subject, from_email=from_email, recipient_list=recipient_list, html_message=html_message, message=None)
+        except Exception, e:
+            logger.info("Get Exception when sending the email: %s" % (e))
         logger.info("------Done sending email------")
 
     @staticmethod
@@ -291,7 +294,10 @@ class PaymentControl():
         logger.info("Usage Unit Purchase ID: %s" % purchaseId)
         logger.info("Transaction ID: %s" % transactionId)
         logger.info("Main Message: %s" % msg)
-        send_mail(subject=subject, from_email=from_email, recipient_list=recipient_list, message=msg)
+        try:
+            send_mail(subject=subject, from_email=from_email, recipient_list=recipient_list, message=msg)
+        except Exception, e:
+            logger.info("Get Exception when sending the email: %s" % (e))
         logger.info("------Done sending email------")
 
 
@@ -526,7 +532,10 @@ class PaymentControl():
         logger.info("Username: %s" % username)
         logger.info("Amount: %s" % charge_amount)
         logger.info("Error Message: %s" % errMsg)
-        send_mail(subject=subject, from_email=from_email, recipient_list=recipient_list, message=msg)
+        try:
+            send_mail(subject=subject, from_email=from_email, recipient_list=recipient_list, message=msg)
+        except Exception, e:
+            logger.info("Get Exception when sending the email: %s" % (e))
         logger.info("------Done sending email------")
 
     @staticmethod
@@ -566,7 +575,10 @@ class PaymentControl():
         logger.info("Username: %s" % username)
         logger.info("Transaction ID: %s" % transactionId)
         logger.info("Main Message: %s" % msg)
-        send_mail(subject=subject, from_email=from_email, recipient_list=recipient_list, html_message=html_message, message=None)
+        try:
+            send_mail(subject=subject, from_email=from_email, recipient_list=recipient_list, html_message=html_message, message=None)
+        except Exception, e:
+            logger.info("Get Exception when sending the email: %s" % (e))
         logger.info("------Done sending email------")
 
     @staticmethod
@@ -592,7 +604,10 @@ class PaymentControl():
         logger.info("Subject: %s" % subject)
         logger.info("Message: %s" % msg)
         logger.info("recipients: %s" % recipient_list)
-        send_mail(subject=subject, from_email=from_email, recipient_list=recipient_list, message=msg)
+        try:
+            send_mail(subject=subject, from_email=from_email, recipient_list=recipient_list, message=msg)
+        except Exception, e:
+            logger.info("Get Exception when sending the email: %s" % (e))
         logger.info("------Done sending email------")
 
     @staticmethod
@@ -621,7 +636,10 @@ class PaymentControl():
         logger.info("Message: %s" % msg)
         logger.info("Recipients: %s" % recipient_list)
         logger.info("Error Message: %s" % error)
-        send_mail(subject=subject, from_email=from_email, recipient_list=recipient_list, message=msg)
+        try:
+            send_mail(subject=subject, from_email=from_email, recipient_list=recipient_list, message=msg)
+        except Exception, e:
+            logger.info("Get Exception when sending the email: %s" % (e))
         logger.info("------Done sending email------")
 
     # for regular Phoenix subscription payment
@@ -753,7 +771,10 @@ class PaymentControl():
         logger.info("ActivationCodes:")
         for l in kwargs['accessCodes']:
             logger.info(l)
-        send_mail(subject=subject, from_email=from_email, recipient_list=recipient_list, html_message=html_message, message=None)
+        try:
+            send_mail(subject=subject, from_email=from_email, recipient_list=recipient_list, html_message=html_message, message=None)
+        except Exception, e:
+            logger.info("Get Exception when sending the email: %s" % (e))
         logger.info("------Done sending activation code email------")
 
     @staticmethod
