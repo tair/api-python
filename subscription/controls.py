@@ -198,15 +198,16 @@ class PaymentControl():
                     unitPurchaseObj.save()
 
                 else:
+                    # do not put error message to response since the payment already gets through, it's just the sync failure
                     msg = "Your order has been processed, and the purchased CPU hours will be reflected in your CIPRES account within 24 hours."
                     PaymentControl.sendCIPRESSyncFailedEmail(purchaseId, transactionId, purchaseDate, userIdentifier, unitQty, postUnitPurchasePostResponse.status_code, postUnitPurchasePostResponse.text)
                     PaymentControl.sendCIPRESEmail(msg, purchaseId, termObj, partnerObj, emailAddress, firstname, lastname, priceToCharge, institute, transactionId, other)
             except Exception, e:
+                # do not put error message to response since the payment already gets through, it's just the sync failure
                 msg = "Your order has been processed, and the purchased CPU hours will be reflected in your CIPRES account within 24 hours."
                 errorMsg = "Unexpected exception: %s" % (e)
                 PaymentControl.sendCIPRESSyncFailedEmail(purchaseId, transactionId, purchaseDate, userIdentifier, unitQty, "N/A", errorMsg)
                 PaymentControl.sendCIPRESEmail(msg, purchaseId, termObj, partnerObj, emailAddress, firstname, lastname, priceToCharge, institute, transactionId, other)
-                message['message'] = errorMsg
 
         if 'message' in message:
             PaymentControl.logPaymentError(partyId, userIdentifier, emailAddress, message['message'])
