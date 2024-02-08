@@ -203,9 +203,10 @@ class PaymentControl():
                     PaymentControl.sendCIPRESEmail(msg, purchaseId, termObj, partnerObj, emailAddress, firstname, lastname, priceToCharge, institute, transactionId, other)
             except Exception, e:
                 msg = "Your order has been processed, and the purchased CPU hours will be reflected in your CIPRES account within 24 hours."
-                PaymentControl.sendCIPRESSyncFailedEmail(purchaseId, transactionId, purchaseDate, userIdentifier, unitQty, postUnitPurchasePostResponse.status_code, postUnitPurchasePostResponse.text)
+                errorMsg = "Unexpected exception: %s" % (e)
+                PaymentControl.sendCIPRESSyncFailedEmail(purchaseId, transactionId, purchaseDate, userIdentifier, unitQty, "N/A", errorMsg)
                 PaymentControl.sendCIPRESEmail(msg, purchaseId, termObj, partnerObj, emailAddress, firstname, lastname, priceToCharge, institute, transactionId, other)
-                message['message'] = "Unexpected exception: %s" % (e)
+                message['message'] = errorMsg
 
         if 'message' in message:
             PaymentControl.logPaymentError(partyId, userIdentifier, emailAddress, message['message'])
