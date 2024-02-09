@@ -744,6 +744,27 @@ class UsageUnitsPayment(APIView):
             status = 400
         return HttpResponse(json.dumps(message), content_type="application/json", status=status)
 
+# CIPRES-107
+class ApplyDiscount(APIView):
+    """
+    Apply discount code to the provided price.
+    """
+    def post(self, request, *args, **kwargs):
+        data = request.data
+        original_price = float(data.get('price', 0))  # Default to 0 if 'price' not provided
+        discount_code = data.get('discountCode', '')
+        success = False
+
+        # Validate the discount code
+        if discount_code == 'CIPRES20':
+            discounted_price = original_price * 0.8  # Apply a 20% discount
+            success = True
+            response_data = {'success': success, 'newSubtotal': discounted_price}
+            return Response(response_data, status=status.HTTP_200_OK)
+        else:
+            return Response({'success': False, 'error': 'Invalid discount code.'}, status=status.HTTP_400_BAD_REQUEST)
+
+
 # /usage-tier/terms
 # CYV-10: End point for querying usage tiers for CyVerse
 # params: partnerId
