@@ -23,6 +23,8 @@ from common.utils.cyverseUtils import CyVerseClient
 
 from django.shortcuts import render
 from django.utils.encoding import smart_str
+from django.core.cache import cache  # Assuming Django's default caching mechanism
+
 import stripe
 import json
 import random, string
@@ -747,19 +749,38 @@ class UsageUnitsPayment(APIView):
 # CIPRES-107
 class ApplyDiscount(APIView):
     """
-    Apply discount code to the provided price.
+    Apply discount code to the provided price with enhancements:
+    - Handle multiple discount codes with different discount rates
+    - Ensure the original price is valid (greater than 0)
+    - Prevent multiple discount applications to the same session or user
     """
     requireApiKey = False
+
+    DISCOUNT_CODES = {
+        'CIPRES20': 0.8,  # 20% discount
+    }
+
     def post(self, request):
         data = request.data
-        original_price = float(data.get('price', 0))  # Default to 0 if 'price' not provided
-        discount_code = data.get('discountCode', '')
-        success = False
+        original_price = float(data.get('price', 0))
+        discount_code = data.get('discountCode', '').upper()  # Normalize the code to uppercase
+        user_identifier = data.get('userIdentifier', '')  # Unique identifier for the user/session
+
+        # Check if a valid price is provided
+        if original_price <= 0:
+            return Response({'success': False, 'error': 'Invalid original price.'}, status=status.HTTP_400_BAD_REQUEST)
+
+        # Check if the discount has already been applied to prevent multiple discounts
+        if cache.get(f'discount_applied_{user_identifier}'):
+            return Response({'success': False, 'error': 'Discount has already been applied.'}, status=status.HTTP_400_BAD_REQUEST)
 
         # Validate the discount code
-        if discount_code == 'CIPRES20':
-            discounted_price = original_price * 0.8  # Apply a 20% discount
+        discount_factor = self.DISCOUNT_CODES.get(discount_code)
+        if discount_factor:
+            discounted_price = original_price * discount_factor
             success = True
+            # Mark the discount as applied in the cache with a timeout (e.g., 10 minutes or appropriate duration)
+            cache.set(f'discount_applied_{user_identifier}', True, timeout=600)
             response_data = {'success': success, 'newSubtotal': discounted_price}
             return Response(response_data, status=status.HTTP_200_OK)
         else:
