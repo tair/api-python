@@ -749,7 +749,8 @@ class ApplyDiscount(APIView):
     """
     Apply discount code to the provided price.
     """
-    def post(self, request, *args, **kwargs):
+    requireApiKey = False
+    def post(self, request):
         data = request.data
         original_price = float(data.get('price', 0))  # Default to 0 if 'price' not provided
         discount_code = data.get('discountCode', '')
