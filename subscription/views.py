@@ -23,6 +23,7 @@ from common.utils.cyverseUtils import CyVerseClient
 
 from django.shortcuts import render
 from django.utils.encoding import smart_str
+
 import stripe
 import json
 import random, string
@@ -743,6 +744,35 @@ class UsageUnitsPayment(APIView):
         if 'message' in message:
             status = 400
         return HttpResponse(json.dumps(message), content_type="application/json", status=status)
+
+# CIPRES-107
+class ApplyDiscount(APIView):
+    """
+    Apply discount code to the provided price with enhancements:
+    - Handle multiple discount codes with different discount rates
+    - Ensure the original price is valid (greater than 0)
+    """
+    requireApiKey = False
+    DISCOUNT_CODES = {
+        'CIPRES20': 0.8,  # 20% discount
+    }
+    def post(self, request):
+        data = request.data
+        original_price = float(data.get('price', 0))
+        discount_code = data.get('discountCode', '').upper()  # Normalize the code to uppercase
+        # Check if a valid price is provided
+        if original_price <= 0:
+            return Response({'success': False, 'error': 'Invalid original price.'}, status=status.HTTP_400_BAD_REQUEST)
+        # Validate the discount code
+        discount_factor = self.DISCOUNT_CODES.get(discount_code)
+        if discount_factor:
+            discounted_price = original_price * discount_factor
+            success = True
+            response_data = {'success': success, 'newSubtotal': discounted_price}
+            return Response(response_data, status=status.HTTP_200_OK)
+        else:
+            return Response({'success': False, 'error': 'Invalid discount code. Please make sure you are using a correct discount code.'}, status=status.HTTP_200_OK)
+
 
 # /usage-tier/terms
 # CYV-10: End point for querying usage tiers for CyVerse
