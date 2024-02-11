@@ -762,7 +762,7 @@ class ApplyDiscount(APIView):
         discount_code = data.get('discountCode', '').upper()  # Normalize the code to uppercase
         # Check if a valid price is provided
         if original_price <= 0:
-            return Response({'success': False, 'error': 'Invalid original price.'}, status=status.HTTP_400_BAD_REQUEST)
+            return Response({'success': False, 'error': 'Invalid original price.'}, status=status.HTTP_200_OK)
         # Validate the discount code
         discount_factor = self.DISCOUNT_CODES.get(discount_code)
         if discount_factor:
@@ -771,7 +771,7 @@ class ApplyDiscount(APIView):
             response_data = {'success': success, 'newSubtotal': discounted_price}
             return Response(response_data, status=status.HTTP_200_OK)
         else:
-            return Response({'success': False, 'error': 'Invalid discount code.'}, status=status.HTTP_400_BAD_REQUEST)
+            return Response({'success': False, 'error': 'Invalid discount code.'}, status=status.HTTP_200_OK)
 
 
 # /usage-tier/terms
