@@ -23,7 +23,6 @@ from common.utils.cyverseUtils import CyVerseClient
 
 from django.shortcuts import render
 from django.utils.encoding import smart_str
-from django.core.cache import cache  # Assuming Django's default caching mechanism
 
 import stripe
 import json
@@ -771,8 +770,8 @@ class ApplyDiscount(APIView):
             return Response({'success': False, 'error': 'Invalid original price.'}, status=status.HTTP_400_BAD_REQUEST)
 
         # Check if the discount has already been applied to prevent multiple discounts
-        if cache.get(f'discount_applied_{user_identifier}'):
-            return Response({'success': False, 'error': 'Discount has already been applied.'}, status=status.HTTP_400_BAD_REQUEST)
+        # if cache.get(f'discount_applied_{user_identifier}'):
+        #     return Response({'success': False, 'error': 'Discount has already been applied.'}, status=status.HTTP_400_BAD_REQUEST)
 
         # Validate the discount code
         discount_factor = self.DISCOUNT_CODES.get(discount_code)
@@ -780,7 +779,7 @@ class ApplyDiscount(APIView):
             discounted_price = original_price * discount_factor
             success = True
             # Mark the discount as applied in the cache with a timeout (e.g., 10 minutes or appropriate duration)
-            cache.set(f'discount_applied_{user_identifier}', True, timeout=600)
+            # cache.set(f'discount_applied_{user_identifier}', True, timeout=600)
             response_data = {'success': success, 'newSubtotal': discounted_price}
             return Response(response_data, status=status.HTTP_200_OK)
         else:
