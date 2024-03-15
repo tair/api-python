@@ -104,20 +104,35 @@ class PaymentControl():
                 metadata={'Institution Name': institute},
             )
         except stripe.error.InvalidRequestError as e:
-            customer = stripe.Customer.create(
-                id='cus_' + partyId + '_' + userIdentifier + '_' + partnerName,
-                name=firstname + lastname,
-                email=emailAddress,
-                address={
-                    'line1': street,
-                    'city': city,
-                    'state': state,
-                    'country': country,
-                    'postal_code': zip
-                },
-                source=stripe_token,
-                metadata={'Institution Name': institute},
-            )
+            try:
+                customer = stripe.Customer.create(
+                    id='cus_' + partyId + '_' + userIdentifier + '_' + partnerName,
+                    name=firstname + lastname,
+                    email=emailAddress,
+                    address={
+                        'line1': street,
+                        'city': city,
+                        'state': state,
+                        'country': country,
+                        'postal_code': zip
+                    },
+                    source=stripe_token,
+                    metadata={'Institution Name': institute},
+                )
+            except stripe.error.CardError as e:
+                # Handle CardError specifically for customer creation
+                message['message'] = "Card declined during customer creation: %s" % (e)
+                PaymentControl.logPaymentError(partyId, userIdentifier, emailAddress, message['message'])
+                return message
+            except Exception, e:
+                message['message'] = "Unexpected exception: %s" % (e)
+                PaymentControl.logPaymentError(partyId, userIdentifier, emailAddress, message['message'])
+                return message
+        except stripe.error.CardError as e:
+            # Handle CardError for customer modification
+            message['message'] = "Card declined during customer modification: %s" % (e)
+            PaymentControl.logPaymentError(partyId, userIdentifier, emailAddress, message['message'])
+            return message
         except Exception, e:
             message['message'] = "Unexpected exception: %s" % (e)
             PaymentControl.logPaymentError(partyId, userIdentifier, emailAddress, message['message'])
