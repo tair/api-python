@@ -50,3 +50,14 @@ class GooglePartyAffiliation(models.Model):
   partyId = models.ForeignKey(Party)
   class Meta:
     db_table = "GoogleEmail"
+
+# Model for new Orcid Credentials
+class OrcidCredentials(models.Model):
+    orcid_credential_id = models.AutoField(primary_key=True)
+    credential = models.ForeignKey('Credential', on_delete=models.CASCADE, db_column='CredentialId')
+    orcid_id = models.CharField(max_length=255, null=True, blank=True, unique=True)
+    orcid_access_token = models.CharField(max_length=255, null=True, blank=True)
+    orcid_refresh_token = models.CharField(max_length=255, null=True, blank=True)
+
+    class Meta:
+        db_table = 'OrcidCredentials'
