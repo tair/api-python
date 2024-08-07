@@ -12,9 +12,9 @@ def populate_orcid_credentials(apps, schema_editor):
     OrcidCredentials = apps.get_model('authentication', 'OrcidCredentials')
     
     batch_size = 1000
-    credentials = Credential.objects.all()
+    credentials = Credential.objects.filter(partnerId='tair')
     total_credentials = credentials.count()
-    logger.info('Total credentials: {}'.format(total_credentials))
+    logger.info('Total TAIR credentials: {}'.format(total_credentials))
     for start in range(0, total_credentials, batch_size):
         end = min(start + batch_size, total_credentials)
         batch = credentials[start:end]
