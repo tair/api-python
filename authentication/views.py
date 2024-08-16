@@ -2,6 +2,7 @@ from django.shortcuts import render, redirect
 from django.core.urlresolvers import reverse
 from django.http import HttpResponse
 from django.core.mail import send_mail
+from django.http import JsonResponse
 
 import requests
 import json
@@ -14,7 +15,7 @@ from rest_framework.response import Response
 from common.views import GenericCRUDView
 from common.permissions import ApiKeyPermission 
 
-from authentication.models import Credential, GooglePartyAffiliation
+from authentication.models import Credential, GooglePartyAffiliation, Credential, OrcidCredentials
 from authentication.serializers import CredentialSerializer, CredentialSerializerNoPassword
 from subscription.models import Party
 from partner.models import Partner
@@ -439,3 +440,30 @@ def checkAccountExists(request):
       username = params['username']
       result['usernameExist'] = Credential.objects.all().filter(username=username).filter(partnerId=partnerId).exists()
     return HttpResponse(json.dumps(result), status=status.HTTP_200_OK);
+
+#/credentials/checkOrcid
+def checkOrcid(request):
+    if request.method == 'GET':
+        params = request.GET
+        if 'userIdentifier' not in params or 'partnerId' not in params:
+            return JsonResponse({'error': 'Both userIdentifier and partnerId are required.'}, status=400)
+        
+        user_identifier = params['userIdentifier']
+        partner_id = params['partnerId']
+        
+        if partner_id.lower() != 'tair':
+            return JsonResponse({'error': 'This check is only available for TAIR users.'}, status=400)
+        
+        try:
+            credential = Credential.objects.get(userIdentifier=user_identifier, partnerId__partnerId=partner_id)
+        except Credential.DoesNotExist:
+            return JsonResponse({'error': 'User not found.'}, status=404)
+        
+        has_orcid = OrcidCredentials.objects.filter(
+            credential=credential,
+            orcid_id__isnull=False
+        ).exclude(orcid_id='').exists()
+        
+        return JsonResponse({'has_orcid': has_orcid})
+    
+    return JsonResponse({'error': 'Invalid request method.'}, status=405)
