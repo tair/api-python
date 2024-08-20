@@ -14,7 +14,8 @@ from rest_framework.views import APIView
 from rest_framework.response import Response
 from common.views import GenericCRUDView
 from common.permissions import ApiKeyPermission 
-
+from django.views.decorators.csrf import csrf_exempt
+from django.views.decorators.http import require_http_methods
 from authentication.models import Credential, GooglePartyAffiliation, Credential, OrcidCredentials
 from authentication.serializers import CredentialSerializer, CredentialSerializerNoPassword
 from subscription.models import Party
@@ -467,3 +468,64 @@ def checkOrcid(request):
         return JsonResponse({'has_orcid': has_orcid})
     
     return JsonResponse({'error': 'Invalid request method.'}, status=405)
+
+#/credentials/getUserIdentifierByOrcid
+def getUserIdentifierByOrcid(request):
+    if request.method == 'GET':
+        orcidId = request.GET.get('orcidId')
+        
+        if not orcidId:
+            return JsonResponse({'error': 'ORCID ID is required.'}, status=400)
+        
+        try:
+            orcidCredential = OrcidCredentials.objects.get(orcid_id=orcidId)
+            userIdentifier = orcidCredential.credential.userIdentifier
+            return JsonResponse({'userIdentifier': userIdentifier})
+        except OrcidCredentials.DoesNotExist:
+            return JsonResponse({'userIdentifier': None})
+    
+    return JsonResponse({'error': 'Invalid request method.'}, status=405)
+
+
+@csrf_exempt
+@require_http_methods(["POST"])
+def addOrcidCredentials(request):
+    try:
+        data = json.loads(request.body)
+        logger.info(f"Received data: {data}")
+        
+        user_identifier = data.get('userIdentifier')
+        orcid_id = data.get('orcidId')
+        orcid_access_token = data.get('orcidAccessToken')
+        orcid_refresh_token = data.get('orcidRefreshToken')
+
+        if not all([user_identifier, orcid_id, orcid_access_token, orcid_refresh_token]):
+            logger.error(f"Missing required fields. Received: {data}")
+            return JsonResponse({'success': False, 'error': 'Missing required fields'}, status=400)
+
+        try:
+            credential = Credential.objects.get(userIdentifier=user_identifier)
+            logger.info(f"Found credential for user: {user_identifier}")
+        except Credential.DoesNotExist:
+            logger.error(f"User not found: {user_identifier}")
+            return JsonResponse({'success': False, 'error': 'User not found'}, status=404)
+
+        # Check if ORCID credentials already exist for this user
+        orcid_cred, created = OrcidCredentials.objects.update_or_create(
+            credential=credential,
+            defaults={
+                'orcid_id': orcid_id,
+                'orcid_access_token': orcid_access_token,
+                'orcid_refresh_token': orcid_refresh_token
+            }
+        )
+        logger.info(f"ORCID credentials {'created' if created else 'updated'} for user: {user_identifier}")
+
+        return JsonResponse({'success': True, 'message': 'ORCID credentials added successfully'})
+
+    except json.JSONDecodeError:
+        logger.error("Invalid JSON received")
+        return JsonResponse({'success': False, 'error': 'Invalid JSON'}, status=400)
+    except Exception as e:
+        logger.error(f"Unexpected error: {str(e)}", exc_info=True)
+        return JsonResponse({'success': False, 'error': str(e)}, status=500)
