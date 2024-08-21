@@ -15,7 +15,7 @@ from rest_framework.response import Response
 from common.views import GenericCRUDView
 from common.permissions import ApiKeyPermission 
 from django.views.decorators.csrf import csrf_exempt
-from django.views.decorators.http import require_http_methods
+from django.utils.decorators import method_decorator
 from authentication.models import Credential, GooglePartyAffiliation, Credential, OrcidCredentials
 from authentication.serializers import CredentialSerializer, CredentialSerializerNoPassword
 from subscription.models import Party
@@ -442,73 +442,203 @@ def checkAccountExists(request):
       result['usernameExist'] = Credential.objects.all().filter(username=username).filter(partnerId=partnerId).exists()
     return HttpResponse(json.dumps(result), status=status.HTTP_200_OK);
 
+# #/credentials/checkOrcid
+# def checkOrcid(request):
+#     if request.method == 'GET':
+#         params = request.GET
+#         if 'userIdentifier' not in params or 'partnerId' not in params:
+#             return JsonResponse({'error': 'Both userIdentifier and partnerId are required.'}, status=400)
+        
+#         user_identifier = params['userIdentifier']
+#         partner_id = params['partnerId']
+        
+#         if partner_id.lower() != 'tair':
+#             return JsonResponse({'error': 'This check is only available for TAIR users.'}, status=400)
+        
+#         try:
+#             credential = Credential.objects.get(userIdentifier=user_identifier, partnerId__partnerId=partner_id)
+#         except Credential.DoesNotExist:
+#             return JsonResponse({'error': 'User not found.'}, status=404)
+        
+#         has_orcid = OrcidCredentials.objects.filter(
+#             credential=credential,
+#             orcid_id__isnull=False
+#         ).exclude(orcid_id='').exists()
+        
+#         return JsonResponse({'has_orcid': has_orcid})
+    
+#     return JsonResponse({'error': 'Invalid request method.'}, status=405)
+
 #/credentials/checkOrcid
-def checkOrcid(request):
-    if request.method == 'GET':
-        params = request.GET
-        if 'userIdentifier' not in params or 'partnerId' not in params:
-            return JsonResponse({'error': 'Both userIdentifier and partnerId are required.'}, status=400)
-        
-        user_identifier = params['userIdentifier']
-        partner_id = params['partnerId']
-        
+class CheckOrcid(generics.GenericAPIView):
+    requireApiKey = False
+    queryset = Credential.objects.all()
+    
+    def get_queryset(self):
+        user_identifier = self.request.query_params.get('userIdentifier')
+        partner_id = self.request.query_params.get('partnerId')
+        return self.queryset.filter(userIdentifier=user_identifier, partnerId__partnerId=partner_id)
+
+    def get(self, request, *args, **kwargs):
+        user_identifier = request.query_params.get('userIdentifier')
+        partner_id = request.query_params.get('partnerId')
+
+        if not user_identifier or not partner_id:
+            return Response({'error': 'Both userIdentifier and partnerId are required.'}, status=status.HTTP_400_BAD_REQUEST)
+
         if partner_id.lower() != 'tair':
-            return JsonResponse({'error': 'This check is only available for TAIR users.'}, status=400)
-        
+            return Response({'error': 'This check is only available for TAIR users.'}, status=status.HTTP_400_BAD_REQUEST)
+
         try:
-            credential = Credential.objects.get(userIdentifier=user_identifier, partnerId__partnerId=partner_id)
+            credential = self.get_queryset().get()
         except Credential.DoesNotExist:
-            return JsonResponse({'error': 'User not found.'}, status=404)
-        
+            return Response({'error': 'User not found.'}, status=status.HTTP_404_NOT_FOUND)
+
         has_orcid = OrcidCredentials.objects.filter(
             credential=credential,
             orcid_id__isnull=False
         ).exclude(orcid_id='').exists()
-        
-        return JsonResponse({'has_orcid': has_orcid})
+
+        return Response({'has_orcid': has_orcid})
+
+checkOrcid = CheckOrcid.as_view()
     
-    return JsonResponse({'error': 'Invalid request method.'}, status=405)
+# #/credentials/getUserIdentifierByOrcid
+# def getUserIdentifierByOrcid(request):
+#     if request.method == 'GET':
+#         orcidId = request.GET.get('orcidId')
+        
+#         if not orcidId:
+#             return JsonResponse({'error': 'ORCID ID is required.'}, status=400)
+        
+#         try:
+#             orcidCredential = OrcidCredentials.objects.get(orcid_id=orcidId)
+#             userIdentifier = orcidCredential.credential.userIdentifier
+#             return JsonResponse({'userIdentifier': userIdentifier})
+#         except OrcidCredentials.DoesNotExist:
+#             return JsonResponse({'userIdentifier': None})
+    
+#     return JsonResponse({'error': 'Invalid request method.'}, status=405)
 
 #/credentials/getUserIdentifierByOrcid
-def getUserIdentifierByOrcid(request):
-    if request.method == 'GET':
-        orcidId = request.GET.get('orcidId')
+class GetUserIdentifierByOrcid(generics.GenericAPIView):
+    requireApiKey = False
+    queryset = OrcidCredentials.objects.all()
+
+    def get_queryset(self):
+        orcid_id = self.request.query_params.get('orcidId')
+        return self.queryset.filter(orcid_id=orcid_id)
+
+    def get(self, request, *args, **kwargs):
+        orcid_id = request.query_params.get('orcidId')
         
-        if not orcidId:
-            return JsonResponse({'error': 'ORCID ID is required.'}, status=400)
+        if not orcid_id:
+            return Response({'error': 'ORCID ID is required.'}, status=status.HTTP_400_BAD_REQUEST)
         
         try:
-            orcidCredential = OrcidCredentials.objects.get(orcid_id=orcidId)
-            userIdentifier = orcidCredential.credential.userIdentifier
-            return JsonResponse({'userIdentifier': userIdentifier})
+            orcid_credential = self.get_queryset().get()
+            user_identifier = orcid_credential.credential.userIdentifier
+            return Response({'userIdentifier': user_identifier})
         except OrcidCredentials.DoesNotExist:
-            return JsonResponse({'userIdentifier': None})
+            return Response({'userIdentifier': None})
+
+getUserIdentifierByOrcid = GetUserIdentifierByOrcid.as_view()
+
+
+# @csrf_exempt
+# @require_http_methods(["POST"])
+# def addOrcidCredentials(request):
+#     logging.info("Received request to addOrcidCredentials")
+#     logging.info("Request method: %s", request.method)
+#     logging.info("Request GET params: %s", request.GET)
+#     logging.info("Request POST params: %s", request.POST)
+#     logging.info("Request body: %s", request.body)
+
+#     # Try to get data from query parameters first
+#     data = request.GET.dict()
     
-    return JsonResponse({'error': 'Invalid request method.'}, status=405)
+#     # If not in query params, try to parse JSON from body
+#     if not data:
+#         try:
+#             data = json.loads(request.body)
+#         except ValueError:
+#             # If JSON parsing fails, try to get data from POST params
+#             data = request.POST.dict()
 
+#     user_identifier = data.get('userIdentifier')
+#     orcid_id = data.get('orcidId')
+#     orcid_access_token = data.get('orcidAccessToken')
+#     orcid_refresh_token = data.get('orcidRefreshToken')
 
-@csrf_exempt
-@require_http_methods(["POST"])
-def addOrcidCredentials(request):
-    try:
-        data = json.loads(request.body)
-        logger.info(f"Received data: {data}")
+#     if not all([user_identifier, orcid_id, orcid_access_token, orcid_refresh_token]):
+#         logging.error("Missing required fields. Received: %s", data)
+#         return JsonResponse({'success': False, 'error': 'Missing required fields'}, status=400)
+
+#     try:
+#         credential = Credential.objects.get(userIdentifier=user_identifier, partnerId='tair')
+#     except Credential.DoesNotExist:
+#         logging.error("User not found: %s", user_identifier)
+#         return JsonResponse({'success': False, 'error': 'User not found'}, status=404)
+
+#     # Check if ORCID credentials already exist for this user
+#     orcid_cred, created = OrcidCredentials.objects.update_or_create(
+#         credential=credential,
+#         defaults={
+#             'orcid_id': orcid_id,
+#             'orcid_access_token': orcid_access_token,
+#             'orcid_refresh_token': orcid_refresh_token
+#         }
+#     )
+#     logging.info("ORCID credentials %s for user: %s", 'created' if created else 'updated', user_identifier)
+
+#     return JsonResponse({'success': True, 'message': 'ORCID credentials added successfully'})     
+
+#/credentials/addOrcidCredentials
+class AddOrcidCredentials(generics.GenericAPIView):
+    requireApiKey = False
+    queryset = Credential.objects.all()
+
+    @method_decorator(csrf_exempt)
+    def dispatch(self, *args, **kwargs):
+        return super(AddOrcidCredentials, self).dispatch(*args, **kwargs)
+
+    def get_data(self, request):
+        logging.info("Received request to addOrcidCredentials")
+        logging.info("Request method: %s", request.method)
+        logging.info("Request GET params: %s", request.GET)
+        logging.info("Request POST params: %s", request.POST)
+        logging.info("Request body: %s", request.body)
+
+        # Try to get data from query parameters first
+        data = request.GET.dict()
         
+        # If not in query params, try to parse JSON from body
+        if not data:
+            try:
+                data = json.loads(request.body)
+            except ValueError:
+                # If JSON parsing fails, try to get data from POST params
+                data = request.POST.dict()
+        
+        return data
+
+    def post(self, request, *args, **kwargs):
+        data = self.get_data(request)
+
         user_identifier = data.get('userIdentifier')
         orcid_id = data.get('orcidId')
         orcid_access_token = data.get('orcidAccessToken')
         orcid_refresh_token = data.get('orcidRefreshToken')
 
         if not all([user_identifier, orcid_id, orcid_access_token, orcid_refresh_token]):
-            logger.error(f"Missing required fields. Received: {data}")
-            return JsonResponse({'success': False, 'error': 'Missing required fields'}, status=400)
+            logging.error("Missing required fields. Received: %s", data)
+            return Response({'success': False, 'error': 'Missing required fields'}, status=status.HTTP_400_BAD_REQUEST)
 
         try:
-            credential = Credential.objects.get(userIdentifier=user_identifier)
-            logger.info(f"Found credential for user: {user_identifier}")
+            credential = Credential.objects.get(userIdentifier=user_identifier, partnerId='tair')
         except Credential.DoesNotExist:
-            logger.error(f"User not found: {user_identifier}")
-            return JsonResponse({'success': False, 'error': 'User not found'}, status=404)
+            logging.error("User not found: %s", user_identifier)
+            return Response({'success': False, 'error': 'User not found'}, status=status.HTTP_404_NOT_FOUND)
 
         # Check if ORCID credentials already exist for this user
         orcid_cred, created = OrcidCredentials.objects.update_or_create(
@@ -519,13 +649,8 @@ def addOrcidCredentials(request):
                 'orcid_refresh_token': orcid_refresh_token
             }
         )
-        logger.info(f"ORCID credentials {'created' if created else 'updated'} for user: {user_identifier}")
+        logging.info("ORCID credentials %s for user: %s", 'created' if created else 'updated', user_identifier)
 
-        return JsonResponse({'success': True, 'message': 'ORCID credentials added successfully'})
+        return Response({'success': True, 'message': 'ORCID credentials added successfully'})
 
-    except json.JSONDecodeError:
-        logger.error("Invalid JSON received")
-        return JsonResponse({'success': False, 'error': 'Invalid JSON'}, status=400)
-    except Exception as e:
-        logger.error(f"Unexpected error: {str(e)}", exc_info=True)
-        return JsonResponse({'success': False, 'error': str(e)}, status=500)
+addOrcidCredentials = AddOrcidCredentials.as_view()
