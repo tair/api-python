@@ -494,12 +494,21 @@ class CheckOrcid(generics.GenericAPIView):
         except Credential.DoesNotExist:
             return Response({'error': 'User not found.'}, status=status.HTTP_404_NOT_FOUND)
 
-        has_orcid = OrcidCredentials.objects.filter(
-            credential=credential,
-            orcid_id__isnull=False
-        ).exclude(orcid_id='').exists()
+        try:
+            orcid_credential = OrcidCredentials.objects.get(
+                credential=credential,
+                orcid_id__isnull=False
+            )
+            has_orcid = True
+            orcid_id = orcid_credential.orcid_id
+        except OrcidCredentials.DoesNotExist:
+            has_orcid = False
+            orcid_id = None
 
-        return Response({'has_orcid': has_orcid})
+        return Response({
+            'has_orcid': has_orcid,
+            'orcid_id': orcid_id
+        })
 
 checkOrcid = CheckOrcid.as_view()
     
