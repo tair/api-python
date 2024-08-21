@@ -606,20 +606,22 @@ class AddOrcidCredentials(generics.GenericAPIView):
         logging.info("Received request to addOrcidCredentials")
         logging.info("Request method: %s", request.method)
         logging.info("Request GET params: %s", request.GET)
-        logging.info("Request POST params: %s", request.POST)
-        logging.info("Request body: %s", request.body)
 
         # Try to get data from query parameters first
         data = request.GET.dict()
         
-        # If not in query params, try to parse JSON from body
+        # If not in query params, check content type and parse accordingly
         if not data:
-            try:
-                data = json.loads(request.body)
-            except ValueError:
-                # If JSON parsing fails, try to get data from POST params
+            if request.content_type == 'application/json':
+                try:
+                    data = json.loads(request.body)
+                except ValueError:
+                    logging.error("Invalid JSON in request body")
+                    data = {}
+            else:
                 data = request.POST.dict()
         
+        logging.info("Parsed request data: %s", data)
         return data
 
     def post(self, request, *args, **kwargs):
