@@ -579,6 +579,76 @@ addOrcidCredentials = AddOrcidCredentials.as_view()
 # Create a new route, this route will get use the auth code to get the orcid id, then get the user identifier from the database 
 # and then authenticate the user with the orcid id and the auth code
 #/credentials/authenticateOrcid
+# class AuthenticateOrcid(APIView):
+#     requireApiKey = False
+
+#     def post(self, request):
+#         auth_code = request.data.get('code')
+#         if not auth_code:
+#             return Response({'message': 'Auth code is required.'}, status=status.HTTP_400_BAD_REQUEST)
+
+#         # Step 1: Exchange auth code for ORCID ID
+#         token_url = f"{settings.ORCID_DOMAIN}/oauth/token"
+#         data = {
+#             'client_id': settings.ORCID_CLIENT_ID,
+#             'client_secret': settings.ORCID_CLIENT_SECRET,
+#             'grant_type': 'authorization_code',
+#             'code': auth_code,
+#             'redirect_uri': settings.ORCID_REDIRECT_URL,
+#         }
+#         headers = {
+#             'Accept': 'application/json',
+#             'Content-Type': 'application/x-www-form-urlencoded',
+#         }
+
+#         try:
+#             response = requests.post(token_url, data=data, headers=headers)
+#             response.raise_for_status()
+#             token_data = response.json()
+#             orcid_id = token_data['orcid']
+#             orcid_access_token = token_data['access_token']
+#             orcid_refresh_token = token_data['refresh_token']
+#         except requests.RequestException as e:
+#             return Response({'message': 'Failed to authenticate with ORCID.'}, status=status.HTTP_BAD_REQUEST)
+
+#         # Step 2: Get user identifier from ORCID ID
+#         try:
+#             orcid_credentials = OrcidCredentials.objects.get(orcid_id=orcid_id)
+#             user_identifier = orcid_credentials.credential.userIdentifier
+#         except OrcidCredentials.DoesNotExist:
+#             return Response({'message': 'No such user'}, status=status.HTTP_401_UNAUTHORIZED)
+
+#         # Step 3: Verify user credentials
+#         try:
+#             credential = Credential.objects.get(userIdentifier=user_identifier, partnerId='tair')
+#         except Credential.DoesNotExist:
+#             return Response({'message': 'No such user'}, status=status.HTTP_401_UNAUTHORIZED)
+
+#         # Step 4: Update ORCID credentials
+#         orcid_credentials.orcid_access_token = orcid_access_token
+#         orcid_credentials.orcid_refresh_token = orcid_refresh_token
+#         orcid_credentials.save()
+
+#         # Prepare country code
+#         country_code = ""
+#         if credential.partyId.country:
+#             country_code = credential.partyId.country.abbreviation
+
+#         # Return response matching the login route
+#         return Response({
+#             "message": "Correct password",
+#             "credentialId": credential.partyId.partyId,
+#             "secretKey": generateSecretKey(str(credential.partyId.partyId), credential.password),
+#             "email": credential.email,
+#             "role": "librarian",  # Assuming this is a constant value
+#             "username": credential.username,
+#             "userIdentifier": credential.userIdentifier,
+#             "countryCode": country_code
+#         }, status=status.HTTP_200_OK)
+
+# authenticateOrcid = AuthenticateOrcid.as_view()
+
+
 class AuthenticateOrcid(APIView):
     requireApiKey = False
 
@@ -588,7 +658,7 @@ class AuthenticateOrcid(APIView):
             return Response({'message': 'Auth code is required.'}, status=status.HTTP_400_BAD_REQUEST)
 
         # Step 1: Exchange auth code for ORCID ID
-        token_url = f"{settings.ORCID_DOMAIN}/oauth/token"
+        token_url = "{0}/oauth/token".format(settings.ORCID_DOMAIN)
         data = {
             'client_id': settings.ORCID_CLIENT_ID,
             'client_secret': settings.ORCID_CLIENT_SECRET,
@@ -629,6 +699,15 @@ class AuthenticateOrcid(APIView):
         orcid_credentials.orcid_refresh_token = orcid_refresh_token
         orcid_credentials.save()
 
+        # Generate secret key (as in the login route)
+        secret_key = base64.b64encode(
+            hmac.new(
+                str(credential.partyId.partyId),
+                credential.password,
+                hashlib.sha1
+            ).digest()
+        )
+
         # Prepare country code
         country_code = ""
         if credential.partyId.country:
@@ -638,7 +717,7 @@ class AuthenticateOrcid(APIView):
         return Response({
             "message": "Correct password",
             "credentialId": credential.partyId.partyId,
-            "secretKey": generateSecretKey(str(credential.partyId.partyId), credential.password),
+            "secretKey": secret_key,
             "email": credential.email,
             "role": "librarian",  # Assuming this is a constant value
             "username": credential.username,
@@ -646,4 +725,4 @@ class AuthenticateOrcid(APIView):
             "countryCode": country_code
         }, status=status.HTTP_200_OK)
 
-authenticateOrcid = AuthenticateOrcid.as_view()
+authenticate_orcid = AuthenticateOrcid.as_view()
