@@ -679,7 +679,7 @@ class AuthenticateOrcid(APIView):
             orcid_access_token = token_data['access_token']
             orcid_refresh_token = token_data['refresh_token']
         except requests.RequestException as e:
-            return Response({'message': 'Failed to authenticate with ORCID.'}, status=status.HTTP_BAD_REQUEST)
+            return Response({'message': 'Failed to authenticate with ORCID.'}, status=status.HTTP_400_BAD_REQUEST)
 
         # Step 2: Get user identifier from ORCID ID
         try:
