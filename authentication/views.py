@@ -24,6 +24,7 @@ from party.serializers import PartySerializer
 from party.models import Party, Country
 
 from common.permissions import isPhoenix
+from django.conf import settings
 
 # CIPRES-13: add password decryption
 from common.utils.cipresUtils import AESCipher
@@ -442,33 +443,6 @@ def checkAccountExists(request):
       result['usernameExist'] = Credential.objects.all().filter(username=username).filter(partnerId=partnerId).exists()
     return HttpResponse(json.dumps(result), status=status.HTTP_200_OK);
 
-# #/credentials/checkOrcid
-# def checkOrcid(request):
-#     if request.method == 'GET':
-#         params = request.GET
-#         if 'userIdentifier' not in params or 'partnerId' not in params:
-#             return JsonResponse({'error': 'Both userIdentifier and partnerId are required.'}, status=400)
-        
-#         user_identifier = params['userIdentifier']
-#         partner_id = params['partnerId']
-        
-#         if partner_id.lower() != 'tair':
-#             return JsonResponse({'error': 'This check is only available for TAIR users.'}, status=400)
-        
-#         try:
-#             credential = Credential.objects.get(userIdentifier=user_identifier, partnerId__partnerId=partner_id)
-#         except Credential.DoesNotExist:
-#             return JsonResponse({'error': 'User not found.'}, status=404)
-        
-#         has_orcid = OrcidCredentials.objects.filter(
-#             credential=credential,
-#             orcid_id__isnull=False
-#         ).exclude(orcid_id='').exists()
-        
-#         return JsonResponse({'has_orcid': has_orcid})
-    
-#     return JsonResponse({'error': 'Invalid request method.'}, status=405)
-
 #/credentials/checkOrcid
 class CheckOrcid(generics.GenericAPIView):
     requireApiKey = False
@@ -512,23 +486,6 @@ class CheckOrcid(generics.GenericAPIView):
 
 checkOrcid = CheckOrcid.as_view()
     
-# #/credentials/getUserIdentifierByOrcid
-# def getUserIdentifierByOrcid(request):
-#     if request.method == 'GET':
-#         orcidId = request.GET.get('orcidId')
-        
-#         if not orcidId:
-#             return JsonResponse({'error': 'ORCID ID is required.'}, status=400)
-        
-#         try:
-#             orcidCredential = OrcidCredentials.objects.get(orcid_id=orcidId)
-#             userIdentifier = orcidCredential.credential.userIdentifier
-#             return JsonResponse({'userIdentifier': userIdentifier})
-#         except OrcidCredentials.DoesNotExist:
-#             return JsonResponse({'userIdentifier': None})
-    
-#     return JsonResponse({'error': 'Invalid request method.'}, status=405)
-
 #/credentials/getUserIdentifierByOrcid
 class GetUserIdentifierByOrcid(generics.GenericAPIView):
     requireApiKey = False
@@ -553,54 +510,6 @@ class GetUserIdentifierByOrcid(generics.GenericAPIView):
 
 getUserIdentifierByOrcid = GetUserIdentifierByOrcid.as_view()
 
-
-# @csrf_exempt
-# @require_http_methods(["POST"])
-# def addOrcidCredentials(request):
-#     logging.info("Received request to addOrcidCredentials")
-#     logging.info("Request method: %s", request.method)
-#     logging.info("Request GET params: %s", request.GET)
-#     logging.info("Request POST params: %s", request.POST)
-#     logging.info("Request body: %s", request.body)
-
-#     # Try to get data from query parameters first
-#     data = request.GET.dict()
-    
-#     # If not in query params, try to parse JSON from body
-#     if not data:
-#         try:
-#             data = json.loads(request.body)
-#         except ValueError:
-#             # If JSON parsing fails, try to get data from POST params
-#             data = request.POST.dict()
-
-#     user_identifier = data.get('userIdentifier')
-#     orcid_id = data.get('orcidId')
-#     orcid_access_token = data.get('orcidAccessToken')
-#     orcid_refresh_token = data.get('orcidRefreshToken')
-
-#     if not all([user_identifier, orcid_id, orcid_access_token, orcid_refresh_token]):
-#         logging.error("Missing required fields. Received: %s", data)
-#         return JsonResponse({'success': False, 'error': 'Missing required fields'}, status=400)
-
-#     try:
-#         credential = Credential.objects.get(userIdentifier=user_identifier, partnerId='tair')
-#     except Credential.DoesNotExist:
-#         logging.error("User not found: %s", user_identifier)
-#         return JsonResponse({'success': False, 'error': 'User not found'}, status=404)
-
-#     # Check if ORCID credentials already exist for this user
-#     orcid_cred, created = OrcidCredentials.objects.update_or_create(
-#         credential=credential,
-#         defaults={
-#             'orcid_id': orcid_id,
-#             'orcid_access_token': orcid_access_token,
-#             'orcid_refresh_token': orcid_refresh_token
-#         }
-#     )
-#     logging.info("ORCID credentials %s for user: %s", 'created' if created else 'updated', user_identifier)
-
-#     return JsonResponse({'success': True, 'message': 'ORCID credentials added successfully'})     
 
 #/credentials/addOrcidCredentials
 class AddOrcidCredentials(generics.GenericAPIView):
@@ -665,3 +574,76 @@ class AddOrcidCredentials(generics.GenericAPIView):
         return Response({'success': True, 'message': 'ORCID credentials added successfully'})
 
 addOrcidCredentials = AddOrcidCredentials.as_view()
+
+
+# Create a new route, this route will get use the auth code to get the orcid id, then get the user identifier from the database 
+# and then authenticate the user with the orcid id and the auth code
+#/credentials/authenticateOrcid
+class AuthenticateOrcid(APIView):
+    requireApiKey = False
+
+    def post(self, request):
+        auth_code = request.data.get('code')
+        if not auth_code:
+            return Response({'message': 'Auth code is required.'}, status=status.HTTP_400_BAD_REQUEST)
+
+        # Step 1: Exchange auth code for ORCID ID
+        token_url = f"{settings.ORCID_DOMAIN}/oauth/token"
+        data = {
+            'client_id': settings.ORCID_CLIENT_ID,
+            'client_secret': settings.ORCID_CLIENT_SECRET,
+            'grant_type': 'authorization_code',
+            'code': auth_code,
+            'redirect_uri': settings.ORCID_REDIRECT_URL,
+        }
+        headers = {
+            'Accept': 'application/json',
+            'Content-Type': 'application/x-www-form-urlencoded',
+        }
+
+        try:
+            response = requests.post(token_url, data=data, headers=headers)
+            response.raise_for_status()
+            token_data = response.json()
+            orcid_id = token_data['orcid']
+            orcid_access_token = token_data['access_token']
+            orcid_refresh_token = token_data['refresh_token']
+        except requests.RequestException as e:
+            return Response({'message': 'Failed to authenticate with ORCID.'}, status=status.HTTP_BAD_REQUEST)
+
+        # Step 2: Get user identifier from ORCID ID
+        try:
+            orcid_credentials = OrcidCredentials.objects.get(orcid_id=orcid_id)
+            user_identifier = orcid_credentials.credential.userIdentifier
+        except OrcidCredentials.DoesNotExist:
+            return Response({'message': 'No such user'}, status=status.HTTP_401_UNAUTHORIZED)
+
+        # Step 3: Verify user credentials
+        try:
+            credential = Credential.objects.get(userIdentifier=user_identifier, partnerId='tair')
+        except Credential.DoesNotExist:
+            return Response({'message': 'No such user'}, status=status.HTTP_401_UNAUTHORIZED)
+
+        # Step 4: Update ORCID credentials
+        orcid_credentials.orcid_access_token = orcid_access_token
+        orcid_credentials.orcid_refresh_token = orcid_refresh_token
+        orcid_credentials.save()
+
+        # Prepare country code
+        country_code = ""
+        if credential.partyId.country:
+            country_code = credential.partyId.country.abbreviation
+
+        # Return response matching the login route
+        return Response({
+            "message": "Correct password",
+            "credentialId": credential.partyId.partyId,
+            "secretKey": generateSecretKey(str(credential.partyId.partyId), credential.password),
+            "email": credential.email,
+            "role": "librarian",  # Assuming this is a constant value
+            "username": credential.username,
+            "userIdentifier": credential.userIdentifier,
+            "countryCode": country_code
+        }, status=status.HTTP_200_OK)
+
+authenticateOrcid = AuthenticateOrcid.as_view()

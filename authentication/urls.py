@@ -14,6 +14,7 @@ urlpatterns = [
     url(r'^checkOrcid/$', views.checkOrcid, name='checkOrcid'),
     url(r'^getUserIdentifierByOrcid/$', views.getUserIdentifierByOrcid, name='getUserIdentifierByOrcid'),
     url(r'^addOrcidCredentials/$', views.addOrcidCredentials, name='addOrcidCredentials'),
+    url(r'^authenticateOrcid/$', views.authenticateOrcid, name='authenticateOrcid'),
 ]
 
 urlpatterns = format_suffix_patterns(urlpatterns)
