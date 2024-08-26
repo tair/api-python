@@ -653,11 +653,13 @@ class AuthenticateOrcid(APIView):
     requireApiKey = False
 
     def post(self, request):
+        logger.info("Received ORCID authentication request")
         auth_code = request.data.get('code')
         if not auth_code:
+            logger.warning("Auth code is missing in the request")
             return Response({'message': 'Auth code is required.'}, status=status.HTTP_400_BAD_REQUEST)
 
-        # Step 1: Exchange auth code for ORCID ID
+        logger.info("Exchanging auth code for ORCID ID")
         token_url = "{0}/oauth/token".format(settings.ORCID_DOMAIN)
         data = {
             'client_id': settings.ORCID_CLIENT_ID,
@@ -672,34 +674,44 @@ class AuthenticateOrcid(APIView):
         }
 
         try:
+            logger.debug("Sending request to ORCID API: URL=%s, Headers=%s, Data=%s", token_url, headers, data)
             response = requests.post(token_url, data=data, headers=headers)
+            logger.info("Received response from ORCID API: Status=%s", response.status_code)
+            logger.debug("ORCID API response content: %s", response.text)
             response.raise_for_status()
             token_data = response.json()
             orcid_id = token_data['orcid']
             orcid_access_token = token_data['access_token']
             orcid_refresh_token = token_data['refresh_token']
+            logger.info("Successfully obtained ORCID ID: %s", orcid_id)
         except requests.RequestException as e:
+            logger.error("Failed to authenticate with ORCID: %s", str(e))
             return Response({'message': 'Failed to authenticate with ORCID.'}, status=status.HTTP_400_BAD_REQUEST)
 
-        # Step 2: Get user identifier from ORCID ID
+        logger.info("Getting user identifier for ORCID ID: %s", orcid_id)
         try:
             orcid_credentials = OrcidCredentials.objects.get(orcid_id=orcid_id)
             user_identifier = orcid_credentials.credential.userIdentifier
+            logger.info("Found user identifier: %s", user_identifier)
         except OrcidCredentials.DoesNotExist:
+            logger.warning("No user found for ORCID ID: %s", orcid_id)
             return Response({'message': 'No such user'}, status=status.HTTP_401_UNAUTHORIZED)
 
-        # Step 3: Verify user credentials
+        logger.info("Verifying user credentials for user identifier: %s", user_identifier)
         try:
             credential = Credential.objects.get(userIdentifier=user_identifier, partnerId='tair')
+            logger.info("User credentials verified successfully")
         except Credential.DoesNotExist:
+            logger.warning("No credentials found for user identifier: %s", user_identifier)
             return Response({'message': 'No such user'}, status=status.HTTP_401_UNAUTHORIZED)
 
-        # Step 4: Update ORCID credentials
+        logger.info("Updating ORCID credentials")
         orcid_credentials.orcid_access_token = orcid_access_token
         orcid_credentials.orcid_refresh_token = orcid_refresh_token
         orcid_credentials.save()
+        logger.info("ORCID credentials updated successfully")
 
-        # Generate secret key (as in the login route)
+        logger.info("Generating secret key")
         secret_key = base64.b64encode(
             hmac.new(
                 str(credential.partyId.partyId),
@@ -708,21 +720,23 @@ class AuthenticateOrcid(APIView):
             ).digest()
         )
 
-        # Prepare country code
         country_code = ""
         if credential.partyId.country:
             country_code = credential.partyId.country.abbreviation
+        logger.info("Country code retrieved: %s", country_code)
 
-        # Return response matching the login route
-        return Response({
+        logger.info("Preparing response")
+        response_data = {
             "message": "Correct password",
             "credentialId": credential.partyId.partyId,
             "secretKey": secret_key,
             "email": credential.email,
-            "role": "librarian",  # Assuming this is a constant value
+            "role": "librarian",
             "username": credential.username,
             "userIdentifier": credential.userIdentifier,
             "countryCode": country_code
-        }, status=status.HTTP_200_OK)
+        }
+        logger.info("Authentication successful for user: %s", credential.username)
+        return Response(response_data, status=status.HTTP_200_OK)
 
 authenticateOrcid = AuthenticateOrcid.as_view()
