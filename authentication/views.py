@@ -725,4 +725,4 @@ class AuthenticateOrcid(APIView):
             "countryCode": country_code
         }, status=status.HTTP_200_OK)
 
-authenticate_orcid = AuthenticateOrcid.as_view()
+authenticateOrcid = AuthenticateOrcid.as_view()
