@@ -8,7 +8,7 @@ import string
 from django.shortcuts import render
 from django.http import HttpResponse
 from django.utils import timezone
-from partner.models import SubscriptionTerm, Partner
+from partner.models import SubscriptionTerm, SubscriptionBucket, Partner
 from authentication.models import Credential
 from subscription.models import *
 from serializers import SubscriptionSerializer
@@ -814,9 +814,35 @@ class PaymentControl():
         return ret
 
     @staticmethod
+    def isValidRequestBucket(request, message):
+        ret = True
+        bucketId = request.GET.get('bucketId')
+        quantity = request.GET.get('quantity')
+        if bucketId==None:
+            message['message']='error: no bucketId'
+            ret = False
+        elif PaymentControl.getBucketPrice(bucketId)==None:
+            message['message']='error: unable to get bucket price'
+            ret = False
+        elif quantity == None:
+            message['message']='error: no quantity specified'
+            ret = False
+        elif int(quantity) < 1 or int(quantity) > 99:
+            message['message']='error: quantity must be between 1 and 99'
+            ret = False
+        return ret
+
+    @staticmethod
     def getTermPrice(termId):
         try:
             return float(SubscriptionTerm.objects.get(subscriptionTermId=termId).price)
+        except:
+            return None
+    
+    @staticmethod
+    def getBucketPrice(bucketId):
+        try:
+            return float(SubscriptionBucket.objects.get(subscriptionBucketId=bucketId).price)
         except:
             return None
 

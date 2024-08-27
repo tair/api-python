@@ -6,7 +6,7 @@ from subscription.controls import PaymentControl, SubscriptionControl
 from subscription.models import *
 from subscription.serializers import *
 
-from partner.models import Partner, SubscriptionTerm
+from partner.models import Partner, SubscriptionTerm, SubscriptionBucket
 from party.models import Party, ImageInfo
 from party.serializers import PartySerializer
 from authentication.models import Credential
@@ -191,6 +191,39 @@ class SubscriptionRenewal(generics.GenericAPIView):
             return Response(returnData)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
+# /payments_bucket/
+class SubsctiptionBucketPayment(APIView):
+    requireApiKey = False
+    logger.info("SubsctiptionBucketPayment ===")
+
+    def get(self, request):
+        message = {}
+        logger.info("Get bucket payment ===")
+
+        if (not PaymentControl.isValidRequestBucket(request, message)):
+            return HttpResponse(message['message'], 400)
+        #Currently assumes that subscription objects in database stores price in cents
+        #TODO: Handle more human readable price
+        bucketId = request.GET.get('bucketId')
+        message['price'] = int(SubscriptionBucket.objects.get(subscriptionBucketId=bucketId).price)
+        message['quantity'] = request.GET.get('quantity')
+        message['termId'] = bucketId
+        message['stripeKey'] = settings.STRIPE_PUBLIC_KEY
+        return render(request, "subscription/paymentIndex.html", message)
+
+    def post(self, request):
+        try:
+            logger.info("Post bucket payment ===")
+            price = float(request.POST['price'])
+            status = 200
+            message = {}
+            message['price'] = price
+            if 'message' in message:
+                status = 400
+            return HttpResponse(json.dumps(message), content_type="application/json", status=status)
+        except Exception as e:
+            logger.error("Error in payment post: %s" % e)
+            return HttpResponse(json.dumps({'message':'error'}), content_type="application/json", status=400)
 # /payments/
 class SubscriptionsPayment(APIView):
     requireApiKey = False

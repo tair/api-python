@@ -14,6 +14,7 @@ urlpatterns = [
     # Specific queries about subscription
     url(r'^(?P<pk>[0-9.]+)/renewal/$', views.SubscriptionRenewal.as_view()),
     url(r'^payments/$', views.SubscriptionsPayment.as_view()),
+	url(r'^payments_bucket/$', views.SubsctiptionBucketPayment.as_view()),
     url(r'^institutions/$', views.InstitutionSubscription.as_view()),
     url(r'^commercials/$', views.CommercialSubscription.as_view()),
     url(r'^enddate/$', views.EndDate.as_view()),

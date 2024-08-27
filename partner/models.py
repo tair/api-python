@@ -63,6 +63,17 @@ class SubscriptionTerm(models.Model):
     class Meta:
         db_table = "SubscriptionTerm"
 
+class SubscriptionBucket(models.Model):
+    subscriptionBucketId = models.AutoField(primary_key=True)
+    units = models.IntegerField()
+    price = models.DecimalField(decimal_places=2, max_digits=6)
+    partnerId = models.ForeignKey('partner.Partner', db_column="partnerId", on_delete=models.CASCADE)
+    description = models.CharField(max_length=200)
+    refillable = models.BooleanField()
+
+    class Meta:
+        db_table = "SubscriptionBucket"
+
 class SubscriptionDescriptionItem(models.Model):
     subscriptionDescriptionItemId = models.AutoField(primary_key=True)
     subscriptionDescriptionId = models.ForeignKey('SubscriptionDescription', db_column='subscriptionDescriptionId')
