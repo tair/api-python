@@ -4,11 +4,12 @@ from datetime import timedelta
 import pytz
 from dateutil.parser import parse
 import time
+import json
 import string
 from django.shortcuts import render
 from django.http import HttpResponse
 from django.utils import timezone
-from partner.models import SubscriptionTerm, Partner
+from partner.models import SubscriptionTerm, BucketType, Partner
 from authentication.models import Credential
 from subscription.models import *
 from serializers import SubscriptionSerializer
@@ -26,6 +27,28 @@ from django.conf import settings
 import urllib
 
 class SubscriptionControl():
+
+    @staticmethod
+    def createOrUpdateUserBucketUsage(partyId, units):
+        now = timezone.now()
+        userBucketUsageSet = UserBucketUsage.objects.all().filter(partyId=partyId)
+        if len(userBucketUsageSet) == 0:
+            userBucketUsage = None
+        else:
+            userBucketUsage = userBucketUsageSet[0]
+        
+        if userBucketUsage is None:
+            userBucketUsage = UserBucketUsage()
+            userBucketUsage.partyId = Party.objects.get(partyId=partyId)
+            userBucketUsage.total_units = units
+            userBucketUsage.remaining_units = units
+            userBucketUsage.expiry_date = now + timedelta(days=365)
+            userBucketUsage.save()
+        else:
+            userBucketUsage.total_units += units
+            userBucketUsage.remaining_units += units
+            userBucketUsage.save()
+        return userBucketUsage
 
     @staticmethod
     def createOrUpdateSubscription(partyId, partnerId, period):
@@ -659,6 +682,51 @@ class PaymentControl():
             logger.info("Get Exception when sending the email: %s" % (e))
         logger.info("------Done sending email------")
 
+    # for Tair bucket payment
+    @staticmethod
+    def chargeForBucket(secret_key, stripe_token, priceToCharge, bucketTypeId, quantity, email, institute):
+        message = {
+            'price': priceToCharge,
+            'bucketTypeId': bucketTypeId,
+            'quantity': quantity
+        }
+
+        try:
+            stripe.api_key = secret_key
+            charge = stripe.Charge.create(
+                amount=int(priceToCharge * 100),  # Convert to dollars to cents
+                currency="usd",
+                source=stripe_token,
+                metadata={'Email': email, 'Institute': institute}
+            )
+
+            # Log the successful Stripe charge
+            # logger.info("Successful Stripe charge: {0}".format(json.dumps(charge)))
+
+            activationCodes = PaymentControl.postPaymentHandlingForBucket(bucketTypeId, quantity)
+            emailInfo = PaymentControl.getEmailInfoForBucketPurchase(activationCodes, "tair", bucketTypeId, quantity, 
+            priceToCharge, charge.id, email, institute)
+            logger.info("Email info: {0}".format(json.dumps(emailInfo)))
+            PaymentControl.sendEmailForBucketPurchase(emailInfo, bucketTypeId)
+            message['activationCodes'] = activationCodes
+            message['status'] = True
+            message['chargeId'] = charge.id
+
+            logger.info("Successful charge for bucket for {0}. Activation codes: {1}".format(email, activationCodes))
+
+        except stripe.error.StripeError as e:
+            message['status'] = False
+            message['message'] = e.json_body['error']['message']
+            logger.error("Stripe error: {0}".format(e.json_body['error']['message']))
+            logger.error("Stripe error details: {0}".format(json.dumps(e.json_body)))
+
+        except Exception as e:
+            message['status'] = False
+            message['message'] = "Unexpected error: {0}".format(str(e))
+            logger.exception("Unexpected error in chargeForBucket")
+
+        return message
+
     # for regular Phoenix subscription payment
     @staticmethod
     def tryCharge(secret_key, stripe_token, priceToCharge, partnerName, chargeDescription, termId, quantity, emailAddress, firstname, lastname, institute, street, city, state, country, zip, hostname, redirect, other, domain):
@@ -704,6 +772,24 @@ class PaymentControl():
         return message
 
     @staticmethod
+    def getEmailInfoForBucketPurchase(activationCodes, partnerName, bucketTypeId, quantity, priceToCharge, transactionId, email, institute):
+        bucketTypeObj = BucketType.objects.get(bucketTypeId=bucketTypeId)
+        partnerObj = bucketTypeObj.partnerId
+        senderEmail = "info@phoenixbioinformatics.org"
+        recipientEmails = [email]
+        payment = "%.2f" % float(priceToCharge)
+        return {
+            "partnerName": partnerObj.name,
+            "accessCodes": activationCodes,
+            "payment": payment,
+            "transactionId": transactionId,
+            "institute": institute,
+            "subject":"Your %s Subscription Activation Code and Receipt" % partnerName,
+            "recipientEmails": recipientEmails,
+            "senderEmail": senderEmail,
+        }
+
+    @staticmethod
     def getEmailInfo(activationCodes, partnerName, termId, quantity, payment, transactionId, email, firstname, lastname, institute, street, city, state, country, zip, hostname, redirect, other, domain):
 
         termObj = SubscriptionTerm.objects.get(subscriptionTermId=termId)
@@ -747,6 +833,57 @@ class PaymentControl():
         }
 
     @staticmethod
+    def sendEmailForBucketPurchase(emailInfo, bucketTypeId):
+        kwargs = emailInfo
+        listr = '<ul style="font-size: 16px; color: #b9ca32; font-family: Arial, Helvetica, sans-serif; -webkit-font-smoothing: antialiased;">'
+        for l in kwargs['accessCodes']:
+            listr += "<li>"+l+"</li><br>"
+        listr += "</ul>"
+
+        bucketTypeObj = BucketType.objects.get(bucketTypeId=bucketTypeId)
+        partnerObj = bucketTypeObj.partnerId
+
+        html_message = partnerObj.activationEmailInstructionText % (
+                # kwargs['partnerLogo'],
+                "",
+                "John Doe",
+                kwargs['partnerName'],
+                listr,
+                # kwargs['loginUrl'],
+                "",
+                kwargs['partnerName'],
+                kwargs['partnerName'],
+                # kwargs['registerUrl'],
+                "",
+                # kwargs['subscriptionDescription'],
+                "",
+                kwargs['institute'],
+                # kwargs['subscriptionTerm'],
+                "",
+                # kwargs['subscriptionQuantity'],
+                "",
+                kwargs['payment'],
+                kwargs['transactionId'],
+                # kwargs['other'],
+                "",
+                "")
+
+        subject = kwargs['subject']
+        from_email = kwargs['senderEmail']
+        recipient_list = kwargs['recipientEmails']
+        logger.info("------Sending activation code email------")
+        logger.info("Receipient: %s" % recipient_list[0])
+        logger.info("ActivationCodes:")
+        for l in kwargs['accessCodes']:
+            logger.info(l)
+        try:
+            # send_mail(subject=subject, from_email=from_email, recipient_list=recipient_list, html_message=html_message, message=None)
+            pass
+        except Exception, e:
+            logger.info("Get Exception when sending the email: %s" % (e))
+        logger.info("------Done sending activation code email------")
+
+    @staticmethod
     def emailReceipt(emailInfo, termId):
         kwargs = emailInfo
         listr = '<ul style="font-size: 16px; color: #b9ca32; font-family: Arial, Helvetica, sans-serif; -webkit-font-smoothing: antialiased;">'
@@ -778,7 +915,6 @@ class PaymentControl():
                 """+kwargs['addr2']+""",<br>
                 """+kwargs['addr3']+"""<br>
                 """)
-
 
         subject = kwargs['subject']
         from_email = kwargs['senderEmail']
@@ -814,12 +950,72 @@ class PaymentControl():
         return ret
 
     @staticmethod
+    def isValidRequestBucket(request, message):
+        ret = True
+        bucketId = request.GET.get('bucketId')
+        quantity = request.GET.get('quantity')
+        if bucketId==None:
+            message['message']='error: no bucketId'
+            ret = False
+        elif PaymentControl.getBucketPrice(bucketId)==None:
+            message['message']='error: unable to get bucket price'
+            ret = False
+        elif quantity == None:
+            message['message']='error: no quantity specified'
+            ret = False
+        elif int(quantity) < 1 or int(quantity) > 99:
+            message['message']='error: quantity must be between 1 and 99'
+            ret = False
+        return ret
+
+    @staticmethod
     def getTermPrice(termId):
         try:
             return float(SubscriptionTerm.objects.get(subscriptionTermId=termId).price)
         except:
             return None
+    
+    @staticmethod
+    def getBucketPrice(bucketId):
+        try:
+            return float(BucketType.objects.get(bucketTypeId=bucketId).price)
+        except:
+            return None
 
+    @staticmethod
+    def postPaymentHandlingForBucket(bucketTypeId, quantity):
+        logger.info("bucketTypeId: %s, quantity: %s", bucketTypeId, quantity)
+        if quantity > 99:
+            logger.info("quantity is greater than 99")
+            return []
+        bucketTypeObj = BucketType.objects.get(bucketTypeId=bucketTypeId)
+        now = timezone.now()
+
+        codeArray = []
+
+        for i in range(quantity):
+            # create an activation code based on partnerId and period.
+            activationCodeObj = ActivationCode()
+            activationCodeObj.activationCode=str(uuid.uuid4())
+            activationCodeObj.partnerId=bucketTypeObj.partnerId
+            activationCodeObj.period=bucketTypeObj.units
+            activationCodeObj.partyId=None
+            activationCodeObj.purchaseDate=now
+            activationCodeObj.transactionType='create_bucket'
+            activationCodeObj.save()
+            codeArray.append(activationCodeObj.activationCode)
+
+            #create a bucket tranasaction record
+            bucketTransaction = BucketTransaction()
+            bucketTransaction.activation_code_id = activationCodeObj.activationCodeId
+            bucketTransaction.bucket_type_id = bucketTypeObj.bucketTypeId
+            bucketTransaction.transaction_date = now
+            bucketTransaction.transaction_type = 'create_bucket'
+            bucketTransaction.units_per_bucket = bucketTypeObj.units
+
+            bucketTransaction.save()
+        return codeArray
+    
     @staticmethod
     def postPaymentHandling(termId, quantity):
         if quantity > 99:

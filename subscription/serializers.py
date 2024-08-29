@@ -5,6 +5,16 @@ from subscription.models import *
 from rest_framework import serializers
 from partner.models import Partner
 
+class UserBucketUsageSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = UserBucketUsage
+        fields = ('user_usage_id', 'partyId', 'partner_id', 'total_units', 'remaining_units', 'expiry_date')
+
+class BucketTransactionSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = BucketTransaction
+        fields = '__all__'
+        
 class SubscriptionSerializer(serializers.ModelSerializer):
     class Meta:
         model = Subscription

@@ -10,10 +10,13 @@ urlpatterns = [
     url(r'^transactions/$', views.SubscriptionTransactionCRUD.as_view()),
     url(r'^activationCodes/$', views.ActivationCodeCRUD.as_view()),
     url(r'^$', views.SubscriptionCRUD.as_view()),
+	url(r'^bucket/', views.BucketTransactionCRUD.as_view()),
+	url(r'^bucket/usage/$', views.UserBucketUsageCRUD.as_view()),
 
     # Specific queries about subscription
     url(r'^(?P<pk>[0-9.]+)/renewal/$', views.SubscriptionRenewal.as_view()),
     url(r'^payments/$', views.SubscriptionsPayment.as_view()),
+	url(r'^payments_bucket/$', views.SubsctiptionBucketPayment.as_view()),
     url(r'^institutions/$', views.InstitutionSubscription.as_view()),
     url(r'^commercials/$', views.CommercialSubscription.as_view()),
     url(r'^enddate/$', views.EndDate.as_view()),
