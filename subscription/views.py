@@ -6,7 +6,7 @@ from subscription.controls import PaymentControl, SubscriptionControl
 from subscription.models import *
 from subscription.serializers import *
 
-from partner.models import Partner, SubscriptionTerm, SubscriptionBucket
+from partner.models import Partner, SubscriptionTerm, BucketType
 from party.models import Party, ImageInfo
 from party.serializers import PartySerializer
 from authentication.models import Credential
@@ -169,6 +169,50 @@ class SubscriptionTransactionCRUD(GenericCRUDView):
     queryset = SubscriptionTransaction.objects.all()
     serializer_class = SubscriptionTransactionSerializer
 
+# /bucket/usage/
+class UserBucketUsageCRUD(GenericCRUDView):
+    queryset = UserBucketUsage.objects.all()
+    serializer_class = UserBucketUsageSerializer
+    requireApiKey = False
+
+    def post(self, request):
+        if ('activationCode' not in request.data or 'partyId' not in request.data):
+            return Response({"error":"Essential parameters needed."}, status=status.HTTP_400_BAD_REQUEST)
+        if not ActivationCode.objects.filter(activationCode=request.data['activationCode']).exists():
+            return Response({"message":"incorrect activation code"}, status=status.HTTP_400_BAD_REQUEST)
+        activationCodeObj = ActivationCode.objects.get(activationCode=request.data['activationCode'])
+        if not activationCodeObj.partyId == None:
+            return Response({"message":"activation code is already used"}, status=status.HTTP_400_BAD_REQUEST)
+        try:
+            partyId = request.data['partyId']
+            userBucketUsage = SubscriptionControl.createOrUpdateUserBucketUsage(partyId, activationCodeObj.period)
+        except Exception:
+            return Response('failed to create or update User Bucket entry')
+        
+        try:
+            # set activationCodeObj to be used.
+            partyObj = Party.objects.get(partyId=partyId)
+        except Exception:
+            return Response('failed to get partyObj')
+        try:
+            activationCodeObj.partyId = partyObj
+        except Exception:
+            return Response('failed to assign partyObj')
+        try:
+            activationCodeObj.save()
+        except Exception:
+            return Response('failed to save activationCodeObj')
+        
+        serializer = self.serializer_class(userBucketUsage)
+        returnData = serializer.data
+        return Response(returnData, status=status.HTTP_201_CREATED)
+
+#/bucket/
+class BucketTransactionCRUD(GenericCRUDView):
+    queryset = BucketTransaction.objects.all()
+    serializer_class = BucketTransactionSerializer
+    requireApiKey = False
+
 #------------------- End of Basic CRUD operations --------------
 
 
@@ -204,26 +248,33 @@ class SubsctiptionBucketPayment(APIView):
             return HttpResponse(message['message'], 400)
         #Currently assumes that subscription objects in database stores price in cents
         #TODO: Handle more human readable price
-        bucketId = request.GET.get('bucketId')
-        message['price'] = int(SubscriptionBucket.objects.get(subscriptionBucketId=bucketId).price)
+        bucketTypeId = request.GET.get('bucketTypeId')
+        message['price'] = int(BucketType.objects.get(bucketTypeId=bucketTypeId).price)
         message['quantity'] = request.GET.get('quantity')
-        message['termId'] = bucketId
+        message['bucketTypeId'] = bucketTypeId
         message['stripeKey'] = settings.STRIPE_PUBLIC_KEY
         return render(request, "subscription/paymentIndex.html", message)
 
     def post(self, request):
+        stripe_api_secret_test_key = settings.STRIPE_PRIVATE_KEY
+        stripe.api_key = stripe_api_secret_test_key
+        token = request.POST['stripeToken']
         try:
             logger.info("Post bucket payment ===")
             price = float(request.POST['price'])
+            bucketTypeId = request.POST['bucketTypeId']
+            quantity = int(request.POST['quantity'])
+            email = request.POST['email']
+            institute = request.POST['institute']
+            message = PaymentControl.chargeForBucket(stripe_api_secret_test_key, token, price, bucketTypeId, quantity, email, institute)
             status = 200
-            message = {}
-            message['price'] = price
             if 'message' in message:
                 status = 400
             return HttpResponse(json.dumps(message), content_type="application/json", status=status)
         except Exception as e:
             logger.error("Error in payment post: %s" % e)
             return HttpResponse(json.dumps({'message':'error'}), content_type="application/json", status=400)
+
 # /payments/
 class SubscriptionsPayment(APIView):
     requireApiKey = False

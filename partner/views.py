@@ -4,8 +4,8 @@ from django.http import HttpResponse
 from rest_framework.views import APIView
 from rest_framework import generics
 
-from models import Partner, PartnerPattern, SubscriptionTerm, SubscriptionBucket, SubscriptionDescription, SubscriptionDescriptionItem
-from serializers import PartnerSerializer, PartnerPatternSerializer, SubscriptionTermSerializer, SubscriptionBucketSerializer, SubscriptionDescriptionSerializer, SubscriptionDescriptionItemSerializer
+from models import Partner, PartnerPattern, SubscriptionTerm, BucketType, SubscriptionDescription, SubscriptionDescriptionItem
+from serializers import PartnerSerializer, PartnerPatternSerializer, SubscriptionTermSerializer, BucketTypeSerializer, SubscriptionDescriptionSerializer, SubscriptionDescriptionItemSerializer
 
 import json
 
@@ -69,15 +69,10 @@ class PartnerPatternCRUD(GenericCRUDView):
         # serializer = PartnerPatternSerializer(partnerList, many=True)
         return Response({'msg':'cannot find matched url'}, status=status.HTTP_204_NO_CONTENT)
 
-class BucketsCRUD(GenericCRUDView):
-    queryset = SubscriptionBucket.objects.all()
-    serializer_class = SubscriptionBucketSerializer
+class BucketTypeCRUD(GenericCRUDView):
+    queryset = BucketType.objects.all()
+    serializer_class = BucketTypeSerializer
     requireApiKey = False
-    def get(self, request):
-        logger.info("Get request for Buckets")
-        buckets = self.get_queryset()
-        serializer = self.get_serializer(buckets, many=True)
-        return Response(serializer.data, status=status.HTTP_200_OK)
     
     def post(self, request):
         return Response({'msg':'cannot create'}, status=status.HTTP_400_BAD_REQUEST)

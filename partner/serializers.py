@@ -1,6 +1,6 @@
 #Copyright 2015 Phoenix Bioinformatics Corporation. All rights reserved.
 
-from partner.models import Partner, PartnerPattern, SubscriptionTerm, SubscriptionBucket, SubscriptionDescription, SubscriptionDescriptionItem
+from partner.models import Partner, PartnerPattern, SubscriptionTerm, BucketType, SubscriptionDescription, SubscriptionDescriptionItem
 from rest_framework import serializers
 
 class PartnerSerializer(serializers.ModelSerializer):
@@ -12,6 +12,11 @@ class PartnerSerializer(serializers.ModelSerializer):
                   'activationEmailInstructionText', 'loginUserNameFieldPrompt', 'loginPasswordFieldPrompt', 
                   'resetPasswordEmailBody', 'loginRedirectErrorText', 'guideUri')
 
+class BucketTypeSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = BucketType
+        fields = '__all__'
+
 class PartnerPatternSerializer(serializers.ModelSerializer):
     class Meta:
         model = PartnerPattern
@@ -21,11 +26,6 @@ class SubscriptionTermSerializer(serializers.ModelSerializer):
     class Meta:
         model = SubscriptionTerm
         fields = ('subscriptionTermId','period','price','groupDiscountPercentage','partnerId','description', 'category')
-
-class SubscriptionBucketSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = SubscriptionBucket
-        fields = ('subscriptionBucketId', 'units', 'price', 'partnerId', 'description', 'refillable')
 
 class SubscriptionDescriptionSerializer(serializers.ModelSerializer):
     class Meta:

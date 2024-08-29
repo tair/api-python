@@ -14,6 +14,29 @@ class NumericField(models.Field):
     def db_type(self, connection):
         return 'numeric'
 
+class UserBucketUsage(models.Model):
+    user_usage_id = models.AutoField(primary_key=True)
+    partyId = models.OneToOneField("party.Party", null=True, on_delete=models.SET_NULL, db_column="partyId_id", related_name='user_bucket_usage')
+    total_units = models.IntegerField(null=False)
+    remaining_units = models.IntegerField(null=False)
+    expiry_date = models.DateTimeField(null=False)
+    partner_id = models.CharField(max_length=200, null=False)
+
+    class Meta:
+        db_table = 'UserBucketUsage'
+
+class BucketTransaction(models.Model):
+    bucket_transaction_id = models.AutoField(primary_key=True)
+    transaction_date = models.DateTimeField(null=False)
+    partyId_purchased = models.ForeignKey("party.Party", on_delete=models.CASCADE, db_column="partyId_purchased")
+    bucket_type_id = models.IntegerField(null=False)
+    activation_code_id = models.IntegerField(null=False)
+    units_per_bucket = models.IntegerField(null=False)
+    transaction_type = models.CharField(max_length=200, null=False)
+
+    class Meta:
+        db_table = 'BucketTransaction'
+
 class Subscription(models.Model):
     subscriptionId = models.AutoField(primary_key=True)
     partyId = models.ForeignKey("party.Party", null=True, db_column="partyId", related_name='party_id')
