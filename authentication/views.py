@@ -689,22 +689,14 @@ class AuthenticateOrcid(APIView):
             return Response({'message': 'Failed to authenticate with ORCID.'}, status=status.HTTP_400_BAD_REQUEST)
 
         logger.info("Getting user identifier for ORCID ID: %s", orcid_id)
+        
         try:
             orcid_credentials = OrcidCredentials.objects.get(orcid_id=orcid_id)
-            user_identifier = orcid_credentials.credential.userIdentifier
-            logger.info("Found user identifier: %s", user_identifier)
         except OrcidCredentials.DoesNotExist:
             logger.warning("No user found for ORCID ID: %s", orcid_id)
             return Response({'message': 'No such user'}, status=status.HTTP_401_UNAUTHORIZED)
 
-        logger.info("Verifying user credentials for user identifier: %s", user_identifier)
-        try:
-            credential = Credential.objects.get(userIdentifier=user_identifier, partnerId='tair')
-            logger.info("User credentials verified successfully")
-        except Credential.DoesNotExist:
-            logger.warning("No credentials found for user identifier: %s", user_identifier)
-            return Response({'message': 'No such user'}, status=status.HTTP_401_UNAUTHORIZED)
-
+        credential = orcid_credentials.credential
         logger.info("Updating ORCID credentials")
         orcid_credentials.orcid_access_token = orcid_access_token
         orcid_credentials.orcid_refresh_token = orcid_refresh_token
