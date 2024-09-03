@@ -877,7 +877,7 @@ class PaymentControl():
         for l in kwargs['accessCodes']:
             logger.info(l)
         try:
-            # send_mail(subject=subject, from_email=from_email, recipient_list=recipient_list, html_message=html_message, message=None)
+            send_mail(subject=subject, from_email=from_email, recipient_list=recipient_list, html_message=html_message, message=None)
             pass
         except Exception, e:
             logger.info("Get Exception when sending the email: %s" % (e))
