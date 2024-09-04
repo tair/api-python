@@ -3,7 +3,7 @@ from rest_framework import generics, status
 from permissions import isPhoenix
 
 class GenericCRUDView(generics.GenericAPIView):
-    requireApiKey = True
+    requireApiKey = False
     phoenixOnly = False
     def get_queryset(self):
         queryset = super(GenericCRUDView, self).get_queryset()

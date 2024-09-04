@@ -47,6 +47,7 @@ class SubscriptionControl():
         else:
             userBucketUsage.total_units += units
             userBucketUsage.remaining_units += units
+            userBucketUsage.expiry_date = now + timedelta(days=365)
             userBucketUsage.save()
         return userBucketUsage
 
