@@ -187,7 +187,9 @@ class UserBucketUsageCRUD(GenericCRUDView):
         
         try:
             userBucketUsage = self.get_queryset().get()
-            return Response({'userBucketUsage': userBucketUsage})
+            serializer = self.serializer_class(userBucketUsage)
+            returnData = serializer.data
+            return Response(returnData)
         except UserBucketUsage.DoesNotExist:
             return Response({'userBucketUsage': None})
 
