@@ -11,7 +11,7 @@ urlpatterns = [
     url(r'^activationCodes/$', views.ActivationCodeCRUD.as_view()),
     url(r'^$', views.SubscriptionCRUD.as_view()),
 	url(r'^bucket/', views.BucketTransactionCRUD.as_view()),
-	url(r'^bucket/usage/$', views.UserBucketUsageCRUD.as_view()),
+	url(r'^bucket_usage/$', views.UserBucketUsageCRUD.as_view()),
 
     # Specific queries about subscription
     url(r'^(?P<pk>[0-9.]+)/renewal/$', views.SubscriptionRenewal.as_view()),

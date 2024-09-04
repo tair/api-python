@@ -175,7 +175,24 @@ class UserBucketUsageCRUD(GenericCRUDView):
     serializer_class = UserBucketUsageSerializer
     requireApiKey = False
 
+    def get_queryset(self):
+        party_id = self.request.query_params.get('party_id')
+        return self.queryset.filter(partyId_id=party_id)
+
+    def get(self, request, *args, **kwargs):
+        party_id = request.query_params.get('party_id')
+        
+        if not party_id:
+            return Response({'error': 'party_id is required.'}, status=status.HTTP_400_BAD_REQUEST)
+        
+        try:
+            userBucketUsage = self.get_queryset().get()
+            return Response({'userBucketUsage': userBucketUsage})
+        except UserBucketUsage.DoesNotExist:
+            return Response({'userBucketUsage': None})
+
     def post(self, request):
+        logger.info("post Activation code")
         if ('activationCode' not in request.data or 'partyId' not in request.data):
             return Response({"error":"Essential parameters needed."}, status=status.HTTP_400_BAD_REQUEST)
         if not ActivationCode.objects.filter(activationCode=request.data['activationCode']).exists():
