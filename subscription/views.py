@@ -191,7 +191,7 @@ class UserBucketUsageCRUD(GenericCRUDView):
             returnData = serializer.data
             return Response(returnData)
         except UserBucketUsage.DoesNotExist:
-            return Response({'userBucketUsage': None})
+            return Response({'data': None, 'message': 'No UserBucketUsage found for the given party_id.'})
 
     def post(self, request):
         logger.info("post Activation code")
@@ -257,11 +257,9 @@ class SubscriptionRenewal(generics.GenericAPIView):
 # /payments_bucket/
 class SubsctiptionBucketPayment(APIView):
     requireApiKey = False
-    logger.info("SubsctiptionBucketPayment ===")
 
     def get(self, request):
         message = {}
-        logger.info("Get bucket payment ===")
 
         if (not PaymentControl.isValidRequestBucket(request, message)):
             return HttpResponse(message['message'], 400)
@@ -279,13 +277,19 @@ class SubsctiptionBucketPayment(APIView):
         stripe.api_key = stripe_api_secret_test_key
         token = request.POST['stripeToken']
         try:
-            logger.info("Post bucket payment ===")
+            partnerName = "tair"
             price = float(request.POST['price'])
             bucketTypeId = request.POST['bucketTypeId']
             quantity = int(request.POST['quantity'])
             email = request.POST['email']
+            firstname = request.POST['firstName']
+            lastname = request.POST['lastName']
             institute = request.POST['institute']
-            message = PaymentControl.chargeForBucket(stripe_api_secret_test_key, token, price, bucketTypeId, quantity, email, institute)
+
+            bucketUnits = BucketType.objects.get(bucketTypeId=bucketTypeId).description
+            chargeDescription = '%s `%s` subscription name: %s %s'%(partnerName,bucketUnits,firstname,lastname)
+            logger.info("Stripe Charge Description: " + chargeDescription)
+            message = PaymentControl.chargeForBucket(stripe_api_secret_test_key, token, price, chargeDescription, bucketTypeId, quantity, email, firstname, lastname, institute)
             status = 200
             if 'message' in message:
                 status = 400
