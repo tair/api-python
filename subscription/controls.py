@@ -685,7 +685,7 @@ class PaymentControl():
 
     # for Tair bucket payment
     @staticmethod
-    def chargeForBucket(secret_key, stripe_token, priceToCharge, bucketTypeId, quantity, email, institute):
+    def chargeForBucket(secret_key, stripe_token, priceToCharge, chargeDescription, bucketTypeId, quantity, email, firstname, lastname, institute):
         message = {
             'price': priceToCharge,
             'bucketTypeId': bucketTypeId,
@@ -698,16 +698,17 @@ class PaymentControl():
                 amount=int(priceToCharge * 100),  # Convert to dollars to cents
                 currency="usd",
                 source=stripe_token,
+                description=chargeDescription,
                 metadata={'Email': email, 'Institute': institute}
             )
 
             # Log the successful Stripe charge
-            # logger.info("Successful Stripe charge: {0}".format(json.dumps(charge)))
+            logger.info("Successful Stripe charge: {0}".format(json.dumps(charge)))
 
             activationCodes = PaymentControl.postPaymentHandlingForBucket(bucketTypeId, quantity)
             emailInfo = PaymentControl.getEmailInfoForBucketPurchase(activationCodes, "tair", bucketTypeId, quantity, 
-            priceToCharge, charge.id, email, institute)
-            logger.info("Email info: {0}".format(json.dumps(emailInfo)))
+            priceToCharge, charge.id, email, firstname, lastname, institute)
+            # logger.info("Email info: {0}".format(json.dumps(emailInfo)))
             PaymentControl.sendEmailForBucketPurchase(emailInfo, bucketTypeId)
             message['activationCodes'] = activationCodes
             message['status'] = True
@@ -773,21 +774,37 @@ class PaymentControl():
         return message
 
     @staticmethod
-    def getEmailInfoForBucketPurchase(activationCodes, partnerName, bucketTypeId, quantity, priceToCharge, transactionId, email, institute):
+    def getEmailInfoForBucketPurchase(activationCodes, partnerName, bucketTypeId, quantity, priceToCharge, transactionId, email, firstname, lastname, institute):
         bucketTypeObj = BucketType.objects.get(bucketTypeId=bucketTypeId)
+        partnerObj = Partner.objects.get(partnerId="tair")
+        name = firstname+" "+lastname
         partnerObj = bucketTypeObj.partnerId
         senderEmail = "info@phoenixbioinformatics.org"
         recipientEmails = [email]
         payment = "%.2f" % float(priceToCharge)
+        loginURL = partnerObj.loginUri
+        registerURL = partnerObj.registerUri
         return {
+            "partnerLogo": partnerObj.logoUri,
+            "name": name,
             "partnerName": partnerObj.name,
             "accessCodes": activationCodes,
+            "loginUrl": loginURL,
+            "registerUrl": registerURL,
+            "partnerId": partnerObj.partnerId,
+            "subscriptionDescription": "%s Subscription" % partnerObj.name,
+            "institute": institute,
+            "subscriptionTerm": bucketTypeObj.description,
+            "subscriptionQuantity": quantity,
             "payment": payment,
             "transactionId": transactionId,
-            "institute": institute,
-            "subject":"Your %s Subscription Activation Code and Receipt" % partnerName,
+            "other": "",
+            "addr1": "Phoenix Bioinformatics Corporation",
+            "addr2": "39899 Balentine Drive, Suite 200",
+            "addr3": "Newark, CA, 94560, USA",
             "recipientEmails": recipientEmails,
             "senderEmail": senderEmail,
+            "subject":"Your %s Subscription Activation Code and Receipt" % partnerName,
         }
 
     @staticmethod
@@ -845,38 +862,35 @@ class PaymentControl():
         partnerObj = bucketTypeObj.partnerId
 
         html_message = partnerObj.activationEmailInstructionText % (
-                # kwargs['partnerLogo'],
-                "",
-                "John Doe",
+                kwargs['partnerLogo'],
+                kwargs['name'],
                 kwargs['partnerName'],
                 listr,
-                # kwargs['loginUrl'],
-                "",
+                kwargs['loginUrl'],
                 kwargs['partnerName'],
                 kwargs['partnerName'],
-                # kwargs['registerUrl'],
-                "",
-                # kwargs['subscriptionDescription'],
-                "",
+                kwargs['registerUrl'],
+                kwargs['subscriptionDescription'],
                 kwargs['institute'],
-                # kwargs['subscriptionTerm'],
-                "",
-                # kwargs['subscriptionQuantity'],
-                "",
+                kwargs['subscriptionTerm'],
+                kwargs['subscriptionQuantity'],
                 kwargs['payment'],
                 kwargs['transactionId'],
-                # kwargs['other'],
-                "",
-                "")
+                kwargs['other'],
+                """
+                """+kwargs['addr1']+""",<br>
+                """+kwargs['addr2']+""",<br>
+                """+kwargs['addr3']+"""<br>
+                """)
 
         subject = kwargs['subject']
         from_email = kwargs['senderEmail']
         recipient_list = kwargs['recipientEmails']
-        logger.info("------Sending activation code email------")
-        logger.info("Receipient: %s" % recipient_list[0])
-        logger.info("ActivationCodes:")
-        for l in kwargs['accessCodes']:
-            logger.info(l)
+        # logger.info("------Sending bucket purchase activation code email------")
+        # logger.info("Receipient: %s" % recipient_list[0])
+        # logger.info("ActivationCodes:")
+        # for l in kwargs['accessCodes']:
+        #     logger.info(l)
         try:
             send_mail(subject=subject, from_email=from_email, recipient_list=recipient_list, html_message=html_message, message=None)
             pass
