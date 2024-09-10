@@ -5,6 +5,7 @@ from django.http import HttpResponse, StreamingHttpResponse
 from subscription.controls import PaymentControl, SubscriptionControl
 from subscription.models import *
 from subscription.serializers import *
+from authorization.models import UriPattern
 
 from partner.models import Partner, SubscriptionTerm, BucketType
 from party.models import Party, ImageInfo
@@ -30,12 +31,16 @@ import random, string
 import hashlib
 import datetime
 import csv
+import re
 
 from django.conf import settings
 
 from django.core.mail import send_mail
 
 from django.utils import timezone
+
+from django.shortcuts import get_object_or_404
+from .models import UserBucketUsage
 
 import uuid
 
@@ -991,3 +996,75 @@ class UsageTierPayment(APIView):
         if 'message' in message:
             status = 400
         return HttpResponse(json.dumps(message), content_type="application/json", status=status)
+
+
+## New APIs for individual 
+# def is_paid_page(uri):
+#     patterns = UriPattern.objects.values_list('pattern', flat=True)
+#     return any(re.match(pattern, uri) for pattern in patterns)
+
+class CheckLimit(APIView):
+    requireApiKey = False
+
+    def get(self, request):
+        # timestamp = request.GET.get('timestamp')
+        # complete_uri = request.GET.get('complete_uri')
+        party_id = request.GET.get('party_id')
+        logger.debug("CheckLimit view called")
+
+        if not all([party_id]):
+            return Response({"error": "Missing party_id parameter"}, status=status.HTTP_400_BAD_REQUEST)
+
+        logger.debug("all variables present")
+        # Check if the requested URI is a paid page
+        # if not is_paid_page(complete_uri):
+        #     return Response({"status": "ok", "message": "Free page access granted"})
+
+        # logger.debug("paid page")
+
+        try:
+            user_bucket = get_object_or_404(UserBucketUsage, partyId_id=party_id)
+            warningLimit = 5
+            if user_bucket.remaining_units > 0 and user_bucket.expiry_date > timezone.now():
+                if user_bucket.remaining_units < warningLimit:
+                    return Response({"status": "warning"})
+                else:
+                    return Response({"status": "ok"})
+            else:
+                return Response({"status": "block"})
+        except UserBucketUsage.DoesNotExist:
+            return Response({"status": "block"})
+
+checkLimit = CheckLimit.as_view()
+
+class Decrement(APIView):
+    requireApiKey = False
+
+    def post(self, request, pk):
+        party_id = request.data.get('party_id')
+        complete_uri = request.data.get('complete_uri')
+
+        if not all([party_id, complete_uri]):
+            return Response({"error": "Missing required parameters"}, status=status.HTTP_400_BAD_REQUEST)
+
+        # Check if the requested URI is a paid page
+        if not is_paid_page(complete_uri):
+            return Response({"message": "Free page access, no decrement needed"})
+
+        try:
+            user_bucket = get_object_or_404(UserBucketUsage, partyId=party_id)
+            
+            if user_bucket.remaining_units > 0:
+                user_bucket.remaining_units -= 1
+                user_bucket.save()
+                return Response({"message": "Successfully decremented remaining units"})
+            else:
+                return Response({"error": "No remaining units to decrement"}, status=status.HTTP_400_BAD_REQUEST)
+        except UserBucketUsage.DoesNotExist:
+            return Response({"error": "User bucket usage not found"}, status=status.HTTP_404_NOT_FOUND)
+        
+decrement = Decrement.as_view()
+
+
+def test_view(request):
+    return HttpResponse("Test view is working")
