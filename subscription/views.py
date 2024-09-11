@@ -1010,12 +1010,12 @@ class CheckLimit(APIView):
         # timestamp = request.GET.get('timestamp')
         # complete_uri = request.GET.get('complete_uri')
         party_id = request.GET.get('party_id')
-        logger.debug("CheckLimit view called")
+        # logger.debug("CheckLimit view called")
 
         if not all([party_id]):
             return Response({"error": "Missing party_id parameter"}, status=status.HTTP_400_BAD_REQUEST)
 
-        logger.debug("all variables present")
+        # logger.debug("all variables present")
         # Check if the requested URI is a paid page
         # if not is_paid_page(complete_uri):
         #     return Response({"status": "ok", "message": "Free page access granted"})
@@ -1040,16 +1040,16 @@ checkLimit = CheckLimit.as_view()
 class Decrement(APIView):
     requireApiKey = False
 
-    def post(self, request, pk):
-        party_id = request.data.get('party_id')
-        complete_uri = request.data.get('complete_uri')
+    def post(self, request):
+        party_id = request.GET.get('party_id')
+        # complete_uri = request.data.get('complete_uri')
 
-        if not all([party_id, complete_uri]):
+        if not all([party_id]):
             return Response({"error": "Missing required parameters"}, status=status.HTTP_400_BAD_REQUEST)
 
         # Check if the requested URI is a paid page
-        if not is_paid_page(complete_uri):
-            return Response({"message": "Free page access, no decrement needed"})
+        # if not is_paid_page(complete_uri):
+        #     return Response({"message": "Free page access, no decrement needed"})
 
         try:
             user_bucket = get_object_or_404(UserBucketUsage, partyId=party_id)
@@ -1059,7 +1059,8 @@ class Decrement(APIView):
                 user_bucket.save()
                 return Response({"message": "Successfully decremented remaining units"})
             else:
-                return Response({"error": "No remaining units to decrement"}, status=status.HTTP_400_BAD_REQUEST)
+                return Response({"message": "No remaining units to decrement"})
+
         except UserBucketUsage.DoesNotExist:
             return Response({"error": "User bucket usage not found"}, status=status.HTTP_404_NOT_FOUND)
         
