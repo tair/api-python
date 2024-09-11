@@ -1027,13 +1027,13 @@ class CheckLimit(APIView):
             warningLimit = 5
             if user_bucket.remaining_units > 0 and user_bucket.expiry_date > timezone.now():
                 if user_bucket.remaining_units < warningLimit:
-                    return Response({"status": "warning"})
+                    return Response({"status": "Warn"})
                 else:
-                    return Response({"status": "ok"})
+                    return Response({"status": "OK"})
             else:
-                return Response({"status": "block"})
+                return Response({"status": "Blocked"})
         except UserBucketUsage.DoesNotExist:
-            return Response({"status": "block"})
+            return Response({"status": "Blocked"})
 
 checkLimit = CheckLimit.as_view()
 
