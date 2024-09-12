@@ -1026,7 +1026,7 @@ class CheckLimit(APIView):
             user_bucket = get_object_or_404(UserBucketUsage, partyId_id=party_id)
             warningLimit = 5
             if user_bucket.remaining_units > 0 and user_bucket.expiry_date > timezone.now():
-                if user_bucket.remaining_units < warningLimit:
+                if user_bucket.remaining_units == warningLimit:
                     return Response({"status": "Warn"})
                 else:
                     return Response({"status": "OK"})
