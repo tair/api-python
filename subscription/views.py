@@ -999,39 +999,109 @@ class UsageTierPayment(APIView):
 
 
 ## New APIs for individual 
-# def is_paid_page(uri):
-#     patterns = UriPattern.objects.values_list('pattern', flat=True)
-#     return any(re.match(pattern, uri) for pattern in patterns)
+# def is_premium_page(url):
+#     premium_urls = PremiumUsageUnits.objects.values_list('url', flat=True)
+#     return any(re.match(premium_url, url) for premium_url in premium_urls)
+
+def get_premium_units(url):
+    try:
+        premium_page = PremiumUsageUnits.objects.get(url=url)
+        return premium_page.units_consumed
+    except PremiumUsageUnits.DoesNotExist:
+        # If no exact match, try regex matching
+        for premium_page in PremiumUsageUnits.objects.all():
+            if re.match(premium_page.url, url):
+                return premium_page.units_consumed
+    return 1  # Default to 1 unit if not found in PremiumUsageUnits
+
+# class CheckLimit(APIView):
+#     requireApiKey = False
+
+#     def get(self, request):
+#         # timestamp = request.GET.get('timestamp')
+#         complete_uri = request.GET.get('complete_uri')
+#         party_id = request.GET.get('party_id')
+#         # logger.debug("CheckLimit view called")
+
+#         if not all([party_id, complete_uri]):
+#             return Response({"error": "Missing party_id parameter"}, status=status.HTTP_400_BAD_REQUEST)
+
+#         # logger.debug("all variables present")
+#         # Check if the requested URI is a paid page
+#         # if not is_paid_page(complete_uri):
+#         #     return Response({"status": "ok", "message": "Free page access granted"})
+
+#         # logger.debug("paid page")
+
+#         try:
+#             user_bucket = get_object_or_404(UserBucketUsage, partyId_id=party_id)
+#             warningLimit = 5
+#             if user_bucket.remaining_units > 0 and user_bucket.expiry_date > timezone.now():
+#                 if user_bucket.remaining_units == warningLimit:
+#                     return Response({"status": "Warning"})
+#                 else:
+#                     return Response({"status": "OK"})
+#             else:
+#                 return Response({"status": "Block"})
+#         except UserBucketUsage.DoesNotExist:
+#             return Response({"status": "Block"})
+
+# checkLimit = CheckLimit.as_view()
+
+# class Decrement(APIView):
+#     requireApiKey = False
+
+#     def post(self, request):
+#         party_id = request.GET.get('party_id')
+#         complete_uri = request.data.get('complete_uri')
+
+#         if not all([party_id, complete_uri]):
+#             return Response({"error": "Missing required parameters"}, status=status.HTTP_400_BAD_REQUEST)
+
+#         # Check if the requested URI is a paid page
+#         # if not is_paid_page(complete_uri):
+#         #     return Response({"message": "Free page access, no decrement needed"})
+
+#         try:
+#             user_bucket = get_object_or_404(UserBucketUsage, partyId=party_id)
+            
+#             if user_bucket.remaining_units > 0:
+#                 user_bucket.remaining_units -= 1
+#                 user_bucket.save()
+#                 return Response({"message": "Successfully decremented remaining units"})
+#             else:
+#                 return Response({"message": "No remaining units to decrement"})
+
+#         except UserBucketUsage.DoesNotExist:
+#             return Response({"error": "User bucket usage not found"}, status=status.HTTP_404_NOT_FOUND)
+        
+# decrement = Decrement.as_view()
 
 class CheckLimit(APIView):
     requireApiKey = False
 
     def get(self, request):
-        # timestamp = request.GET.get('timestamp')
-        # complete_uri = request.GET.get('complete_uri')
+        complete_uri = request.GET.get('uri')
         party_id = request.GET.get('party_id')
-        # logger.debug("CheckLimit view called")
 
-        if not all([party_id]):
-            return Response({"error": "Missing party_id parameter"}, status=status.HTTP_400_BAD_REQUEST)
+        if not all([party_id, complete_uri]):
+            return Response({"error": "Missing required parameters"}, status=status.HTTP_400_BAD_REQUEST)
 
-        # logger.debug("all variables present")
-        # Check if the requested URI is a paid page
-        # if not is_paid_page(complete_uri):
-        #     return Response({"status": "ok", "message": "Free page access granted"})
-
-        # logger.debug("paid page")
+        units_required = get_premium_units(complete_uri)
+        warningLimit = 5
 
         try:
             user_bucket = get_object_or_404(UserBucketUsage, partyId_id=party_id)
-            warningLimit = 5
-            if user_bucket.remaining_units > 0 and user_bucket.expiry_date > timezone.now():
+            if user_bucket.remaining_units >= units_required and user_bucket.expiry_date > timezone.now():
                 if user_bucket.remaining_units == warningLimit:
                     return Response({"status": "Warning"})
                 else:
                     return Response({"status": "OK"})
             else:
-                return Response({"status": "Block"})
+                if units_required > 1:
+                    return Response({"status": "BlackListBlock"})
+                else:
+                    return Response({"status": "Block"})
         except UserBucketUsage.DoesNotExist:
             return Response({"status": "Block"})
 
@@ -1042,20 +1112,18 @@ class Decrement(APIView):
 
     def post(self, request):
         party_id = request.GET.get('party_id')
-        # complete_uri = request.data.get('complete_uri')
+        complete_uri = request.GET.get('uri')
 
-        if not all([party_id]):
+        if not all([party_id, complete_uri]):
             return Response({"error": "Missing required parameters"}, status=status.HTTP_400_BAD_REQUEST)
 
-        # Check if the requested URI is a paid page
-        # if not is_paid_page(complete_uri):
-        #     return Response({"message": "Free page access, no decrement needed"})
+        units_required = get_premium_units(complete_uri)
 
         try:
             user_bucket = get_object_or_404(UserBucketUsage, partyId=party_id)
             
-            if user_bucket.remaining_units > 0:
-                user_bucket.remaining_units -= 1
+            if user_bucket.remaining_units >= units_required:
+                user_bucket.remaining_units -= units_required
                 user_bucket.save()
                 return Response({"message": "Successfully decremented remaining units"})
             else:
@@ -1065,7 +1133,6 @@ class Decrement(APIView):
             return Response({"error": "User bucket usage not found"}, status=status.HTTP_404_NOT_FOUND)
         
 decrement = Decrement.as_view()
-
 
 def test_view(request):
     return HttpResponse("Test view is working")
