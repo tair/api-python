@@ -25,6 +25,14 @@ class UserBucketUsage(models.Model):
     class Meta:
         db_table = 'UserBucketUsage'
 
+class PremiumUsageUnits(models.Model):
+    id = models.AutoField(primary_key=True)
+    url = models.CharField(max_length=255)
+    units_consumed = models.IntegerField()
+
+    class Meta:
+        db_table = 'PremiumUsageUnits'
+
 class BucketTransaction(models.Model):
     bucket_transaction_id = models.AutoField(primary_key=True)
     transaction_date = models.DateTimeField(null=False)
