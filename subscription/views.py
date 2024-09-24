@@ -1004,6 +1004,8 @@ class UsageTierPayment(APIView):
 #     return any(re.match(premium_url, url) for premium_url in premium_urls)
 
 def get_premium_units(url):
+    logger.debug("get_premium_units")
+    logger.debug(url)
     try:
         premium_page = PremiumUsageUnits.objects.get(url=url)
         return premium_page.units_consumed
