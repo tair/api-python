@@ -1004,16 +1004,35 @@ class UsageTierPayment(APIView):
 #     premium_urls = PremiumUsageUnits.objects.values_list('url', flat=True)
 #     return any(re.match(premium_url, url) for premium_url in premium_urls)
 
+# def get_premium_units(url):
+#     logger.debug("get_premium_units "+url)
+#     try:
+#         premium_page = PremiumUsageUnits.objects.get(url=url)
+#         return premium_page.units_consumed
+#     except PremiumUsageUnits.DoesNotExist:
+#         # If no exact match, try regex matching
+#         for premium_page in PremiumUsageUnits.objects.all():
+#             if re.match(premium_page.url, url):
+#                 return premium_page.units_consumed
+#     return 1  # Default to 1 unit if not found in PremiumUsageUnits
+
 def get_premium_units(url):
-    logger.debug("get_premium_units "+url)
+    logger.debug("get_premium_units " + url)
     try:
+        # First, try an exact match
         premium_page = PremiumUsageUnits.objects.get(url=url)
         return premium_page.units_consumed
     except PremiumUsageUnits.DoesNotExist:
-        # If no exact match, try regex matching
+        # If no exact match, try containment check
+        for premium_page in PremiumUsageUnits.objects.all():
+            if premium_page.url in url:
+                return premium_page.units_consumed
+        
+        # If still no match, try regex matching as a fallback
         for premium_page in PremiumUsageUnits.objects.all():
             if re.match(premium_page.url, url):
                 return premium_page.units_consumed
+    
     return 1  # Default to 1 unit if not found in PremiumUsageUnits
 
 class CheckLimit(APIView):
