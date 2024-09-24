@@ -6,7 +6,7 @@ from subscription.controls import PaymentControl, SubscriptionControl
 from subscription.models import *
 from subscription.serializers import *
 from authorization.models import UriPattern
-
+from metering.models import LimitValue
 from partner.models import Partner, SubscriptionTerm, BucketType
 from party.models import Party, ImageInfo
 from party.serializers import PartySerializer
@@ -21,6 +21,7 @@ from common.views import GenericCRUDView
 from common.permissions import isPhoenix
 from common.common import getRemoteIpAddress
 from common.utils.cyverseUtils import CyVerseClient
+from django.core.exceptions import ObjectDoesNotExist
 
 from django.shortcuts import render
 from django.utils.encoding import smart_str
@@ -1004,8 +1005,7 @@ class UsageTierPayment(APIView):
 #     return any(re.match(premium_url, url) for premium_url in premium_urls)
 
 def get_premium_units(url):
-    logger.debug("get_premium_units")
-    logger.debug(url)
+    logger.debug("get_premium_units "+url)
     try:
         premium_page = PremiumUsageUnits.objects.get(url=url)
         return premium_page.units_consumed
@@ -1015,69 +1015,6 @@ def get_premium_units(url):
             if re.match(premium_page.url, url):
                 return premium_page.units_consumed
     return 1  # Default to 1 unit if not found in PremiumUsageUnits
-
-# class CheckLimit(APIView):
-#     requireApiKey = False
-
-#     def get(self, request):
-#         # timestamp = request.GET.get('timestamp')
-#         complete_uri = request.GET.get('complete_uri')
-#         party_id = request.GET.get('party_id')
-#         # logger.debug("CheckLimit view called")
-
-#         if not all([party_id, complete_uri]):
-#             return Response({"error": "Missing party_id parameter"}, status=status.HTTP_400_BAD_REQUEST)
-
-#         # logger.debug("all variables present")
-#         # Check if the requested URI is a paid page
-#         # if not is_paid_page(complete_uri):
-#         #     return Response({"status": "ok", "message": "Free page access granted"})
-
-#         # logger.debug("paid page")
-
-#         try:
-#             user_bucket = get_object_or_404(UserBucketUsage, partyId_id=party_id)
-#             warningLimit = 5
-#             if user_bucket.remaining_units > 0 and user_bucket.expiry_date > timezone.now():
-#                 if user_bucket.remaining_units == warningLimit:
-#                     return Response({"status": "Warning"})
-#                 else:
-#                     return Response({"status": "OK"})
-#             else:
-#                 return Response({"status": "Block"})
-#         except UserBucketUsage.DoesNotExist:
-#             return Response({"status": "Block"})
-
-# checkLimit = CheckLimit.as_view()
-
-# class Decrement(APIView):
-#     requireApiKey = False
-
-#     def post(self, request):
-#         party_id = request.GET.get('party_id')
-#         complete_uri = request.data.get('complete_uri')
-
-#         if not all([party_id, complete_uri]):
-#             return Response({"error": "Missing required parameters"}, status=status.HTTP_400_BAD_REQUEST)
-
-#         # Check if the requested URI is a paid page
-#         # if not is_paid_page(complete_uri):
-#         #     return Response({"message": "Free page access, no decrement needed"})
-
-#         try:
-#             user_bucket = get_object_or_404(UserBucketUsage, partyId=party_id)
-            
-#             if user_bucket.remaining_units > 0:
-#                 user_bucket.remaining_units -= 1
-#                 user_bucket.save()
-#                 return Response({"message": "Successfully decremented remaining units"})
-#             else:
-#                 return Response({"message": "No remaining units to decrement"})
-
-#         except UserBucketUsage.DoesNotExist:
-#             return Response({"error": "User bucket usage not found"}, status=status.HTTP_404_NOT_FOUND)
-        
-# decrement = Decrement.as_view()
 
 class CheckLimit(APIView):
     requireApiKey = False
@@ -1090,10 +1027,15 @@ class CheckLimit(APIView):
             return Response({"error": "Missing required parameters"}, status=status.HTTP_400_BAD_REQUEST)
 
         units_required = get_premium_units(complete_uri)
-        warningLimit = 5
-
+        
         try:
-            user_bucket = get_object_or_404(UserBucketUsage, partyId_id=party_id)
+            limit_value_object = LimitValue.objects.get(limitId=1)
+            warningLimit = limit_value_object.val
+        except LimitValue.DoesNotExist:
+            return Response({"error": "Warning limit not found in the database"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+        
+        try:
+            user_bucket = UserBucketUsage.objects.get(partyId_id=party_id)
             if user_bucket.remaining_units >= units_required and user_bucket.expiry_date > timezone.now():
                 if user_bucket.remaining_units == warningLimit:
                     return Response({"status": "Warning"})
@@ -1105,7 +1047,7 @@ class CheckLimit(APIView):
                 else:
                     return Response({"status": "Block"})
         except UserBucketUsage.DoesNotExist:
-            return Response({"status": "Block"})
+            return Response({"status": "Block", "error": "bucket not found for user"})
 
 checkLimit = CheckLimit.as_view()
 
@@ -1122,8 +1064,7 @@ class Decrement(APIView):
         units_required = get_premium_units(complete_uri)
 
         try:
-            user_bucket = get_object_or_404(UserBucketUsage, partyId=party_id)
-            
+            user_bucket = UserBucketUsage.objects.get(partyId_id=party_id)
             if user_bucket.remaining_units >= units_required:
                 user_bucket.remaining_units -= units_required
                 user_bucket.save()
