@@ -69,7 +69,7 @@ class BucketType(models.Model):
     price = models.DecimalField(decimal_places=2, max_digits=6)
     partnerId = models.ForeignKey('partner.Partner', db_column="partnerId")
     description = models.CharField(max_length=200)
-    refillable = models.BooleanField()
+    discountPercentage = models.IntegerField()
 
     class Meta:
         db_table = "BucketType"
