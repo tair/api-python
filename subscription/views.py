@@ -1086,9 +1086,9 @@ class CheckLimit(APIView):
     def get(self, request):
         complete_uri = request.GET.get('uri')
         party_id = request.GET.get('party_id')
-        partnerId = request.GET.get('partnerId')
+        partnerId = request.GET.get('partner_id')
 
-        if not all([party_id, complete_uri]):
+        if not all([party_id, complete_uri, partnerId]):
             return Response({"error": "Missing required parameters"}, status=status.HTTP_400_BAD_REQUEST)
 
         units_required = get_usage_units(complete_uri)
