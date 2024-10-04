@@ -53,6 +53,16 @@ logger = logging.getLogger('phoenix.api.subscription')
 # Basic CRUD operation for Subscriptions, and SubscriptionTransactions
 
 # /
+
+# Define status labels as constants
+STATUS_WARNING = "Warning"
+STATUS_OK = "OK"
+STATUS_BLACKLIST_BLOCK = "BlackListBlock"
+STATUS_BLOCK = "Block"
+ERROR_BUCKET_NOT_FOUND = "bucket not found for user"
+FREE_ACCESS_UNIT = 0
+PAID_ACCESS_UNIT = 1
+
 class SubscriptionCRUD(GenericCRUDView):
     queryset = Subscription.objects.all()
     serializer_class = SubscriptionSerializer
@@ -1016,24 +1026,59 @@ class UsageTierPayment(APIView):
 #                 return premium_page.units_consumed
 #     return 1  # Default to 1 unit if not found in PremiumUsageUnits
 
-def get_premium_units(url):
-    logger.debug("get_premium_units " + url)
+# def get_usage_units(url):
+    # logger.debug("get_premium_units " + url)
+    # try:
+    #     # First, try an exact match
+    #     premium_page = PremiumUsageUnits.objects.get(url=url)
+    #     return premium_page.units_consumed
+    # except PremiumUsageUnits.DoesNotExist:
+    #     # If no exact match, try containment check
+    #     for premium_page in PremiumUsageUnits.objects.all():
+    #         if premium_page.url in url:
+    #             return premium_page.units_consumed
+        
+    #     # If still no match, try regex matching as a fallback
+    #     for premium_page in PremiumUsageUnits.objects.all():
+    #         if re.match(premium_page.url, url):
+    #             return premium_page.units_consumed
+    
+    # return 1  # Default to 1 unit if not found in PremiumUsageUnits
+
+def get_usage_units(url):
+    logger.debug("get_usage_units_from_uri_pattern: %s" % url)
+
+    uri_pattern_object = None
+
+    # Step 1: Attempt to find a match in UriPattern table using regex matching
+    for pattern_entry in UriPattern.objects.all():
+        try:
+            # Compile the pattern from the UriPattern table
+            regex_pattern = re.compile(pattern_entry.pattern)
+            # Match the full URL against the compiled pattern
+            if regex_pattern.search(url):
+                uri_pattern_object = pattern_entry
+                logger.debug("Match found for pattern: %s" % pattern_entry.pattern)
+                break
+        except re.error as e:
+            logger.error("Regex compilation failed for pattern: %s with error: %s" % (pattern_entry.pattern, e))
+
+    # If no match is found in UriPattern table, return 0
+    if not uri_pattern_object:
+        logger.debug("No matching pattern found in UriPattern table.")
+        return FREE_ACCESS_UNIT
+
+    # Step 2: Look up usage units from PremiumUsageUnits using the found UriPattern entry
     try:
-        # First, try an exact match
-        premium_page = PremiumUsageUnits.objects.get(url=url)
+        # Use the foreign key relationship to look up units_consumed in PremiumUsageUnits
+        premium_page = PremiumUsageUnits.objects.get(pattern_object=uri_pattern_object)
+        logger.debug("Units found for matched pattern: %d" % premium_page.units_consumed)
         return premium_page.units_consumed
     except PremiumUsageUnits.DoesNotExist:
-        # If no exact match, try containment check
-        for premium_page in PremiumUsageUnits.objects.all():
-            if premium_page.url in url:
-                return premium_page.units_consumed
-        
-        # If still no match, try regex matching as a fallback
-        for premium_page in PremiumUsageUnits.objects.all():
-            if re.match(premium_page.url, url):
-                return premium_page.units_consumed
-    
-    return 1  # Default to 1 unit if not found in PremiumUsageUnits
+        # If no specific PremiumUsageUnits entry is found, return default value of 1
+        logger.debug("No PremiumUsageUnits entry found for pattern id: %d. Defaulting to 1 unit." % uri_pattern_object.patternId)
+        return PAID_ACCESS_UNIT
+
 
 class CheckLimit(APIView):
     requireApiKey = False
@@ -1041,14 +1086,15 @@ class CheckLimit(APIView):
     def get(self, request):
         complete_uri = request.GET.get('uri')
         party_id = request.GET.get('party_id')
+        partnerId = request.GET.get('partnerId')
 
         if not all([party_id, complete_uri]):
             return Response({"error": "Missing required parameters"}, status=status.HTTP_400_BAD_REQUEST)
 
-        units_required = get_premium_units(complete_uri)
-        
+        units_required = get_usage_units(complete_uri)
+        logger.debug("units_required: " + str(units_required))
         try:
-            limit_value_object = LimitValue.objects.get(limitId=1)
+            limit_value_object = LimitValue.objects.get(partnerId=partnerId)
             warningLimit = limit_value_object.val
         except LimitValue.DoesNotExist:
             return Response({"error": "Warning limit not found in the database"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
@@ -1057,16 +1103,16 @@ class CheckLimit(APIView):
             user_bucket = UserBucketUsage.objects.get(partyId_id=party_id)
             if user_bucket.remaining_units >= units_required and user_bucket.expiry_date > timezone.now():
                 if user_bucket.remaining_units == warningLimit:
-                    return Response({"status": "Warning"})
+                    return Response({"status": STATUS_WARNING})
                 else:
-                    return Response({"status": "OK"})
+                    return Response({"status": STATUS_OK})
             else:
-                if units_required > 1:
-                    return Response({"status": "BlackListBlock"})
+                if units_required > PAID_ACCESS_UNIT:
+                    return Response({"status": STATUS_BLACKLIST_BLOCK})
                 else:
-                    return Response({"status": "Block"})
+                    return Response({"status": STATUS_BLOCK})
         except UserBucketUsage.DoesNotExist:
-            return Response({"status": "Block", "error": "bucket not found for user"})
+            return Response({"status": STATUS_BLOCK, "error": ERROR_BUCKET_NOT_FOUND})
 
 checkLimit = CheckLimit.as_view()
 
@@ -1080,7 +1126,7 @@ class Decrement(APIView):
         if not all([party_id, complete_uri]):
             return Response({"error": "Missing required parameters"}, status=status.HTTP_400_BAD_REQUEST)
 
-        units_required = get_premium_units(complete_uri)
+        units_required = get_usage_units(complete_uri)
 
         try:
             user_bucket = UserBucketUsage.objects.get(partyId_id=party_id)
