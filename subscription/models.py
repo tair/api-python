@@ -6,7 +6,7 @@ from django.db import connection
 from django.utils import timezone
 from datetime import timedelta
 from party.models import Party
-
+from authorization.models import UriPattern
 from datetime import datetime
 
 # Create your models here.
@@ -27,7 +27,7 @@ class UserBucketUsage(models.Model):
 
 class PremiumUsageUnits(models.Model):
     id = models.AutoField(primary_key=True)
-    url = models.CharField(max_length=255)
+    pattern_object = models.ForeignKey(UriPattern, on_delete=models.CASCADE, db_column='patternId')  
     units_consumed = models.IntegerField()
 
     class Meta:
