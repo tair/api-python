@@ -62,6 +62,7 @@ STATUS_BLOCK = "Block"
 ERROR_BUCKET_NOT_FOUND = "bucket not found for user"
 FREE_ACCESS_UNIT = 0
 PAID_ACCESS_UNIT = 1
+PAID_PAGE_DB_VALUE = 1
 
 class SubscriptionCRUD(GenericCRUDView):
     queryset = Subscription.objects.all()
@@ -1049,9 +1050,10 @@ def get_usage_units(url):
     logger.debug("get_usage_units_from_uri_pattern: %s" % url)
 
     uri_pattern_object = None
+    paid_patterns = UriPattern.objects.filter(accessrule__accessTypeId_id=PAID_PAGE_DB_VALUE)
 
     # Step 1: Attempt to find a match in UriPattern table using regex matching
-    for pattern_entry in UriPattern.objects.all():
+    for pattern_entry in paid_patterns:
         try:
             # Compile the pattern from the UriPattern table
             regex_pattern = re.compile(pattern_entry.pattern)
@@ -1094,7 +1096,7 @@ class CheckLimit(APIView):
         units_required = get_usage_units(complete_uri)
         logger.debug("units_required: " + str(units_required))
         try:
-            limit_value_object = LimitValue.objects.get(partnerId=partnerId)
+            limit_value_object = LimitValue.objects.filter(partnerId=partnerId).first()
             warningLimit = limit_value_object.val
         except LimitValue.DoesNotExist:
             return Response({"error": "Warning limit not found in the database"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
