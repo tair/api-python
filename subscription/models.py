@@ -6,13 +6,44 @@ from django.db import connection
 from django.utils import timezone
 from datetime import timedelta
 from party.models import Party
-
+from authorization.models import UriPattern
 from datetime import datetime
 
 # Create your models here.
 class NumericField(models.Field):
     def db_type(self, connection):
         return 'numeric'
+
+class UserBucketUsage(models.Model):
+    user_usage_id = models.AutoField(primary_key=True)
+    partyId = models.OneToOneField("party.Party", null=True, on_delete=models.SET_NULL, db_column="partyId_id", related_name='user_bucket_usage')
+    total_units = models.IntegerField(null=False)
+    remaining_units = models.IntegerField(null=False)
+    expiry_date = models.DateTimeField(null=False)
+    partner_id = models.CharField(max_length=200, null=False)
+
+    class Meta:
+        db_table = 'UserBucketUsage'
+
+class PremiumUsageUnits(models.Model):
+    id = models.AutoField(primary_key=True)
+    pattern_object = models.ForeignKey(UriPattern, on_delete=models.CASCADE, db_column='patternId')  
+    units_consumed = models.IntegerField()
+
+    class Meta:
+        db_table = 'PremiumUsageUnits'
+
+class BucketTransaction(models.Model):
+    bucket_transaction_id = models.AutoField(primary_key=True)
+    transaction_date = models.DateTimeField(null=False)
+    partyId_purchased = models.ForeignKey("party.Party", on_delete=models.CASCADE, db_column="partyId_purchased")
+    bucket_type_id = models.IntegerField(null=False)
+    activation_code_id = models.IntegerField(null=False)
+    units_per_bucket = models.IntegerField(null=False)
+    transaction_type = models.CharField(max_length=200, null=False)
+
+    class Meta:
+        db_table = 'BucketTransaction'
 
 class Subscription(models.Model):
     subscriptionId = models.AutoField(primary_key=True)

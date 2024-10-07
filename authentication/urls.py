@@ -11,6 +11,10 @@ urlpatterns = [
     url(r'^profile/$', views.profile.as_view(), name='profile'),
     url(r'^getUsernames/$', views.getUsernameCRUD.as_view(), name='getUsernames'),
     url(r'^checkAccountExists$', views.checkAccountExists, name='checkAccountExists'),
+    url(r'^checkOrcid/$', views.checkOrcid, name='checkOrcid'),
+    url(r'^getUserIdentifierByOrcid/$', views.getUserIdentifierByOrcid, name='getUserIdentifierByOrcid'),
+    url(r'^addOrcidCredentials/$', views.addOrcidCredentials, name='addOrcidCredentials'),
+    url(r'^authenticateOrcid/$', views.authenticateOrcid, name='authenticateOrcid'),
 ]
 
 urlpatterns = format_suffix_patterns(urlpatterns)

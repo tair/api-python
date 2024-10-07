@@ -10,10 +10,13 @@ urlpatterns = [
     url(r'^transactions/$', views.SubscriptionTransactionCRUD.as_view()),
     url(r'^activationCodes/$', views.ActivationCodeCRUD.as_view()),
     url(r'^$', views.SubscriptionCRUD.as_view()),
+	url(r'^bucket/', views.BucketTransactionCRUD.as_view()),
+	url(r'^bucket_usage/$', views.UserBucketUsageCRUD.as_view()),
 
     # Specific queries about subscription
     url(r'^(?P<pk>[0-9.]+)/renewal/$', views.SubscriptionRenewal.as_view()),
     url(r'^payments/$', views.SubscriptionsPayment.as_view()),
+	url(r'^payments_bucket/$', views.SubsctiptionBucketPayment.as_view()),
     url(r'^institutions/$', views.InstitutionSubscription.as_view()),
     url(r'^commercials/$', views.CommercialSubscription.as_view()),
     url(r'^enddate/$', views.EndDate.as_view()),
@@ -43,5 +46,11 @@ urlpatterns = [
     # url(r'^templates/login/$', TemplateView.as_view(template_name="subscription/login.html")),
     
     url(r'^templates/warn/$', TemplateView.as_view(template_name="subscription/warn.html")),
+
+    # New API endpoints for TAIR3-466
+    url(r'^limit/$', views.checkLimit, name='checkLimit'),
+    url(r'^decrement/$', views.decrement, name='decrement'),
+    url(r'^test/$', views.test_view, name='test_view'),
+
 ]
 urlpatterns = format_suffix_patterns(urlpatterns)

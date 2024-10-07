@@ -4,8 +4,8 @@ from django.http import HttpResponse
 from rest_framework.views import APIView
 from rest_framework import generics
 
-from models import Partner, PartnerPattern, SubscriptionTerm, SubscriptionDescription, SubscriptionDescriptionItem
-from serializers import PartnerSerializer, PartnerPatternSerializer, SubscriptionTermSerializer, SubscriptionDescriptionSerializer, SubscriptionDescriptionItemSerializer
+from models import Partner, PartnerPattern, SubscriptionTerm, BucketType, SubscriptionDescription, SubscriptionDescriptionItem
+from serializers import PartnerSerializer, PartnerPatternSerializer, SubscriptionTermSerializer, BucketTypeSerializer, SubscriptionDescriptionSerializer, SubscriptionDescriptionItemSerializer
 
 import json
 
@@ -15,6 +15,9 @@ from rest_framework import status
 from rest_framework.response import Response
 
 import re
+
+import logging
+logger = logging.getLogger('phoenix.api.partner')
 
 # top level: /partners/
 
@@ -66,11 +69,28 @@ class PartnerPatternCRUD(GenericCRUDView):
         # serializer = PartnerPatternSerializer(partnerList, many=True)
         return Response({'msg':'cannot find matched url'}, status=status.HTTP_204_NO_CONTENT)
 
+class BucketTypeCRUD(GenericCRUDView):
+    queryset = BucketType.objects.all()
+    serializer_class = BucketTypeSerializer
+    requireApiKey = False
+    
+    def post(self, request):
+        return Response({'msg':'cannot create'}, status=status.HTTP_400_BAD_REQUEST)
+
+    def put(self, request):
+        return Response({'msg':'cannot update'}, status=status.HTTP_400_BAD_REQUEST)
+
+    def delete(self, request):
+        return Response({'msg':'cannot delete'}, status=status.HTTP_400_BAD_REQUEST)
 # /terms/
 class TermsCRUD(GenericCRUDView):
     queryset = SubscriptionTerm.objects.all()
     serializer_class = SubscriptionTermSerializer
     requireApiKey = False
+
+    def get(self, request):
+        logger.info("Get request for Terms")
+        return Response({"error":"Essential parameters needed."}, status=status.HTTP_400_BAD_REQUEST)
 
     def post(self, request):
         return Response({'msg':'cannot create'}, status=status.HTTP_400_BAD_REQUEST)
