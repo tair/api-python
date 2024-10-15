@@ -705,7 +705,7 @@ class PaymentControl():
             # Log the successful Stripe charge
             logger.info("Successful Stripe charge: {0}".format(json.dumps(charge)))
 
-            activationCodes = PaymentControl.postPaymentHandlingForBucket(bucketTypeId, quantity)
+            activationCodes = PaymentControl.postPaymentHandlingForBucket(bucketTypeId, quantity, email, institute)
             emailInfo = PaymentControl.getEmailInfoForBucketPurchase(activationCodes, "tair", bucketTypeId, quantity, 
             priceToCharge, charge.id, email, firstname, lastname, institute)
             # logger.info("Email info: {0}".format(json.dumps(emailInfo)))
@@ -998,7 +998,7 @@ class PaymentControl():
             return None
 
     @staticmethod
-    def postPaymentHandlingForBucket(bucketTypeId, quantity):
+    def postPaymentHandlingForBucket(bucketTypeId, quantity, email, institution):
         logger.info("bucketTypeId: %s, quantity: %s", bucketTypeId, quantity)
         if quantity > 99:
             logger.info("quantity is greater than 99")
@@ -1027,6 +1027,8 @@ class PaymentControl():
             bucketTransaction.transaction_date = now
             bucketTransaction.transaction_type = 'create_bucket'
             bucketTransaction.units_per_bucket = bucketTypeObj.units
+            bucketTransaction.email_buyer = email
+            bucketTransaction.institute_buyer = institution
 
             bucketTransaction.save()
         return codeArray

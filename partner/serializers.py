@@ -15,7 +15,7 @@ class PartnerSerializer(serializers.ModelSerializer):
 class BucketTypeSerializer(serializers.ModelSerializer):
     class Meta:
         model = BucketType
-        fields = '__all__'
+        fields =  ('bucketTypeId', 'units', 'price', 'partnerId', 'description', 'discountPercentage')
 
 class PartnerPatternSerializer(serializers.ModelSerializer):
     class Meta:

@@ -36,11 +36,12 @@ class PremiumUsageUnits(models.Model):
 class BucketTransaction(models.Model):
     bucket_transaction_id = models.AutoField(primary_key=True)
     transaction_date = models.DateTimeField(null=False)
-    partyId_purchased = models.ForeignKey("party.Party", on_delete=models.CASCADE, db_column="partyId_purchased")
     bucket_type_id = models.IntegerField(null=False)
     activation_code_id = models.IntegerField(null=False)
     units_per_bucket = models.IntegerField(null=False)
     transaction_type = models.CharField(max_length=200, null=False)
+    email_buyer = models.CharField(max_length=200, null=False)
+    institute_buyer = models.CharField(max_length=200, null=False)
 
     class Meta:
         db_table = 'BucketTransaction'
