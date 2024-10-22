@@ -264,3 +264,9 @@ CYVERSE_ADDON_API_URL = "https://de.cyverse.org/terrain/service/qms/subscription
 # Email Subject for CyVerse purchase
 CYVERSE_PURCHASE_EMAIL_SUBJECT = 'New Subscription Purchase'
 CYVERSE_ADMINS = ['techteam@phoenixbioinformatics.org', 'support@cyverse.org']
+
+# ORCID DETAILS
+ORCID_DOMAIN=""
+ORCID_CLIENT_ID=""
+ORCID_CLIENT_SECRET=""
+ORCID_REDIRECT_URL=""
