@@ -276,7 +276,7 @@ def login(request):
 
         for dbUser in dbUserList:
 
-            logger.info("Authentication Login dbUser %s requestUser %s pwd %s" % (dbUser.username,requestUser,requestHashedPassword))
+            # logger.info("Authentication Login dbUser %s requestUser %s pwd %s" % (dbUser.username,requestUser,requestHashedPassword))
 
             #if user not found then continue
             if dbUser.username.lower() != requestUser.lower():
@@ -304,7 +304,7 @@ def login(request):
                 logger.info(msg)
                 return response
 
-        logger.info("Authentication Login end of loop")
+        # logger.info("Authentication Login end of loop")
     #}end of if not empty list
     #if we did not return from above and we are here, then it's an error.
     #print last error msg from the loop and return 401 response
