@@ -1163,5 +1163,27 @@ class AddFreeUsageUnits(APIView):
 
 add_free = AddFreeUsageUnits.as_view()
 
+# /track_page
+class TrackPage(APIView):
+    requireApiKey = False
+    serializer_class = UserTrackPagesSerializer
+
+    def post(self, request):
+        party_id = request.GET.get('party_id')
+        complete_uri = request.GET.get('uri')
+
+        if not all([party_id, complete_uri]):
+            return Response({"error": "Missing required parameters"}, status=status.HTTP_400_BAD_REQUEST)
+        try:
+            now = timezone.now()
+            logger.info("TrackPage: %s", complete_uri)
+            
+            pageStatus = SubscriptionControl.checkTrackingPage(party_id, complete_uri)
+            return Response(pageStatus, status=status.HTTP_201_CREATED)
+        except Exception as e:
+            return Response("Unexpected error AddFreeUsageUnits: {0}".format(str(e)))
+
+track_page = TrackPage.as_view()
+
 def test_view(request):
     return HttpResponse("Test view is working")

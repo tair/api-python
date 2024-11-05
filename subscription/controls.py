@@ -121,6 +121,19 @@ class SubscriptionControl():
                 transactionEndDate = subscription.endDate
 
         return (subscription, transactionType, transactionStartDate, transactionEndDate)
+    
+    @staticmethod
+    def checkTrackingPage(partyId, uri):
+        now = timezone.now()
+        trackPagesSet = UserTrackPages.objects.all().filter(partyId=partyId, uri=uri)
+        if len(trackPagesSet) == 0:
+            trackPage = UserTrackPages()
+            trackPage.partyId = partyId
+            trackPage.uri = uri
+            trackPage.timestamp = now
+            trackPage.save()
+            return "New"
+        return "Cached"
 
 class PaymentControl():
 

@@ -14,6 +14,15 @@ class NumericField(models.Field):
     def db_type(self, connection):
         return 'numeric'
 
+class UserTrackPages(models.Model):
+    userTrackPagesId = models.AutoField(primary_key=True)
+    partyId = models.IntegerField(null=False)
+    uri = models.CharField(max_length=2000)
+    timestamp = models.DateTimeField(null=False)
+
+    class Meta:
+        db_table = 'UserTrackPages'
+
 class UserBucketUsage(models.Model):
     user_usage_id = models.AutoField(primary_key=True)
     partyId = models.OneToOneField("party.Party", null=True, on_delete=models.SET_NULL, db_column="partyId_id", related_name='user_bucket_usage')

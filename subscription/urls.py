@@ -51,6 +51,7 @@ urlpatterns = [
     url(r'^test/$', views.test_view, name='test_view'),
     url(r'^limit/$', views.checkLimit, name='checkLimit'),
     url(r'^decrement/$', views.decrement, name='decrement'),
-	url(r'^add_free', views.add_free, name='add_free')
+	url(r'^add_free', views.add_free, name='add_free'),
+	url(r'^track_page', views.track_page, name='track_page')
 ]
 urlpatterns = format_suffix_patterns(urlpatterns)

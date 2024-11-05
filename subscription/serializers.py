@@ -5,6 +5,11 @@ from subscription.models import *
 from rest_framework import serializers
 from partner.models import Partner
 
+class UserTrackPagesSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = UserTrackPages
+        fields = ('userTrackPagesId', 'uri', 'timestamp', 'partyId')
+
 class UserBucketUsageSerializer(serializers.ModelSerializer):
     class Meta:
         model = UserBucketUsage
