@@ -745,7 +745,7 @@ class PaymentControl():
 
             activationCodes = PaymentControl.postPaymentHandlingForBucket(bucketTypeId, quantity, email, institute)
             emailInfo = PaymentControl.getEmailInfoForBucketPurchase(activationCodes, "tair", bucketTypeId, quantity, 
-            priceToCharge, charge.id, email, firstname, lastname, institute)
+            priceToCharge, charge.id, email, firstname, lastname, institute, other)
             # logger.info("Email info: {0}".format(json.dumps(emailInfo)))
             PaymentControl.sendEmailForBucketPurchase(emailInfo, bucketTypeId)
             message['activationCodes'] = activationCodes
