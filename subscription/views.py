@@ -1151,12 +1151,7 @@ class AddFreeUsageUnits(APIView):
 
     def put(self, request):
         try:
-            credentialId = request.data['credentialId']
-            credential = Credential.objects.filter(id=credentialId).first()
-            if not credential:
-                 return Response("credentialId does not exist.", status=status.HTTP_404_NOT_FOUND)
-            # Get the partyId from the Credential object
-            partyId = credential.partyId_id  
+            partyId = request.data['partyId']
             logger.info("AddFreeUsageUnits: %s", partyId)
             
             userBucketUsage = SubscriptionControl.createOrUpdateUserBucketUsage_Free(partyId, 50)
