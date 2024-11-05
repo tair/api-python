@@ -1183,7 +1183,7 @@ class TrackPage(APIView):
             logger.info("TrackPage: %s", complete_uri)
             
             pageStatus = SubscriptionControl.checkTrackingPage(party_id, complete_uri)
-            return Response(pageStatus, status=status.HTTP_201_CREATED)
+            return Response({"status": pageStatus})
         except Exception as e:
             return Response("Unexpected error AddFreeUsageUnits: {0}".format(str(e)))
 
