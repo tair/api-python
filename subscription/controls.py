@@ -723,7 +723,7 @@ class PaymentControl():
 
     # for Tair bucket payment
     @staticmethod
-    def chargeForBucket(secret_key, stripe_token, priceToCharge, chargeDescription, bucketTypeId, quantity, email, firstname, lastname, institute):
+    def chargeForBucket(secret_key, stripe_token, priceToCharge, chargeDescription, bucketTypeId, quantity, email, firstname, lastname, institute, other):
         message = {
             'price': priceToCharge,
             'bucketTypeId': bucketTypeId,
@@ -812,7 +812,7 @@ class PaymentControl():
         return message
 
     @staticmethod
-    def getEmailInfoForBucketPurchase(activationCodes, partnerName, bucketTypeId, quantity, priceToCharge, transactionId, email, firstname, lastname, institute):
+    def getEmailInfoForBucketPurchase(activationCodes, partnerName, bucketTypeId, quantity, priceToCharge, transactionId, email, firstname, lastname, institute, other):
         bucketTypeObj = BucketType.objects.get(bucketTypeId=bucketTypeId)
         partnerObj = Partner.objects.get(partnerId="tair")
         name = firstname+" "+lastname
@@ -836,7 +836,7 @@ class PaymentControl():
             "subscriptionQuantity": quantity,
             "payment": payment,
             "transactionId": transactionId,
-            "other": "",
+            "other": other,
             "addr1": "Phoenix Bioinformatics Corporation",
             "addr2": "39899 Balentine Drive, Suite 200",
             "addr3": "Newark, CA, 94560, USA",

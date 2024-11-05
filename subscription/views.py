@@ -301,11 +301,12 @@ class SubsctiptionBucketPayment(APIView):
             firstname = request.POST['firstName']
             lastname = request.POST['lastName']
             institute = request.POST['institute']
+            other = request.POST['other']
 
             bucketUnits = BucketType.objects.get(bucketTypeId=bucketTypeId).description
             chargeDescription = '%s `%s` subscription name: %s %s'%(partnerName,bucketUnits,firstname,lastname)
             logger.info("Stripe Charge Description: " + chargeDescription)
-            message = PaymentControl.chargeForBucket(stripe_api_secret_test_key, token, price, chargeDescription, bucketTypeId, quantity, email, firstname, lastname, institute)
+            message = PaymentControl.chargeForBucket(stripe_api_secret_test_key, token, price, chargeDescription, bucketTypeId, quantity, email, firstname, lastname, institute, other)
             status = 200
             if 'message' in message:
                 status = 400
