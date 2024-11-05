@@ -48,9 +48,9 @@ urlpatterns = [
     url(r'^templates/warn/$', TemplateView.as_view(template_name="subscription/warn.html")),
 
     # New API endpoints for TAIR3-466
+    url(r'^test/$', views.test_view, name='test_view'),
     url(r'^limit/$', views.checkLimit, name='checkLimit'),
     url(r'^decrement/$', views.decrement, name='decrement'),
-    url(r'^test/$', views.test_view, name='test_view'),
-
+	url(r'^add_free', views.add_free, name='add_free')
 ]
 urlpatterns = format_suffix_patterns(urlpatterns)

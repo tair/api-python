@@ -8,7 +8,7 @@ from partner.models import Partner
 class UserBucketUsageSerializer(serializers.ModelSerializer):
     class Meta:
         model = UserBucketUsage
-        fields = ('user_usage_id', 'partyId', 'partner_id', 'total_units', 'remaining_units', 'expiry_date')
+        fields = ('user_usage_id', 'partyId', 'partner_id', 'total_units', 'remaining_units', 'expiry_date', 'free_expiry_date')
 
 class BucketTransactionSerializer(serializers.ModelSerializer):
     class Meta:

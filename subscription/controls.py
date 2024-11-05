@@ -52,6 +52,31 @@ class SubscriptionControl():
         return userBucketUsage
 
     @staticmethod
+    def createOrUpdateUserBucketUsage_Free(partyId, units):
+        now = timezone.now()
+        userBucketUsageSet = UserBucketUsage.objects.all().filter(partyId=partyId)
+        if len(userBucketUsageSet) == 0:
+            userBucketUsage = None
+        else:
+            userBucketUsage = userBucketUsageSet[0]
+        
+        if userBucketUsage is None:
+            userBucketUsage = UserBucketUsage()
+            userBucketUsage.partyId = Party.objects.get(partyId=partyId)
+            userBucketUsage.total_units = units
+            userBucketUsage.remaining_units = units
+            userBucketUsage.free_expiry_date = now + timedelta(days=365)
+            userBucketUsage.save()
+        else:
+            if now < userBucketUsage.free_expiry_date:
+                raise Exception("Free usage units cannot be added until previous units expired.")
+            userBucketUsage.total_units += units
+            userBucketUsage.remaining_units += units
+            userBucketUsage.free_expiry_date = now + timedelta(days=365)
+            userBucketUsage.save()
+        return userBucketUsage
+    
+    @staticmethod
     def createOrUpdateSubscription(partyId, partnerId, period):
         now = timezone.now()
         subscriptionSet = Subscription.objects \

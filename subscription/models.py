@@ -19,7 +19,8 @@ class UserBucketUsage(models.Model):
     partyId = models.OneToOneField("party.Party", null=True, on_delete=models.SET_NULL, db_column="partyId_id", related_name='user_bucket_usage')
     total_units = models.IntegerField(null=False)
     remaining_units = models.IntegerField(null=False)
-    expiry_date = models.DateTimeField(null=False)
+    expiry_date = models.DateTimeField(null=True)
+    free_expiry_date = models.DateTimeField(null=True)
     partner_id = models.CharField(max_length=200, null=False)
 
     class Meta:

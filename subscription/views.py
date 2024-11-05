@@ -253,7 +253,6 @@ class BucketTransactionCRUD(GenericCRUDView):
 
 
 # Specific queries
-
 # /<pk>/renewal/
 class SubscriptionRenewal(generics.GenericAPIView):
     requireApiKey = False
@@ -1144,6 +1143,30 @@ class Decrement(APIView):
             return Response({"error": "User bucket usage not found"}, status=status.HTTP_404_NOT_FOUND)
         
 decrement = Decrement.as_view()
+
+# /add_free
+class AddFreeUsageUnits(APIView):
+    requireApiKey = False
+    serializer_class = UserBucketUsageSerializer
+
+    def put(self, request):
+        try:
+            credentialId = request.data['credentialId']
+            credential = Credential.objects.filter(id=credentialId).first()
+            if not credential:
+                 return Response("credentialId does not exist.", status=status.HTTP_404_NOT_FOUND)
+            # Get the partyId from the Credential object
+            partyId = credential.partyId_id  
+            logger.info("AddFreeUsageUnits: %s", partyId)
+            
+            userBucketUsage = SubscriptionControl.createOrUpdateUserBucketUsage_Free(partyId, 50)
+            serializer = self.serializer_class(userBucketUsage)
+            returnData = serializer.data
+            return Response(returnData, status=status.HTTP_201_CREATED)
+        except Exception as e:
+            return Response("Unexpected error AddFreeUsageUnits: {0}".format(str(e)))
+
+add_free = AddFreeUsageUnits.as_view()
 
 def test_view(request):
     return HttpResponse("Test view is working")
