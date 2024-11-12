@@ -842,7 +842,7 @@ class PaymentControl():
             "addr3": "Newark, CA, 94560, USA",
             "recipientEmails": recipientEmails,
             "senderEmail": senderEmail,
-            "subject":"Your %s Subscription Activation Code and Receipt" % partnerName,
+            "subject":"Your %s Subscription Activation Code and Receipt" % partnerObj.name,
         }
 
     @staticmethod
