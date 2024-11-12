@@ -52,6 +52,31 @@ class SubscriptionControl():
         return userBucketUsage
 
     @staticmethod
+    def createOrUpdateUserBucketUsage_Free(partyId, units):
+        now = timezone.now()
+        userBucketUsageSet = UserBucketUsage.objects.all().filter(partyId=partyId)
+        if len(userBucketUsageSet) == 0:
+            userBucketUsage = None
+        else:
+            userBucketUsage = userBucketUsageSet[0]
+        
+        if userBucketUsage is None:
+            userBucketUsage = UserBucketUsage()
+            userBucketUsage.partyId = Party.objects.get(partyId=partyId)
+            userBucketUsage.total_units = units
+            userBucketUsage.remaining_units = units
+            userBucketUsage.free_expiry_date = now + timedelta(days=365)
+            userBucketUsage.save()
+        else:
+            if now < userBucketUsage.free_expiry_date:
+                raise Exception("Free usage units cannot be added until previous units expired.")
+            userBucketUsage.total_units += units
+            userBucketUsage.remaining_units += units
+            userBucketUsage.free_expiry_date = now + timedelta(days=365)
+            userBucketUsage.save()
+        return userBucketUsage
+    
+    @staticmethod
     def createOrUpdateSubscription(partyId, partnerId, period):
         now = timezone.now()
         subscriptionSet = Subscription.objects \
@@ -96,6 +121,19 @@ class SubscriptionControl():
                 transactionEndDate = subscription.endDate
 
         return (subscription, transactionType, transactionStartDate, transactionEndDate)
+    
+    @staticmethod
+    def checkTrackingPage(partyId, uri):
+        now = timezone.now()
+        trackPagesSet = UserTrackPages.objects.all().filter(partyId=partyId, uri=uri)
+        if len(trackPagesSet) == 0:
+            trackPage = UserTrackPages()
+            trackPage.partyId = partyId
+            trackPage.uri = uri
+            trackPage.timestamp = now
+            trackPage.save()
+            return "New"
+        return "Cached"
 
 class PaymentControl():
 
@@ -685,7 +723,7 @@ class PaymentControl():
 
     # for Tair bucket payment
     @staticmethod
-    def chargeForBucket(secret_key, stripe_token, priceToCharge, chargeDescription, bucketTypeId, quantity, email, firstname, lastname, institute):
+    def chargeForBucket(secret_key, stripe_token, priceToCharge, chargeDescription, bucketTypeId, quantity, email, firstname, lastname, institute, other):
         message = {
             'price': priceToCharge,
             'bucketTypeId': bucketTypeId,
@@ -707,7 +745,7 @@ class PaymentControl():
 
             activationCodes = PaymentControl.postPaymentHandlingForBucket(bucketTypeId, quantity, email, institute)
             emailInfo = PaymentControl.getEmailInfoForBucketPurchase(activationCodes, "tair", bucketTypeId, quantity, 
-            priceToCharge, charge.id, email, firstname, lastname, institute)
+            priceToCharge, charge.id, email, firstname, lastname, institute, other)
             # logger.info("Email info: {0}".format(json.dumps(emailInfo)))
             PaymentControl.sendEmailForBucketPurchase(emailInfo, bucketTypeId)
             message['activationCodes'] = activationCodes
@@ -774,7 +812,7 @@ class PaymentControl():
         return message
 
     @staticmethod
-    def getEmailInfoForBucketPurchase(activationCodes, partnerName, bucketTypeId, quantity, priceToCharge, transactionId, email, firstname, lastname, institute):
+    def getEmailInfoForBucketPurchase(activationCodes, partnerName, bucketTypeId, quantity, priceToCharge, transactionId, email, firstname, lastname, institute, other):
         bucketTypeObj = BucketType.objects.get(bucketTypeId=bucketTypeId)
         partnerObj = Partner.objects.get(partnerId="tair")
         name = firstname+" "+lastname
@@ -798,7 +836,7 @@ class PaymentControl():
             "subscriptionQuantity": quantity,
             "payment": payment,
             "transactionId": transactionId,
-            "other": "",
+            "other": other,
             "addr1": "Phoenix Bioinformatics Corporation",
             "addr2": "39899 Balentine Drive, Suite 200",
             "addr3": "Newark, CA, 94560, USA",

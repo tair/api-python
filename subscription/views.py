@@ -253,7 +253,6 @@ class BucketTransactionCRUD(GenericCRUDView):
 
 
 # Specific queries
-
 # /<pk>/renewal/
 class SubscriptionRenewal(generics.GenericAPIView):
     requireApiKey = False
@@ -302,11 +301,12 @@ class SubsctiptionBucketPayment(APIView):
             firstname = request.POST['firstName']
             lastname = request.POST['lastName']
             institute = request.POST['institute']
+            other = request.POST['other']
 
             bucketUnits = BucketType.objects.get(bucketTypeId=bucketTypeId).description
             chargeDescription = '%s `%s` subscription name: %s %s'%(partnerName,bucketUnits,firstname,lastname)
             logger.info("Stripe Charge Description: " + chargeDescription)
-            message = PaymentControl.chargeForBucket(stripe_api_secret_test_key, token, price, chargeDescription, bucketTypeId, quantity, email, firstname, lastname, institute)
+            message = PaymentControl.chargeForBucket(stripe_api_secret_test_key, token, price, chargeDescription, bucketTypeId, quantity, email, firstname, lastname, institute, other)
             status = 200
             if 'message' in message:
                 status = 400
@@ -1104,7 +1104,11 @@ class CheckLimit(APIView):
         
         try:
             user_bucket = UserBucketUsage.objects.get(partyId_id=party_id)
-            if user_bucket.remaining_units >= units_required and user_bucket.expiry_date > timezone.now():
+            expiry_date = user_bucket.expiry_date
+            if expiry_date is None:
+                expiry_date = user_bucket.free_expiry_date
+
+            if user_bucket.remaining_units >= units_required and expiry_date > timezone.now():
                 if user_bucket.remaining_units == warningLimit:
                     return Response({"status": STATUS_WARNING})
                 else:
@@ -1144,6 +1148,47 @@ class Decrement(APIView):
             return Response({"error": "User bucket usage not found"}, status=status.HTTP_404_NOT_FOUND)
         
 decrement = Decrement.as_view()
+
+# /add_free
+class AddFreeUsageUnits(APIView):
+    requireApiKey = False
+    serializer_class = UserBucketUsageSerializer
+
+    def put(self, request):
+        try:
+            partyId = request.data['partyId']
+            logger.info("AddFreeUsageUnits: %s", partyId)
+            
+            userBucketUsage = SubscriptionControl.createOrUpdateUserBucketUsage_Free(partyId, 50)
+            serializer = self.serializer_class(userBucketUsage)
+            returnData = serializer.data
+            return Response(returnData, status=status.HTTP_201_CREATED)
+        except Exception as e:
+            return Response("Unexpected error AddFreeUsageUnits: {0}".format(str(e)))
+
+add_free = AddFreeUsageUnits.as_view()
+
+# /track_page
+class TrackPage(APIView):
+    requireApiKey = False
+    serializer_class = UserTrackPagesSerializer
+
+    def post(self, request):
+        party_id = request.GET.get('party_id')
+        complete_uri = request.GET.get('uri')
+
+        if not all([party_id, complete_uri]):
+            return Response({"error": "Missing required parameters"}, status=status.HTTP_400_BAD_REQUEST)
+        try:
+            now = timezone.now()
+            logger.info("TrackPage: %s", complete_uri)
+            
+            pageStatus = SubscriptionControl.checkTrackingPage(party_id, complete_uri)
+            return Response({"status": pageStatus})
+        except Exception as e:
+            return Response("Unexpected error AddFreeUsageUnits: {0}".format(str(e)))
+
+track_page = TrackPage.as_view()
 
 def test_view(request):
     return HttpResponse("Test view is working")

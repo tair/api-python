@@ -276,7 +276,7 @@ def login(request):
 
         for dbUser in dbUserList:
 
-            logger.info("Authentication Login dbUser %s requestUser %s pwd %s" % (dbUser.username,requestUser,requestHashedPassword))
+            # logger.info("Authentication Login dbUser %s requestUser %s pwd %s" % (dbUser.username,requestUser,requestHashedPassword))
 
             #if user not found then continue
             if dbUser.username.lower() != requestUser.lower():
@@ -304,7 +304,7 @@ def login(request):
                 logger.info(msg)
                 return response
 
-        logger.info("Authentication Login end of loop")
+        # logger.info("Authentication Login end of loop")
     #}end of if not empty list
     #if we did not return from above and we are here, then it's an error.
     #print last error msg from the loop and return 401 response
@@ -668,3 +668,97 @@ class AuthenticateOrcid(APIView):
         return Response(response_data, status=status.HTTP_200_OK)
 
 authenticateOrcid = AuthenticateOrcid.as_view()
+
+
+#/credentials/unlinkOrcid
+class UnlinkOrcid(generics.GenericAPIView):
+    requireApiKey = False
+    queryset = Credential.objects.all()
+
+    @method_decorator(csrf_exempt)
+    def dispatch(self, *args, **kwargs):
+        return super(UnlinkOrcid, self).dispatch(*args, **kwargs)
+
+    def get_data(self, request):
+        logging.info("Received request to unlinkOrcid")
+        logging.info("Request method: %s", request.method)
+        logging.info("Request GET params: %s", request.GET)
+
+        # Try to get data from query parameters first
+        data = request.GET.dict()
+        
+        # If not in query params, check content type and parse accordingly
+        if not data:
+            if request.content_type == 'application/json':
+                try:
+                    data = json.loads(request.body)
+                except ValueError:
+                    logging.error("Invalid JSON in request body")
+                    data = {}
+            else:
+                data = request.POST.dict()
+        
+        logging.info("Parsed request data: %s", data)
+        return data
+
+    def post(self, request, *args, **kwargs):
+        data = self.get_data(request)
+
+        secretKey = data.get('secretKey')
+        credentialId = data.get('credentialId')
+
+        if not all([secretKey, credentialId]):
+            logging.error("Missing required fields. Received: %s", data)
+            return Response({
+                'success': False, 
+                'error': 'Missing required fields'
+            }, status=status.HTTP_400_BAD_REQUEST)
+
+        # Validate the user's credentials
+        loggedIn = Credential.validate(credentialId, secretKey)
+
+        if not loggedIn:
+            logging.error("Invalid credentials provided")
+            return Response({
+                'success': False, 
+                'error': 'Invalid credentials'
+            }, status=status.HTTP_401_UNAUTHORIZED)
+        
+        try:
+            # Get the credential object
+            credential = Credential.objects.get(partyId=credentialId, partnerId='tair')
+            
+            # Update the OrcidCredentials record
+            result = OrcidCredentials.objects.filter(credential=credential).update(
+                orcid_id=None,
+                orcid_access_token=None,
+                orcid_refresh_token=None
+            )
+            
+            if result > 0:
+                logging.info("Successfully unlinked ORCID credentials for user: %s", credentialId)
+                return Response({
+                    'success': True,
+                    'message': 'ORCID credentials successfully unlinked'
+                })
+            else:
+                logging.warning("No ORCID credentials found to unlink for user: %s", credentialId)
+                return Response({
+                    'success': False,
+                    'error': 'No ORCID credentials found to unlink'
+                }, status=status.HTTP_404_NOT_FOUND)
+
+        except Credential.DoesNotExist:
+            logging.error("User not found: %s", credentialId)
+            return Response({
+                'success': False,
+                'error': 'User not found'
+            }, status=status.HTTP_404_NOT_FOUND)
+        except Exception as e:
+            logging.error("Error unlinking ORCID credentials: %s", str(e))
+            return Response({
+                'success': False,
+                'error': 'Internal server error while unlinking ORCID credentials'
+            }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+unlinkOrcid = UnlinkOrcid.as_view()
