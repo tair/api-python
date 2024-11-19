@@ -139,7 +139,9 @@ class SubscriptionControl():
             trackPage.uri = uri
             trackPage.timestamp = now
             trackPage.save()
-        return True
+        else:
+            return "Already Added"
+        return "Added"
 
 class PaymentControl():
 
