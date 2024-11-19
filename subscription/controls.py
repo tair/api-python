@@ -124,6 +124,13 @@ class SubscriptionControl():
     
     @staticmethod
     def checkTrackingPage(partyId, uri):
+        trackPagesSet = UserTrackPages.objects.all().filter(partyId=partyId, uri=uri)
+        if len(trackPagesSet) == 0:
+            return "New"
+        return "Cached"
+    
+    @staticmethod
+    def cacheNewTrackingPage(partyId, uri):
         now = timezone.now()
         trackPagesSet = UserTrackPages.objects.all().filter(partyId=partyId, uri=uri)
         if len(trackPagesSet) == 0:
@@ -132,8 +139,7 @@ class SubscriptionControl():
             trackPage.uri = uri
             trackPage.timestamp = now
             trackPage.save()
-            return "New"
-        return "Cached"
+        return True
 
 class PaymentControl():
 

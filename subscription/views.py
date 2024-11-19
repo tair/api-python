@@ -1075,7 +1075,7 @@ def get_usage_units(url):
     try:
         # Use the foreign key relationship to look up units_consumed in PremiumUsageUnits
         premium_page = PremiumUsageUnits.objects.get(pattern_object=uri_pattern_object)
-        logger.debug("Units found for matched pattern: %d" % premium_page.units_consumed)
+        # logger.debug("Units found for matched pattern: %d" % premium_page.units_consumed)
         return premium_page.units_consumed
     except PremiumUsageUnits.DoesNotExist:
         # If no specific PremiumUsageUnits entry is found, return default value of 1
@@ -1173,6 +1173,19 @@ class TrackPage(APIView):
     requireApiKey = False
     serializer_class = UserTrackPagesSerializer
 
+    def get(self, request):
+        party_id = request.GET.get('party_id')
+        complete_uri = request.GET.get('uri')
+
+        if not all([party_id, complete_uri]):
+            return Response({"error": "Missing required parameters"}, status=status.HTTP_400_BAD_REQUEST)
+        try:
+            pageStatus = SubscriptionControl.checkTrackingPage(party_id, complete_uri)
+            logger.info("Checking TrackPage: %s,%s", complete_uri, pageStatus)
+            return Response({"status": pageStatus})
+        except Exception as e:
+            return Response("Unexpected error /track_page: {0}".format(str(e)))
+    
     def post(self, request):
         party_id = request.GET.get('party_id')
         complete_uri = request.GET.get('uri')
@@ -1180,13 +1193,12 @@ class TrackPage(APIView):
         if not all([party_id, complete_uri]):
             return Response({"error": "Missing required parameters"}, status=status.HTTP_400_BAD_REQUEST)
         try:
-            now = timezone.now()
-            logger.info("TrackPage: %s", complete_uri)
+            logger.info("Add TrackPage: %s", complete_uri)
             
-            pageStatus = SubscriptionControl.checkTrackingPage(party_id, complete_uri)
-            return Response({"status": pageStatus})
+            response = SubscriptionControl.cacheNewTrackingPage(party_id, complete_uri)
+            return Response({"status": response})
         except Exception as e:
-            return Response("Unexpected error AddFreeUsageUnits: {0}".format(str(e)))
+            return Response("Unexpected error /track_page: {0}".format(str(e)))
 
 track_page = TrackPage.as_view()
 
