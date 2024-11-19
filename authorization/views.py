@@ -77,7 +77,7 @@ class Access(APIView):
             complete URI (required) 
             status (required)
         '''
-        logger.info("Authorization Access %s%s %s%s %s%s %s%s %s%s %s%s" % ("ip:",ipResult,"partyId:",partyId,"userIdentifier:",userIdentifier,"partnerId:",partnerId,"url:",url,"status:",status))
+        logger.info("Access %s%s %s%s %s%s %s%s %s%s %s%s" % ("ip:",ipResult,"partyId:",partyId,"isPaidContent:",isPaidContent,"partnerId:",partnerId,"url:",url,"status:",status))
         return HttpResponse(json.dumps(response), content_type="application/json")
 
 # /subscriptions/
