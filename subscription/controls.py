@@ -1,20 +1,15 @@
 import stripe
 import uuid
-from datetime import timedelta
+from datetime import datetime, timedelta
 import pytz
 from dateutil.parser import parse
-import time
 import json
 import string
-from django.shortcuts import render
-from django.http import HttpResponse
 from django.utils import timezone
 from partner.models import SubscriptionTerm, BucketType, Partner
 from authentication.models import Credential
 from subscription.models import *
-from serializers import SubscriptionSerializer
 from party.models import Party
-from django.utils import timezone
 from django.core.mail import send_mail
 from common.utils.cipresUtils import APICaller
 from common.utils.cyverseUtils import CyVerseClient
@@ -129,7 +124,9 @@ class SubscriptionControl():
         if len(trackPagesSet) == 0:
             return "New"
         track_page = trackPagesSet.latest('timestamp')
-        if current_time - track_page.timestamp <= timedelta(hours=24):
+        # Convert track_page.timestamp to naive datetime
+        timestamp_native = track_page.timestamp.replace(tzinfo=None)
+        if current_time - timestamp_native <= timedelta(hours=24):
             return "Cached"
         return "Expired"
     
