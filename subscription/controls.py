@@ -124,10 +124,14 @@ class SubscriptionControl():
     
     @staticmethod
     def checkTrackingPage(partyId, uri):
+        current_time = datetime.now()
         trackPagesSet = UserTrackPages.objects.all().filter(partyId=partyId, uri=uri)
         if len(trackPagesSet) == 0:
             return "New"
-        return "Cached"
+        track_page = trackPagesSet.latest('timestamp')
+        if current_time - track_page.timestamp <= timedelta(hours=24):
+            return "Cached"
+        return "Expired"
     
     @staticmethod
     def cacheNewTrackingPage(partyId, uri):
@@ -138,10 +142,16 @@ class SubscriptionControl():
             trackPage.partyId = partyId
             trackPage.uri = uri
             trackPage.timestamp = now
-            trackPage.save()
+            trackPage.save()             
+            return "Added"
         else:
-            return "Already Added"
-        return "Added"
+            track_page = trackPagesSet.latest('timestamp')
+            if now - track_page.timestamp <= timedelta(hours=24):
+                return "Already Added"
+            else:
+                trackPage.timestamp = now
+                trackPage.save()
+                return "Updated"        
 
 class PaymentControl():
 
