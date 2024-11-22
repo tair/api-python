@@ -88,9 +88,9 @@ class TermsCRUD(GenericCRUDView):
     serializer_class = SubscriptionTermSerializer
     requireApiKey = False
 
-    def get(self, request):
-        logger.info("Get request for Terms")
-        return Response({"error":"Essential parameters needed."}, status=status.HTTP_400_BAD_REQUEST)
+    # def get(self, request):
+    #     logger.info("Get request for Terms")
+    #     return Response({"error":"Essential parameters needed."}, status=status.HTTP_400_BAD_REQUEST)
 
     def post(self, request):
         return Response({'msg':'cannot create'}, status=status.HTTP_400_BAD_REQUEST)
