@@ -754,7 +754,7 @@ class ApplyDiscount(APIView):
     """
     requireApiKey = False
     DISCOUNT_CODES = {
-        'CIPRES20': 0.8,  # 20% discount
+        'CIPRES10': 0.9,  # 20% discount
     }
     def post(self, request):
         data = request.data
