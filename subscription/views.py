@@ -297,9 +297,9 @@ class SubsctiptionBucketPayment(APIView):
         missing_fields = [field for field in required_fields if field not in request.POST]
 
         if missing_fields:
-            logger.error(f"Missing required fields: {', '.join(missing_fields)}")
+            logger.error("Missing required fields")
             return HttpResponse(
-                json.dumps({'message': f'Missing required fields: {", ".join(missing_fields)}'}),
+                json.dumps({'message': 'Missing required fields'}),
                 content_type="application/json",
                 status=400
             )
@@ -318,14 +318,15 @@ class SubsctiptionBucketPayment(APIView):
             bucketUnits = BucketType.objects.get(bucketTypeId=bucketTypeId).description
             chargeDescription = '%s `%s` subscription name: %s %s'%(partnerName,bucketUnits,firstname,lastname)
             logger.info("Stripe Charge Description: " + chargeDescription)
-            message = PaymentControl.chargeForBucket(stripe_api_secret_test_key, token, price, chargeDescription, bucketTypeId, quantity, email, firstname, lastname, institute, other)
+            message = PaymentControl.chargeForBucket(stripe_api_secret_test_key, token, price, chargeDescription, bucketTypeId, quantity, email, firstname, lastname, institute, other, orcid_id)
             status = 200
             if 'message' in message:
                 status = 400
             return HttpResponse(json.dumps(message), content_type="application/json", status=status)
         except Exception as e:
-            logger.error("Error in payment post: %s" % e)
-            return HttpResponse(json.dumps({'message':'error'}), content_type="application/json", status=400)
+            errorMsg = str(e)
+            logger.error("Error in bucket_payment post api: %s" % errorMsg)
+            return HttpResponse(json.dumps({'message':errorMsg}), content_type="application/json", status=400)
 
 # /payments/
 class SubscriptionsPayment(APIView):

@@ -739,7 +739,7 @@ class PaymentControl():
 
     # for Tair bucket payment
     @staticmethod
-    def chargeForBucket(secret_key, stripe_token, priceToCharge, chargeDescription, bucketTypeId, quantity, email, firstname, lastname, institute, other):
+    def chargeForBucket(secret_key, stripe_token, priceToCharge, chargeDescription, bucketTypeId, quantity, email, firstname, lastname, institute, other, orcid_id):
         message = {
             'price': priceToCharge,
             'bucketTypeId': bucketTypeId,
@@ -759,7 +759,7 @@ class PaymentControl():
             # Log the successful Stripe charge
             logger.info("Successful Stripe charge: {0}".format(json.dumps(charge)))
 
-            activationCodes = PaymentControl.postPaymentHandlingForBucket(bucketTypeId, quantity, email, institute)
+            activationCodes = PaymentControl.postPaymentHandlingForBucket(bucketTypeId, quantity, email, institute, orcid_id)
             emailInfo = PaymentControl.getEmailInfoForBucketPurchase(activationCodes, "tair", bucketTypeId, quantity, 
             priceToCharge, charge.id, email, firstname, lastname, institute, other)
             # logger.info("Email info: {0}".format(json.dumps(emailInfo)))
@@ -1052,8 +1052,8 @@ class PaymentControl():
             return None
 
     @staticmethod
-    def postPaymentHandlingForBucket(bucketTypeId, quantity, email, institution):
-        logger.info("bucketTypeId: %s, quantity: %s", bucketTypeId, quantity)
+    def postPaymentHandlingForBucket(bucketTypeId, quantity, email, institution, orcid_id):
+        logger.info("bucketTypeId: %s, quantity: %s, orcid_id: %s", bucketTypeId, quantity, orcid_id)
         if quantity > 99:
             logger.info("quantity is greater than 99")
             return []
@@ -1083,6 +1083,7 @@ class PaymentControl():
             bucketTransaction.units_per_bucket = bucketTypeObj.units
             bucketTransaction.email_buyer = email
             bucketTransaction.institute_buyer = institution
+            bucketTransaction.orcid_id = orcid_id
 
             bucketTransaction.save()
         return codeArray
