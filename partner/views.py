@@ -5,6 +5,9 @@ from rest_framework.views import APIView
 from rest_framework import generics
 
 from models import Partner, PartnerPattern, SubscriptionTerm, BucketType, SubscriptionDescription, SubscriptionDescriptionItem
+
+from subscription.models import BucketTransaction
+
 from serializers import PartnerSerializer, PartnerPatternSerializer, SubscriptionTermSerializer, BucketTypeSerializer, SubscriptionDescriptionSerializer, SubscriptionDescriptionItemSerializer
 
 import json
@@ -73,6 +76,33 @@ class BucketTypeCRUD(GenericCRUDView):
     queryset = BucketType.objects.all()
     serializer_class = BucketTypeSerializer
     requireApiKey = False
+
+    def get(self, request):
+        obj = self.get_queryset()
+        params = request.GET
+        orcid_id = params.get("orcid_id")
+        if not orcid_id:
+            return Response({"error": "orcid_id parameter is required"}, status=400)
+        transactions = BucketTransaction.objects.filter(orcid_id=orcid_id, bucket_type_id=10)
+        transaction_found = False
+        if transactions.exists():
+            transaction_found = True
+            for transaction in transactions:
+                logger.info("Bucket Transaction ID: " + str(transaction.bucket_transaction_id))
+        else:
+            logger.info("No transactions for bucket_type_id=10 found for orcid_id: " + orcid_id)
+        out = []
+        for entry in obj:
+            outEntry = {}
+            outEntry['bucketTypeId'] = entry.bucketTypeId
+            outEntry['units'] = entry.units
+            outEntry['price'] = entry.price
+            outEntry['description'] = entry.description
+            if transaction_found and entry.bucketTypeId == 10:
+                entry.discountPercentage = 0
+            outEntry['discountPercentage'] = entry.discountPercentage
+            out.append(outEntry)
+        return Response(out)
     
     def post(self, request):
         return Response({'msg':'cannot create'}, status=status.HTTP_400_BAD_REQUEST)
