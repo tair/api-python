@@ -292,6 +292,17 @@ class SubsctiptionBucketPayment(APIView):
         stripe_api_secret_test_key = settings.STRIPE_PRIVATE_KEY
         stripe.api_key = stripe_api_secret_test_key
         token = request.POST['stripeToken']
+        # Validate required POST parameters
+        required_fields = ['price', 'bucketTypeId', 'orcid_id']
+        missing_fields = [field for field in required_fields if field not in request.POST]
+
+        if missing_fields:
+            logger.error(f"Missing required fields: {', '.join(missing_fields)}")
+            return HttpResponse(
+                json.dumps({'message': f'Missing required fields: {", ".join(missing_fields)}'}),
+                content_type="application/json",
+                status=400
+            )
         try:
             partnerName = "tair"
             price = float(request.POST['price'])
@@ -302,6 +313,7 @@ class SubsctiptionBucketPayment(APIView):
             lastname = request.POST['lastName']
             institute = request.POST['institute']
             other = request.POST['other']
+            orcid_id = request.POST['orcid_id']
 
             bucketUnits = BucketType.objects.get(bucketTypeId=bucketTypeId).description
             chargeDescription = '%s `%s` subscription name: %s %s'%(partnerName,bucketUnits,firstname,lastname)
