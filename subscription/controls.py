@@ -140,7 +140,7 @@ class PaymentControl():
 
         invoice_item = stripe.InvoiceItem.create(
             customer=customer.id,
-            unit_amount= int(SubscriptionTerm.objects.get(subscriptionTermId=termId).price) * 100,
+            unit_amount= int(priceToCharge) * 100,
             currency='usd',
             quantity=quantity,
             description=chargeDescription   #PW-248
@@ -163,6 +163,7 @@ class PaymentControl():
                 custom_fields = custom_fields,
             )
             invoice = stripe.Invoice.pay(invoice.id)
+            logger.debug("Payment to stripe for CIPRES successfuly: " + invoice.id)
             transactionId = invoice.charge
             stripe.PaymentIntent.modify(
                 invoice.payment_intent,
