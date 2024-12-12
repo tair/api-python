@@ -52,7 +52,7 @@ class BucketTransaction(models.Model):
     transaction_type = models.CharField(max_length=200, null=False)
     email_buyer = models.CharField(max_length=200, null=False)
     institute_buyer = models.CharField(max_length=200, null=False)
-    orcid_id = models.CharField(max_length=200)
+    orcid_id = models.CharField(max_length=200, null=True)
 
     class Meta:
         db_table = 'BucketTransaction'
