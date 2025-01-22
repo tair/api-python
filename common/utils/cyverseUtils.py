@@ -39,10 +39,16 @@ class CyVerseClient(object):
 
     def postTierPurchase(self, username, purchaseTier, durationInDays):
         # Determine the period value based on the duration
-        period = 1 if durationInDays == 365 else 2 if durationInDays == 730 else None
+        if durationInDays == 365:
+            period = 1
+        elif durationInDays == 730:
+            period = 2
+        else:
+            period = None
         
         # Update the URL to include the period parameter
-        url = f"{self.apiUrl % username}/{purchaseTier}?periods={period}"
+        url = "%s/%s?periods=%s" % (self.apiUrl % username, purchaseTier, period)
+        
         try:
             headers = self.getAuthHeader()
             response = requests.put(url, headers=headers)
