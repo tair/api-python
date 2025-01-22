@@ -478,6 +478,7 @@ class PaymentControl():
                 tierId = subscription['subscription']['tierId']
                 termObj = UsageTierTerm.objects.get(tierId=tierId)
                 partnerObj = termObj.partnerId
+                durationInDays = termObj.durationInDays
                 tierPurchaseObj = PaymentControl.createUsageTierPurchase(partyObj, partnerObj, termObj, purchaseDate, transactionId);
                 purchaseId = tierPurchaseObj.purchaseId
                 expirationDate = tierPurchaseObj.expirationDate
@@ -487,7 +488,7 @@ class PaymentControl():
                     termLabel = string.capwords(termLabel)
 
                 try:
-                    client.postTierPurchase(username, termName)
+                    client.postTierPurchase(username, termName, durationInDays)
                     cyverseSubscription = client.getSubscriptionTier(username)
                     if (cyverseSubscription['tier'] != termName):
                         raise RuntimeError("CyVerse tier name %s and local tier name %s does not match" % (cyverseSubscription['tier'], termName))
