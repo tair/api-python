@@ -41,12 +41,8 @@ class CyVerseClient(object):
         # Determine the period value based on the duration
         period = 1 if durationInDays == 365 else 2 if durationInDays == 730 else None
         
-        # Ensure period is valid before proceeding
-        if period is None:
-            raise ValueError(f"Invalid duration value: {durationInDays}. Must be 365 or 730.")
-        
         # Update the URL to include the period parameter
-        url = f"{self.apiUrl % username}/{purchaseTier}?periods={durationInDays}"
+        url = f"{self.apiUrl % username}/{purchaseTier}?periods={period}"
         try:
             headers = self.getAuthHeader()
             response = requests.put(url, headers=headers)
