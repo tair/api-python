@@ -281,7 +281,7 @@ def login(request):
             #if user not found then continue
             if dbUser.username.lower() != requestUser.lower():
                 msg = " Authentication Login USER NOT MATCH. i=%s continue..." % (i)
-                logger.info(msg)
+                # logger.info(msg)
                 i = i+1
                 continue
             else:

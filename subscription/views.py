@@ -1060,7 +1060,7 @@ class UsageTierPayment(APIView):
     # return 1  # Default to 1 unit if not found in PremiumUsageUnits
 
 def get_usage_units(url):
-    logger.debug("get_usage_units_from_uri_pattern: %s" % url)
+    # logger.debug("get_usage_units_from_uri_pattern: %s" % url)
 
     uri_pattern_object = None
     #gets a paid page value from table using "Paid" string instead of id of 1
@@ -1088,7 +1088,7 @@ def get_usage_units(url):
     try:
         # Use the foreign key relationship to look up units_consumed in PremiumUsageUnits
         premium_page = PremiumUsageUnits.objects.get(pattern_object=uri_pattern_object)
-        # logger.debug("Units found for matched pattern: %d" % premium_page.units_consumed)
+        logger.debug("Units found for matched pattern: %d" % premium_page.units_consumed)
         return premium_page.units_consumed
     except PremiumUsageUnits.DoesNotExist:
         # If no specific PremiumUsageUnits entry is found, return default value of 1
@@ -1108,7 +1108,7 @@ class CheckLimit(APIView):
             return Response({"error": "Missing required parameters"}, status=status.HTTP_400_BAD_REQUEST)
 
         units_required = get_usage_units(complete_uri)
-        logger.debug("units_required: " + str(units_required))
+        # logger.debug("units_required: " + str(units_required))
         try:
             limit_value_object = LimitValue.objects.filter(partnerId=partnerId).first()
             warningLimit = limit_value_object.val
@@ -1192,9 +1192,10 @@ class TrackPage(APIView):
 
         if not all([party_id, complete_uri]):
             return Response({"error": "Missing required parameters"}, status=status.HTTP_400_BAD_REQUEST)
-        try:
-            pageStatus = SubscriptionControl.checkTrackingPage(party_id, complete_uri)
-            logger.info("Checking TrackPage: %s,%s", complete_uri, pageStatus)
+        try:    
+            filtered_uri = SubscriptionControl.get_filtered_uri(complete_uri)
+            pageStatus = SubscriptionControl.checkTrackingPage(party_id, filtered_uri)
+            logger.info("Checking TrackPage: %s,%s", filtered_uri, pageStatus)
             return Response({"status": pageStatus})
         except Exception as e:
             return Response("Unexpected error /track_page: {0}".format(str(e)))
@@ -1207,8 +1208,8 @@ class TrackPage(APIView):
             return Response({"error": "Missing required parameters"}, status=status.HTTP_400_BAD_REQUEST)
         try:
             logger.info("Add TrackPage: %s", complete_uri)
-            
-            response = SubscriptionControl.cacheNewTrackingPage(party_id, complete_uri)
+            filtered_uri = SubscriptionControl.get_filtered_uri(complete_uri)
+            response = SubscriptionControl.cacheNewTrackingPage(party_id, filtered_uri)
             return Response({"status": response})
         except Exception as e:
             return Response("Unexpected error /track_page: {0}".format(str(e)))
