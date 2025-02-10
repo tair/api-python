@@ -81,8 +81,9 @@ class BucketTypeCRUD(GenericCRUDView):
         obj = self.get_queryset()
         params = request.GET
         orcid_id = params.get("orcid_id")
+        logger.info("orcid_id: " + orcid_id)
         
-        if not orcid_id:
+        if not orcid_id or orcid_id == 'undefined':
             logger.info("No orcid_id provided, trying to get from credentialId")
             credential_id = params.get("credentialId")
             if not credential_id:
