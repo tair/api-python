@@ -83,6 +83,7 @@ class BucketTypeCRUD(GenericCRUDView):
         orcid_id = params.get("orcid_id")
         
         if not orcid_id:
+            logger.info("No orcid_id provided, trying to get from credentialId")
             credential_id = params.get("credentialId")
             if not credential_id:
                 return Response({"error": "Either orcid_id or credentialId parameter is required"}, status=400)
