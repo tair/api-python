@@ -81,8 +81,30 @@ class BucketTypeCRUD(GenericCRUDView):
         obj = self.get_queryset()
         params = request.GET
         orcid_id = params.get("orcid_id")
-        if not orcid_id:
-            return Response({"error": "orcid_id parameter is required"}, status=400)
+        logger.info("orcid_id: " + orcid_id)
+        
+        if not orcid_id or orcid_id == 'undefined':
+            logger.info("No orcid_id provided, trying to get from credentialId")
+            credential_id = params.get("credentialId")
+            if not credential_id:
+                return Response({"error": "Either orcid_id or credentialId parameter is required"}, status=400)
+            
+            # Get orcid_id from OrcidCredentials using raw SQL query
+            from django.db import connection
+            with connection.cursor() as cursor:
+                cursor.execute("""
+                    SELECT o.orcid_id
+                    FROM OrcidCredentials o
+                    LEFT JOIN Credential c ON c.id = o.CredentialId
+                    WHERE c.partyId = %s
+                """, [credential_id])
+                result = cursor.fetchone()
+                
+            if not result:
+                return Response({"error": "No ORCID ID found for the given credentialId"}, status=400)
+            
+            orcid_id = result[0]
+        
         transactions = BucketTransaction.objects.filter(orcid_id=orcid_id, bucket_type_id=10)
         transaction_found = False
         if transactions.exists():
@@ -112,6 +134,7 @@ class BucketTypeCRUD(GenericCRUDView):
 
     def delete(self, request):
         return Response({'msg':'cannot delete'}, status=status.HTTP_400_BAD_REQUEST)
+
 # /terms/
 class TermsCRUD(GenericCRUDView):
     queryset = SubscriptionTerm.objects.all()
