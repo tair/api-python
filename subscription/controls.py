@@ -420,7 +420,7 @@ class PaymentControl():
                 try:
                     client.postTierPurchase(username, termName, durationInDays, currentExpiration, renewal=renewal)
                     cyverseSubscription = client.getSubscriptionTier(username)
-                    if (cyverseSubscription['tier'] != termName):
+                    if (cyverseSubscription['tier'] != termName and not renewal):
                         raise RuntimeError("CyVerse tier name %s and local tier name %s does not match" % (cyverseSubscription['tier'], termName))
                     tierPurchaseObj.partnerUUID = cyverseSubscription['uuid']
                     tierPurchaseObj.expirationDate = cyverseSubscription['endDate']
