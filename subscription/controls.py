@@ -210,8 +210,9 @@ class PaymentControl():
                 )
             except stripe.error.CardError as e:
                 # Handle CardError specifically for customer creation
-                message['message'] = "Card declined during customer creation: %s" % (e)
-                PaymentControl.logPaymentError(partyId, userIdentifier, emailAddress, message['message'])
+                message['message'] = "Card declined: %s" % (e.user_message)
+                loggingMsg = "Card declined during customer creation: %s" % (e.user_message)
+                PaymentControl.logPaymentError(partyId, userIdentifier, emailAddress, loggingMsg)
                 return message
             except Exception, e:
                 message['message'] = "Unexpected exception: %s" % (e)
@@ -219,8 +220,9 @@ class PaymentControl():
                 return message
         except stripe.error.CardError as e:
             # Handle CardError for customer modification
-            message['message'] = "Card declined during customer modification: %s" % (e)
-            PaymentControl.logPaymentError(partyId, userIdentifier, emailAddress, message['message'])
+            message['message'] = "Card declined: %s" % (e.user_message)
+            loggingMsg = "Card declined during customer modification: %s" % (e.user_message)
+            PaymentControl.logPaymentError(partyId, userIdentifier, emailAddress, loggingMsg)
             return message
         except Exception, e:
             message['message'] = "Unexpected exception: %s" % (e)
