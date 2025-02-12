@@ -423,9 +423,18 @@ class PaymentControl():
                     if (cyverseSubscription['tier'] != termName and not renewal):
                         raise RuntimeError("CyVerse tier name %s and local tier name %s does not match" % (cyverseSubscription['tier'], termName))
                     tierPurchaseObj.partnerUUID = cyverseSubscription['uuid']
-                    tierPurchaseObj.expirationDate = cyverseSubscription['endDate']
+
+                    # Calculate expiration date based on renewal status
+                    if not renewal:
+                        expirationDate = cyverseSubscription['endDate']
+                    else:
+                        current_expiration = cyverseSubscription['endDate']
+                        current_expiration_date = parse(current_expiration).replace(tzinfo=pytz.UTC)
+                        expirationDate = (current_expiration_date + timedelta(days=durationInDays + 1)).strftime("%Y-%m-%d")
+                    
+                    tierPurchaseObj.expirationDate = expirationDate
                     subscriptionUUID = cyverseSubscription['uuid']
-                    expirationDate = cyverseSubscription['endDate']
+                    # expirationDate = cyverseSubscription['endDate']
                     tierPurchaseObj.syncedToPartner = True
                     tierPurchaseObj.save()
                 except RuntimeError as error:
