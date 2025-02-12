@@ -3,6 +3,9 @@
 from paywall2 import settings
 import requests, json
 from subscription.models import UsageAddonPurchaseSync
+from datetime import timedelta
+import pytz
+from dateutil.parser import parse
 
 class CyVerseClient(object):
 
@@ -37,7 +40,7 @@ class CyVerseClient(object):
                 response.status_code, contentObj.get("error", "N/A"), contentObj.get("error_description", "N/A"))
             raise RuntimeError(errMsg)
 
-    def postTierPurchase(self, username, purchaseTier, durationInDays):
+    def postTierPurchase(self, username, purchaseTier, durationInDays, currentExpiration, renewal=False):
         # Determine the period value based on the duration
         if durationInDays == 365:
             period = 1
@@ -48,7 +51,14 @@ class CyVerseClient(object):
         
         # Update the URL to include the period parameter
         url = "%s/%s?periods=%s" % (self.apiUrl % username, purchaseTier, period)
-        
+
+        # If this is a renewal, add startDate parameter
+        # startDate should be currentExpiration + 1 day
+        if renewal:
+            current_expiration_date = parse(currentExpiration).replace(tzinfo=pytz.UTC)
+            start_date = (current_expiration_date + timedelta(days=1)).strftime("%Y-%m-%d")
+            url = url + "&start-date=" + start_date
+
         try:
             headers = self.getAuthHeader()
             response = requests.put(url, headers=headers)

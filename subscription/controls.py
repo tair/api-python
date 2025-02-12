@@ -495,11 +495,19 @@ class PaymentControl():
                 expirationDate = tierPurchaseObj.expirationDate
                 termName = termObj.name
                 termLabel = termObj.label
+                cyverseSubscription = client.getSubscriptionTier(username)
+                currentExpiration = cyverseSubscription['endDate']
+                # if currentExpiration is today or before today, we need to create a flag called renewal set to false
+                # this is because if the currentExpiration is a future date, that means this is a renewal purchase
+                now = timezone.now()
+                current_expiration_date = parse(currentExpiration).replace(tzinfo=pytz.UTC)
+                renewal = current_expiration_date > now and current_expiration_date < (now + timedelta(days=30))
+
                 if termLabel:
                     termLabel = string.capwords(termLabel)
 
                 try:
-                    client.postTierPurchase(username, termName, durationInDays)
+                    client.postTierPurchase(username, termName, durationInDays, currentExpiration, renewal=renewal)
                     cyverseSubscription = client.getSubscriptionTier(username)
                     if (cyverseSubscription['tier'] != termName):
                         raise RuntimeError("CyVerse tier name %s and local tier name %s does not match" % (cyverseSubscription['tier'], termName))
