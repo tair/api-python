@@ -15,6 +15,7 @@ class CyVerseClient(object):
         self.clientSecret = settings.CYVERSE_SECRET
         self.domain = settings.CYVERSE_DOMAIN
         self.apiUrl = settings.CYVERSE_API_URL
+        self.latestSubscriptionEndDateUrl = settings.CYVERSE_ENDDATE_API_URL
         self.addOnApiUrl = settings.CYVERSE_ADDON_API_URL
 
     def getAuthHeader(self):
@@ -84,6 +85,39 @@ class CyVerseClient(object):
                 'tier': contentObj['result']['plan']['name'],
                 'uuid': contentObj['result']['id'],
                 'endDate': contentObj['result']['effective_end_date']
+            }
+        except RuntimeError as error:
+            raise
+
+    def getLatestSubscriptionTier(self, username):
+        url = self.latestSubscriptionEndDateUrl % (username)
+        try:
+            headers = self.getAuthHeader()
+            response = requests.get(url, headers=headers)
+            contentObj = json.loads(response.content)
+            
+            if response.status_code != 200:
+                errMsg = "Error getting usage tier purchase from %s. status_code: %s; status: %s; message: %s" % (
+                    url, response.status_code, contentObj.get("status", "N/A"), contentObj.get("error", "N/A"))
+                raise RuntimeError(errMsg)
+
+            # Get subscriptions list from new response structure
+            subscriptions = contentObj['result']['subscriptions']
+            if not subscriptions:
+                raise RuntimeError("No subscriptions found for user %s" % username)
+
+            # Sort subscriptions by effective_start_date in descending order
+            # and take the first one (most recent)
+            latest_sub = sorted(
+                subscriptions,
+                key=lambda x: x['effective_start_date'],
+                reverse=True
+            )[0]
+
+            return {
+                'tier': latest_sub['plan']['name'],
+                'uuid': latest_sub['id'],
+                'endDate': latest_sub['effective_end_date']
             }
         except RuntimeError as error:
             raise
