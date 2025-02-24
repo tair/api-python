@@ -35,7 +35,6 @@ urlpatterns = [
     url(r'^payments/usage-tier/$', views.UsageTierPayment.as_view()),
     url(r'^active-usage-tier-purchase/$', views.ActiveUsageTierPurchase.as_view()),
     url(r'^cyverse-subscription/$', views.CyVerseSubscriptionTier.as_view()),
-    url(r'^cyverse-subscription-v2/$', views.CyVerseSubscriptionTierV2.as_view()),
     url(r'^discount/apply/$', views.ApplyDiscount.as_view()),
 
     # Templates

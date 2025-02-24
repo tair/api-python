@@ -19,10 +19,9 @@ for purchase in unsyncedPurchases:
     username = Credential.objects.filter(partyId=purchase.partyId).first().username
     termName = purchase.tierId.name
     termDuration = purchase.tierId.durationInDays
-    durationInDays = purchase.tierId.durationInDays
 
     try:
-        client.postTierPurchase(username, termName, durationInDays)
+        client.postTierPurchase(username, termName)
         subscription = client.getSubscriptionTier(username)
         if (subscription['tier'] != termName):
             raise RuntimeError("CyVerse tier name %s and local tier name %s does not match" % (subscription['tier'], termName))
