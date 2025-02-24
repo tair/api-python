@@ -402,41 +402,23 @@ class PaymentControl():
                 tierId = subscription['subscription']['tierId']
                 termObj = UsageTierTerm.objects.get(tierId=tierId)
                 partnerObj = termObj.partnerId
-                durationInDays = termObj.durationInDays
                 tierPurchaseObj = PaymentControl.createUsageTierPurchase(partyObj, partnerObj, termObj, purchaseDate, transactionId);
                 purchaseId = tierPurchaseObj.purchaseId
                 expirationDate = tierPurchaseObj.expirationDate
                 termName = termObj.name
                 termLabel = termObj.label
-                cyverseSubscription = client.getSubscriptionTier(username)
-                currentExpiration = cyverseSubscription['endDate']
-                # if currentExpiration is today or before today, we need to create a flag called renewal set to false
-                # this is because if the currentExpiration is a future date, that means this is a renewal purchase
-                now = timezone.now()
-                current_expiration_date = parse(currentExpiration).replace(tzinfo=pytz.UTC)
-                renewal = current_expiration_date > now and current_expiration_date < (now + timedelta(days=30))
-
                 if termLabel:
                     termLabel = string.capwords(termLabel)
 
                 try:
-                    client.postTierPurchase(username, termName, durationInDays, currentExpiration, renewal=renewal)
+                    client.postTierPurchase(username, termName)
                     cyverseSubscription = client.getSubscriptionTier(username)
-                    if (cyverseSubscription['tier'] != termName and not renewal):
+                    if (cyverseSubscription['tier'] != termName):
                         raise RuntimeError("CyVerse tier name %s and local tier name %s does not match" % (cyverseSubscription['tier'], termName))
                     tierPurchaseObj.partnerUUID = cyverseSubscription['uuid']
-
-                    # Calculate expiration date based on renewal status
-                    if not renewal:
-                        expirationDate = cyverseSubscription['endDate']
-                    else:
-                        current_expiration = cyverseSubscription['endDate']
-                        current_expiration_date = parse(current_expiration).replace(tzinfo=pytz.UTC)
-                        expirationDate = (current_expiration_date + timedelta(days=durationInDays + 1)).strftime("%Y-%m-%d")
-                    
-                    tierPurchaseObj.expirationDate = expirationDate
+                    tierPurchaseObj.expirationDate = cyverseSubscription['endDate']
                     subscriptionUUID = cyverseSubscription['uuid']
-                    # expirationDate = cyverseSubscription['endDate']
+                    expirationDate = cyverseSubscription['endDate']
                     tierPurchaseObj.syncedToPartner = True
                     tierPurchaseObj.save()
                 except RuntimeError as error:
@@ -581,19 +563,7 @@ class PaymentControl():
         name = firstname + " " + lastname
         payment = "%.2f" % float(payment)
 
-        # dt = parse(expirationDate)
-        # gmt_timezone = pytz.timezone('Etc/GMT')
-        # dt = dt.astimezone(gmt_timezone)
-        # expirationDateDisplay = dt.strftime('%Y-%m-%d %H:%M %Z')
-
         dt = parse(expirationDate)
-        if dt.tzinfo is None:  # Check if the datetime is naive
-            # Assign a timezone to the naive datetime
-            # Either use the local timezone:
-            local_timezone = pytz.timezone('UTC')  # or whatever the source timezone should be
-            dt = local_timezone.localize(dt)
-            
-        # Now convert to the target timezone
         gmt_timezone = pytz.timezone('Etc/GMT')
         dt = dt.astimezone(gmt_timezone)
         expirationDateDisplay = dt.strftime('%Y-%m-%d %H:%M %Z')
