@@ -670,7 +670,19 @@ class PaymentControl():
         name = firstname + " " + lastname
         payment = "%.2f" % float(payment)
 
+        # dt = parse(expirationDate)
+        # gmt_timezone = pytz.timezone('Etc/GMT')
+        # dt = dt.astimezone(gmt_timezone)
+        # expirationDateDisplay = dt.strftime('%Y-%m-%d %H:%M %Z')
+
         dt = parse(expirationDate)
+        if dt.tzinfo is None:  # Check if the datetime is naive
+            # Assign a timezone to the naive datetime
+            # Either use the local timezone:
+            local_timezone = pytz.timezone('UTC')  # or whatever the source timezone should be
+            dt = local_timezone.localize(dt)
+            
+        # Now convert to the target timezone
         gmt_timezone = pytz.timezone('Etc/GMT')
         dt = dt.astimezone(gmt_timezone)
         expirationDateDisplay = dt.strftime('%Y-%m-%d %H:%M %Z')
