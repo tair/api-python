@@ -853,6 +853,46 @@ class CyVerseSubscriptionTier(generics.GenericAPIView):
         except Exception as error:
             return HttpResponse(json.dumps(error), content_type="application/json", status=400)
 
+# /cyverse-subscription-v2
+# Endpoint for querying a user's latest subscription tier and add on options purchased
+# from the updated subscription API that returns multiple subscriptions
+# params: username
+# returns: a JSON string with subscription tier, subscription UUID and endDate from the latest subscription
+class CyVerseSubscriptionTierV2(generics.GenericAPIView):
+    requireApiKey = False
+    
+    def get(self, request):
+        params = request.GET
+        username = params.get('username')
+        
+        if not username:
+            return HttpResponse(
+                json.dumps({'error': 'Username parameter is required'}),
+                content_type="application/json",
+                status=400
+            )
+            
+        try:
+            client = CyVerseClient()
+            subscription = client.getLatestSubscriptionTier(username)
+            addOns = client.getAddonPurchases(subscription['uuid'])
+            
+            return HttpResponse(
+                json.dumps({
+                    'subscription': subscription,
+                    'addons': addOns
+                }),
+                content_type="application/json"
+            )
+            
+        except Exception as error:
+            error_message = str(error)
+            return HttpResponse(
+                json.dumps({'error': error_message}),
+                content_type="application/json",
+                status=400
+            )
+        
 # /payments/usage-tier
 # CYV-17: End point for posting payment for CyVerse
 class UsageTierPayment(APIView):
