@@ -60,7 +60,8 @@ class AccessType(models.Model):
                 pattern = re.compile(rule.patternId.pattern)
                 isPatternValid = True
             except re.error:
-                isPatternValid = False   
+                print(f"Error compiling pattern: {rule.patternId.pattern}")
+                isPatternValid = True   
             if isPatternValid and pattern.search(url) and rule.accessTypeId.name == accessTypeName:
                 return True
         # no match url.
