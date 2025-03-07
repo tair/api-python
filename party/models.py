@@ -7,6 +7,7 @@ from django.utils import timezone
 from common.common import validateIpRange
 from rest_framework import serializers
 from django.utils.translation import ugettext_lazy as _
+from django.core.exceptions import ObjectDoesNotExist
 from common.common import ip2long, is_valid_ipv4
 
 import logging
@@ -51,11 +52,15 @@ class Party(models.Model):
 
     @staticmethod
     def getById(partyId):
-        partyList = []
-        consortiums = Party.objects.all().get(partyId = partyId).consortiums.values_list('partyId', flat=True)
-        partyList.append(partyId)
-        partyList.extend(consortiums)
-        return partyList
+        try:
+            partyList = []
+            party = Party.objects.get(partyId=partyId)
+            consortiums = party.consortiums.values_list('partyId', flat=True)
+            partyList.append(partyId)
+            partyList.extend(consortiums)
+            return partyList
+        except ObjectDoesNotExist:
+            return []
     
     def validateInstitutionCountry(self):
         if self.partyType == 'organization':
