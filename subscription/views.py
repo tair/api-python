@@ -1114,14 +1114,14 @@ def get_usage_units(url):
             # Match the full URL against the compiled pattern
             if regex_pattern.search(url):
                 uri_pattern_object = pattern_entry
-                logger.debug("Match found for pattern: %s" % pattern_entry.pattern)
+                # logger.debug("Match found for pattern: %s" % pattern_entry.pattern)
                 break
         except re.error as e:
             logger.error("Regex compilation failed for pattern: %s with error: %s" % (pattern_entry.pattern, e))
 
     # If no match is found in UriPattern table, return 0
     if not uri_pattern_object:
-        logger.debug("No matching pattern found in UriPattern table.")
+        logger.debug("No matching pattern found in UriPattern table: %s" % pattern_entry.pattern)
         return FREE_ACCESS_UNIT
 
     # Step 2: Look up usage units from PremiumUsageUnits using the found UriPattern entry
@@ -1132,7 +1132,7 @@ def get_usage_units(url):
         return premium_page.units_consumed
     except PremiumUsageUnits.DoesNotExist:
         # If no specific PremiumUsageUnits entry is found, return default value of 1
-        logger.debug("No PremiumUsageUnits entry found for pattern id: %d. Defaulting to 1 unit." % uri_pattern_object.patternId)
+        # logger.debug("No PremiumUsageUnits entry found for pattern id: %d. Defaulting to 1 unit." % uri_pattern_object.patternId)
         return PAID_ACCESS_UNIT
 
 
@@ -1161,6 +1161,7 @@ class CheckLimit(APIView):
             if expiry_date is None:
                 expiry_date = user_bucket.free_expiry_date
 
+            logger.info("CheckLimit:user bucket " + str(party_id) + " remaining units are " + str(user_bucket.remaining_units))
             if user_bucket.remaining_units >= units_required and expiry_date > timezone.now():
                 if user_bucket.remaining_units == warningLimit:
                     return Response({"status": STATUS_WARNING})
@@ -1190,14 +1191,18 @@ class Decrement(APIView):
 
         try:
             user_bucket = UserBucketUsage.objects.get(partyId_id=party_id)
+            # logger.info("Decrement:user bucket " + str(party_id) + "remaining units are " + str(user_bucket.remaining_units))
             if user_bucket.remaining_units >= units_required:
                 user_bucket.remaining_units -= units_required
                 user_bucket.save()
+                logger.info("Successfully decremented remaining units")
                 return Response({"message": "Successfully decremented remaining units"})
             else:
+                logger.info("No remaining units to decrement")
                 return Response({"message": "No remaining units to decrement"})
 
         except UserBucketUsage.DoesNotExist:
+            logger.info("Error: User bucket usage not found")
             return Response({"error": "User bucket usage not found"}, status=status.HTTP_404_NOT_FOUND)
         
 decrement = Decrement.as_view()

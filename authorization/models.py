@@ -2,6 +2,8 @@ from django.db import models
 import re
 from partner.models import Partner
 
+import logging
+logger = logging.getLogger('phoenix.api.authorization')
 # Create your models here.
 
 class Status():
@@ -60,7 +62,8 @@ class AccessType(models.Model):
                 pattern = re.compile(rule.patternId.pattern)
                 isPatternValid = True
             except re.error:
-                isPatternValid = False   
+                logger.info("Error compiling pattern: %s" % rule.patternId.pattern)
+                isPatternValid = True   
             if isPatternValid and pattern.search(url) and rule.accessTypeId.name == accessTypeName:
                 return True
         # no match url.

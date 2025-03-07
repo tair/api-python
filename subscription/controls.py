@@ -121,7 +121,7 @@ class SubscriptionControl():
     def get_filtered_uri(full_uri):
         # if the full_uri contains /Araport11/tracks.conf, return "<base_uri>/Araport11/tracks.conf"
         # otherwise, return the full uri
-        sub_checks = ['/Araport11/tracks.conf', 'http://seqviewer-test.arabidopsis.org/', '/servlets/mapper', '/cgi-bin/gb2/gbrowse/']
+        sub_checks = ['/Araport11/tracks.conf', 'http://seqviewer-test.arabidopsis.org/', 'http://seqviewer.arabidopsis.org/', '/servlets/mapper', '/cgi-bin/gb2/gbrowse/', '/api/search/annotation']
         for sub_check in sub_checks:
             if sub_check in full_uri:
                 base_path = full_uri.split(sub_check)[0]  # Remove everything after 'sub_check'
