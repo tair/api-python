@@ -2,6 +2,7 @@ from django.shortcuts import render, redirect
 from django.core.urlresolvers import reverse
 from django.http import HttpResponse
 from django.core.mail import send_mail
+from django.http import JsonResponse
 
 import requests
 import json
@@ -13,8 +14,9 @@ from rest_framework.views import APIView
 from rest_framework.response import Response
 from common.views import GenericCRUDView
 from common.permissions import ApiKeyPermission 
-
-from authentication.models import Credential, GooglePartyAffiliation
+from django.views.decorators.csrf import csrf_exempt
+from django.utils.decorators import method_decorator
+from authentication.models import Credential, GooglePartyAffiliation, Credential, OrcidCredentials
 from authentication.serializers import CredentialSerializer, CredentialSerializerNoPassword
 from subscription.models import Party
 from partner.models import Partner
@@ -22,6 +24,7 @@ from party.serializers import PartySerializer
 from party.models import Party, Country
 
 from common.permissions import isPhoenix
+from django.conf import settings
 
 # CIPRES-13: add password decryption
 from common.utils.cipresUtils import AESCipher
@@ -273,12 +276,12 @@ def login(request):
 
         for dbUser in dbUserList:
 
-            logger.info("Authentication Login dbUser %s requestUser %s pwd %s" % (dbUser.username,requestUser,requestHashedPassword))
+            # logger.info("Authentication Login dbUser %s requestUser %s pwd %s" % (dbUser.username,requestUser,requestHashedPassword))
 
             #if user not found then continue
             if dbUser.username.lower() != requestUser.lower():
                 msg = " Authentication Login USER NOT MATCH. i=%s continue..." % (i)
-                logger.info(msg)
+                # logger.info(msg)
                 i = i+1
                 continue
             else:
@@ -301,7 +304,7 @@ def login(request):
                 logger.info(msg)
                 return response
 
-        logger.info("Authentication Login end of loop")
+        # logger.info("Authentication Login end of loop")
     #}end of if not empty list
     #if we did not return from above and we are here, then it's an error.
     #print last error msg from the loop and return 401 response
@@ -439,3 +442,323 @@ def checkAccountExists(request):
       username = params['username']
       result['usernameExist'] = Credential.objects.all().filter(username=username).filter(partnerId=partnerId).exists()
     return HttpResponse(json.dumps(result), status=status.HTTP_200_OK);
+
+#/credentials/checkOrcid
+class CheckOrcid(generics.GenericAPIView):
+    requireApiKey = False
+    queryset = Credential.objects.all()
+    
+    def get_queryset(self):
+        user_identifier = self.request.query_params.get('userIdentifier')
+        partner_id = self.request.query_params.get('partnerId')
+        return self.queryset.filter(userIdentifier=user_identifier, partnerId__partnerId=partner_id)
+
+    def get(self, request, *args, **kwargs):
+        user_identifier = request.query_params.get('userIdentifier')
+        partner_id = request.query_params.get('partnerId')
+
+        if not user_identifier or not partner_id:
+            return Response({'error': 'Both userIdentifier and partnerId are required.'}, status=status.HTTP_400_BAD_REQUEST)
+
+        if partner_id.lower() != 'tair':
+            return Response({'error': 'This check is only available for TAIR users.'}, status=status.HTTP_400_BAD_REQUEST)
+
+        try:
+            credential = self.get_queryset().get()
+        except Credential.DoesNotExist:
+            return Response({'error': 'User not found.'}, status=status.HTTP_404_NOT_FOUND)
+
+        try:
+            orcid_credential = OrcidCredentials.objects.get(
+                credential=credential,
+                orcid_id__isnull=False
+            )
+            has_orcid = True
+            orcid_id = orcid_credential.orcid_id
+        except OrcidCredentials.DoesNotExist:
+            has_orcid = False
+            orcid_id = None
+
+        return Response({
+            'has_orcid': has_orcid,
+            'orcid_id': orcid_id
+        })
+
+checkOrcid = CheckOrcid.as_view()
+    
+#/credentials/getUserIdentifierByOrcid
+class GetUserIdentifierByOrcid(generics.GenericAPIView):
+    requireApiKey = False
+    queryset = OrcidCredentials.objects.all()
+
+    def get_queryset(self):
+        orcid_id = self.request.query_params.get('orcidId')
+        return self.queryset.filter(orcid_id=orcid_id)
+
+    def get(self, request, *args, **kwargs):
+        orcid_id = request.query_params.get('orcidId')
+        
+        if not orcid_id:
+            return Response({'error': 'ORCID ID is required.'}, status=status.HTTP_400_BAD_REQUEST)
+        
+        try:
+            orcid_credential = self.get_queryset().get()
+            user_identifier = orcid_credential.credential.userIdentifier
+            return Response({'userIdentifier': user_identifier})
+        except OrcidCredentials.DoesNotExist:
+            return Response({'userIdentifier': None})
+
+getUserIdentifierByOrcid = GetUserIdentifierByOrcid.as_view()
+
+
+#/credentials/addOrcidCredentials
+class AddOrcidCredentials(generics.GenericAPIView):
+    requireApiKey = False
+    queryset = Credential.objects.all()
+
+    @method_decorator(csrf_exempt)
+    def dispatch(self, *args, **kwargs):
+        return super(AddOrcidCredentials, self).dispatch(*args, **kwargs)
+
+    def get_data(self, request):
+        logging.info("Received request to addOrcidCredentials")
+        logging.info("Request method: %s", request.method)
+        logging.info("Request GET params: %s", request.GET)
+
+        # Try to get data from query parameters first
+        data = request.GET.dict()
+        
+        # If not in query params, check content type and parse accordingly
+        if not data:
+            if request.content_type == 'application/json':
+                try:
+                    data = json.loads(request.body)
+                except ValueError:
+                    logging.error("Invalid JSON in request body")
+                    data = {}
+            else:
+                data = request.POST.dict()
+        
+        logging.info("Parsed request data: %s", data)
+        return data
+
+    def post(self, request, *args, **kwargs):
+        data = self.get_data(request)
+
+        secretKey = data.get('secretKey')
+        credentialId = data.get('credentialId')
+        orcid_id = data.get('orcidId')
+        orcid_access_token = data.get('orcidAccessToken')
+        orcid_refresh_token = data.get('orcidRefreshToken')
+
+
+        if not all([secretKey, credentialId, orcid_id, orcid_access_token, orcid_refresh_token]):
+            logging.error("Missing required fields. Received: %s", data)
+            return Response({'success': False, 'error': 'Missing required fields'}, status=status.HTTP_400_BAD_REQUEST)
+
+        loggedIn = Credential.validate(credentialId, secretKey)
+
+        if not loggedIn:
+            logging.error("Invalid credentials provided")
+            return Response({'success': False, 'error': 'Invalid credentials'}, status=status.HTTP_401_UNAUTHORIZED)
+        
+        try:
+            credential = Credential.objects.get(partyId=credentialId, partnerId='tair')
+        except Credential.DoesNotExist:
+            logging.error("User not found: %s", credentialId)
+            return Response({'success': False, 'error': 'User not found'}, status=status.HTTP_404_NOT_FOUND)
+
+        # Check if ORCID credentials already exist for this user
+        orcid_cred, created = OrcidCredentials.objects.update_or_create(
+            credential=credential,
+            defaults={
+                'orcid_id': orcid_id,
+                'orcid_access_token': orcid_access_token,
+                'orcid_refresh_token': orcid_refresh_token
+            }
+        )
+        logging.info("ORCID credentials %s for user: %s", 'created' if created else 'updated', credentialId)
+
+        return Response({'success': True, 'message': 'ORCID credentials added successfully'})
+
+addOrcidCredentials = AddOrcidCredentials.as_view()
+
+
+
+class AuthenticateOrcid(APIView):
+    requireApiKey = False
+
+    def post(self, request):
+        logger.info("Received ORCID authentication request")
+        auth_code = request.data.get('code')
+        if not auth_code:
+            logger.warning("Auth code is missing in the request")
+            return Response({'message': 'Auth code is required.'}, status=status.HTTP_400_BAD_REQUEST)
+
+        logger.info("Exchanging auth code for ORCID ID")
+        token_url = "{0}/oauth/token".format(settings.ORCID_DOMAIN)
+        data = {
+            'client_id': settings.ORCID_CLIENT_ID,
+            'client_secret': settings.ORCID_CLIENT_SECRET,
+            'grant_type': 'authorization_code',
+            'code': auth_code,
+            'redirect_uri': settings.ORCID_REDIRECT_URL,
+        }
+        headers = {
+            'Accept': 'application/json',
+            'Content-Type': 'application/x-www-form-urlencoded',
+        }
+
+        try:
+            logger.debug("Sending request to ORCID API: URL=%s, Headers=%s, Data=%s", token_url, headers, data)
+            response = requests.post(token_url, data=data, headers=headers)
+            logger.info("Received response from ORCID API: Status=%s", response.status_code)
+            logger.debug("ORCID API response content: %s", response.text)
+            response.raise_for_status()
+            token_data = response.json()
+            orcid_id = token_data['orcid']
+            orcid_access_token = token_data['access_token']
+            orcid_refresh_token = token_data['refresh_token']
+            logger.info("Successfully obtained ORCID ID: %s", orcid_id)
+        except requests.RequestException as e:
+            logger.error("Failed to authenticate with ORCID: %s", str(e))
+            return Response({'message': 'Failed to authenticate with ORCID.'}, status=status.HTTP_400_BAD_REQUEST)
+
+        logger.info("Getting user identifier for ORCID ID: %s", orcid_id)
+        
+        try:
+            orcid_credentials = OrcidCredentials.objects.get(orcid_id=orcid_id)
+        except OrcidCredentials.DoesNotExist:
+            logger.warning("No user found for ORCID ID: %s", orcid_id)
+            return Response({'message': 'No such user'}, status=status.HTTP_401_UNAUTHORIZED)
+
+        credential = orcid_credentials.credential
+        logger.info("Updating ORCID credentials")
+        orcid_credentials.orcid_access_token = orcid_access_token
+        orcid_credentials.orcid_refresh_token = orcid_refresh_token
+        orcid_credentials.save()
+        logger.info("ORCID credentials updated successfully")
+
+        logger.info("Generating secret key")
+        secret_key = base64.b64encode(
+            hmac.new(
+                str(credential.partyId.partyId),
+                credential.password,
+                hashlib.sha1
+            ).digest()
+        )
+
+        country_code = ""
+        if credential.partyId.country:
+            country_code = credential.partyId.country.abbreviation
+        logger.info("Country code retrieved: %s", country_code)
+
+        logger.info("Preparing response")
+        response_data = {
+            "message": "Correct password",
+            "credentialId": credential.partyId.partyId,
+            "secretKey": secret_key,
+            "email": credential.email,
+            "role": "librarian",
+            "username": credential.username,
+            "userIdentifier": credential.userIdentifier,
+            "countryCode": country_code
+        }
+        logger.info("Authentication successful for user: %s", credential.username)
+        return Response(response_data, status=status.HTTP_200_OK)
+
+authenticateOrcid = AuthenticateOrcid.as_view()
+
+
+#/credentials/unlinkOrcid
+class UnlinkOrcid(generics.GenericAPIView):
+    requireApiKey = False
+    queryset = Credential.objects.all()
+
+    @method_decorator(csrf_exempt)
+    def dispatch(self, *args, **kwargs):
+        return super(UnlinkOrcid, self).dispatch(*args, **kwargs)
+
+    def get_data(self, request):
+        logging.info("Received request to unlinkOrcid")
+        logging.info("Request method: %s", request.method)
+        logging.info("Request GET params: %s", request.GET)
+
+        # Try to get data from query parameters first
+        data = request.GET.dict()
+        
+        # If not in query params, check content type and parse accordingly
+        if not data:
+            if request.content_type == 'application/json':
+                try:
+                    data = json.loads(request.body)
+                except ValueError:
+                    logging.error("Invalid JSON in request body")
+                    data = {}
+            else:
+                data = request.POST.dict()
+        
+        logging.info("Parsed request data: %s", data)
+        return data
+
+    def post(self, request, *args, **kwargs):
+        data = self.get_data(request)
+
+        secretKey = data.get('secretKey')
+        credentialId = data.get('credentialId')
+
+        if not all([secretKey, credentialId]):
+            logging.error("Missing required fields. Received: %s", data)
+            return Response({
+                'success': False, 
+                'error': 'Missing required fields'
+            }, status=status.HTTP_400_BAD_REQUEST)
+
+        # Validate the user's credentials
+        loggedIn = Credential.validate(credentialId, secretKey)
+
+        if not loggedIn:
+            logging.error("Invalid credentials provided")
+            return Response({
+                'success': False, 
+                'error': 'Invalid credentials'
+            }, status=status.HTTP_401_UNAUTHORIZED)
+        
+        try:
+            # Get the credential object
+            credential = Credential.objects.get(partyId=credentialId, partnerId='tair')
+            
+            # Update the OrcidCredentials record
+            result = OrcidCredentials.objects.filter(credential=credential).update(
+                orcid_id=None,
+                orcid_access_token=None,
+                orcid_refresh_token=None
+            )
+            
+            if result > 0:
+                logging.info("Successfully unlinked ORCID credentials for user: %s", credentialId)
+                return Response({
+                    'success': True,
+                    'message': 'ORCID credentials successfully unlinked'
+                })
+            else:
+                logging.warning("No ORCID credentials found to unlink for user: %s", credentialId)
+                return Response({
+                    'success': False,
+                    'error': 'No ORCID credentials found to unlink'
+                }, status=status.HTTP_404_NOT_FOUND)
+
+        except Credential.DoesNotExist:
+            logging.error("User not found: %s", credentialId)
+            return Response({
+                'success': False,
+                'error': 'User not found'
+            }, status=status.HTTP_404_NOT_FOUND)
+        except Exception as e:
+            logging.error("Error unlinking ORCID credentials: %s", str(e))
+            return Response({
+                'success': False,
+                'error': 'Internal server error while unlinking ORCID credentials'
+            }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+unlinkOrcid = UnlinkOrcid.as_view()

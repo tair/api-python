@@ -1,0 +1,356 @@
+{
+  "info": {
+    "name": "Paywall API Tests",
+    "description": "Tests for all API endpoints in the Paywall API",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "Authentication",
+      "description": "Tests for authentication endpoints",
+      "item": [
+        {
+          "name": "List/Create User",
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/credentials/",
+            "description": "List all users or create a new user"
+          }
+        },
+        {
+          "name": "Create User",
+          "request": {
+            "method": "POST",
+            "url": "{{baseUrl}}/credentials/",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"username\": \"testuser\",\n  \"email\": \"test@example.com\",\n  \"password\": \"testpassword\",\n  \"firstName\": \"Test\",\n  \"lastName\": \"User\"\n}"
+            },
+            "description": "Create a new user"
+          }
+        },
+        {
+          "name": "Login",
+          "request": {
+            "method": "POST",
+            "url": "{{baseUrl}}/credentials/login/",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"username\": \"testuser\",\n  \"password\": \"testpassword\"\n}"
+            },
+            "description": "Login with user credentials"
+          }
+        },
+        {
+          "name": "Reset Password",
+          "request": {
+            "method": "POST",
+            "url": "{{baseUrl}}/credentials/resetPwd/",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"test@example.com\"\n}"
+            },
+            "description": "Request password reset"
+          }
+        },
+        {
+          "name": "User Profile",
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/credentials/profile/",
+            "description": "Get user profile"
+          }
+        },
+        {
+          "name": "Check Account Exists",
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/credentials/checkAccountExists?email=test@example.com",
+            "description": "Check if account exists by email"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Authorization",
+      "description": "Tests for authorization endpoints",
+      "item": [
+        {
+          "name": "List Access Types",
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/authorizations/accessTypes/",
+            "description": "List all access types"
+          }
+        },
+        {
+          "name": "List Access Rules",
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/authorizations/accessRules/",
+            "description": "List all access rules"
+          }
+        },
+        {
+          "name": "URI Access Patterns",
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/authorizations/patterns/",
+            "description": "List all URI access patterns"
+          }
+        },
+        {
+          "name": "Check Access",
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/authorizations/access/?ip=192.168.1.1&uri=test/uri&partnerId=testPartner",
+            "description": "Check access for IP, URI and partner"
+          }
+        },
+        {
+          "name": "Check Subscriptions Access",
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/authorizations/subscriptions/",
+            "description": "Check subscriptions access"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Subscription",
+      "description": "Tests for subscription endpoints",
+      "item": [
+        {
+          "name": "List/Create Subscriptions",
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/subscriptions/",
+            "description": "List all subscriptions"
+          }
+        },
+        {
+          "name": "Create Subscription",
+          "request": {
+            "method": "POST",
+            "url": "{{baseUrl}}/subscriptions/",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"partyId\": \"test-party\",\n  \"partnerId\": \"test-partner\",\n  \"startDate\": \"2023-01-01\",\n  \"endDate\": \"2023-12-31\"\n}"
+            },
+            "description": "Create a new subscription"
+          }
+        },
+        {
+          "name": "List Transactions",
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/subscriptions/transactions/",
+            "description": "List all subscription transactions"
+          }
+        },
+        {
+          "name": "List Activation Codes",
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/subscriptions/activationCodes/",
+            "description": "List all activation codes"
+          }
+        },
+        {
+          "name": "Subscription Renewal",
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/subscriptions/1/renewal/",
+            "description": "Get subscription renewal information"
+          }
+        },
+        {
+          "name": "Subscription Payments",
+          "request": {
+            "method": "POST",
+            "url": "{{baseUrl}}/subscriptions/payments/",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"stripeToken\": \"tok_test\",\n  \"partyId\": \"test-party\",\n  \"partnerId\": \"test-partner\",\n  \"amount\": 50,\n  \"subscriptionType\": \"individual\"\n}"
+            },
+            "description": "Process subscription payment"
+          }
+        },
+        {
+          "name": "Active Subscriptions",
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/subscriptions/activesubscriptions/test-party/",
+            "description": "Get active subscriptions for a party"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Partner",
+      "description": "Tests for partner endpoints",
+      "item": [
+        {
+          "name": "List/Create Partners",
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/partners/",
+            "description": "List all partners"
+          }
+        },
+        {
+          "name": "Create Partner",
+          "request": {
+            "method": "POST",
+            "url": "{{baseUrl}}/partners/",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"partnerId\": \"test-partner\",\n  \"name\": \"Test Partner\",\n  \"loginUri\": \"https://example.com/login\",\n  \"host\": \"example.com\"\n}"
+            },
+            "description": "Create a new partner"
+          }
+        },
+        {
+          "name": "Subscription Descriptions",
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/partners/descriptions/",
+            "description": "List all subscription descriptions"
+          }
+        },
+        {
+          "name": "Description Items",
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/partners/descriptionItems/",
+            "description": "List all description items"
+          }
+        },
+        {
+          "name": "Partner Patterns",
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/partners/patterns/",
+            "description": "List all partner patterns"
+          }
+        },
+        {
+          "name": "Terms",
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/partners/terms/",
+            "description": "List all partner terms"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Party",
+      "description": "Tests for party endpoints",
+      "item": [
+        {
+          "name": "List/Create Parties",
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/parties/",
+            "description": "List all parties"
+          }
+        },
+        {
+          "name": "Create Party",
+          "request": {
+            "method": "POST",
+            "url": "{{baseUrl}}/parties/",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"partyId\": \"test-party\",\n  \"name\": \"Test Party\",\n  \"type\": \"individual\"\n}"
+            },
+            "description": "Create a new party"
+          }
+        }
+      ]
+    },
+    {
+      "name": "IP Ranges",
+      "description": "Tests for IP range endpoints",
+      "item": [
+        {
+          "name": "List/Create IP Ranges",
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/ipranges/",
+            "description": "List all IP ranges"
+          }
+        },
+        {
+          "name": "Create IP Range",
+          "request": {
+            "method": "POST",
+            "url": "{{baseUrl}}/ipranges/",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"ipStart\": \"192.168.1.1\",\n  \"ipEnd\": \"192.168.1.255\",\n  \"partyId\": \"test-party\"\n}"
+            },
+            "description": "Create a new IP range"
+          }
+        }
+      ]
+    }
+  ],
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:8000",
+      "type": "string"
+    }
+  ]
+}
