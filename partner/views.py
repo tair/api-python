@@ -102,8 +102,8 @@ class BucketTypeCRUD(GenericCRUDView):
                 
             if not result:
                 orcid_id = None
-            
-            orcid_id = result[0]
+            else:
+                orcid_id = result[0]
         
         transaction_found = False
         if orcid_id:
