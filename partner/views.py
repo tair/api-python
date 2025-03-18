@@ -112,6 +112,8 @@ class BucketTypeCRUD(GenericCRUDView):
                     logger.info("Bucket Transaction ID: " + str(transaction.bucket_transaction_id))
             else:
                 logger.info("No transactions for bucket_type_id=10 found for orcid_id: " + orcid_id)
+        else:
+            transaction_found = True
         out = []
         for entry in obj:
             outEntry = {}
