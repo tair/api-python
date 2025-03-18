@@ -100,19 +100,18 @@ class BucketTypeCRUD(GenericCRUDView):
                 """, [credential_id])
                 result = cursor.fetchone()
                 
-            if not result:
-                return Response({"error": "No ORCID ID found for the given credentialId"}, status=400)
-            
-            orcid_id = result[0]
+            if result:
+                orcid_id = result[0]
         
-        transactions = BucketTransaction.objects.filter(orcid_id=orcid_id, bucket_type_id=10)
-        transaction_found = False
-        if transactions.exists():
-            transaction_found = True
-            for transaction in transactions:
-                logger.info("Bucket Transaction ID: " + str(transaction.bucket_transaction_id))
-        else:
-            logger.info("No transactions for bucket_type_id=10 found for orcid_id: " + orcid_id)
+        if orcid_id:
+            transactions = BucketTransaction.objects.filter(orcid_id=orcid_id, bucket_type_id=10)
+            transaction_found = False
+            if transactions.exists():
+                transaction_found = True
+                for transaction in transactions:
+                    logger.info("Bucket Transaction ID: " + str(transaction.bucket_transaction_id))
+            else:
+                logger.info("No transactions for bucket_type_id=10 found for orcid_id: " + orcid_id)
         out = []
         for entry in obj:
             outEntry = {}
