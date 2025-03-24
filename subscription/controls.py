@@ -63,7 +63,7 @@ class SubscriptionControl():
             userBucketUsage.free_expiry_date = now + timedelta(days=365)
             userBucketUsage.save()
         else:
-            if now < userBucketUsage.free_expiry_date:
+            if userBucketUsage.free_expiry_date is not None and now < userBucketUsage.free_expiry_date:
                 raise Exception("Free usage units cannot be added until previous units expired.")
             userBucketUsage.total_units += units
             userBucketUsage.remaining_units += units
