@@ -162,6 +162,13 @@ def update_ip_ranges(party_id=30767):
     print("IP ranges to be added: {}".format(len(ranges_to_add)))
     print("IP ranges to be kept: {}".format(len(ranges_to_keep)))
 
+    # Get the Party instance first
+    try:
+        party = Party.objects.get(partyId=party_id)
+    except Party.DoesNotExist:
+        print("Error: Party with ID {} does not exist".format(party_id))
+        return
+
     # Perform database operations
     with transaction.atomic():
         # Expire ranges
@@ -182,7 +189,7 @@ def update_ip_ranges(party_id=30767):
         for range_info in ranges_to_add:
             try:
                 IpRange.objects.create(
-                    partyId=party_id,
+                    partyId=party,
                     start=range_info['start'],
                     end=range_info['end'],
                     startLong=range_info['start_long'],
