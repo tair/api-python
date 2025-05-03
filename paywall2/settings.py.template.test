@@ -264,3 +264,7 @@ CYVERSE_ADDON_API_URL = "https://qa.cyverse.org/terrain/service/qms/subscription
 # Email Subject for CyVerse purchase
 CYVERSE_PURCHASE_EMAIL_SUBJECT = 'New Subscription Purchase'
 CYVERSE_ADMINS = ['techteam@phoenixbioinformatics.org', 'support@cyverse.org']
+
+# BASF Gateway API settings
+BASF_GATEWAY_API_KEY = ''
+BASF_GATEWAY_API_URL = ''
