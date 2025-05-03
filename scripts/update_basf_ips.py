@@ -10,7 +10,7 @@ django.setup()
 
 from django.utils import timezone
 from paywall2.settings import BASF_GATEWAY_API_KEY, BASF_GATEWAY_API_URL
-from party.models import IpRange
+from party.models import IpRange, Party
 from common.common import is_valid_ip, ip2long
 from django.db import transaction
 from netaddr import IPNetwork, IPAddress, IPRange
