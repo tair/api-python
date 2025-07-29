@@ -1160,6 +1160,8 @@ class CheckLimit(APIView):
             expiry_date = user_bucket.expiry_date
             if expiry_date is None:
                 expiry_date = user_bucket.free_expiry_date
+            elif user_bucket.free_expiry_date is not None and user_bucket.free_expiry_date > expiry_date:
+                expiry_date = user_bucket.free_expiry_date
 
             logger.info("CheckLimit:user bucket " + str(party_id) + " remaining units are " + str(user_bucket.remaining_units))
             if user_bucket.remaining_units >= units_required and expiry_date > timezone.now():

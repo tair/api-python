@@ -595,7 +595,7 @@ class AuthenticateOrcid(APIView):
             logger.warning("Auth code is missing in the request")
             return Response({'message': 'Auth code is required.'}, status=status.HTTP_400_BAD_REQUEST)
 
-        logger.info("Exchanging auth code for ORCID ID")
+        # logger.info("Exchanging auth code for ORCID ID")
         token_url = "{0}/oauth/token".format(settings.ORCID_DOMAIN)
         data = {
             'client_id': settings.ORCID_CLIENT_ID,
@@ -610,10 +610,10 @@ class AuthenticateOrcid(APIView):
         }
 
         try:
-            logger.debug("Sending request to ORCID API: URL=%s, Headers=%s, Data=%s", token_url, headers, data)
+            # logger.debug("Sending request to ORCID API: URL=%s, Headers=%s, Data=%s", token_url, headers, data)
             response = requests.post(token_url, data=data, headers=headers)
-            logger.info("Received response from ORCID API: Status=%s", response.status_code)
-            logger.debug("ORCID API response content: %s", response.text)
+            # logger.info("Received response from ORCID API: Status=%s", response.status_code)
+            # logger.debug("ORCID API response content: %s", response.text)
             response.raise_for_status()
             token_data = response.json()
             orcid_id = token_data['orcid']
@@ -624,7 +624,7 @@ class AuthenticateOrcid(APIView):
             logger.error("Failed to authenticate with ORCID: %s", str(e))
             return Response({'message': 'Failed to authenticate with ORCID.'}, status=status.HTTP_400_BAD_REQUEST)
 
-        logger.info("Getting user identifier for ORCID ID: %s", orcid_id)
+        # logger.info("Getting user identifier for ORCID ID: %s", orcid_id)
         
         try:
             orcid_credentials = OrcidCredentials.objects.get(orcid_id=orcid_id)
@@ -633,13 +633,13 @@ class AuthenticateOrcid(APIView):
             return Response({'message': 'No such user'}, status=status.HTTP_401_UNAUTHORIZED)
 
         credential = orcid_credentials.credential
-        logger.info("Updating ORCID credentials")
+        # logger.info("Updating ORCID credentials")
         orcid_credentials.orcid_access_token = orcid_access_token
         orcid_credentials.orcid_refresh_token = orcid_refresh_token
         orcid_credentials.save()
-        logger.info("ORCID credentials updated successfully")
+        # logger.info("ORCID credentials updated successfully")
 
-        logger.info("Generating secret key")
+        # logger.info("Generating secret key")
         secret_key = base64.b64encode(
             hmac.new(
                 str(credential.partyId.partyId),
@@ -651,9 +651,9 @@ class AuthenticateOrcid(APIView):
         country_code = ""
         if credential.partyId.country:
             country_code = credential.partyId.country.abbreviation
-        logger.info("Country code retrieved: %s", country_code)
+        # logger.info("Country code retrieved: %s", country_code)
 
-        logger.info("Preparing response")
+        # logger.info("Preparing response")
         response_data = {
             "message": "Correct password",
             "credentialId": credential.partyId.partyId,
@@ -664,7 +664,7 @@ class AuthenticateOrcid(APIView):
             "userIdentifier": credential.userIdentifier,
             "countryCode": country_code
         }
-        logger.info("Authentication successful for user: %s", credential.username)
+        logger.info("ORCID Authentication successful for user: %s", credential.username)
         return Response(response_data, status=status.HTTP_200_OK)
 
 authenticateOrcid = AuthenticateOrcid.as_view()
