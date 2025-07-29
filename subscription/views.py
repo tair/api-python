@@ -1166,13 +1166,19 @@ class CheckLimit(APIView):
             logger.info("CheckLimit:user bucket " + str(party_id) + " remaining units are " + str(user_bucket.remaining_units))
             if user_bucket.remaining_units >= units_required and expiry_date > timezone.now():
                 if user_bucket.remaining_units == warningLimit:
+                    logger.info("CheckLimit: warning limit reached")
                     return Response({"status": STATUS_WARNING})
                 else:
                     return Response({"status": STATUS_OK})
             else:
                 if units_required > PAID_ACCESS_UNIT:
+                    logger.info("CheckLimit: blacklist block")
                     return Response({"status": STATUS_BLACKLIST_BLOCK})
                 else:
+                    if user_bucket.remaining_units < units_required:
+                        logger.info("CheckLimit: blocked due to no balance")
+                    else:
+                        logger.info("CheckLimit: blocked due to expiry date")
                     return Response({"status": STATUS_BLOCK})
         except UserBucketUsage.DoesNotExist:
             return Response({"status": STATUS_BLOCK, "error": ERROR_BUCKET_NOT_FOUND})
