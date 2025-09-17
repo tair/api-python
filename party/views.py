@@ -218,9 +218,7 @@ class OrganizationMembershipView(APIView):
         if not partnerId or not ipAddress:
             missing_param = 'partnerId' if not partnerId else 'ipAddress'
             return Response({'error': missing_param + ' is required'}, status=status.HTTP_400_BAD_REQUEST)
-        
-        logger.info("OrganizationMembershipView UPDATED GET received; processing partnerId=%s, ipAddress=%s", partnerId, ipAddress)
-        
+                
         if not Partner.objects.filter(partnerId=partnerId).exists():
             return self._build_response()
         
