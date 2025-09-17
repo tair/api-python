@@ -332,7 +332,7 @@ class OrganizationMembershipView(APIView):
 
         response_body = {
             'User': user_payload,
-            'All orgs': response_payload,
+            'Active Members': response_payload,
         }
 
         return HttpResponse(json.dumps(response_body), content_type="application/json")
