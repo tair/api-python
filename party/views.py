@@ -3,7 +3,6 @@
 from party.models import Party, IpRange, Country, PartyAffiliation, ImageInfo, ActiveIpRange
 from party.serializers import PartySerializer, IpRangeSerializer, CountrySerializer, ImageInfoSerializer
 from subscription.models import Subscription
-from subscription.serializers import SubscriptionSerializer
 from partner.models import Partner
 from django.db.models import Q
 
@@ -27,6 +26,7 @@ from authentication.serializers import CredentialSerializer, CredentialSerialize
 from genericpath import exists
 from django.db import connection
 from collections import namedtuple
+from django.utils import timezone
 
 #below three added by Andrey for PW-277
 import logging
@@ -214,128 +214,64 @@ class OrganizationMembershipView(APIView):
     requireApiKey = False
 
     def get(self, request, format=None):
-        partnerId = request.GET.get('partnerId')
-        ipAddress = request.GET.get('ipAddress')
+        partnerId, ipAddress = request.GET.get('partnerId'), request.GET.get('ipAddress')
+        if not partnerId or not ipAddress:
+            missing_param = 'partnerId' if not partnerId else 'ipAddress'
+            return Response({'error': missing_param + ' is required'}, status=status.HTTP_400_BAD_REQUEST)
+        
+        logger.info("OrganizationMembershipView UPDATED GET received; processing partnerId=%s, ipAddress=%s", partnerId, ipAddress)
+        
+        if not Partner.objects.filter(partnerId=partnerId).exists():
+            return self._build_response()
+        
+        return self._build_response(self._get_user_membership(ipAddress, partnerId), self._get_organization_members(partnerId))
 
-        if not ipAddress:
-            return Response({'error': 'ipAddress is required'}, status=status.HTTP_400_BAD_REQUEST)
-
-        default_user_payload = {
-            'isMember': False,
-            'expDate': "",
-            'name': "",
-            'imageUrl': "",
-        }
-
-        if not Partner.objects.all().filter(partnerId=partnerId).exists():
-            return HttpResponse(json.dumps({'User': default_user_payload, 'All orgs': []}), content_type="application/json")
-
-        now = datetime.datetime.now()
-        active_subs = Subscription.objects.all().filter(partnerId=partnerId) \
-                                           .filter(startDate__lte=now) \
-                                           .filter(endDate__gte=now) \
-                                           .select_related('partyId')
-        serialized_subs = SubscriptionSerializer(active_subs, many=True).data
-
-        user_payload = default_user_payload.copy()
-        user_subs = Subscription.getActiveByIp(ipAddress, partnerId)
-        user_subs_data = SubscriptionSerializer(user_subs, many=True).data
-
-        user_party_ids = set()
-        for sub in user_subs_data:
-            user_payload['isMember'] = True
-            end_date = sub.get('endDate') or ""
-            if user_payload['expDate'] == "":
-                user_payload['expDate'] = end_date
-            else:
-                user_payload['expDate'] = max(user_payload['expDate'], end_date)
-            party_id = sub.get('partyId')
-            if party_id:
-                if isinstance(party_id, dict):
-                    party_id = party_id.get('partyId')
-                user_party_ids.add(party_id)
-
-        if user_party_ids:
-            image_info_user_map = {info.partyId.partyId: info for info in ImageInfo.objects.all().filter(partyId__in=user_party_ids)}
-            user_parties = {party.partyId: party for party in Party.objects.all().filter(partyId__in=user_party_ids)}
-
-            for party_id in user_party_ids:
-                member_info = image_info_user_map.get(party_id)
-                if member_info:
-                    user_payload['name'] = member_info.name
-                    user_payload['imageUrl'] = member_info.imageUrl
-                    break
-
-            if not user_payload['name']:
-                for party_id in user_party_ids:
-                    party_obj = user_parties.get(party_id)
-                    if party_obj:
-                        user_payload['name'] = party_obj.name
-                        break
-
-        party_expiration_map = {}
-        for sub_obj, sub_json in zip(active_subs, serialized_subs):
-            party = sub_obj.partyId
-            if not party:
-                continue
-            party_id = party.partyId
-            end_date = sub_json.get('endDate') or ""
-            if party_id in party_expiration_map:
-                party_expiration_map[party_id] = max(party_expiration_map[party_id], end_date)
-            else:
-                party_expiration_map[party_id] = end_date
-
-        if not party_expiration_map:
-            return HttpResponse(json.dumps({'User': user_payload, 'All orgs': []}), content_type="application/json")
-
-        subscribed_parties = Party.objects.all().filter(partyId__in=party_expiration_map.keys())
-        organizations = subscribed_parties.filter(display=True).filter(partyType="organization")
-        consortiums = subscribed_parties.filter(partyType="consortium")
-
-        final_parties = []
-        seen_party_ids = set()
-        for org in organizations:
-            final_parties.append((org, party_expiration_map.get(org.partyId, "")))
-            seen_party_ids.add(org.partyId)
-
-        for cons in consortiums:
-            consortium_exp = party_expiration_map.get(cons.partyId, "")
-            for ins in cons.PartyAffiliation.all():
-                if not ins.display:
-                    continue
-                if ins.partyId in seen_party_ids:
-                    continue
-                final_parties.append((ins, consortium_exp))
-                seen_party_ids.add(ins.partyId)
-
-        if not final_parties:
-            return HttpResponse(json.dumps({'User': user_payload, 'All orgs': []}), content_type="application/json")
-
-        final_party_ids = [party.partyId for party, _ in final_parties]
-        image_info_queryset = ImageInfo.objects.all().filter(partyId__in=final_party_ids)
-        image_info_map = {info.partyId.partyId: info for info in image_info_queryset}
-
-        response_payload = []
-        for party, exp_date in final_parties:
-            name = party.name
-            image_url = ""
-            member_info = image_info_map.get(party.partyId)
-            if member_info:
-                name = member_info.name
-                image_url = member_info.imageUrl
-            response_payload.append({
+    def _get_user_membership(self, ipAddress, partnerId):
+        user_info = {'isMember': False, 'expDate': "", 'name': "", 'imageUrl': ""}
+        sub = Subscription.getActiveByIp(ipAddress, partnerId).first()
+        if sub and sub.partyId:
+            image_info = ImageInfo.objects.filter(partyId=sub.partyId.partyId).first()
+            user_info.update({
                 'isMember': True,
-                'expDate': exp_date,
-                'name': name,
-                'imageUrl': image_url,
+                'expDate': self._format_expiration(sub.endDate),
+                'name': image_info.name if image_info else sub.partyId.name,
+                'imageUrl': image_info.imageUrl if image_info else ""
             })
+        return user_info
 
-        response_body = {
-            'User': user_payload,
-            'Active Members': response_payload,
-        }
+    def _get_organization_members(self, partnerId):
+        now = datetime.datetime.now()
+        party_ids = Subscription.objects.filter(partnerId=partnerId, startDate__lte=now, endDate__gte=now).values_list('partyId', flat=True)
+        if not party_ids:
+            return []
 
-        return HttpResponse(json.dumps(response_body), content_type="application/json")
+        organizations = Party.objects.filter(partyId__in=party_ids, display=True, partyType="organization")
+        institutions = [inst for consortium in Party.objects.filter(partyId__in=party_ids, partyType="consortium") 
+                       for inst in consortium.PartyAffiliation.all() if inst.display]
+        
+        members = []
+        for party in list(organizations) + institutions:
+            sub = Subscription.objects.filter(partnerId=partnerId, partyId=party.partyId, startDate__lte=now, endDate__gte=now).first()
+            if sub:
+                image_info = ImageInfo.objects.filter(partyId=party.partyId).first()
+                members.append({
+                    'isMember': True,
+                    'expDate': self._format_expiration(sub.endDate),
+                    'name': image_info.name if image_info else party.name,
+                    'imageUrl': image_info.imageUrl if image_info else ""
+                })
+        return members
+
+    def _build_response(self, user_info=None, members=None):
+        return HttpResponse(json.dumps({'User': user_info or {'isMember': False, 'expDate': "", 'name': "", 'imageUrl': ""}, 'Active Members': members or []}), content_type="application/json")
+
+    @staticmethod
+    def _format_expiration(expiration_dt):
+        if not expiration_dt:
+            return ""
+        if timezone.is_naive(expiration_dt):
+            expiration_dt = timezone.make_aware(expiration_dt, timezone.get_default_timezone())
+        return expiration_dt.astimezone(timezone.utc).replace(microsecond=0).isoformat().replace('+00:00', 'Z')
 
 class CountryView(APIView):
     requireApiKey = False
