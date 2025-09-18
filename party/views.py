@@ -26,6 +26,7 @@ from authentication.serializers import CredentialSerializer, CredentialSerialize
 from genericpath import exists
 from django.db import connection
 from collections import namedtuple
+from django.utils import timezone
 
 #below three added by Andrey for PW-277
 import logging
@@ -207,6 +208,68 @@ class OrganizationView(APIView):
                 countryName = entry.country.name
             out.append((entry.name, countryName))
         return HttpResponse(json.dumps(out), content_type="application/json")
+
+
+class OrganizationMembershipView(APIView):
+    requireApiKey = False
+
+    def get(self, request, format=None):
+        partnerId, ipAddress = request.GET.get('partnerId'), request.GET.get('ipAddress')
+        if not partnerId or not ipAddress:
+            missing_param = 'partnerId' if not partnerId else 'ipAddress'
+            return Response({'error': missing_param + ' is required'}, status=status.HTTP_400_BAD_REQUEST)
+                
+        if not Partner.objects.filter(partnerId=partnerId).exists():
+            return self._build_response()
+        
+        return self._build_response(self._get_user_membership(ipAddress, partnerId), self._get_organization_members(partnerId))
+
+    def _get_user_membership(self, ipAddress, partnerId):
+        user_info = {'isMember': False, 'expDate': "", 'name': "", 'imageUrl': ""}
+        sub = Subscription.getActiveByIp(ipAddress, partnerId).first()
+        if sub and sub.partyId:
+            image_info = ImageInfo.objects.filter(partyId=sub.partyId.partyId).first()
+            user_info.update({
+                'isMember': True,
+                'expDate': self._format_expiration(sub.endDate),
+                'name': image_info.name if image_info else sub.partyId.name,
+                'imageUrl': image_info.imageUrl if image_info else ""
+            })
+        return user_info
+
+    def _get_organization_members(self, partnerId):
+        now = datetime.datetime.now()
+        party_ids = Subscription.objects.filter(partnerId=partnerId, startDate__lte=now, endDate__gte=now).values_list('partyId', flat=True)
+        if not party_ids:
+            return []
+
+        organizations = Party.objects.filter(partyId__in=party_ids, display=True, partyType="organization")
+        institutions = [inst for consortium in Party.objects.filter(partyId__in=party_ids, partyType="consortium") 
+                       for inst in consortium.PartyAffiliation.all() if inst.display]
+        
+        members = []
+        for party in list(organizations) + institutions:
+            sub = Subscription.objects.filter(partnerId=partnerId, partyId=party.partyId, startDate__lte=now, endDate__gte=now).first()
+            if sub:
+                image_info = ImageInfo.objects.filter(partyId=party.partyId).first()
+                members.append({
+                    'isMember': True,
+                    'expDate': self._format_expiration(sub.endDate),
+                    'name': image_info.name if image_info else party.name,
+                    'imageUrl': image_info.imageUrl if image_info else ""
+                })
+        return members
+
+    def _build_response(self, user_info=None, members=None):
+        return HttpResponse(json.dumps({'User': user_info or {'isMember': False, 'expDate': "", 'name': "", 'imageUrl': ""}, 'Active Members': members or []}), content_type="application/json")
+
+    @staticmethod
+    def _format_expiration(expiration_dt):
+        if not expiration_dt:
+            return ""
+        if timezone.is_naive(expiration_dt):
+            expiration_dt = timezone.make_aware(expiration_dt, timezone.get_default_timezone())
+        return expiration_dt.astimezone(timezone.utc).replace(microsecond=0).isoformat().replace('+00:00', 'Z')
 
 class CountryView(APIView):
     requireApiKey = False
