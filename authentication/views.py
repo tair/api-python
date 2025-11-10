@@ -113,11 +113,15 @@ class listcreateuser(GenericCRUDView):
           if Credential.objects.all().filter(userIdentifier=userIdentifier).filter(partnerId=partnerId).exists():
             return Response({"non_field_errors": ["User identifier already exists, use PUT to update the credential or provide an unique user identifier."]}, status=status.HTTP_400_BAD_REQUEST)
       if 'partyId' not in data:
-        if 'name' in data:
-          name = data['name']
-        elif 'username' in data:
-          name = data['username']
+        if partnerId == 'tair':
+           name = data['username']
         else:
+          # This is for other partners than Tair
+          if 'name' in data:
+            name = data['name']
+          elif 'username' in data:
+            name = data['username']
+        if not name:
           return Response({'error': 'username is required'}, status=status.HTTP_400_BAD_REQUEST)
         if 'display' not in data:#PW-272 
           display = '0'
@@ -458,14 +462,17 @@ class CheckOrcid(generics.GenericAPIView):
         partner_id = request.query_params.get('partnerId')
 
         if not user_identifier or not partner_id:
+            logger.warning("CheckOrcid missing required parameters - userIdentifier: %s, partnerId: %s", user_identifier, partner_id)
             return Response({'error': 'Both userIdentifier and partnerId are required.'}, status=status.HTTP_400_BAD_REQUEST)
 
         if partner_id.lower() != 'tair':
+            logger.warning("CheckOrcid request for non-TAIR partner: %s", partner_id)
             return Response({'error': 'This check is only available for TAIR users.'}, status=status.HTTP_400_BAD_REQUEST)
 
         try:
             credential = self.get_queryset().get()
         except Credential.DoesNotExist:
+            logger.warning("CheckOrcid user not found - userIdentifier: %s, partnerId: %s", user_identifier, partner_id)
             return Response({'error': 'User not found.'}, status=status.HTTP_404_NOT_FOUND)
 
         try:
@@ -478,6 +485,7 @@ class CheckOrcid(generics.GenericAPIView):
         except OrcidCredentials.DoesNotExist:
             has_orcid = False
             orcid_id = None
+            logger.info("CheckOrcid user does not have ORCID linked - userIdentifier: %s", user_identifier)
 
         return Response({
             'has_orcid': has_orcid,
