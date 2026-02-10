@@ -3,6 +3,7 @@ from django.core.urlresolvers import reverse
 from django.http import HttpResponse
 from django.core.mail import send_mail
 from django.http import JsonResponse
+from django.db import IntegrityError
 
 import requests
 import json
@@ -641,6 +642,11 @@ class AuthenticateOrcid(APIView):
             return Response({'message': 'No such user'}, status=status.HTTP_401_UNAUTHORIZED)
 
         credential = orcid_credentials.credential
+        
+        # PWL-983: Check if account is deactivated
+        if credential.password == 'deleted':
+            logger.warning("ORCID authentication attempted for deactivated account: %s", credential.userIdentifier)
+            return Response({'message': 'Account has been deactivated'}, status=status.HTTP_401_UNAUTHORIZED)
         # logger.info("Updating ORCID credentials")
         orcid_credentials.orcid_access_token = orcid_access_token
         orcid_credentials.orcid_refresh_token = orcid_refresh_token
@@ -777,6 +783,16 @@ class deactivateUser(GenericCRUDView):
   queryset = Credential.objects.all()
   requireApiKey = False
 
+  # Disable inherited methods from GenericCRUDView to prevent unauthorized access
+  def get(self, request, format=None):
+    return Response({'error': 'Method not allowed'}, status=status.HTTP_405_METHOD_NOT_ALLOWED)
+
+  def post(self, request, format=None):
+    return Response({'error': 'Method not allowed'}, status=status.HTTP_405_METHOD_NOT_ALLOWED)
+
+  def delete(self, request, format=None):
+    return Response({'error': 'Method not allowed'}, status=status.HTTP_405_METHOD_NOT_ALLOWED)
+
   def put(self, request, format=None):
     # Validate request via isPhoenix (same pattern as other credential updates)
     if not isPhoenix(self.request):
@@ -808,12 +824,21 @@ class deactivateUser(GenericCRUDView):
     originalEmail = credential.email
     
     # Deactivate: set password to 'deleted' (literal, not hashed) and prefix username/email
+    # Include userIdentifier in prefix to ensure uniqueness if the same username is reused and deactivated again
     credential.password = 'deleted'
-    credential.username = 'DELETED_' + originalUsername
+    credential.username = 'DELETED_' + userIdentifier + '_' + originalUsername
     if originalEmail:
-      credential.email = 'DELETED_' + originalEmail
+      credential.email = 'DELETED_' + userIdentifier + '_' + originalEmail
     
-    credential.save()
+    try:
+      credential.save()
+    except IntegrityError:
+      return Response({'error': 'Failed to deactivate account due to a database constraint.'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+    
+    # PWL-983: Clear ORCID credentials to prevent ORCID authentication bypass
+    orcid_deleted = OrcidCredentials.objects.filter(credential=credential).delete()
+    if orcid_deleted[0] > 0:
+      logger.info("ORCID credentials removed for deactivated account: userIdentifier=%s" % userIdentifier)
     
     logger.info("Account deactivated: userIdentifier=%s, originalUsername=%s, originalEmail=%s, partnerId=%s" 
                 % (userIdentifier, originalUsername, originalEmail, partnerId))
