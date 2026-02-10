@@ -263,6 +263,15 @@ def login(request):
     # iexact does not work unfortunately. Steve to find out why
     #dbUserList = Credential.objects.filter(partnerId=request.GET.get('partnerId')).filter(username__iexact=requestUser)
 
+    # PWL-983: Check if account is deactivated before password validation
+    # Deactivated accounts have password='deleted' and username prefixed with 'DELETED_{userIdentifier}_'
+    # We need to search for usernames ending with the requested username (case-insensitive)
+    deactivatedUser = Credential.objects.filter(partnerId=partnerId, password='deleted', username__iendswith='_' + requestUser).first()
+    if deactivatedUser:
+        msg = "Account has been deactivated"
+        logger.warning("Login attempted for deactivated account: %s", deactivatedUser.userIdentifier)
+        return HttpResponse(json.dumps({"message": msg}), status=401)
+
     # get list of users by partner and pwd -  less efficient though than fetching by (partner+username) as there could be many users with same pwd
     # more efficient is to fetch by partner+username
 
@@ -289,12 +298,6 @@ def login(request):
                 # logger.info(msg)
                 i = i+1
                 continue
-            
-            # PWL-983: Check if account is deactivated
-            if dbUser.password == 'deleted':
-                msg = "Account has been deactivated"
-                logger.warning("Login attempted for deactivated account: %s", dbUser.userIdentifier)
-                return HttpResponse(json.dumps({"message": msg}), status=401)
             else:
                 #CIPRES-21: retrieve abbreviation code of the user country when the user logs in
                 countryAbbr = ""
