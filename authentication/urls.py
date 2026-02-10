@@ -11,6 +11,7 @@ urlpatterns = [
     url(r'^profile/$', views.profile.as_view(), name='profile'),
     url(r'^getUsernames/$', views.getUsernameCRUD.as_view(), name='getUsernames'),
     url(r'^checkAccountExists$', views.checkAccountExists, name='checkAccountExists'),
+    url(r'^deactivate/$', views.deactivateUser.as_view(), name='deactivateUser'),
 ]
 
 urlpatterns = format_suffix_patterns(urlpatterns)

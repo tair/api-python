@@ -437,3 +437,58 @@ def checkAccountExists(request):
       username = params['username']
       result['usernameExist'] = Credential.objects.all().filter(username=username).filter(partnerId=partnerId).exists()
     return HttpResponse(json.dumps(result), status=status.HTTP_200_OK);
+
+#/credentials/deactivate/
+# PWL-983: Deactivate user account - sets password to 'deleted' and prefixes username/email with 'DELETED_'
+class deactivateUser(GenericCRUDView):
+  queryset = Credential.objects.all()
+  requireApiKey = False
+
+  def put(self, request, format=None):
+    # Validate request via isPhoenix (same pattern as other credential updates)
+    if not isPhoenix(self.request):
+      return Response({'error': 'Unauthorized request'}, status=status.HTTP_400_BAD_REQUEST)
+    
+    params = request.GET
+    # Require partnerId and userIdentifier
+    if 'partnerId' not in params:
+      return Response({'error': 'partnerId is required.'}, status=status.HTTP_400_BAD_REQUEST)
+    if 'userIdentifier' not in params:
+      return Response({'error': 'userIdentifier is required.'}, status=status.HTTP_400_BAD_REQUEST)
+    
+    partnerId = params['partnerId']
+    userIdentifier = params['userIdentifier']
+    
+    # Find the credential
+    queryset = Credential.objects.all().filter(userIdentifier=userIdentifier).filter(partnerId=partnerId)
+    if not queryset.exists():
+      return Response({'error': 'Credential not found for the given userIdentifier and partnerId.'}, status=status.HTTP_404_NOT_FOUND)
+    
+    credential = queryset.first()
+    
+    # Check if already deactivated
+    if credential.password == 'deleted':
+      return Response({'error': 'Account is already deactivated.'}, status=status.HTTP_400_BAD_REQUEST)
+    
+    # Store original values for logging/response
+    originalUsername = credential.username
+    originalEmail = credential.email
+    
+    # Deactivate: set password to 'deleted' (literal, not hashed) and prefix username/email
+    credential.password = 'deleted'
+    credential.username = 'DELETED_' + originalUsername
+    if originalEmail:
+      credential.email = 'DELETED_' + originalEmail
+    
+    credential.save()
+    
+    logger.info("Account deactivated: userIdentifier=%s, originalUsername=%s, originalEmail=%s, partnerId=%s" 
+                % (userIdentifier, originalUsername, originalEmail, partnerId))
+    
+    return Response({
+      'success': True,
+      'message': 'Account successfully deactivated.',
+      'userIdentifier': userIdentifier,
+      'originalUsername': originalUsername,
+      'originalEmail': originalEmail
+    }, status=status.HTTP_200_OK)
