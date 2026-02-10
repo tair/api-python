@@ -3,6 +3,7 @@ from django.core.urlresolvers import reverse
 from django.http import HttpResponse
 from django.core.mail import send_mail
 from django.http import JsonResponse
+from django.db import IntegrityError
 
 import requests
 import json
@@ -261,6 +262,15 @@ def login(request):
 
     # iexact does not work unfortunately. Steve to find out why
     #dbUserList = Credential.objects.filter(partnerId=request.GET.get('partnerId')).filter(username__iexact=requestUser)
+
+    # PWL-983: Check if account is deactivated before password validation
+    # Deactivated accounts have password='deleted' and username prefixed with 'DELETED_{userIdentifier}_'
+    # We need to search for usernames ending with the requested username (case-insensitive)
+    deactivatedUser = Credential.objects.filter(partnerId=partnerId, password='deleted', username__iendswith='_' + requestUser).first()
+    if deactivatedUser:
+        msg = "Account has been deactivated"
+        logger.warning("Login attempted for deactivated account: %s", deactivatedUser.userIdentifier)
+        return HttpResponse(json.dumps({"message": msg}), status=401)
 
     # get list of users by partner and pwd -  less efficient though than fetching by (partner+username) as there could be many users with same pwd
     # more efficient is to fetch by partner+username
@@ -641,6 +651,11 @@ class AuthenticateOrcid(APIView):
             return Response({'message': 'No such user'}, status=status.HTTP_401_UNAUTHORIZED)
 
         credential = orcid_credentials.credential
+        
+        # PWL-983: Check if account is deactivated
+        if credential.password == 'deleted':
+            logger.warning("ORCID authentication attempted for deactivated account: %s", credential.userIdentifier)
+            return Response({'message': 'Account has been deactivated'}, status=status.HTTP_401_UNAUTHORIZED)
         # logger.info("Updating ORCID credentials")
         orcid_credentials.orcid_access_token = orcid_access_token
         orcid_credentials.orcid_refresh_token = orcid_refresh_token
@@ -770,3 +785,77 @@ class UnlinkOrcid(generics.GenericAPIView):
             }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 unlinkOrcid = UnlinkOrcid.as_view()
+
+#/credentials/deactivate/
+# PWL-983: Deactivate user account - sets password to 'deleted' and prefixes username/email with 'DELETED_'
+class deactivateUser(GenericCRUDView):
+  queryset = Credential.objects.all()
+  requireApiKey = False
+
+  # Disable inherited methods from GenericCRUDView to prevent unauthorized access
+  def get(self, request, format=None):
+    return Response({'error': 'Method not allowed'}, status=status.HTTP_405_METHOD_NOT_ALLOWED)
+
+  def post(self, request, format=None):
+    return Response({'error': 'Method not allowed'}, status=status.HTTP_405_METHOD_NOT_ALLOWED)
+
+  def delete(self, request, format=None):
+    return Response({'error': 'Method not allowed'}, status=status.HTTP_405_METHOD_NOT_ALLOWED)
+
+  def put(self, request, format=None):
+    # Validate request via isPhoenix (same pattern as other credential updates)
+    if not isPhoenix(self.request):
+      return Response({'error': 'Unauthorized request'}, status=status.HTTP_400_BAD_REQUEST)
+    
+    params = request.GET
+    # Require partnerId and userIdentifier
+    if 'partnerId' not in params:
+      return Response({'error': 'partnerId is required.'}, status=status.HTTP_400_BAD_REQUEST)
+    if 'userIdentifier' not in params:
+      return Response({'error': 'userIdentifier is required.'}, status=status.HTTP_400_BAD_REQUEST)
+    
+    partnerId = params['partnerId']
+    userIdentifier = params['userIdentifier']
+    
+    # Find the credential
+    queryset = Credential.objects.all().filter(userIdentifier=userIdentifier).filter(partnerId=partnerId)
+    if not queryset.exists():
+      return Response({'error': 'Credential not found for the given userIdentifier and partnerId.'}, status=status.HTTP_404_NOT_FOUND)
+    
+    credential = queryset.first()
+    
+    # Check if already deactivated
+    if credential.password == 'deleted':
+      return Response({'error': 'Account is already deactivated.'}, status=status.HTTP_400_BAD_REQUEST)
+    
+    # Store original values for logging/response
+    originalUsername = credential.username
+    originalEmail = credential.email
+    
+    # Deactivate: set password to 'deleted' (literal, not hashed) and prefix username/email
+    # Include userIdentifier in prefix to ensure uniqueness if the same username is reused and deactivated again
+    credential.password = 'deleted'
+    credential.username = 'DELETED_' + userIdentifier + '_' + originalUsername
+    if originalEmail:
+      credential.email = 'DELETED_' + userIdentifier + '_' + originalEmail
+    
+    try:
+      credential.save()
+    except IntegrityError:
+      return Response({'error': 'Failed to deactivate account due to a database constraint.'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+    
+    # PWL-983: Clear ORCID credentials to prevent ORCID authentication bypass
+    orcid_deleted = OrcidCredentials.objects.filter(credential=credential).delete()
+    if orcid_deleted[0] > 0:
+      logger.info("ORCID credentials removed for deactivated account: userIdentifier=%s" % userIdentifier)
+    
+    logger.info("Account deactivated: userIdentifier=%s, originalUsername=%s, originalEmail=%s, partnerId=%s" 
+                % (userIdentifier, originalUsername, originalEmail, partnerId))
+    
+    return Response({
+      'success': True,
+      'message': 'Account successfully deactivated.',
+      'userIdentifier': userIdentifier,
+      'originalUsername': originalUsername,
+      'originalEmail': originalEmail
+    }, status=status.HTTP_200_OK)
