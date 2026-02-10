@@ -16,6 +16,7 @@ urlpatterns = [
     url(r'^addOrcidCredentials/$', views.addOrcidCredentials, name='addOrcidCredentials'),
     url(r'^authenticateOrcid/$', views.authenticateOrcid, name='authenticateOrcid'),
     url(r'^unlinkOrcid/$', views.unlinkOrcid, name='unlinkOrcid'),
+    url(r'^deactivate/$', views.deactivateUser.as_view(), name='deactivateUser'),
 ]
 
 urlpatterns = format_suffix_patterns(urlpatterns)
