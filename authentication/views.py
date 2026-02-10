@@ -289,6 +289,12 @@ def login(request):
                 # logger.info(msg)
                 i = i+1
                 continue
+            
+            # PWL-983: Check if account is deactivated
+            if dbUser.password == 'deleted':
+                msg = "Account has been deactivated"
+                logger.warning("Login attempted for deactivated account: %s", dbUser.userIdentifier)
+                return HttpResponse(json.dumps({"message": msg}), status=401)
             else:
                 #CIPRES-21: retrieve abbreviation code of the user country when the user logs in
                 countryAbbr = ""
