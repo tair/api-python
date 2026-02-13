@@ -845,9 +845,13 @@ class deactivateUser(GenericCRUDView):
       return Response({'error': 'Failed to deactivate account due to a database constraint.'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
     
     # PWL-983: Clear ORCID credentials to prevent ORCID authentication bypass
-    orcid_deleted = OrcidCredentials.objects.filter(credential=credential).delete()
-    if orcid_deleted[0] > 0:
-      logger.info("ORCID credentials removed for deactivated account: userIdentifier=%s" % userIdentifier)
+    try:
+      orcid_deleted = OrcidCredentials.objects.filter(credential=credential).delete()
+      if orcid_deleted and orcid_deleted[0] > 0:
+        logger.info("ORCID credentials removed for deactivated account: userIdentifier=%s" % userIdentifier)
+    except Exception as e:
+      # Log but don't fail the deactivation if ORCID cleanup fails
+      logger.warning("Failed to delete ORCID credentials for userIdentifier=%s: %s" % (userIdentifier, str(e)))
     
     logger.info("Account deactivated: userIdentifier=%s, originalUsername=%s, originalEmail=%s, partnerId=%s" 
                 % (userIdentifier, originalUsername, originalEmail, partnerId))
