@@ -65,3 +65,12 @@ class OrcidCredentials(models.Model):
 
     class Meta:
         db_table = 'OrcidCredentials'
+
+
+class OrcidCreditTracking(models.Model):
+    orcid_credit_tracking_id = models.AutoField(primary_key=True)
+    orcid_id = models.CharField(max_length=255, unique=True)
+    credit_reissue_date = models.DateTimeField(null=True)
+
+    class Meta:
+        db_table = 'OrcidCreditTracking'

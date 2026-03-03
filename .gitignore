@@ -30,6 +30,9 @@ settings.py
 # PyCharm settings
 .idea
 
+# env files
+.env
+
 # data files
 *.csv
 *.txt
