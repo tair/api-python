@@ -8,3 +8,7 @@ docker exec -it b04e97f15b73 /bin/bash
 cd /var/www/api-python
 
 python manage.py makemigrations subscription
+
+Confluence Links:
+Subscription -> controls.py
+https://phoenixbioinformatics.atlassian.net/wiki/x/C4D9Ig
