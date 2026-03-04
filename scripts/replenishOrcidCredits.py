@@ -15,12 +15,12 @@ For each eligible account:
 - Send notification email (via Django send_mail, same as rest of repo)
 
 Usage:
-  python scripts/replenishOrcidCredits.py dev
-  python scripts/replenishOrcidCredits.py prod [--dry-run]
-  python scripts/replenishOrcidCredits.py dev --orcid 0009-0000-0624-7467   # single ORCID only
+  python scripts/replenishOrcidCredits.py
+  python scripts/replenishOrcidCredits.py --dry-run
+  python scripts/replenishOrcidCredits.py --orcid 0009-0000-0624-7467   # single ORCID only
 
 Run once per day via cron, e.g.:
-  0 3 * * * cd /var/www/api-python && python scripts/replenishOrcidCredits.py prod >> /var/log/api/orcid_replenish.log 2>&1
+  0 3 * * * cd /var/www/api-python && python scripts/replenishOrcidCredits.py >> /var/log/api/orcid_replenish.log 2>&1
 """
 import MySQLdb
 import os
@@ -30,7 +30,6 @@ from datetime import datetime, timedelta
 # -----------------------------------------------------------------------------
 # Config
 # -----------------------------------------------------------------------------
-ENVS = ['dev', 'uat', 'prod']
 UNITS_TO_ADD = 50
 REPLENISH_DAYS = 365
 
@@ -47,48 +46,17 @@ If you have any questions, please contact us.
 The TAIR Team
 """
 
-# -----------------------------------------------------------------------------
-# .env loading
-# -----------------------------------------------------------------------------
-def load_env():
-    script_dir = os.path.dirname(os.path.abspath(__file__))
-    env_path = os.path.join(script_dir, '.env')
-    if not os.path.exists(env_path):
-        print("Error: .env not found at %s" % env_path)
-        sys.exit(1)
-    with open(env_path, 'r') as f:
-        for line in f:
-            line = line.strip()
-            if not line or line.startswith('#'):
-                continue
-            key, _, value = line.partition('=')
-            os.environ[key.strip()] = value.strip()
-
-
-def get_db_config(env):
-    prefix = env.upper()
-    return {
-        'host': os.environ.get(prefix + '_DB_HOST', ''),
-        'user': os.environ.get(prefix + '_DB_USER', ''),
-        'password': os.environ.get(prefix + '_DB_PASSWORD', ''),
-        'db': os.environ.get(prefix + '_DB_NAME', ''),
-    }
-
-
 def bootstrap_django():
-    """Load Django so we can use send_mail (uses EMAIL_* from paywall2.settings). Returns True if ready to send email."""
-    try:
-        script_dir = os.path.dirname(os.path.abspath(__file__))
-        project_root = os.path.dirname(script_dir)
-        if project_root not in sys.path:
-            sys.path.insert(0, project_root)
-        os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'paywall2.settings')
-        import django
-        django.setup()
-        return True
-    except Exception as e:
-        print("Warning: Django not available (%s). DB updates will run; email will be skipped." % e)
-        return False
+    """Load Django so we can use settings + send_mail from the current instance."""
+    script_dir = os.path.dirname(os.path.abspath(__file__))
+    project_root = os.path.dirname(script_dir)
+    if project_root not in sys.path:
+        sys.path.insert(0, project_root)
+    os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'paywall2.settings')
+    import django
+    django.setup()
+    from django.conf import settings
+    return settings
 
 
 # -----------------------------------------------------------------------------
@@ -192,12 +160,6 @@ def replenish_one(conn, cur, row, dry_run=False, send_email=True):
 
 
 def main():
-    args = [a for a in sys.argv[1:] if a in ENVS]
-    if len(args) < 1:
-        print("Usage: python replenishOrcidCredits.py <dev|uat|prod> [--dry-run] [--orcid ORCID_ID]")
-        sys.exit(1)
-
-    env = args[0]
     dry_run = '--dry-run' in sys.argv
     orcid_filter = None
     if '--orcid' in sys.argv:
@@ -205,24 +167,24 @@ def main():
         if i + 1 < len(sys.argv):
             orcid_filter = sys.argv[i + 1].strip()
 
-    load_env()
-    send_email = False
-    if not dry_run:
-        send_email = bootstrap_django()
-    db_config = get_db_config(env)
-    if not db_config['host']:
-        print("Error: %s DB not configured in .env (%s_DB_HOST)" % (env, env.upper()))
-        sys.exit(1)
+    settings = bootstrap_django()
+    send_email = not dry_run
+    db = settings.DATABASES['default']
+    conn_kwargs = {
+        'host': db.get('HOST') or 'localhost',
+        'user': db.get('USER', ''),
+        'passwd': db.get('PASSWORD', ''),
+        'db': db.get('NAME', ''),
+    }
+    if db.get('PORT'):
+        conn_kwargs['port'] = int(db['PORT'])
 
     conn = MySQLdb.connect(
-        host=db_config['host'],
-        user=db_config['user'],
-        passwd=db_config['password'],
-        db=db_config['db'],
+        **conn_kwargs
     )
     cur = conn.cursor(MySQLdb.cursors.DictCursor)
 
-    print("Replenish ORCID credits [%s] %s" % (env, "(dry run)" if dry_run else ""))
+    print("Replenish ORCID credits [instance default DB] %s" % ("(dry run)" if dry_run else ""))
     if orcid_filter:
         print("Filtering by ORCID: %s" % orcid_filter)
     print("Querying eligible accounts...")
