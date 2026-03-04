@@ -31,7 +31,8 @@ ACCOUNT_A_PARTY_ID = "164496"
 ACCOUNT_A_CREDENTIAL_ID = 163142
 ACCOUNT_B_PARTY_ID = "26629"
 ACCOUNT_B_CREDENTIAL_ID = 26629  # based on earlier query: credentialId matches
-TEST_ORCID = "0009-0000-0624-7467"  # swapp19902222's ORCID
+# Use a run-unique ORCID value to avoid collisions with existing credentials.
+TEST_ORCID = "test-orcid-%d-%d" % (int(time.time()), os.getpid())
 
 passed = 0
 failed = 0
@@ -106,6 +107,10 @@ def save_state(conn, cur):
 
 def restore_state(conn, cur, state):
     """Restore DB to original state."""
+    # Clear both first to avoid unique key collisions when moving an ORCID
+    # value back between credentials during restore.
+    cur.execute("UPDATE OrcidCredentials SET orcid_id = NULL WHERE CredentialId IN (%s, %s)",
+                (ACCOUNT_A_CREDENTIAL_ID, ACCOUNT_B_CREDENTIAL_ID))
     cur.execute("UPDATE OrcidCredentials SET orcid_id = %s WHERE CredentialId = %s",
                 (state['account_a_orcid_id'], ACCOUNT_A_CREDENTIAL_ID))
     cur.execute("UPDATE OrcidCredentials SET orcid_id = %s WHERE CredentialId = %s",
