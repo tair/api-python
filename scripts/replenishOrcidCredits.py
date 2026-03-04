@@ -5,8 +5,8 @@ TAIR3-633: Daily cron to replenish 50 free usage units for eligible ORCID-linked
 Eligibility:
 - ORCID still linked (OrcidCredentials.orcid_id IS NOT NULL)
 - TAIR credential (Credential.partnerId = 'tair')
-- Has UserBucketUsage row
 - In OrcidCreditTracking with credit_reissue_date <= today (reissue date has passed)
+- UserBucketUsage row is optional; one is created if missing (e.g. ORCID moved to a new account)
 
 For each eligible account:
 - Add 50 to total_units and remaining_units
@@ -74,7 +74,7 @@ SELECT
     t.credit_reissue_date
 FROM OrcidCredentials o
 JOIN Credential c ON o.CredentialId = c.id
-JOIN UserBucketUsage u ON c.partyId = u.partyId_id
+LEFT JOIN UserBucketUsage u ON c.partyId = u.partyId_id
 JOIN OrcidCreditTracking t ON o.orcid_id = t.orcid_id
 WHERE o.orcid_id IS NOT NULL
   AND o.orcid_id != ''
@@ -120,24 +120,33 @@ def replenish_one(conn, cur, row, dry_run=False, send_email=True):
     email = row['email'] or ''
     username = row['username'] or ''
     user_usage_id = row['user_usage_id']
-    total_before = row['total_units']
-    remaining_before = row['remaining_units']
+    total_before = row['total_units'] or 0
+    remaining_before = row['remaining_units'] or 0
+    needs_bucket = user_usage_id is None
 
     if dry_run:
-        print("  [dry run] orcid=%s party_id=%s email=%s -> would add %s units" % (orcid_id, party_id, email or '(none)', UNITS_TO_ADD))
+        extra = " (new bucket)" if needs_bucket else ""
+        print("  [dry run] orcid=%s party_id=%s email=%s -> would add %s units%s" % (orcid_id, party_id, email or '(none)', UNITS_TO_ADD, extra))
         return True
 
     reissue_date = datetime.now() + timedelta(days=REPLENISH_DAYS)
     reissue_str = reissue_date.strftime('%Y-%m-%d %H:%M:%S')
 
     try:
-        cur.execute("""
-            UPDATE UserBucketUsage
-            SET total_units = total_units + %s,
-                remaining_units = remaining_units + %s,
-                free_expiry_date = %s
-            WHERE user_usage_id = %s
-        """, (UNITS_TO_ADD, UNITS_TO_ADD, reissue_str, user_usage_id))
+        if needs_bucket:
+            cur.execute("""
+                INSERT INTO UserBucketUsage (partyId_id, partner_id, total_units, remaining_units, free_expiry_date)
+                VALUES (%s, 'tair', %s, %s, %s)
+            """, (party_id, UNITS_TO_ADD, UNITS_TO_ADD, reissue_str))
+            print("  [new bucket] created UserBucketUsage for party_id=%s" % party_id)
+        else:
+            cur.execute("""
+                UPDATE UserBucketUsage
+                SET total_units = total_units + %s,
+                    remaining_units = remaining_units + %s,
+                    free_expiry_date = %s
+                WHERE user_usage_id = %s
+            """, (UNITS_TO_ADD, UNITS_TO_ADD, reissue_str, user_usage_id))
 
         cur.execute("""
             UPDATE OrcidCreditTracking
