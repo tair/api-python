@@ -61,6 +61,13 @@ def get_db():
     )
     return conn, conn.cursor()
 
+def refresh_db_view(conn):
+    """
+    End current transaction so subsequent reads can see updates committed by
+    the API request (which runs in a separate DB connection/process).
+    """
+    conn.commit()
+
 def call_add_free(party_id):
     """Call PUT /subscriptions/add_free and return (status_code, response_json)"""
     resp = requests.put(ADD_FREE_URL, json={"partyId": party_id})
@@ -160,6 +167,7 @@ def test_2_first_time_credits(conn, cur):
 
     status_code, body = call_add_free(ACCOUNT_A_PARTY_ID)
     assert_test("Returns 201", status_code == 201, "got %s: %s" % (status_code, body))
+    refresh_db_view(conn)
 
     cur.execute("SELECT remaining_units FROM UserBucketUsage WHERE partyId_id = %s", (ACCOUNT_A_PARTY_ID,))
     after_units = cur.fetchone()[0]
@@ -198,14 +206,15 @@ def test_5_tracking_expired_allows_grant(conn, cur):
     """If credit_reissue_date is in the past, the same ORCID should get credits again."""
     print("\nTest 5: Tracking expired -> should allow credits")
 
-    cur.execute("UPDATE OrcidCredentials SET orcid_id = %s WHERE CredentialId = %s", (TEST_ORCID, ACCOUNT_A_CREDENTIAL_ID))
     cur.execute("UPDATE OrcidCredentials SET orcid_id = NULL WHERE CredentialId = %s", (ACCOUNT_B_CREDENTIAL_ID,))
+    cur.execute("UPDATE OrcidCredentials SET orcid_id = %s WHERE CredentialId = %s", (TEST_ORCID, ACCOUNT_A_CREDENTIAL_ID))
     cur.execute("UPDATE OrcidCreditTracking SET credit_reissue_date = '2020-01-01' WHERE orcid_id = %s", (TEST_ORCID,))
     cur.execute("UPDATE UserBucketUsage SET free_expiry_date = '2020-01-01' WHERE partyId_id = %s", (ACCOUNT_A_PARTY_ID,))
     conn.commit()
 
     status_code, body = call_add_free(ACCOUNT_A_PARTY_ID)
     assert_test("Returns 201", status_code == 201, "got %s: %s" % (status_code, body))
+    refresh_db_view(conn)
 
     cur.execute("SELECT credit_reissue_date FROM OrcidCreditTracking WHERE orcid_id = %s", (TEST_ORCID,))
     row = cur.fetchone()
@@ -228,6 +237,7 @@ def test_6_cross_account_after_expiry(conn, cur):
 
     status_code, body = call_add_free(ACCOUNT_B_PARTY_ID)
     assert_test("Returns 201", status_code == 201, "got %s: %s" % (status_code, body))
+    refresh_db_view(conn)
 
     cur.execute("SELECT remaining_units FROM UserBucketUsage WHERE partyId_id = %s", (ACCOUNT_B_PARTY_ID,))
     after_units = cur.fetchone()[0]
