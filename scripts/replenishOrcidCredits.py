@@ -34,7 +34,7 @@ UNITS_TO_ADD = 50
 REPLENISH_DAYS = 365
 
 EMAIL_SUBJECT = "Your annual complimentary TAIR usage units have been replenished"
-EMAIL_FROM = "info@phoenixbioinformatics.org"
+EMAIL_FROM = "Phoenix Bioinformatics <info@phoenixbioinformatics.org>"
 REPORT_RECIPIENT = "swapnil.sawant@arabidopsis.org"
 EMAIL_BODY_TEMPLATE = """\
 Dear TAIR user,
@@ -43,7 +43,8 @@ Because you've linked your ORCID to your TAIR account, we've just added your nex
 
 TAIR is sustained primarily through institutional and organizational subscriptions, which support ongoing curation, infrastructure, and development. Offering complimentary units is one way we try to keep TAIR accessible while balancing long-term sustainability.
 
-You can view your current usage and unit balance by logging into your TAIR account.
+You can view your current usage and unit balance by logging into your TAIR account at:
+https://www.arabidopsis.org/profile
 
 If you or your institution rely on TAIR regularly, you can learn more about subscription options on the TAIR website.
 
