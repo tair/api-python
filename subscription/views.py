@@ -1224,13 +1224,18 @@ class AddFreeUsageUnits(APIView):
         try:
             partyId = request.data['partyId']
             logger.info("AddFreeUsageUnits: %s", partyId)
-            
+
             userBucketUsage = SubscriptionControl.createOrUpdateUserBucketUsage_Free(partyId, 50)
             serializer = self.serializer_class(userBucketUsage)
             returnData = serializer.data
             return Response(returnData, status=status.HTTP_201_CREATED)
         except Exception as e:
-            return Response("Unexpected error AddFreeUsageUnits: {0}".format(str(e)))
+            msg = str(e)
+            if "ORCID must be linked" in msg:
+                return Response({"error": msg}, status=status.HTTP_400_BAD_REQUEST)
+            if "Free usage units cannot be added until previous units expired" in msg:
+                return Response({"error": msg}, status=status.HTTP_400_BAD_REQUEST)
+            return Response({"error": "Unexpected error AddFreeUsageUnits: {0}".format(msg)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 add_free = AddFreeUsageUnits.as_view()
 

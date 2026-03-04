@@ -7,7 +7,7 @@ import json
 import string
 from django.utils import timezone
 from partner.models import SubscriptionTerm, BucketType, Partner
-from authentication.models import Credential
+from authentication.models import Credential, OrcidCredentials, OrcidCreditTracking
 from subscription.models import *
 from party.models import Party
 from django.core.mail import send_mail
@@ -49,15 +49,39 @@ class SubscriptionControl():
     @staticmethod
     def createOrUpdateUserBucketUsage_Free(partyId, units):
         now = timezone.now()
+
+        # Resolve ORCID for this party (TAIR credential only)
+        try:
+            credential = Credential.objects.filter(partyId_id=partyId, partnerId='tair').first()
+            if not credential:
+                raise Exception("ORCID must be linked to receive free credits.")
+            orcid_cred = OrcidCredentials.objects.filter(credential=credential).exclude(orcid_id__isnull=True).exclude(orcid_id='').first()
+            if not orcid_cred or not orcid_cred.orcid_id:
+                raise Exception("ORCID must be linked to receive free credits.")
+            orcid_id = orcid_cred.orcid_id
+        except Exception as e:
+            if "ORCID must be linked" in str(e):
+                raise
+            raise Exception("ORCID must be linked to receive free credits.")
+
+        # Check OrcidCreditTracking: one grant per ORCID until credit_reissue_date has passed
+        try:
+            tracking = OrcidCreditTracking.objects.get(orcid_id=orcid_id)
+            if tracking.credit_reissue_date is not None and now < tracking.credit_reissue_date:
+                raise Exception("Free usage units cannot be added until previous units expired.")
+        except OrcidCreditTracking.DoesNotExist:
+            pass
+
         userBucketUsageSet = UserBucketUsage.objects.all().filter(partyId=partyId)
         if len(userBucketUsageSet) == 0:
             userBucketUsage = None
         else:
             userBucketUsage = userBucketUsageSet[0]
-        
+
         if userBucketUsage is None:
             userBucketUsage = UserBucketUsage()
             userBucketUsage.partyId = Party.objects.get(partyId=partyId)
+            userBucketUsage.partner_id = 'tair'
             userBucketUsage.total_units = units
             userBucketUsage.remaining_units = units
             userBucketUsage.free_expiry_date = now + timedelta(days=365)
@@ -69,6 +93,13 @@ class SubscriptionControl():
             userBucketUsage.remaining_units += units
             userBucketUsage.free_expiry_date = now + timedelta(days=365)
             userBucketUsage.save()
+
+        # Record reissue date per ORCID so the same ORCID cannot get credits again on another account
+        reissue_date = now + timedelta(days=365)
+        OrcidCreditTracking.objects.update_or_create(
+            orcid_id=orcid_id,
+            defaults={'credit_reissue_date': reissue_date}
+        )
         return userBucketUsage
     
     @staticmethod
