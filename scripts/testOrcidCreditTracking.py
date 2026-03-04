@@ -70,7 +70,7 @@ def refresh_db_view(conn):
 
 def call_add_free(party_id):
     """Call PUT /subscriptions/add_free and return (status_code, response_json)"""
-    resp = requests.put(ADD_FREE_URL, json={"partyId": party_id})
+    resp = requests.put(ADD_FREE_URL, json={"partyId": party_id}, verify=False)
     try:
         body = resp.json()
     except:
