@@ -5,6 +5,8 @@ import sys
 import requests
 import json
 import time
+import django
+from django.conf import settings
 
 # Test script for ORCID credit tracking fix (TAIR3-633)
 #
@@ -13,14 +15,14 @@ import time
 #
 # Usage:
 #   python testOrcidCreditTracking.py
+#   python testOrcidCreditTracking.py http://your-api-base
 #
 # Prerequisites:
-#   - Deploy the fix to dev first
-#   - Fill in scripts/.env with dev DB credentials
+#   - Run from an API instance with project settings configured
 #   - pip install requests mysqlclient
 
-DEV_API_BASE = "http://52.24.64.211"
-ADD_FREE_URL = DEV_API_BASE + "/subscriptions/add_free"
+DEFAULT_API_BASE = "http://127.0.0.1"
+ADD_FREE_URL = DEFAULT_API_BASE + "/subscriptions/add_free"
 
 # We use swapp19902222 (partyId 164496) as Account A
 # and tberardini (partyId 26629) as Account B
@@ -34,22 +36,27 @@ TEST_ORCID = "0009-0000-0624-7467"  # swapp19902222's ORCID
 passed = 0
 failed = 0
 
-def load_env():
-    env_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), '.env')
-    with open(env_path, 'r') as f:
-        for line in f:
-            line = line.strip()
-            if not line or line.startswith('#'):
-                continue
-            key, _, value = line.partition('=')
-            os.environ[key.strip()] = value.strip()
+def bootstrap_django():
+    script_dir = os.path.dirname(os.path.abspath(__file__))
+    project_root = os.path.dirname(script_dir)
+    if project_root not in sys.path:
+        sys.path.insert(0, project_root)
+    os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'paywall2.settings')
+    django.setup()
 
 def get_db():
+    db = settings.DATABASES['default']
+    conn_kwargs = {
+        'host': db.get('HOST') or 'localhost',
+        'user': db.get('USER', ''),
+        'passwd': db.get('PASSWORD', ''),
+        'db': db.get('NAME', ''),
+    }
+    if db.get('PORT'):
+        conn_kwargs['port'] = int(db['PORT'])
+
     conn = MySQLdb.connect(
-        host=os.environ['DEV_DB_HOST'],
-        user=os.environ['DEV_DB_USER'],
-        passwd=os.environ['DEV_DB_PASSWORD'],
-        db=os.environ['DEV_DB_NAME'],
+        **conn_kwargs
     )
     return conn, conn.cursor()
 
@@ -225,7 +232,15 @@ def test_6_cross_account_after_expiry(conn, cur):
 
 def main():
     global passed, failed
-    load_env()
+    global ADD_FREE_URL
+
+    api_base = DEFAULT_API_BASE
+    if len(sys.argv) > 1:
+        api_base = sys.argv[1].strip()
+    api_base = api_base.rstrip('/')
+    ADD_FREE_URL = api_base + "/subscriptions/add_free"
+
+    bootstrap_django()
     conn, cur = get_db()
 
     print("Saving original DB state...")
