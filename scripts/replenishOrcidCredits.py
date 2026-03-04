@@ -35,14 +35,19 @@ REPLENISH_DAYS = 365
 
 EMAIL_SUBJECT = "Your annual complimentary TAIR usage units have been replenished"
 EMAIL_FROM = "info@phoenixbioinformatics.org"
-EMAIL_BODY_TEMPLATE = """Hello,
+REPORT_RECIPIENT = "swapnil.sawant@arabidopsis.org"
+EMAIL_BODY_TEMPLATE = """\
+Dear TAIR user,
 
-Your annual complimentary TAIR usage units have been replenished.
+Because you've linked your ORCID to your TAIR account, we've just added your next annual set of 50 complimentary TAIR usage units. These units are intended to support infrequent or exploratory use of TAIR, and they are replenished annually as long as your ORCID remains connected.
 
-50 usage units have been added to your account. These units are replenished once per year while your ORCID remains connected to your TAIR account.
+TAIR is sustained primarily through institutional and organizational subscriptions, which support ongoing curation, infrastructure, and development. Offering complimentary units is one way we try to keep TAIR accessible while balancing long-term sustainability.
 
-If you have any questions, please contact us.
+You can view your current usage and unit balance by logging into your TAIR account.
 
+If you or your institution rely on TAIR regularly, you can learn more about subscription options on the TAIR website.
+
+Best regards,
 The TAIR Team
 """
 
@@ -112,6 +117,34 @@ def send_notification_email(to_email, username):
     except Exception as e:
         print("  [email error] %s: %s" % (to_email, e))
         return False
+
+
+def send_report_email(replenished_list):
+    """Send a summary report of all replenished accounts to the admin."""
+    if not replenished_list:
+        return
+    try:
+        from django.core.mail import send_mail
+        today = datetime.now().strftime('%Y-%m-%d')
+        lines = ["ORCID ID | Email"]
+        lines.append("-" * 50)
+        for entry in replenished_list:
+            lines.append("%s | %s" % (entry['orcid_id'], entry['email'] or '(none)'))
+
+        body = "ORCID credit replenishment report for %s\n\n" % today
+        body += "Total replenished: %d\n\n" % len(replenished_list)
+        body += "\n".join(lines) + "\n"
+
+        send_mail(
+            subject="ORCID Credit Replenishment Report - %s" % today,
+            message=body,
+            from_email=EMAIL_FROM,
+            recipient_list=[REPORT_RECIPIENT],
+            fail_silently=False,
+        )
+        print("Report email sent to %s" % REPORT_RECIPIENT)
+    except Exception as e:
+        print("[report email error] %s" % e)
 
 
 def replenish_one(conn, cur, row, dry_run=False, send_email=True):
@@ -207,11 +240,16 @@ def main():
 
     ok = 0
     fail = 0
+    replenished = []
     for row in eligible:
         if replenish_one(conn, cur, row, dry_run=dry_run, send_email=send_email):
             ok += 1
+            replenished.append({'orcid_id': row['orcid_id'], 'email': row['email'] or ''})
         else:
             fail += 1
+
+    if replenished and send_email:
+        send_report_email(replenished)
 
     print("Done: %d ok, %d failed." % (ok, fail))
     cur.close()
