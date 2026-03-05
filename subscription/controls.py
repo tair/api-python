@@ -51,18 +51,13 @@ class SubscriptionControl():
         now = timezone.now()
 
         # Resolve ORCID for this party (TAIR credential only)
-        try:
-            credential = Credential.objects.filter(partyId_id=partyId, partnerId='tair').first()
-            if not credential:
-                raise Exception("ORCID must be linked to receive free credits.")
-            orcid_cred = OrcidCredentials.objects.filter(credential=credential).exclude(orcid_id__isnull=True).exclude(orcid_id='').first()
-            if not orcid_cred or not orcid_cred.orcid_id:
-                raise Exception("ORCID must be linked to receive free credits.")
-            orcid_id = orcid_cred.orcid_id
-        except Exception as e:
-            if "ORCID must be linked" in str(e):
-                raise
+        credential = Credential.objects.filter(partyId_id=partyId, partnerId='tair').first()
+        if not credential:
             raise Exception("ORCID must be linked to receive free credits.")
+        orcid_cred = OrcidCredentials.objects.filter(credential=credential).exclude(orcid_id__isnull=True).exclude(orcid_id='').first()
+        if not orcid_cred or not orcid_cred.orcid_id:
+            raise Exception("ORCID must be linked to receive free credits.")
+        orcid_id = orcid_cred.orcid_id
 
         # Check OrcidCreditTracking: one grant per ORCID until credit_reissue_date has passed
         try:
