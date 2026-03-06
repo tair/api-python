@@ -11,11 +11,13 @@ from subscription.models import BucketTransaction
 from serializers import PartnerSerializer, PartnerPatternSerializer, SubscriptionTermSerializer, BucketTypeSerializer, SubscriptionDescriptionSerializer, SubscriptionDescriptionItemSerializer
 
 import json
+from datetime import timedelta
 
 from common.views import GenericCRUDView
 
 from rest_framework import status
 from rest_framework.response import Response
+from django.utils import timezone
 
 import re
 
@@ -81,7 +83,7 @@ class BucketTypeCRUD(GenericCRUDView):
         obj = self.get_queryset()
         params = request.GET
         orcid_id = params.get("orcid_id")
-        logger.info("orcid_id: " + orcid_id)
+        logger.info("orcid_id: {0}".format(orcid_id))
         
         if not orcid_id or orcid_id == 'undefined':
             logger.info("No orcid_id provided, trying to get from credentialId")
@@ -107,13 +109,19 @@ class BucketTypeCRUD(GenericCRUDView):
         
         transaction_found = False
         if orcid_id:
-            transactions = BucketTransaction.objects.filter(orcid_id=orcid_id, bucket_type_id=10)
+            # Discount is only blocked if there is a 300-unit purchase within the last 365 days.
+            cutoff_datetime = timezone.now() - timedelta(days=365)
+            transactions = BucketTransaction.objects.filter(
+                orcid_id=orcid_id,
+                bucket_type_id=10,
+                transaction_date__gt=cutoff_datetime
+            )
             if transactions.exists():
                 transaction_found = True
                 for transaction in transactions:
                     logger.info("Bucket Transaction ID: " + str(transaction.bucket_transaction_id))
             else:
-                logger.info("No transactions for bucket_type_id=10 found for orcid_id: " + orcid_id)
+                logger.info("No recent transactions for bucket_type_id=10 found for orcid_id: " + orcid_id)
         else:
             logger.info("No orcid_id found, not giving discount " + credential_id)
             transaction_found = True

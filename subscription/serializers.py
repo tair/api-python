@@ -4,6 +4,8 @@
 from subscription.models import *
 from rest_framework import serializers
 from partner.models import Partner
+from django.utils import timezone
+from datetime import timedelta
 
 class UserTrackPagesSerializer(serializers.ModelSerializer):
     class Meta:
@@ -11,9 +13,45 @@ class UserTrackPagesSerializer(serializers.ModelSerializer):
         fields = ('userTrackPagesId', 'uri', 'timestamp', 'partyId')
 
 class UserBucketUsageSerializer(serializers.ModelSerializer):
+    first_annual_purchase_date = serializers.SerializerMethodField()
+
+    def get_first_annual_purchase_date(self, usage):
+        # Resolve ORCID from this party's TAIR credential, then find the first
+        # 300-unit bucket purchase in the current 365-day annual window.
+        from authentication.models import Credential, OrcidCredentials
+
+        credential = Credential.objects.filter(partyId=usage.partyId, partnerId='tair').first()
+        if not credential:
+            return None
+
+        orcid_cred = OrcidCredentials.objects.filter(credential=credential).exclude(orcid_id__isnull=True).exclude(orcid_id='').first()
+        if not orcid_cred or not orcid_cred.orcid_id:
+            return None
+
+        cutoff_datetime = timezone.now() - timedelta(days=365)
+        first_purchase = BucketTransaction.objects.filter(
+            orcid_id=orcid_cred.orcid_id,
+            bucket_type_id=10,
+            transaction_date__gt=cutoff_datetime
+        ).order_by('transaction_date').first()
+
+        if not first_purchase:
+            return None
+
+        return first_purchase.transaction_date
+
     class Meta:
         model = UserBucketUsage
-        fields = ('user_usage_id', 'partyId', 'partner_id', 'total_units', 'remaining_units', 'expiry_date', 'free_expiry_date')
+        fields = (
+            'user_usage_id',
+            'partyId',
+            'partner_id',
+            'total_units',
+            'remaining_units',
+            'expiry_date',
+            'free_expiry_date',
+            'first_annual_purchase_date'
+        )
 
 class BucketTransactionSerializer(serializers.ModelSerializer):
     class Meta:
