@@ -28,6 +28,12 @@ import sys
 from datetime import datetime, timedelta
 
 # -----------------------------------------------------------------------------
+# Logging: every line prefixed with timestamp
+# -----------------------------------------------------------------------------
+def log(msg):
+    print(datetime.now().strftime('%Y-%m-%d %H:%M:%S') + ' ' + msg)
+
+# -----------------------------------------------------------------------------
 # Config
 # -----------------------------------------------------------------------------
 UNITS_TO_ADD = 50
@@ -103,7 +109,7 @@ def fetch_eligible(cur, orcid_id=None):
 def send_notification_email(to_email, username):
     """Send the replenishment notification using Django send_mail (same as rest of repo)."""
     if not to_email or not str(to_email).strip():
-        print("  [skip email] No email for user %s" % username)
+        log("  [skip email] No email for user %s" % username)
         return False
     try:
         from django.core.mail import send_mail
@@ -116,7 +122,7 @@ def send_notification_email(to_email, username):
         )
         return True
     except Exception as e:
-        print("  [email error] %s: %s" % (to_email, e))
+        log("  [email error] %s: %s" % (to_email, e))
         return False
 
 
@@ -143,9 +149,8 @@ def send_report_email(replenished_list):
             recipient_list=[REPORT_RECIPIENT],
             fail_silently=False,
         )
-        print("Report email sent to %s" % REPORT_RECIPIENT)
     except Exception as e:
-        print("[report email error] %s" % e)
+        log("[report email error] %s" % e)
 
 
 def replenish_one(conn, cur, row, dry_run=False, send_email=True):
@@ -160,7 +165,7 @@ def replenish_one(conn, cur, row, dry_run=False, send_email=True):
 
     if dry_run:
         extra = " (new bucket)" if needs_bucket else ""
-        print("  [dry run] orcid=%s party_id=%s email=%s -> would add %s units%s" % (orcid_id, party_id, email or '(none)', UNITS_TO_ADD, extra))
+        log("  [dry run] orcid=%s party_id=%s email=%s -> would add %s units%s" % (orcid_id, party_id, email or '(none)', UNITS_TO_ADD, extra))
         return True
 
     reissue_date = datetime.now() + timedelta(days=REPLENISH_DAYS)
@@ -172,7 +177,7 @@ def replenish_one(conn, cur, row, dry_run=False, send_email=True):
                 INSERT INTO UserBucketUsage (partyId_id, partner_id, total_units, remaining_units, free_expiry_date)
                 VALUES (%s, 'tair', %s, %s, %s)
             """, (party_id, UNITS_TO_ADD, UNITS_TO_ADD, reissue_str))
-            print("  [new bucket] created UserBucketUsage for party_id=%s" % party_id)
+            log("  [new bucket] created UserBucketUsage for party_id=%s" % party_id)
         else:
             cur.execute("""
                 UPDATE UserBucketUsage
@@ -192,13 +197,13 @@ def replenish_one(conn, cur, row, dry_run=False, send_email=True):
 
         send_ok = send_notification_email(email, username) if send_email else False
         email_status = 'sent' if send_ok else ('skipped (no Django)' if not send_email else 'skip/fail')
-        print("  orcid=%s party_id=%s total=%s->%s remaining=%s->%s email=%s"
-              % (orcid_id, party_id, total_before, total_before + UNITS_TO_ADD,
-                 remaining_before, remaining_before + UNITS_TO_ADD, email_status))
+        log("  orcid=%s party_id=%s total=%s->%s remaining=%s->%s email=%s"
+            % (orcid_id, party_id, total_before, total_before + UNITS_TO_ADD,
+               remaining_before, remaining_before + UNITS_TO_ADD, email_status))
         return True
     except Exception as e:
         conn.rollback()
-        print("  [error] orcid=%s party_id=%s: %s" % (orcid_id, party_id, e))
+        log("  [error] orcid=%s party_id=%s: %s" % (orcid_id, party_id, e))
         return False
 
 
@@ -227,14 +232,10 @@ def main():
     )
     cur = conn.cursor(MySQLdb.cursors.DictCursor)
 
-    print("Replenish ORCID credits [instance default DB] %s" % ("(dry run)" if dry_run else ""))
-    if orcid_filter:
-        print("Filtering by ORCID: %s" % orcid_filter)
-    print("Querying eligible accounts...")
     eligible = fetch_eligible(cur, orcid_id=orcid_filter)
-    print("Found %d eligible account(s)." % len(eligible))
 
     if not eligible:
+        log("Replenish ORCID credits: 0 eligible, 0 ok, 0 failed" + (" (dry run)" if dry_run else ""))
         cur.close()
         conn.close()
         return
@@ -252,7 +253,7 @@ def main():
     if replenished and send_email:
         send_report_email(replenished)
 
-    print("Done: %d ok, %d failed." % (ok, fail))
+    log("Replenish ORCID credits: %d eligible, %d ok, %d failed" % (len(eligible), ok, fail))
     cur.close()
     conn.close()
     if fail > 0:
