@@ -3,7 +3,7 @@
 
 from subscription.models import *
 from rest_framework import serializers
-from partner.models import Partner
+from partner.models import Partner, BucketType
 from django.utils import timezone
 from datetime import timedelta
 
@@ -14,10 +14,9 @@ class UserTrackPagesSerializer(serializers.ModelSerializer):
 
 class UserBucketUsageSerializer(serializers.ModelSerializer):
     first_annual_purchase_date = serializers.SerializerMethodField()
+    discountPercentage = serializers.SerializerMethodField()
 
-    def get_first_annual_purchase_date(self, usage):
-        # Resolve ORCID from this party's TAIR credential, then find the first
-        # 300-unit bucket purchase in the current 365-day annual window.
+    def _get_orcid_id_for_usage(self, usage):
         from authentication.models import Credential, OrcidCredentials
 
         credential = Credential.objects.filter(partyId=usage.partyId, partnerId='tair').first()
@@ -28,17 +27,47 @@ class UserBucketUsageSerializer(serializers.ModelSerializer):
         if not orcid_cred or not orcid_cred.orcid_id:
             return None
 
+        return orcid_cred.orcid_id
+
+    def _get_first_purchase_in_annual_window(self, orcid_id):
+        if not orcid_id:
+            return None
+
         cutoff_datetime = timezone.now() - timedelta(days=365)
-        first_purchase = BucketTransaction.objects.filter(
-            orcid_id=orcid_cred.orcid_id,
+        return BucketTransaction.objects.filter(
+            orcid_id=orcid_id,
             bucket_type_id=10,
             transaction_date__gt=cutoff_datetime
         ).order_by('transaction_date').first()
+
+    def get_first_annual_purchase_date(self, usage):
+        # Date when the current annual-window discount cycle started.
+        orcid_id = self._get_orcid_id_for_usage(usage)
+        first_purchase = self._get_first_purchase_in_annual_window(orcid_id)
 
         if not first_purchase:
             return None
 
         return first_purchase.transaction_date
+
+    def get_discountPercentage(self, usage):
+        # Mirror bucket pricing behavior for 300-unit annual discount.
+        # If ORCID is missing OR there is a purchase in the last 365 days,
+        # discount is 0. Otherwise return configured bucket discount.
+        try:
+            base_discount = BucketType.objects.get(bucketTypeId=10).discountPercentage
+        except BucketType.DoesNotExist:
+            return 0
+
+        orcid_id = self._get_orcid_id_for_usage(usage)
+        if not orcid_id:
+            return 0
+
+        first_purchase = self._get_first_purchase_in_annual_window(orcid_id)
+        if first_purchase:
+            return 0
+
+        return base_discount
 
     class Meta:
         model = UserBucketUsage
@@ -50,7 +79,8 @@ class UserBucketUsageSerializer(serializers.ModelSerializer):
             'remaining_units',
             'expiry_date',
             'free_expiry_date',
-            'first_annual_purchase_date'
+            'first_annual_purchase_date',
+            'discountPercentage'
         )
 
 class BucketTransactionSerializer(serializers.ModelSerializer):
