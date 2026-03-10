@@ -21,20 +21,22 @@ class Credential(models.Model):
 
   @staticmethod
   def validate(partyId, secretKey):
-    if partyId and secretKey and partyId.isdigit() and Party.objects.filter(partyId=partyId).exists():
-      pu = Party.objects.filter(partyId=partyId)
-      if Credential.objects.filter(partyId_id__in=pu.values('partyId')).exists():
-        usu = Credential.objects.filter(partyId_id__in=pu.values('partyId')).first()
-        digested = base64.b64encode(hmac.new(str(partyId).encode('ascii'), usu.password.encode('ascii'), hashlib.sha1).digest())
-        if digested == secretKey:
-          return True
-      #TODO: validation still fail
-      pu = pu.first().consortiums.all()
-      if Credential.objects.filter(partyId_id__in=pu.values('partyId')).exists():
-        for usu in Credential.objects.filter(partyId_id__in=pu.values('partyId')):
-          digested = base64.b64encode(hmac.new(str(usu.partyId).encode('ascii'), usu.password.encode('ascii'), hashlib.sha1).digest())
-          if digested == secretKey:
-            return True
+    if not (partyId and secretKey and partyId.isdigit()):
+      return False
+    cred = Credential.objects.filter(partyId_id=partyId).first()
+    if cred:
+      digested = base64.b64encode(hmac.new(str(partyId).encode('ascii'), cred.password.encode('ascii'), hashlib.sha1).digest())
+      if digested == secretKey:
+        return True
+    try:
+      party = Party.objects.get(partyId=partyId)
+    except Party.DoesNotExist:
+      return False
+    consortium_ids = list(party.consortiums.values_list('partyId', flat=True))
+    for cred in Credential.objects.filter(partyId_id__in=consortium_ids):
+      digested = base64.b64encode(hmac.new(str(cred.partyId_id).encode('ascii'), cred.password.encode('ascii'), hashlib.sha1).digest())
+      if digested == secretKey:
+        return True
     return False
 
   @staticmethod

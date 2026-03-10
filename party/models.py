@@ -43,11 +43,13 @@ class Party(models.Model):
     def getByIp(ipAddress):
         partyList = []
         ipRanges = ActiveIpRange.getByIp(ipAddress)
-        for ipRange in ipRanges:
-            partyId = ipRange.partyId.partyId
-            consortiums = Party.objects.all().get(partyId = partyId).consortiums.values_list('partyId', flat=True)
-            partyList.append(partyId)
-            partyList.extend(consortiums)
+        if not ipRanges:
+            return partyList
+        party_ids = [r.partyId_id for r in ipRanges]
+        parties = Party.objects.filter(partyId__in=party_ids).prefetch_related('consortiums')
+        for party in parties:
+            partyList.append(party.partyId)
+            partyList.extend(party.consortiums.values_list('partyId', flat=True))
         return partyList
 
     @staticmethod
