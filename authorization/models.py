@@ -50,7 +50,43 @@ class AccessRule(models.Model):
 class AccessType(models.Model):
     accessTypeId = models.AutoField(primary_key=True)
     name = models.CharField(max_length=200)
-    
+
+    @staticmethod
+    def getMatchingRules(url, partnerId):
+        """
+        Load all access rules for partner once with select_related, evaluate regex,
+        return Login/Paid/redirectUri in a single pass. Use this instead of
+        calling checkHasAccessRule multiple times.
+        """
+        if not (url and partnerId):
+            return {"Login": False, "Paid": False, "redirectUri": None}
+
+        accessRules = AccessRule.objects.filter(partnerId=partnerId).select_related(
+            'patternId', 'accessTypeId'
+        )
+        result = {"Login": False, "Paid": False, "redirectUri": None}
+        redirectUriFound = False
+        for rule in accessRules:
+            try:
+                pattern = re.compile(rule.patternId.pattern)
+                isPatternValid = True
+            except re.error:
+                logger.info("Error compiling pattern: %s" % rule.patternId.pattern)
+                isPatternValid = False
+            if not isPatternValid:
+                continue
+            if not pattern.search(url):
+                continue
+            access_type_name = rule.accessTypeId.name
+            if access_type_name == "Login":
+                result["Login"] = True
+            elif access_type_name == "Paid":
+                result["Paid"] = True
+            if not redirectUriFound:
+                result["redirectUri"] = rule.patternId.redirectUri
+                redirectUriFound = True
+        return result
+
     @staticmethod
     def checkHasAccessRule(url, accessTypeName, partnerId):
         if not (url and accessTypeName and partnerId):
@@ -63,7 +99,7 @@ class AccessType(models.Model):
                 isPatternValid = True
             except re.error:
                 logger.info("Error compiling pattern: %s" % rule.patternId.pattern)
-                isPatternValid = True   
+                isPatternValid = True
             if isPatternValid and pattern.search(url) and rule.accessTypeId.name == accessTypeName:
                 return True
         # no match url.

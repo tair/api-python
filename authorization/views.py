@@ -41,24 +41,30 @@ class Access(APIView):
         apiKey = request.COOKIES.get('apiKey')
         ipList = ipList.split(',')
         ipResult = ''
+        parties_result = []
+        matching_rules = AccessType.getMatchingRules(url, partnerId)
         for ip in ipList:
-            status = Authorization.getAccessStatus(loginKey, ip, partyId, url, partnerId, getHostUrlFromRequest(request), apiKey)
+            parties = Party.getByIp(ip)
+            status = Authorization.getAccessStatus(
+                loginKey, ip, partyId, url, partnerId, getHostUrlFromRequest(request), apiKey,
+                matching_rules=matching_rules, parties=parties
+            )
             ipResult = ip
+            parties_result = parties
             if status == Status.ok:
                 break
         userIdentifier = None
-        if partyId and partyId.isdigit() and Credential.objects.all().filter(partyId=partyId).exists():
-            userIdentifier = Credential.objects.all().get(partyId=partyId).userIdentifier
-        isPaidContent = 'T' if AccessType.checkHasAccessRule(url, "Paid", partnerId) else 'F'
+        if partyId and partyId.isdigit():
+            cred = Credential.objects.filter(partyId=partyId).first()
+            if cred:
+                userIdentifier = cred.userIdentifier
+        isPaidContent = 'T' if matching_rules.get("Paid", False) else 'F'
         redirectUri = None
-        # only get redirect uri when user have no access to the page
         if status != Status.ok:
-            redirectUri = UriPattern.getRedirectUri(url, partnerId)
-        # PWL-847: get organization id for the ip
+            redirectUri = matching_rules.get("redirectUri") or UriPattern.getRedirectUri(url, partnerId)
         orgId = ''
-        parties = Party.getByIp(ipResult)
-        if len(parties) > 0:
-            orgId = parties[0]
+        if len(parties_result) > 0:
+            orgId = parties_result[0]
         response = {
             "ip":ipResult,
             "orgId":orgId,
