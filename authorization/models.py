@@ -65,6 +65,7 @@ class AccessType(models.Model):
             'patternId', 'accessTypeId'
         )
         result = {"Login": False, "Paid": False, "redirectUri": None}
+        redirectUriFound = False
         for rule in accessRules:
             try:
                 pattern = re.compile(rule.patternId.pattern)
@@ -81,8 +82,9 @@ class AccessType(models.Model):
                 result["Login"] = True
             elif access_type_name == "Paid":
                 result["Paid"] = True
-            if result["redirectUri"] is None:
+            if not redirectUriFound:
                 result["redirectUri"] = rule.patternId.redirectUri
+                redirectUriFound = True
         return result
 
     @staticmethod
