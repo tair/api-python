@@ -98,6 +98,15 @@ class Subscription(models.Model):
                                            .filter(partnerId=partnerId)
         return Subscription.filterActive(subscriptionQuerySet)
 
+    @staticmethod
+    def getActiveByParties(party_ids, partnerId):
+        """Check active subscriptions for pre-resolved party IDs (avoids redundant Party.getByIp)."""
+        if not party_ids:
+            return Subscription.objects.none()
+        subscriptionQuerySet = Subscription.objects.filter(partyId__in=party_ids) \
+                                                   .filter(partnerId=partnerId)
+        return Subscription.filterActive(subscriptionQuerySet)
+
     class Meta:
         db_table = "Subscription"
         unique_together = ("partyId", "partnerId")
