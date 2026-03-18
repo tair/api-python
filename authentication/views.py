@@ -729,50 +729,60 @@ class UnlinkOrcid(generics.GenericAPIView):
 
         secretKey = data.get('secretKey')
         credentialId = data.get('credentialId')
+        # Optional: curator can specify a target user to unlink (by userIdentifier/communityId)
+        # If not provided, unlinks the caller's own ORCID (original behavior)
+        targetUserIdentifier = data.get('targetUserIdentifier')
 
         if not all([secretKey, credentialId]):
             logging.error("Missing required fields. Received: %s", data)
             return Response({
-                'success': False, 
+                'success': False,
                 'error': 'Missing required fields'
             }, status=status.HTTP_400_BAD_REQUEST)
 
-        # Validate the user's credentials
+        # Validate the caller's credentials
         loggedIn = Credential.validate(credentialId, secretKey)
 
         if not loggedIn:
             logging.error("Invalid credentials provided")
             return Response({
-                'success': False, 
+                'success': False,
                 'error': 'Invalid credentials'
             }, status=status.HTTP_401_UNAUTHORIZED)
-        
+
         try:
-            # Get the credential object
-            credential = Credential.objects.get(partyId=credentialId, partnerId='tair')
-            
+            if targetUserIdentifier:
+                # Curator unlinking another user's ORCID by userIdentifier
+                # Note: curator authorization is checked by the Node middleware layer
+                credential = Credential.objects.get(userIdentifier=targetUserIdentifier, partnerId='tair')
+                logging.info("Curator (partyId=%s) unlinking ORCID for target user: %s", credentialId, targetUserIdentifier)
+            else:
+                # User unlinking their own ORCID (original behavior)
+                credential = Credential.objects.get(partyId=credentialId, partnerId='tair')
+
             # Update the OrcidCredentials record
             result = OrcidCredentials.objects.filter(credential=credential).update(
                 orcid_id=None,
                 orcid_access_token=None,
                 orcid_refresh_token=None
             )
-            
+
+            target_label = targetUserIdentifier if targetUserIdentifier else credentialId
             if result > 0:
-                logging.info("Successfully unlinked ORCID credentials for user: %s", credentialId)
+                logging.info("Successfully unlinked ORCID credentials for user: %s", target_label)
                 return Response({
                     'success': True,
                     'message': 'ORCID credentials successfully unlinked'
                 })
             else:
-                logging.warning("No ORCID credentials found to unlink for user: %s", credentialId)
+                logging.warning("No ORCID credentials found to unlink for user: %s", target_label)
                 return Response({
                     'success': False,
                     'error': 'No ORCID credentials found to unlink'
                 }, status=status.HTTP_404_NOT_FOUND)
 
         except Credential.DoesNotExist:
-            logging.error("User not found: %s", credentialId)
+            logging.error("User not found: %s", targetUserIdentifier or credentialId)
             return Response({
                 'success': False,
                 'error': 'User not found'
