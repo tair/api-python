@@ -33,4 +33,5 @@ settings.py
 # data files
 *.csv
 *.txt
+!requirements.txt
 
