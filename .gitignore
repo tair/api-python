@@ -35,3 +35,6 @@ settings.py
 *.txt
 !requirements.txt
 
+# Cursor related files #
+.env
+.cursor/
