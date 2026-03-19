@@ -251,4 +251,26 @@ CIPRES_API_BASE_URL = None
 CIPRES_BASIC_AUTH_TOKEN = None
 CIPRES_ACCESS_TOKEN = None
 # Email addresses for sending CIPRES sync failed email
-CIPRES_ADMINS = [techteam@arabidopsis.org']
+CIPRES_ADMINS = ['techteam@arabidopsis.org']
+
+# Fill in parameters for CyVerse API call
+CYVERSE_AUTH_URL = 'https://kc.cyverse.org/auth/realms/CyVerse/protocol/openid-connect/token'
+CYVERSE_CLIENT_ID = None
+CYVERSE_SECRET = None
+CYVERSE_DOMAIN = "https://de.cyverse.org"
+CYVERSE_API_URL = "https://de.cyverse.org/terrain/service/qms/users/%s/plan"
+CYVERSE_ADDON_API_URL = "https://de.cyverse.org/terrain/service/qms/subscriptions/%s/addons"
+
+# Email Subject for CyVerse purchase
+CYVERSE_PURCHASE_EMAIL_SUBJECT = 'New Subscription Purchase'
+CYVERSE_ADMINS = ['techteam@phoenixbioinformatics.org', 'support@cyverse.org']
+
+# ORCID DETAILS
+ORCID_DOMAIN=""
+ORCID_CLIENT_ID=""
+ORCID_CLIENT_SECRET=""
+ORCID_REDIRECT_URL=""
+
+# BASF Gateway API settings
+BASF_GATEWAY_API_KEY = ''
+BASF_GATEWAY_API_URL = ''

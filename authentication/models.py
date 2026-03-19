@@ -18,7 +18,7 @@ class Credential(models.Model):
   partnerId = models.ForeignKey(Partner, db_column='partnerId')
   userIdentifier = models.CharField(max_length=64, null=True)#CIPRES-22
   #name = models.CharField(max_length=64, null=True) vet PW-161
-  
+
   @staticmethod
   def validate(partyId, secretKey):
     if partyId and secretKey and partyId.isdigit() and Party.objects.filter(partyId=partyId).exists():
@@ -37,6 +37,14 @@ class Credential(models.Model):
             return True
     return False
 
+  @staticmethod
+  def getByUsernameAndPartner(username, partnerId):
+      return Credential.objects.get(username = username, partnerId = partnerId)
+
+  @staticmethod
+  def getFirstByUsernameAndPartner(username, partnerId):
+      return Credential.objects.filter(username = username, partnerId = partnerId).first()
+
   class Meta:
     db_table = "Credential"
     unique_together = ("username","partnerId")
@@ -46,3 +54,23 @@ class GooglePartyAffiliation(models.Model):
   partyId = models.ForeignKey(Party)
   class Meta:
     db_table = "GoogleEmail"
+
+# Model for new Orcid Credentials
+class OrcidCredentials(models.Model):
+    orcid_credential_id = models.AutoField(primary_key=True)
+    credential = models.ForeignKey('Credential', on_delete=models.CASCADE, db_column='CredentialId')
+    orcid_id = models.CharField(max_length=255, null=True, blank=True, unique=True)
+    orcid_access_token = models.CharField(max_length=255, null=True, blank=True)
+    orcid_refresh_token = models.CharField(max_length=255, null=True, blank=True)
+
+    class Meta:
+        db_table = 'OrcidCredentials'
+
+
+class OrcidCreditTracking(models.Model):
+    orcid_credit_tracking_id = models.AutoField(primary_key=True)
+    orcid_id = models.CharField(max_length=255, unique=True)
+    credit_reissue_date = models.DateTimeField(null=True)
+
+    class Meta:
+        db_table = 'OrcidCreditTracking'

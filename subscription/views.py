@@ -3,10 +3,11 @@
 from django.http import HttpResponse, StreamingHttpResponse
 
 from subscription.controls import PaymentControl, SubscriptionControl
-from subscription.models import Subscription, SubscriptionTransaction, ActivationCode, SubscriptionRequest, UsageUnitPurchase
-from subscription.serializers import SubscriptionSerializer, SubscriptionTransactionSerializer, ActivationCodeSerializer, SubscriptionRequestSerializer, UsageUnitPurchaseSerializer
-
-from partner.models import Partner, SubscriptionTerm
+from subscription.models import *
+from subscription.serializers import *
+from authorization.models import UriPattern
+from metering.models import LimitValue
+from partner.models import Partner, SubscriptionTerm, BucketType
 from party.models import Party, ImageInfo
 from party.serializers import PartySerializer
 from authentication.models import Credential
@@ -19,21 +20,28 @@ from rest_framework import generics
 from common.views import GenericCRUDView
 from common.permissions import isPhoenix
 from common.common import getRemoteIpAddress
+from common.utils.cyverseUtils import CyVerseClient
+from django.core.exceptions import ObjectDoesNotExist
 
 from django.shortcuts import render
 from django.utils.encoding import smart_str
+
 import stripe
 import json
 import random, string
 import hashlib
 import datetime
 import csv
+import re
 
 from django.conf import settings
 
 from django.core.mail import send_mail
 
 from django.utils import timezone
+
+from django.shortcuts import get_object_or_404
+from .models import UserBucketUsage
 
 import uuid
 
@@ -45,6 +53,17 @@ logger = logging.getLogger('phoenix.api.subscription')
 # Basic CRUD operation for Subscriptions, and SubscriptionTransactions
 
 # /
+
+# Define status labels as constants
+STATUS_WARNING = "Warning"
+STATUS_OK = "OK"
+STATUS_BLACKLIST_BLOCK = "BlackListBlock"
+STATUS_BLOCK = "Block"
+ERROR_BUCKET_NOT_FOUND = "bucket not found for user"
+FREE_ACCESS_UNIT = 0
+PAID_ACCESS_UNIT = 1
+PAID_ACCESS_DB_VALUE = 'Paid'
+
 class SubscriptionCRUD(GenericCRUDView):
     queryset = Subscription.objects.all()
     serializer_class = SubscriptionSerializer
@@ -167,11 +186,73 @@ class SubscriptionTransactionCRUD(GenericCRUDView):
     queryset = SubscriptionTransaction.objects.all()
     serializer_class = SubscriptionTransactionSerializer
 
+# /bucket/usage/
+class UserBucketUsageCRUD(GenericCRUDView):
+    queryset = UserBucketUsage.objects.all()
+    serializer_class = UserBucketUsageSerializer
+    requireApiKey = False
+
+    def get_queryset(self):
+        party_id = self.request.query_params.get('party_id')
+        return self.queryset.filter(partyId_id=party_id)
+
+    def get(self, request, *args, **kwargs):
+        party_id = request.query_params.get('party_id')
+        
+        if not party_id:
+            return Response({'error': 'party_id is required.'}, status=status.HTTP_400_BAD_REQUEST)
+        
+        try:
+            userBucketUsage = self.get_queryset().get()
+            serializer = self.serializer_class(userBucketUsage)
+            returnData = serializer.data
+            return Response(returnData)
+        except UserBucketUsage.DoesNotExist:
+            return Response({'data': None, 'message': 'No UserBucketUsage found for the given party_id.'})
+
+    def post(self, request):
+        logger.info("post Activation code")
+        if ('activationCode' not in request.data or 'partyId' not in request.data):
+            return Response({"error":"Essential parameters needed."}, status=status.HTTP_400_BAD_REQUEST)
+        if not ActivationCode.objects.filter(activationCode=request.data['activationCode']).exists():
+            return Response({"message":"incorrect activation code"}, status=status.HTTP_400_BAD_REQUEST)
+        activationCodeObj = ActivationCode.objects.get(activationCode=request.data['activationCode'])
+        if not activationCodeObj.partyId == None:
+            return Response({"message":"activation code is already used"}, status=status.HTTP_400_BAD_REQUEST)
+        try:
+            partyId = request.data['partyId']
+            userBucketUsage = SubscriptionControl.createOrUpdateUserBucketUsage(partyId, activationCodeObj.period)
+        except Exception:
+            return Response('failed to create or update User Bucket entry')
+        
+        try:
+            # set activationCodeObj to be used.
+            partyObj = Party.objects.get(partyId=partyId)
+        except Exception:
+            return Response('failed to get partyObj')
+        try:
+            activationCodeObj.partyId = partyObj
+        except Exception:
+            return Response('failed to assign partyObj')
+        try:
+            activationCodeObj.save()
+        except Exception:
+            return Response('failed to save activationCodeObj')
+        
+        serializer = self.serializer_class(userBucketUsage)
+        returnData = serializer.data
+        return Response(returnData, status=status.HTTP_201_CREATED)
+
+#/bucket/
+class BucketTransactionCRUD(GenericCRUDView):
+    queryset = BucketTransaction.objects.all()
+    serializer_class = BucketTransactionSerializer
+    requireApiKey = False
+
 #------------------- End of Basic CRUD operations --------------
 
 
 # Specific queries
-
 # /<pk>/renewal/
 class SubscriptionRenewal(generics.GenericAPIView):
     requireApiKey = False
@@ -188,6 +269,64 @@ class SubscriptionRenewal(generics.GenericAPIView):
             returnData['subscriptionTransactionId']=transaction.subscriptionTransactionId
             return Response(returnData)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+# /payments_bucket/
+class SubsctiptionBucketPayment(APIView):
+    requireApiKey = False
+
+    def get(self, request):
+        message = {}
+
+        if (not PaymentControl.isValidRequestBucket(request, message)):
+            return HttpResponse(message['message'], 400)
+        #Currently assumes that subscription objects in database stores price in cents
+        #TODO: Handle more human readable price
+        bucketTypeId = request.GET.get('bucketTypeId')
+        message['price'] = int(BucketType.objects.get(bucketTypeId=bucketTypeId).price)
+        message['quantity'] = request.GET.get('quantity')
+        message['bucketTypeId'] = bucketTypeId
+        message['stripeKey'] = settings.STRIPE_PUBLIC_KEY
+        return render(request, "subscription/paymentIndex.html", message)
+
+    def post(self, request):
+        stripe_api_secret_test_key = settings.STRIPE_PRIVATE_KEY
+        stripe.api_key = stripe_api_secret_test_key
+        token = request.POST['stripeToken']
+        # Validate required POST parameters
+        required_fields = ['price', 'bucketTypeId', 'orcid_id']
+        missing_fields = [field for field in required_fields if field not in request.POST]
+
+        if missing_fields:
+            logger.error("Missing required fields")
+            return HttpResponse(
+                json.dumps({'message': 'Missing required fields'}),
+                content_type="application/json",
+                status=400
+            )
+        try:
+            partnerName = "tair"
+            price = float(request.POST['price'])
+            bucketTypeId = request.POST['bucketTypeId']
+            quantity = int(request.POST['quantity'])
+            email = request.POST['email']
+            firstname = request.POST['firstName']
+            lastname = request.POST['lastName']
+            institute = request.POST['institute']
+            other = request.POST['other']
+            orcid_id = request.POST['orcid_id']
+
+            bucketUnits = BucketType.objects.get(bucketTypeId=bucketTypeId).description
+            chargeDescription = '%s `%s` subscription name: %s %s'%(partnerName,bucketUnits,firstname,lastname)
+            logger.info("Stripe Charge Description: " + chargeDescription)
+            message = PaymentControl.chargeForBucket(stripe_api_secret_test_key, token, price, chargeDescription, bucketTypeId, quantity, email, firstname, lastname, institute, other, orcid_id)
+            status = 200
+            if 'message' in message:
+                status = 400
+            return HttpResponse(json.dumps(message), content_type="application/json", status=status)
+        except Exception as e:
+            errorMsg = str(e)
+            logger.error("Error in bucket_payment post api: %s" % errorMsg)
+            return HttpResponse(json.dumps({'message':errorMsg}), content_type="application/json", status=400)
 
 # /payments/
 class SubscriptionsPayment(APIView):
@@ -224,14 +363,14 @@ class SubscriptionsPayment(APIView):
         zip = request.POST['zip']
         hostname = request.META.get("HTTP_ORIGIN")
         redirect = request.POST['redirect']
-        vat = request.POST['vat'] #PW-248. Let it be in two places - in descriptionPartnerDuration and in email body
+        other = request.POST['other'] #PW-248. Let it be in two places - in descriptionPartnerDuration and in email body
         #PW-204 requirement: "TAIR 1-year subscription" would suffice.
         descriptionDuration = SubscriptionTerm.objects.get(subscriptionTermId=termId).description
         partnerName = SubscriptionTerm.objects.get(subscriptionTermId=termId).partnerId.name
-        descriptionPartnerDuration = '%s %s subscription vat: %s name: %s %s'%(partnerName,descriptionDuration,vat,firstname,lastname)
+        descriptionPartnerDuration = '%s %s subscription other: %s name: %s %s'%(partnerName,descriptionDuration,other,firstname,lastname)
         domain = request.POST['domain']
 
-        message = PaymentControl.tryCharge(stripe_api_secret_test_key, token, price, partnerName, descriptionPartnerDuration, termId, quantity, email, firstname, lastname, institute, street, city, state, country, zip, hostname, redirect, vat, domain)
+        message = PaymentControl.tryCharge(stripe_api_secret_test_key, token, price, partnerName, descriptionPartnerDuration, termId, quantity, email, firstname, lastname, institute, street, city, state, country, zip, hostname, redirect, other, domain)
         #PW-120 vet
         status = 200
         if 'message' in message:
@@ -700,7 +839,7 @@ class UsageUnitsPayment(APIView):
         message = {}
         if (not PaymentControl.isValidRequest(request, message)):
             return HttpResponse(message['message'], 400)
-        #Currently assumes that subscription objects in database stores price in cents
+        #Currently assumes that subscription objects in database stores price in dollars
         #TODO: Handle more human readable price
         termId = request.GET.get('termId')
         message['price'] = int(SubscriptionTerm.objects.get(subscriptionTermId=termId).price)
@@ -729,15 +868,411 @@ class UsageUnitsPayment(APIView):
         zip = request.POST['zip']
         hostname = request.META.get("HTTP_ORIGIN")
         redirect = request.POST['redirect']
-        vat = request.POST['vat'] #PW-248. Let it be in two places - in descriptionPartnerDuration and in email body
-        descriptionDuration = SubscriptionTerm.objects.get(subscriptionTermId=termId).description
-        partnerName = SubscriptionTerm.objects.get(subscriptionTermId=termId).partnerId.name
-        descriptionPartnerDuration = '%s %s subscription vat: %s name: %s %s'%(partnerName,descriptionDuration,vat,firstname,lastname)
+        other = request.POST['other'] #PW-248. Let it be in two places - in descriptionPartnerDuration and in email body
+        termObj = SubscriptionTerm.objects.get(subscriptionTermId=termId)
+        subDescription = termObj.category + " | "  + termObj.description
+        partnerName = termObj.partnerId.name
+        chargeDescription = '%s %s subscription; other info: %s; name: %s %s'%(partnerName,subDescription,other,firstname,lastname)
         domain = request.POST['domain']
 
-        message = PaymentControl.chargeForCIPRES(partyId, userIdentifier, stripe_api_secret_test_key, token, price, partnerName, descriptionPartnerDuration, termId, quantity, email, firstname, lastname, institute, street, city, state, country, zip, hostname, redirect, vat, domain)
+        message = PaymentControl.chargeForCIPRES(partyId, userIdentifier, stripe_api_secret_test_key, token, price, partnerName, chargeDescription, termId, quantity, email, firstname, lastname, institute, street, city, state, country, zip, hostname, redirect, other, domain)
         #PW-120 vet
         status = 200
         if 'message' in message:
             status = 400
         return HttpResponse(json.dumps(message), content_type="application/json", status=status)
+
+# CIPRES-107
+class ApplyDiscount(APIView):
+    """
+    Apply discount code to the provided price with enhancements:
+    - Handle multiple discount codes with different discount rates
+    - Ensure the original price is valid (greater than 0)
+    """
+    requireApiKey = False
+    DISCOUNT_CODES = {
+        'CIPRES10': 0.9,  # 20% discount
+    }
+    def post(self, request):
+        data = request.data
+        original_price = float(data.get('price', 0))
+        discount_code = data.get('discountCode', '').upper()  # Normalize the code to uppercase
+        # Check if a valid price is provided
+        if original_price <= 0:
+            return Response({'success': False, 'error': 'Invalid original price.'}, status=status.HTTP_400_BAD_REQUEST)
+        # Validate the discount code
+        discount_factor = self.DISCOUNT_CODES.get(discount_code)
+        if discount_factor:
+            discounted_price = original_price * discount_factor
+            success = True
+            response_data = {'success': success, 'newSubtotal': discounted_price}
+            return Response(response_data, status=status.HTTP_200_OK)
+        else:
+            return Response({'success': False, 'error': 'Invalid discount code. Please make sure you are using a correct discount code.'}, status=status.HTTP_200_OK)
+
+
+# /usage-tier/terms
+# CYV-10: End point for querying usage tiers for CyVerse
+# params: partnerId
+# returns: a list of UsageTierTerm records in JSON format
+class UsageTierTermCRUD(GenericCRUDView):
+    requireApiKey = False
+    queryset = UsageTierTerm.objects.all()
+    serializer_class = UsageTierTermSerializer
+
+    def post(self, request):
+        return Response({'msg':'cannot create'}, status=status.HTTP_400_BAD_REQUEST)
+
+    def put(self, request):
+        return Response({'msg':'cannot update'}, status=status.HTTP_400_BAD_REQUEST)
+
+    def delete(self, request):
+        return Response({'msg':'cannot delete'}, status=status.HTTP_400_BAD_REQUEST)
+
+# /usage-tier/addons
+# CYV-42: End point for querying add on options for CyVerse
+# params: partnerId
+# returns: a list of UsageAddonOptions records in JSON format
+class UsageAddonOptionsCRUD(GenericCRUDView):
+    requireApiKey = False
+    queryset = UsageAddonOption.objects.all()
+    serializer_class = UsageAddonOptionSerializer
+
+    def post(self, request):
+        return Response({'msg':'cannot create'}, status=status.HTTP_400_BAD_REQUEST)
+
+    def put(self, request):
+        return Response({'msg':'cannot update'}, status=status.HTTP_400_BAD_REQUEST)
+
+    def delete(self, request):
+        return Response({'msg':'cannot delete'}, status=status.HTTP_400_BAD_REQUEST)
+
+# /active-usage-tier-purchase
+# CYV-5: End point for querying a user's usage tier purchased which is still active (endDate > now)
+# params: username, partnerId
+# returns: a list of UsageTier records in JSON format
+class ActiveUsageTierPurchase(generics.GenericAPIView):
+    requireApiKey = False
+    def get(self,request):
+        params = request.GET
+        # not checking param existence since it is only used by Phoenix's resources
+        partnerId = params['partnerId']
+        username = params['username']
+        try:
+            credentialObj = Credential.getByUsernameAndPartner(username, partnerId)
+            partyId = credentialObj.partyId.partyId
+            activePurchases = UsageTierPurchase.getActiveByIdAndPartner(partyId, partnerId)
+            if activePurchases:
+                serializer = UsageTierPurchaseSerializer(activePurchases[0])
+                return HttpResponse(json.dumps(dict(serializer.data)), content_type="application/json")
+        except Credential.DoesNotExist:
+            pass
+        except Credential.MultipleObjectsReturned:
+            pass
+        return HttpResponse(json.dumps(None), content_type="application/json")
+
+# /cyverse-subscription
+# CYV-42: End point for querying a user's subscription tier and add on options purchased 
+# by sending request to the CyVerse API
+# params: username
+# returns: a JSON string with subscription tier, subscription UUID and endDate
+class CyVerseSubscriptionTier(generics.GenericAPIView):
+    requireApiKey = False
+    def get(self,request):
+        params = request.GET
+        # not checking param existence since it is only used by Phoenix's resources
+        username = params['username']
+        try:
+            client = CyVerseClient()
+            subscription = client.getSubscriptionTier(username)
+            addOns = client.getAddonPurchases(subscription['uuid'])
+            return HttpResponse(json.dumps({'subscription': subscription, 'addons': addOns}), content_type="application/json")
+        except Exception as error:
+            return HttpResponse(json.dumps(error), content_type="application/json", status=400)
+
+# /cyverse-subscription-v2
+# Endpoint for querying a user's latest subscription tier and add on options purchased
+# from the updated subscription API that returns multiple subscriptions
+# params: username
+# returns: a JSON string with subscription tier, subscription UUID and endDate from the latest subscription
+class CyVerseSubscriptionTierV2(generics.GenericAPIView):
+    requireApiKey = False
+    
+    def get(self, request):
+        params = request.GET
+        username = params.get('username')
+        
+        if not username:
+            return HttpResponse(
+                json.dumps({'error': 'Username parameter is required'}),
+                content_type="application/json",
+                status=400
+            )
+            
+        try:
+            client = CyVerseClient()
+            subscription = client.getLatestSubscriptionTier(username)
+            addOns = client.getAddonPurchases(subscription['uuid'])
+            
+            return HttpResponse(
+                json.dumps({
+                    'subscription': subscription,
+                    'addons': addOns
+                }),
+                content_type="application/json"
+            )
+            
+        except Exception as error:
+            error_message = str(error)
+            return HttpResponse(
+                json.dumps({'error': error_message}),
+                content_type="application/json",
+                status=400
+            )
+        
+# /payments/usage-tier
+# CYV-17: End point for posting payment for CyVerse
+class UsageTierPayment(APIView):
+    requireApiKey = False
+
+    def post(self, request):
+        stripe_api_key = settings.STRIPE_PRIVATE_KEY
+        username = request.POST['username']
+        token = request.POST['stripeToken']
+        price = float(request.POST['price'])
+        email = request.POST['email']
+        firstname = request.POST['firstName']
+        lastname = request.POST['lastName']
+        institute = request.POST['institute']
+        street = request.POST['street']
+        city = request.POST['city']
+        state = request.POST['state']
+        country = request.POST['country']
+        zip = request.POST['zip']
+        hostname = request.META.get("HTTP_ORIGIN")
+        redirect = request.POST['redirect']
+        cardLast4 = request.POST['cardLast4']
+        other = request.POST['other'] #PW-248. Let it be in two places - in descriptionPartnerDuration and in email body
+        domain = request.POST['domain']
+        subscription = json.loads(request.POST['subscription'])
+
+        message = PaymentControl.chargeForCyVerse(stripe_api_key, token, price, subscription, username, email, firstname, lastname, institute, street, city, state, country, zip, hostname, redirect, cardLast4, other, domain)
+        status = 200
+        if 'message' in message:
+            status = 400
+        return HttpResponse(json.dumps(message), content_type="application/json", status=status)
+
+
+## New APIs for individual 
+# def is_premium_page(url):
+#     premium_urls = PremiumUsageUnits.objects.values_list('url', flat=True)
+#     return any(re.match(premium_url, url) for premium_url in premium_urls)
+
+# def get_premium_units(url):
+#     logger.debug("get_premium_units "+url)
+#     try:
+#         premium_page = PremiumUsageUnits.objects.get(url=url)
+#         return premium_page.units_consumed
+#     except PremiumUsageUnits.DoesNotExist:
+#         # If no exact match, try regex matching
+#         for premium_page in PremiumUsageUnits.objects.all():
+#             if re.match(premium_page.url, url):
+#                 return premium_page.units_consumed
+#     return 1  # Default to 1 unit if not found in PremiumUsageUnits
+
+# def get_usage_units(url):
+    # logger.debug("get_premium_units " + url)
+    # try:
+    #     # First, try an exact match
+    #     premium_page = PremiumUsageUnits.objects.get(url=url)
+    #     return premium_page.units_consumed
+    # except PremiumUsageUnits.DoesNotExist:
+    #     # If no exact match, try containment check
+    #     for premium_page in PremiumUsageUnits.objects.all():
+    #         if premium_page.url in url:
+    #             return premium_page.units_consumed
+        
+    #     # If still no match, try regex matching as a fallback
+    #     for premium_page in PremiumUsageUnits.objects.all():
+    #         if re.match(premium_page.url, url):
+    #             return premium_page.units_consumed
+    
+    # return 1  # Default to 1 unit if not found in PremiumUsageUnits
+
+def get_usage_units(url):
+    # logger.debug("get_usage_units_from_uri_pattern: %s" % url)
+
+    uri_pattern_object = None
+    #gets a paid page value from table using "Paid" string instead of id of 1
+    paid_patterns = UriPattern.objects.filter(accessrule__accessTypeId__name=PAID_ACCESS_DB_VALUE)
+
+    # Step 1: Attempt to find a match in UriPattern table using regex matching
+    for pattern_entry in paid_patterns:
+        try:
+            # Compile the pattern from the UriPattern table
+            regex_pattern = re.compile(pattern_entry.pattern)
+            # Match the full URL against the compiled pattern
+            if regex_pattern.search(url):
+                uri_pattern_object = pattern_entry
+                # logger.debug("Match found for pattern: %s" % pattern_entry.pattern)
+                break
+        except re.error as e:
+            logger.error("Regex compilation failed for pattern: %s with error: %s" % (pattern_entry.pattern, e))
+
+    # If no match is found in UriPattern table, return 0
+    if not uri_pattern_object:
+        logger.debug("No matching pattern found in UriPattern table: %s" % pattern_entry.pattern)
+        return FREE_ACCESS_UNIT
+
+    # Step 2: Look up usage units from PremiumUsageUnits using the found UriPattern entry
+    try:
+        # Use the foreign key relationship to look up units_consumed in PremiumUsageUnits
+        premium_page = PremiumUsageUnits.objects.get(pattern_object=uri_pattern_object)
+        logger.debug("Units found for matched pattern: %d" % premium_page.units_consumed)
+        return premium_page.units_consumed
+    except PremiumUsageUnits.DoesNotExist:
+        # If no specific PremiumUsageUnits entry is found, return default value of 1
+        # logger.debug("No PremiumUsageUnits entry found for pattern id: %d. Defaulting to 1 unit." % uri_pattern_object.patternId)
+        return PAID_ACCESS_UNIT
+
+
+class CheckLimit(APIView):
+    requireApiKey = False
+
+    def get(self, request):
+        complete_uri = request.GET.get('uri')
+        party_id = request.GET.get('party_id')
+        partnerId = request.GET.get('partner_id')
+
+        if not all([party_id, complete_uri, partnerId]):
+            return Response({"error": "Missing required parameters"}, status=status.HTTP_400_BAD_REQUEST)
+
+        units_required = get_usage_units(complete_uri)
+        # logger.debug("units_required: " + str(units_required))
+        try:
+            limit_value_object = LimitValue.objects.filter(partnerId=partnerId).first()
+            warningLimit = limit_value_object.val
+        except LimitValue.DoesNotExist:
+            return Response({"error": "Warning limit not found in the database"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+        
+        try:
+            user_bucket = UserBucketUsage.objects.get(partyId_id=party_id)
+            expiry_date = user_bucket.expiry_date
+            if expiry_date is None:
+                expiry_date = user_bucket.free_expiry_date
+            elif user_bucket.free_expiry_date is not None and user_bucket.free_expiry_date > expiry_date:
+                expiry_date = user_bucket.free_expiry_date
+
+            logger.info("CheckLimit:user bucket " + str(party_id) + " remaining units are " + str(user_bucket.remaining_units))
+            if user_bucket.remaining_units >= units_required and expiry_date > timezone.now():
+                if user_bucket.remaining_units == warningLimit:
+                    logger.info("CheckLimit: warning limit reached")
+                    return Response({"status": STATUS_WARNING})
+                else:
+                    return Response({"status": STATUS_OK})
+            else:
+                if units_required > PAID_ACCESS_UNIT:
+                    logger.info("CheckLimit: blacklist block")
+                    return Response({"status": STATUS_BLACKLIST_BLOCK})
+                else:
+                    if user_bucket.remaining_units < units_required:
+                        logger.info("CheckLimit: blocked due to no balance")
+                    else:
+                        logger.info("CheckLimit: blocked due to expiry date")
+                    return Response({"status": STATUS_BLOCK})
+        except UserBucketUsage.DoesNotExist:
+            return Response({"status": STATUS_BLOCK, "error": ERROR_BUCKET_NOT_FOUND})
+
+checkLimit = CheckLimit.as_view()
+
+class Decrement(APIView):
+    requireApiKey = False
+
+    def post(self, request):
+        party_id = request.GET.get('party_id')
+        complete_uri = request.GET.get('uri')
+
+        if not all([party_id, complete_uri]):
+            return Response({"error": "Missing required parameters"}, status=status.HTTP_400_BAD_REQUEST)
+
+        units_required = get_usage_units(complete_uri)
+
+        try:
+            user_bucket = UserBucketUsage.objects.get(partyId_id=party_id)
+            # logger.info("Decrement:user bucket " + str(party_id) + "remaining units are " + str(user_bucket.remaining_units))
+            if user_bucket.remaining_units >= units_required:
+                user_bucket.remaining_units -= units_required
+                user_bucket.save()
+                logger.info("Successfully decremented remaining units")
+                return Response({"message": "Successfully decremented remaining units"})
+            else:
+                logger.info("No remaining units to decrement")
+                return Response({"message": "No remaining units to decrement"})
+
+        except UserBucketUsage.DoesNotExist:
+            logger.info("Error: User bucket usage not found")
+            return Response({"error": "User bucket usage not found"}, status=status.HTTP_404_NOT_FOUND)
+        
+decrement = Decrement.as_view()
+
+# /add_free
+class AddFreeUsageUnits(APIView):
+    requireApiKey = False
+    serializer_class = UserBucketUsageSerializer
+
+    def put(self, request):
+        try:
+            partyId = request.data['partyId']
+            logger.info("AddFreeUsageUnits: %s", partyId)
+
+            userBucketUsage = SubscriptionControl.createOrUpdateUserBucketUsage_Free(partyId, 50)
+            serializer = self.serializer_class(userBucketUsage)
+            returnData = serializer.data
+            return Response(returnData, status=status.HTTP_201_CREATED)
+        except Exception as e:
+            msg = str(e)
+            if "ORCID must be linked" in msg:
+                return Response({"error": msg}, status=status.HTTP_400_BAD_REQUEST)
+            if "Free usage units cannot be added until previous units expired" in msg:
+                return Response({"error": msg}, status=status.HTTP_400_BAD_REQUEST)
+            return Response({"error": "Unexpected error AddFreeUsageUnits: {0}".format(msg)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+add_free = AddFreeUsageUnits.as_view()
+
+# /track_page
+class TrackPage(APIView):
+    requireApiKey = False
+    serializer_class = UserTrackPagesSerializer
+
+    def get(self, request):
+        party_id = request.GET.get('party_id')
+        complete_uri = request.GET.get('uri')
+
+        if not all([party_id, complete_uri]):
+            return Response({"error": "Missing required parameters"}, status=status.HTTP_400_BAD_REQUEST)
+        try:    
+            filtered_uri = SubscriptionControl.get_filtered_uri(complete_uri)
+            pageStatus = SubscriptionControl.checkTrackingPage(party_id, filtered_uri)
+            logger.info("Checking TrackPage: %s,%s", filtered_uri, pageStatus)
+            return Response({"status": pageStatus})
+        except Exception as e:
+            return Response("Unexpected error /track_page: {0}".format(str(e)))
+    
+    def post(self, request):
+        party_id = request.GET.get('party_id')
+        complete_uri = request.GET.get('uri')
+
+        if not all([party_id, complete_uri]):
+            return Response({"error": "Missing required parameters"}, status=status.HTTP_400_BAD_REQUEST)
+        try:
+            logger.info("Add TrackPage: %s", complete_uri)
+            filtered_uri = SubscriptionControl.get_filtered_uri(complete_uri)
+            response = SubscriptionControl.cacheNewTrackingPage(party_id, filtered_uri)
+            return Response({"status": response})
+        except Exception as e:
+            return Response("Unexpected error /track_page: {0}".format(str(e)))
+
+track_page = TrackPage.as_view()
+
+def test_view(request):
+    return HttpResponse("Test view is working")

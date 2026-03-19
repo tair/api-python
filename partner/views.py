@@ -4,17 +4,25 @@ from django.http import HttpResponse
 from rest_framework.views import APIView
 from rest_framework import generics
 
-from models import Partner, PartnerPattern, SubscriptionTerm, SubscriptionDescription, SubscriptionDescriptionItem
-from serializers import PartnerSerializer, PartnerPatternSerializer, SubscriptionTermSerializer, SubscriptionDescriptionSerializer, SubscriptionDescriptionItemSerializer
+from models import Partner, PartnerPattern, SubscriptionTerm, BucketType, SubscriptionDescription, SubscriptionDescriptionItem
+
+from subscription.models import BucketTransaction
+
+from serializers import PartnerSerializer, PartnerPatternSerializer, SubscriptionTermSerializer, BucketTypeSerializer, SubscriptionDescriptionSerializer, SubscriptionDescriptionItemSerializer
 
 import json
+from datetime import timedelta
 
 from common.views import GenericCRUDView
 
 from rest_framework import status
 from rest_framework.response import Response
+from django.utils import timezone
 
 import re
+
+import logging
+logger = logging.getLogger('phoenix.api.partner')
 
 # top level: /partners/
 
@@ -66,11 +74,88 @@ class PartnerPatternCRUD(GenericCRUDView):
         # serializer = PartnerPatternSerializer(partnerList, many=True)
         return Response({'msg':'cannot find matched url'}, status=status.HTTP_204_NO_CONTENT)
 
+class BucketTypeCRUD(GenericCRUDView):
+    queryset = BucketType.objects.all()
+    serializer_class = BucketTypeSerializer
+    requireApiKey = False
+
+    def get(self, request):
+        obj = self.get_queryset()
+        params = request.GET
+        orcid_id = params.get("orcid_id")
+        logger.info("orcid_id: {0}".format(orcid_id))
+        
+        if not orcid_id or orcid_id == 'undefined':
+            logger.info("No orcid_id provided, trying to get from credentialId")
+            credential_id = params.get("credentialId")
+            if not credential_id:
+                return Response({"error": "Either orcid_id or credentialId parameter is required"}, status=400)
+            
+            # Get orcid_id from OrcidCredentials using raw SQL query
+            from django.db import connection
+            with connection.cursor() as cursor:
+                cursor.execute("""
+                    SELECT o.orcid_id
+                    FROM OrcidCredentials o
+                    LEFT JOIN Credential c ON c.id = o.CredentialId
+                    WHERE c.partyId = %s
+                """, [credential_id])
+                result = cursor.fetchone()
+                
+            if not result:
+                orcid_id = None
+            else:
+                orcid_id = result[0]
+        
+        transaction_found = False
+        if orcid_id:
+            # Discount is only blocked if there is a 300-unit purchase within the last 365 days.
+            cutoff_datetime = timezone.now() - timedelta(days=365)
+            transactions = BucketTransaction.objects.filter(
+                orcid_id=orcid_id,
+                bucket_type_id=10,
+                transaction_date__gt=cutoff_datetime
+            )
+            if transactions.exists():
+                transaction_found = True
+                for transaction in transactions:
+                    logger.info("Bucket Transaction ID: " + str(transaction.bucket_transaction_id))
+            else:
+                logger.info("No recent transactions for bucket_type_id=10 found for orcid_id: " + orcid_id)
+        else:
+            logger.info("No orcid_id found, not giving discount " + credential_id)
+            transaction_found = True
+        out = []
+        for entry in obj:
+            outEntry = {}
+            outEntry['bucketTypeId'] = entry.bucketTypeId
+            outEntry['units'] = entry.units
+            outEntry['price'] = entry.price
+            outEntry['description'] = entry.description
+            if transaction_found and entry.bucketTypeId == 10:
+                entry.discountPercentage = 0
+            outEntry['discountPercentage'] = entry.discountPercentage
+            out.append(outEntry)
+        return Response(out)
+    
+    def post(self, request):
+        return Response({'msg':'cannot create'}, status=status.HTTP_400_BAD_REQUEST)
+
+    def put(self, request):
+        return Response({'msg':'cannot update'}, status=status.HTTP_400_BAD_REQUEST)
+
+    def delete(self, request):
+        return Response({'msg':'cannot delete'}, status=status.HTTP_400_BAD_REQUEST)
+
 # /terms/
 class TermsCRUD(GenericCRUDView):
     queryset = SubscriptionTerm.objects.all()
     serializer_class = SubscriptionTermSerializer
     requireApiKey = False
+
+    # def get(self, request):
+    #     logger.info("Get request for Terms")
+    #     return Response({"error":"Essential parameters needed."}, status=status.HTTP_400_BAD_REQUEST)
 
     def post(self, request):
         return Response({'msg':'cannot create'}, status=status.HTTP_400_BAD_REQUEST)

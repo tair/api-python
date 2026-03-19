@@ -8,6 +8,7 @@ urlpatterns = [
     # Basic CRUD operations
     url(r'^countries/$', views.CountryView.as_view()),
     url(r'^organizations/$', views.OrganizationView.as_view()),#PW-265
+    url(r'^organizations/membership/$', views.OrganizationMembershipView.as_view()),
     
     url(r'^ipranges/$', views.IpRangeCRUD.as_view()),
     url(r'^imageinfo/$', views.ImageInfoCRUD.as_view()),
