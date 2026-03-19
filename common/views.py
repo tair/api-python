@@ -1,6 +1,40 @@
+from django.conf import settings
 from rest_framework.response import Response
 from rest_framework import generics, status
+from rest_framework.views import APIView
+from rest_framework.permissions import AllowAny
 from permissions import isPhoenix
+
+
+class DatabaseEnvView(APIView):
+    """Return current database connection info (password masked) to verify which env we are connecting to."""
+    permission_classes = (AllowAny,)
+
+    def get(self, request):
+        db = settings.DATABASES.get('default', {})
+        engine = db.get('ENGINE', '')
+        host = db.get('HOST') or 'localhost'
+        port = db.get('PORT') or '3306'
+        name = db.get('NAME') or ''
+        user = db.get('USER') or ''
+        password = db.get('PASSWORD') or ''
+        password_masked = '***' if password else ''
+        # mysql://user:***@host:port/name
+        database_url = 'mysql://{user}:{pwd}@{host}:{port}/{name}'.format(
+            user=user or '(none)',
+            pwd=password_masked,
+            host=host,
+            port=port,
+            name=name or '(none)'
+        )
+        return Response({
+            'database_url': database_url,
+            'host': host,
+            'port': port,
+            'name': name,
+            'user': user,
+            'engine': engine,
+        })
 
 class GenericCRUDView(generics.GenericAPIView):
     requireApiKey = True
