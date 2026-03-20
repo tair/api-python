@@ -34,3 +34,15 @@ docker-compose run web python manage.py makemigrations subscription  # if needed
 Confluence Links:
 Subscription -> controls.py
 https://phoenixbioinformatics.atlassian.net/wiki/x/C4D9Ig
+
+## Cursor skills
+
+Project-specific Cursor skills are authored under the `cursor-skill/` directory. To sync them into `.cursor/skills/` (so Cursor picks them up), run from the project root:
+
+```bash
+./cursor-skill/sync_cursor_skills.sh
+```
+
+If you get "Permission denied", run `chmod +x cursor-skill/sync_cursor_skills.sh` once.
+
+Use `--link` to create symlinks instead of copying, so edits in `cursor-skill/` apply immediately.

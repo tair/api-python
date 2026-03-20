@@ -19,6 +19,34 @@ django.setup()
 from party.models import Party, IpRange, PartyAffiliation, Country
 from common.common import isIpRangePrivate, validateIpRangeSize, validateIpRange, validateIpRangeOverlap
 
+
+def _read_nstl_ip_excel(path):
+    """xlrd 2.x cannot read .xlsx; NSTL_check outputs are xlsx (xlsxwriter)."""
+    ext = os.path.splitext(path)[1].lower()
+    if ext != ".xlsx":
+        return pd.read_excel(
+            path, index_col=None, usecols="A,B,C,D,E", na_filter=False
+        )
+    try:
+        from openpyxl import load_workbook
+    except ImportError:
+        raise ImportError(
+            "Reading .xlsx requires openpyxl. Install: pip install 'openpyxl<3'"
+        )
+    wb = load_workbook(path, read_only=True, data_only=True)
+    ws = wb.active
+    rows = [list(r) for r in ws.iter_rows(values_only=True)]
+    wb.close()
+    if len(rows) < 2:
+        return pd.DataFrame(columns=["serial id", "cn name", "en name", "start ip", "end ip"])
+    df = pd.DataFrame(rows[1:], columns=[str(c).strip() for c in rows[0]])
+    want = ["serial id", "cn name", "en name", "start ip", "end ip"]
+    for col in want:
+        if col not in df.columns:
+            raise ValueError("Missing column %r in %s; got %s" % (col, path, list(df.columns)))
+    return df[want]
+
+
 # helper function:
 def mergeRanges(ranges):
     """
@@ -48,11 +76,7 @@ IpRangeFilename = sys.argv[1]
 # errlog = open("NSTL_after_2015_check_error.csv", "w+")
 # Processing Data
 
-data = pd.read_excel(IpRangeFilename, index_col=None, usecols = "A,B,C,D,E",
-        # encoding=encoding,
-        na_filter=False,
-        # dtype={'id': int, 'name_en': str, 'ip_update': str}
-        )
+data = _read_nstl_ip_excel(IpRangeFilename)
 output = []
 errList = []
 ipRangeList = IpRange.objects.all()

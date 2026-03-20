@@ -20,6 +20,7 @@ django.setup()
 
 from party.serializers import IpRangeSerializer, PartySerializer
 from party.models import IpRange, Party, PartyAffiliation, Country
+from common.common import ip2long, get_overlapping_ranges
 
 # Begin main program:
 
@@ -32,7 +33,7 @@ with open(IpRangeFilename, 'rU') as f:
 
 errlog = open("ipLoadingErrorLog.csv", "w+")
 # Processing Data
-print 'Processing Data'
+print('Processing Data')
 
 # count variable initialization
 ipRangeExists = 0
@@ -53,9 +54,7 @@ for entry in IpRangeListData:
         endIp = entry[3]
         countryId = entry[4]
         consortiumId = entry[5]
-        print institutionName
-        print len(list(Party.objects.raw("SELECT partyId FROM Party WHERE partyType=\"organization\" AND UPPER(name) = UPPER(\""+institutionName+"\")")))
-        # remove any blance spaces or non-ascii charactors from the ip ranges
+        # remove any blank spaces or non-ascii charactors from the ip ranges
         # whitelist = set('abcdefghijklmnopqrstuvwxyABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890.:')
         # startIp = ''.join(filter(whitelist.__contains__, startIp))
         # endIp = ''.join(filter(whitelist.__contains__, endIp))
@@ -98,24 +97,23 @@ for entry in IpRangeListData:
         # remove leading 0
         if len(startIp.split('.')) == 4:
             startIpList = startIp.split('.')
-            for i in xrange(len(startIpList)):
+            for i in range(len(startIpList)):
                 while startIpList[i].startswith('0') and startIpList[i] != '0':
                     startIpList[i] = startIpList[i][1:]
             startIp = '.'.join(startIpList)
 
         if len(endIp.split('.')) == 4:
             endIpList = endIp.split('.')
-            for i in xrange(len(endIpList)):
+            for i in range(len(endIpList)):
                 while endIpList[i].startswith('0') and endIpList[i] != '0':
                     endIpList[i] = endIpList[i][1:]
             endIp = '.'.join(endIpList)
 
         try:
-            if len(list(Party.objects.raw("SELECT partyId FROM Party WHERE partyType=\"organization\" AND UPPER(name) = UPPER(\""+institutionName+"\")")))==0:
-                if IpRange.objects.all().filter(start=startIp).exists() or IpRange.objects.all().filter(end=endIp).exists():
-                    potentialExistingParty[institutionName].update(IpRange.objects.all().filter(start=startIp).values_list('partyId', flat=True))
-                    potentialExistingParty[institutionName].update(IpRange.objects.all().filter(end=endIp).values_list('partyId', flat=True))
-                    # fw.write('Party could be in database: ' + institutionName + '\n')
+            if not Party.objects.filter(partyType='organization', name__iexact=institutionName).exists():
+                overlapping = get_overlapping_ranges(startIp, endIp, IpRange)
+                if overlapping:
+                    potentialExistingParty[institutionName].update(r.partyId_id for r in overlapping)
                     continue
         except Exception as e:
             errlog.write('Error institution: ' + institutionName + ' ' + startIp + " " + endIp)
@@ -127,7 +125,7 @@ for entry in IpRangeListData:
         errlog.write(str(e) + '\n')
         continue
 
-for k,v in potentialExistingParty.iteritems():
+for k, v in potentialExistingParty.items():
     s = ','.join([str(n) for n in v])
     errlog.write("Could be in database: "+ ',' + k + ',' + s + '\n')
 
@@ -177,30 +175,29 @@ for entry in IpRangeListData:
         # remove leading 0
         if len(startIp.split('.')) == 4:
             startIpList = startIp.split('.')
-            for i in xrange(len(startIpList)):
+            for i in range(len(startIpList)):
                 while startIpList[i].startswith('0') and startIpList[i] != '0':
                     startIpList[i] = startIpList[i][1:]
             startIp = '.'.join(startIpList)
 
         if len(endIp.split('.')) == 4:
             endIpList = endIp.split('.')
-            for i in xrange(len(endIpList)):
+            for i in range(len(endIpList)):
                 while endIpList[i].startswith('0') and endIpList[i] != '0':
                     endIpList[i] = endIpList[i][1:]
             endIp = '.'.join(endIpList)
 
 
-        if len(list(Party.objects.raw("SELECT partyId FROM Party WHERE partyType=\"organization\" AND UPPER(name) = UPPER(\""+institutionName+"\")"))) == 0:
+        if not Party.objects.filter(partyType='organization', name__iexact=institutionName).exists():
             if institutionName in potentialExistingParty:
-                # errlog.write('Party could be in database: ' + institutionName + '\n')
                 continue
 
-        print 'Processing: ' + institutionName
+        print('Processing: ' + institutionName)
 
         if actionType == 'create':
             partyId = None
             # when the party doesn't exist
-            if len(list(Party.objects.raw("SELECT partyId FROM Party WHERE partyType=\"organization\" AND UPPER(name) = UPPER(\""+institutionName+"\")")))==0:
+            if not Party.objects.filter(partyType='organization', name__iexact=institutionName).exists():
                 # create party
                 if not Country.objects.all().filter(countryId=countryId):
                     raise Exception('[Country Not Found] ' + countryId)
@@ -211,7 +208,7 @@ for entry in IpRangeListData:
                         data={'name': institutionName, 'partyType': 'organization', 'country': countryId}, partial=True)
                 if partySerializer.is_valid():
                     partySerializer.save()
-                    print '[New Party Created] ' + institutionName
+                    print('[New Party Created] ' + institutionName)
                 else:
                     raise Exception('[Party serializer invalid] ' + \
                                     'type: ' + actionType + \
@@ -223,79 +220,79 @@ for entry in IpRangeListData:
                     childParty = Party.objects.get(partyId=partyId)
                     parentParty = Party.objects.get(partyId=consortiumId)
                     PartyAffiliation.objects.create(childPartyId=childParty, parentPartyId=parentParty)
-                    print '[PartyAffiliation Created] ' + \
-                          'institution: ' + institutionName + \
-                          'consortium: ' + parentParty.name
+                    print('[PartyAffiliation Created] ' +
+                          'institution: ' + institutionName +
+                          ' consortium: ' + parentParty.name)
                 partyCreated += 1
 
             # when the party exists
             else:
-                if len(list(Party.objects.raw("SELECT partyId FROM Party WHERE partyType=\"organization\" AND UPPER(name) = UPPER(\""+institutionName+"\")")))>1:
-                    raise Exception('[More than one party found with institution name] ' + \
-                                    ' type: ' + actionType + \
-                                    ' institution: ' + institutionName + \
-                                    ' start: ' + startIp + \
-                                    ' end: ' + endIp + \
-                                    ' parties: ' + ','.join([str(int(p.partyId)) for p in Party.objects.raw("SELECT partyId FROM Party WHERE partyType=\"organization\" AND UPPER(name) = UPPER(\""+institutionName+"\")")]))
-                partyId = Party.objects.raw("SELECT partyId FROM Party WHERE partyType=\"organization\" AND UPPER(name) = UPPER(\"" + institutionName + "\")")[0].partyId
+                party_matches = Party.objects.filter(partyType='organization', name__iexact=institutionName)
+                if party_matches.count() > 1:
+                    raise Exception('[More than one party found with institution name] ' +
+                                    ' type: ' + actionType +
+                                    ' institution: ' + institutionName +
+                                    ' start: ' + startIp +
+                                    ' end: ' + endIp +
+                                    ' parties: ' + ','.join([str(p.partyId) for p in party_matches]))
+                partyId = party_matches.first().partyId
                 if consortiumId:
                     childParty = Party.objects.get(partyId=partyId)
                     parentParty = Party.objects.get(partyId=consortiumId)
                     party, created = PartyAffiliation.objects.get_or_create(childPartyId=childParty, parentPartyId=parentParty)
                     if created:
-                        print '[PartyAffiliation Created] ' + \
-                              'institution: ' + institutionName + \
-                              'consortium: ' + parentParty.name
-                ipRangeList = IpRange.objects.all().filter(partyId=partyId)
-                nextIter = False
-                for ipRange in ipRangeList:
-                    if ipRange.start == startIp and ipRange.end == endIp:
-                        print '[Ip range already exists] ' + \
-                              'type: ' + actionType + \
-                              'institution: ' + institutionName + \
-                              'start: ' + startIp + \
-                              'end: ' + endIp
-                        nextIter = True
+                        print('[PartyAffiliation Created] ' +
+                              'institution: ' + institutionName +
+                              ' consortium: ' + parentParty.name)
+                try:
+                    start_long = ip2long(startIp)
+                    end_long = ip2long(endIp)
+                    if IpRange.objects.filter(partyId=partyId, startLong=start_long, endLong=end_long).exists():
+                        print('[Ip range already exists] ' +
+                              'type: ' + actionType +
+                              ' institution: ' + institutionName +
+                              ' start: ' + startIp +
+                              ' end: ' + endIp)
                         ipRangeExists += 1
-                        break
-                if nextIter == True:
-                    continue
+                        continue
+                except Exception:
+                    pass
             # create ip range
             ipRangeSerializer = IpRangeSerializer(data={'start': startIp, 'end': endIp, 'partyId': partyId}, partial=True)
             if ipRangeSerializer.is_valid():
                 ipRangeSerializer.save()
-                print '[IpRange Created] ' + \
-                      'type: ' + actionType + \
-                      'institution: ' + institutionName + \
-                      'start: ' + startIp + \
-                      'end: ' + endIp
+                print('[IpRange Created] ' +
+                      'type: ' + actionType +
+                      ' institution: ' + institutionName +
+                      ' start: ' + startIp +
+                      ' end: ' + endIp)
                 ipRangeLoaded += 1
             else:
-                raise Exception('[Ip range serializer invalid] ' + \
-                                'type: ' + actionType + \
-                                'institution: ' + institutionName + \
-                                'start: ' + startIp + \
-                                'end: ' + endIp)
+                raise Exception('[Ip range serializer invalid] ' +
+                                'type: ' + actionType +
+                                ' institution: ' + institutionName +
+                                ' start: ' + startIp +
+                                ' end: ' + endIp)
 
         elif actionType == 'update':
             partyId = None
             # when the party doesn't exist
-            if not queryset.filter(name=institutionName).exists():
-                raise Exception('[Party does not exist] ' + \
-                                'type: ' + actionType + \
-                                'institution: ' + institutionName + \
-                                'start: ' + startIp + \
-                                'end: ' + endIp)
+            if not queryset.filter(name__iexact=institutionName).exists():
+                raise Exception('[Party does not exist] ' +
+                                'type: ' + actionType +
+                                ' institution: ' + institutionName +
+                                ' start: ' + startIp +
+                                ' end: ' + endIp)
 
             # when the party exists
-            elif queryset.filter(name=institutionName).count() > 1:
-                raise Exception('[More than one party found with institution name] ' + \
-                                'type: ' + actionType + \
-                                'institution: ' + institutionName + \
-                                'start: ' + startIp + \
-                                'end: ' + endIp)
+            elif queryset.filter(name__iexact=institutionName).count() > 1:
+                raise Exception('[More than one party found with institution name] ' +
+                                'type: ' + actionType +
+                                ' institution: ' + institutionName +
+                                ' start: ' + startIp +
+                                ' end: ' + endIp)
             else:
-                partyId = queryset.filter(name=institutionName)[0].partyId
+                partyId = queryset.filter(name__iexact=institutionName).first().partyId
                 if partyId not in cleared:
                     IpRange.objects.all().filter(partyId=partyId).delete()
                     cleared.append(partyId)
@@ -304,32 +301,32 @@ for entry in IpRangeListData:
             ipRangeSerializer = IpRangeSerializer(data={'start': startIp, 'end': endIp, 'partyId': partyId}, partial=True)
             if ipRangeSerializer.is_valid():
                 ipRangeSerializer.save()
-                print '[IpRange Created] ' + \
-                      'type: ' + actionType + \
-                      'institution: ' + institutionName + \
-                      'start: ' + startIp + \
-                      'end: ' + endIp
+                print('[IpRange Created] ' +
+                      'type: ' + actionType +
+                      ' institution: ' + institutionName +
+                      ' start: ' + startIp +
+                      ' end: ' + endIp)
                 ipRangeLoaded += 1
             else:
-                raise Exception('[Ip range serializer invalid] ' + \
-                                'type: ' + actionType + \
-                                'institution: ' + institutionName + \
-                                'start: ' + startIp + \
-                                'end: ' + endIp)
+                raise Exception('[Ip range serializer invalid] ' +
+                                'type: ' + actionType +
+                                ' institution: ' + institutionName +
+                                ' start: ' + startIp +
+                                ' end: ' + endIp)
     # except (ValidationError, AddrFormatError, IntegrityError, UnicodeDecodeError) as e:
     except Exception as e:
         ipRangeError += 1
-        print '[IpRange Error] ' + \
-              'type: ' + actionType + \
-              'institution: ' + institutionName + \
-              'start: ' + startIp + \
-              'end: ' + endIp
+        print('[IpRange Error] ' +
+              'type: ' + actionType +
+              ' institution: ' + institutionName +
+              ' start: ' + startIp +
+              ' end: ' + endIp)
         errlog.write('Error institution: ' + institutionName + ' ' + startIp + " " + endIp + ' ')
         errlog.write(str(e) + '\n')
         continue
 errlog.close()
-print 'Loading Complete: ' + '\n' + \
-      'ipRangeLoaded: ' + str(ipRangeLoaded) + \
-      'ipRangeExists: ' + str(ipRangeExists) + \
-      'ipRangeError: ' + str(ipRangeError) + \
-      'partyCreated: ' + str(partyCreated)
+print('Loading Complete: ' + '\n' +
+      'ipRangeLoaded: ' + str(ipRangeLoaded) +
+      ' ipRangeExists: ' + str(ipRangeExists) +
+      ' ipRangeError: ' + str(ipRangeError) +
+      ' partyCreated: ' + str(partyCreated))

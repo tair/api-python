@@ -14,6 +14,7 @@ os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'paywall2.settings')
 django.setup()
 
 from party.models import IpRange
+from common.common import exact_match_exists
 
 # Begin main program:
 
@@ -87,16 +88,14 @@ for entry in IpRangeListData:
                         else:
                             errlog.write(','.join(['ips' + str(i+1), institutionName, iprange, 'no ips', '\n']))
                             continue
-                        start.replace(" ", "")
-                        end.replace(" ", "")
-                        if not re.compile("^\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}$").match(start):
+                        start = start.replace(" ", "").strip()
+                        end = end.replace(" ", "").strip()
+                        if not re.compile(r"^\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}$").match(start):
                             errlog.write(','.join(['ips' + str(i+1), institutionName, 'start', start, '\n']))
-                        elif not IpRange.objects.all().filter(start=start).exists():
-                            iptoadd.write(','.join(['ips' + str(i+1), institutionName, 'start', start, '\n']))
-                        if not re.compile("^\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}$").match(end):
+                        elif not re.compile(r"^\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}$").match(end):
                             errlog.write(','.join(['ips' + str(i+1), institutionName, 'end', end, '\n']))
-                        elif not IpRange.objects.all().filter(end=end).exists():
-                            iptoadd.write(','.join(['ips' + str(i+1), institutionName, 'end', end, '\n']))
+                        elif not exact_match_exists(start, end, IpRange):
+                            iptoadd.write(','.join(['ips' + str(i+1), institutionName, start, end, '\n']))
                     except Exception as e:
                         errlog.write(','.join(['ips' + str(i+1) + ' other', institutionName, iprange, str(e), '\n']))
                         continue
