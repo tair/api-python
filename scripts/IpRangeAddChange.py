@@ -58,10 +58,8 @@ for entry in IpRangeListData:
         # whitelist = set('abcdefghijklmnopqrstuvwxyABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890.:')
         # startIp = ''.join(filter(whitelist.__contains__, startIp))
         # endIp = ''.join(filter(whitelist.__contains__, endIp))
-        startIp.replace(" ", "")
-        endIp.replace(" ", "")
-        startIp.strip()
-        endIp.strip()
+        startIp = startIp.replace(" ", "").strip()
+        endIp = endIp.replace(" ", "").strip()
 
         # create ip range from '-' format e.g. 1.2.3.0-255 ==> start: 1.2.3.0 end: 1.2.3.255
         if '-' in startIp:
@@ -118,7 +116,7 @@ for entry in IpRangeListData:
         except Exception as e:
             errlog.write('Error institution: ' + institutionName + ' ' + startIp + " " + endIp)
             errlog.write(str(e) + '\n')
-            raise Exception(str(e))
+            continue
 
     except (ValidationError, AddrFormatError, IntegrityError, UnicodeDecodeError) as e:
         errlog.write('Error institution: ' + institutionName + ' ' + startIp + " " + endIp + '\n')
@@ -144,10 +142,8 @@ for entry in IpRangeListData:
         # whitelist = set('abcdefghijklmnopqrstuvwxyABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890.:')
         # startIp = ''.join(filter(whitelist.__contains__, startIp))
         # endIp = ''.join(filter(whitelist.__contains__, endIp))
-        startIp.replace(" ", "")
-        endIp.replace(" ", "")
-        startIp.strip()
-        endIp.strip()
+        startIp = startIp.replace(" ", "").strip()
+        endIp = endIp.replace(" ", "").strip()
 
         # create ip range from '-' format e.g. 1.2.3.0-255 ==> start: 1.2.3.0 end: 1.2.3.255
         if '-' in startIp:
@@ -208,6 +204,7 @@ for entry in IpRangeListData:
                         data={'name': institutionName, 'partyType': 'organization', 'country': countryId}, partial=True)
                 if partySerializer.is_valid():
                     partySerializer.save()
+                    partyId = partySerializer.data['partyId']
                     print('[New Party Created] ' + institutionName)
                 else:
                     raise Exception('[Party serializer invalid] ' + \
@@ -216,7 +213,6 @@ for entry in IpRangeListData:
                                     'start: ' + startIp + \
                                     'end: ' + endIp)
                 if consortiumId:
-                    partyId = partySerializer.data['partyId']
                     childParty = Party.objects.get(partyId=partyId)
                     parentParty = Party.objects.get(partyId=consortiumId)
                     PartyAffiliation.objects.create(childPartyId=childParty, parentPartyId=parentParty)
