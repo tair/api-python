@@ -99,6 +99,8 @@ potentialExistingParty = defaultdict(set)
 
 queryset = Party.objects.all().filter(partyType='organization')
 
+# Pre-scan: for rows whose institution name is not yet in the DB, record overlapping
+# parties so the load pass can skip ambiguous creates (second pass below).
 for entry in IpRangeListData:
     try:
         actionType = entry[0]
@@ -130,8 +132,6 @@ for entry in IpRangeListData:
 for k, v in potentialExistingParty.items():
     s = ','.join([str(n) for n in v])
     errlog.write("Could be in database: "+ ',' + k + ',' + s + '\n')
-
-#sys.exit()
 
 for entry in IpRangeListData:
     try:
