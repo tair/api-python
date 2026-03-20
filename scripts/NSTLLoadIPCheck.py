@@ -4,6 +4,7 @@
 import django
 import sys
 import os
+import numbers
 import pandas as pd
 from netaddr import IPAddress
 import xlsxwriter
@@ -19,7 +20,35 @@ from common.common import (
     validateIpRangeSize,
     get_overlapping_ranges,
     exact_match_exists,
+    ip2long,
 )
+
+def _normalize_excel_serial_id(serial_id):
+    """
+    Match party serialId (CharField) after pandas infers float columns (e.g. 12345.0).
+    """
+    if serial_id is None or serial_id == '':
+        return ''
+    try:
+        if serial_id != serial_id:
+            return ''
+    except TypeError:
+        pass
+    if isinstance(serial_id, float):
+        i = int(serial_id)
+        if serial_id == i:
+            return str(i)
+        return str(serial_id)
+    if isinstance(serial_id, numbers.Integral) and not isinstance(serial_id, bool):
+        return str(serial_id)
+    s = str(serial_id).strip()
+    try:
+        f = float(s)
+        if f == int(f):
+            return str(int(f))
+    except (TypeError, ValueError, OverflowError):
+        pass
+    return s
 
 
 def _ip_check_error_row(serial_id, cn_name, en_name, start, end, error, ip_range_id=''):
@@ -42,7 +71,7 @@ count = 0
 print(len(data))
 for index, row in data.iterrows():
     rowIndex = index + 2
-    serialId = row['serial id']
+    serialId = _normalize_excel_serial_id(row['serial id'])
     cn_name = row['cn name']
     en_name = row['en name']
     start = row['start ip']
@@ -75,11 +104,17 @@ for index, row in data.iterrows():
             errList.append(_ip_check_error_row(serialId, cn_name, en_name, start, end, 'ip range invalid'))
             continue
 
-        # exact match: already in DB (one DB query)
+        # exact match: already in DB (one DB query). Compare longs, not strings —
+        # GenericIPAddressField may normalize stored IPs differently than Excel text.
         if exact_match_exists(start, end, IpRange):
             existing = get_overlapping_ranges(start, end, IpRange)
+            try:
+                s_long = ip2long(start)
+                e_long = ip2long(end)
+            except Exception:
+                s_long, e_long = None, None
             for ipRange in existing:
-                if ipRange.start == start and ipRange.end == end:
+                if s_long is not None and ipRange.startLong == s_long and ipRange.endLong == e_long:
                     errList.append(_ip_check_error_row(serialId, cn_name, en_name, start, end, 'ip range exists'))
                     errList.append(_ip_check_error_row(
                         ipRange.partyId.serialId if ipRange.partyId.serialId else '', '', ipRange.partyId.name,
@@ -98,7 +133,7 @@ for index, row in data.iterrows():
             end_val = IPAddress(end)
             range_start = IPAddress(ipRange.start)
             range_end = IPAddress(ipRange.end)
-            same_inst = str(serialId) == range_serial
+            same_inst = serialId == range_serial
 
             if start_val >= range_start and end_val <= range_end:
                 overlap = True
