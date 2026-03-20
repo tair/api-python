@@ -32,6 +32,11 @@ from django.utils import timezone
 
 from party.models import IpRange
 
+try:
+    basestring
+except NameError:
+    basestring = str
+
 
 def _read_excel(path):
     """xlrd 2.x does not read .xlsx; load those with openpyxl into a DataFrame."""
