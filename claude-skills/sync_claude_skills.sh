@@ -1,19 +1,21 @@
 #!/usr/bin/env bash
 #
-# Sync Cursor skills from cursor-skill/<name>/ to .cursor/skills/<name>/
-# Run from anywhere: ./cursor-skill/sync_cursor_skills.sh
+# Sync Claude Code skills from claude-skills/<name>/ to .claude/skills/<name>/
+# Run from anywhere: ./claude-skills/sync_claude_skills.sh
+#
+# Claude Code discovers project skills under .claude/skills/ (see Anthropic docs).
 #
 # Options:
-#   --link    Symlink instead of copy (edits in cursor-skill/ apply immediately)
+#   --link    Symlink instead of copy (edits in claude-skills/ apply immediately)
 #   --source DIR   Skill parent directory (default: this script's directory)
-#   --target DIR   Destination (default: <project-root>/.cursor/skills)
+#   --target DIR   Destination (default: <project-root>/.claude/skills)
 
 set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
 SOURCE_DIR="$SCRIPT_DIR"
-TARGET_DIR="$ROOT/.cursor/skills"
+TARGET_DIR="$ROOT/.claude/skills"
 USE_LINK=0
 
 usage() {
@@ -69,4 +71,4 @@ if [[ ${#synced[@]} -eq 0 ]]; then
 fi
 
 IFS=', '
-echo "Synced ${#synced[@]} skill(s) to ${TARGET_DIR#$ROOT/}: ${synced[*]}"
+echo "Synced ${#synced[@]} Claude skill(s) to ${TARGET_DIR#$ROOT/}: ${synced[*]}"

@@ -37,12 +37,22 @@ https://phoenixbioinformatics.atlassian.net/wiki/x/C4D9Ig
 
 ## Cursor skills
 
-Project-specific Cursor skills are authored under the `cursor-skill/` directory. To sync them into `.cursor/skills/` (so Cursor picks them up), run from the project root:
+Project-specific Cursor skills are authored under the `cursor-skills/` directory. To sync them into `.cursor/skills/` (so Cursor picks them up), run from the project root:
 
 ```bash
-./cursor-skill/sync_cursor_skills.sh
+./cursor-skills/sync_cursor_skills.sh
 ```
 
-If you get "Permission denied", run `chmod +x cursor-skill/sync_cursor_skills.sh` once.
+If you get "Permission denied", run `chmod +x cursor-skills/sync_cursor_skills.sh` once.
 
-Use `--link` to create symlinks instead of copying, so edits in `cursor-skill/` apply immediately.
+Use `--link` to create symlinks instead of copying, so edits in `cursor-skills/` apply immediately.
+
+## Claude Code skills
+
+Project-specific Claude Code skills live under `claude-skills/`. Sync them into `.claude/skills/` from the project root:
+
+```bash
+./claude-skills/sync_claude_skills.sh
+```
+
+See [`claude-skills/README.md`](claude-skills/README.md) for `--link`, `--source`, and user-wide (`~/.claude/skills`) notes.

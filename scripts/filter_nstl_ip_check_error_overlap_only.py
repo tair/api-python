@@ -6,7 +6,7 @@ containment.
 
 **Dependencies:** CPython 3 + openpyxl only — **no Django, no DB, no app code.** Safe to run on
 the host or in a one-off ``python:3.x-slim`` container with the repo mounted (see
-``bulk_ip_load_pipeline.py`` and cursor-skill bulk-nstl-ip-load docs).
+``bulk_ip_load_pipeline.py`` and cursor-skills bulk-nstl-ip-load docs).
 
 Requires: pip install openpyxl
 

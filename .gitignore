@@ -38,3 +38,6 @@ settings.py
 # cursor related
 .cursor/
 .cursor.env
+
+# claude code (synced skills live in claude-skills/)
+.claude/
