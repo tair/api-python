@@ -22,6 +22,59 @@ from party.serializers import IpRangeSerializer, PartySerializer
 from party.models import IpRange, Party, PartyAffiliation, Country
 from common.common import ip2long, get_overlapping_ranges
 
+IPV4_DOTTED_QUAD_RE = re.compile(r"^\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}$")
+
+
+def normalize_csv_ip_range_fields(start_ip, end_ip, institution_name, errlog):
+    """
+    Strip, handle '-' compact form, empty start/end fallback, IPv4 dotted-quad check,
+    leading-zero removal. Returns (start_ip, end_ip) or (None, None) if row should be skipped.
+    """
+    start_ip = start_ip.replace(" ", "").strip()
+    end_ip = end_ip.replace(" ", "").strip()
+
+    if '-' in start_ip:
+        if end_ip:
+            errlog.write("Error institution: " + institution_name + " invalid ip: " + start_ip + " " + end_ip + '\n')
+            return None, None
+        if len(start_ip.split('-')) != 2:
+            errlog.write("Error institution: " + institution_name + " invalid starting ip: " + start_ip + '\n')
+            return None, None
+        s, e = start_ip.split('-')
+        start_ip = s
+        l = s.split('.')[:3]
+        l.append(e)
+        end_ip = '.'.join(l)
+
+    if not start_ip:
+        start_ip = end_ip
+    if not end_ip:
+        end_ip = start_ip
+
+    if not IPV4_DOTTED_QUAD_RE.match(start_ip):
+        errlog.write("Error institution: " + institution_name + " not ipv4 format: " + start_ip + '\n')
+        return None, None
+    if not IPV4_DOTTED_QUAD_RE.match(end_ip):
+        errlog.write("Error institution: " + institution_name + " not ipv4 format: " + end_ip + '\n')
+        return None, None
+
+    if len(start_ip.split('.')) == 4:
+        start_ip_list = start_ip.split('.')
+        for i in range(len(start_ip_list)):
+            while start_ip_list[i].startswith('0') and start_ip_list[i] != '0':
+                start_ip_list[i] = start_ip_list[i][1:]
+        start_ip = '.'.join(start_ip_list)
+
+    if len(end_ip.split('.')) == 4:
+        end_ip_list = end_ip.split('.')
+        for i in range(len(end_ip_list)):
+            while end_ip_list[i].startswith('0') and end_ip_list[i] != '0':
+                end_ip_list[i] = end_ip_list[i][1:]
+        end_ip = '.'.join(end_ip_list)
+
+    return start_ip, end_ip
+
+
 # Begin main program:
 
 # Open the source CSV file and load into memory.
@@ -54,58 +107,9 @@ for entry in IpRangeListData:
         endIp = entry[3]
         countryId = entry[4]
         consortiumId = entry[5]
-        # remove any blank spaces or non-ascii charactors from the ip ranges
-        # whitelist = set('abcdefghijklmnopqrstuvwxyABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890.:')
-        # startIp = ''.join(filter(whitelist.__contains__, startIp))
-        # endIp = ''.join(filter(whitelist.__contains__, endIp))
-        startIp = startIp.replace(" ", "").strip()
-        endIp = endIp.replace(" ", "").strip()
-
-        # create ip range from '-' format e.g. 1.2.3.0-255 ==> start: 1.2.3.0 end: 1.2.3.255
-        if '-' in startIp:
-            if endIp:
-                errlog.write("Error institution: " + institutionName + " invalid ip: " + startIp + " " + endIp + '\n')
-                continue
-            if len(startIp.split('-')) != 2:
-                errlog.write("Error institution: " + institutionName + " invalid starting ip: " + startIp + '\n')
-                continue
-            # errlog.write("Warning institution: " + institutionName + " reconstructed ip: " + startIp + " " + endIp + '\n')
-            s, e = startIp.split('-')
-            startIp = s
-            l = s.split('.')[:3]
-            l.append(e)
-            endIp = '.'.join(l)
-
-        # empty startIp or endIp
-        if not startIp:
-            startIp = endIp
-            # errlog.write("Warning institution: " + institutionName + " copied starting ip: " + startIp + '\n')
-        if not endIp:
-            endIp = startIp
-            # errlog.write("Warning institution: " + institutionName + " copied ending ip: " + endIp + '\n')
-
-        if not re.compile("^\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}$").match(startIp):
-            errlog.write("Error institution: " + institutionName + " not ipv4 format: " + startIp  + '\n')
+        startIp, endIp = normalize_csv_ip_range_fields(startIp, endIp, institutionName, errlog)
+        if startIp is None:
             continue
-
-        if not re.compile("^\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}$").match(endIp):
-            errlog.write("Error institution: " + institutionName + " not ipv4 format: " + endIp  + '\n')
-            continue
-
-        # remove leading 0
-        if len(startIp.split('.')) == 4:
-            startIpList = startIp.split('.')
-            for i in range(len(startIpList)):
-                while startIpList[i].startswith('0') and startIpList[i] != '0':
-                    startIpList[i] = startIpList[i][1:]
-            startIp = '.'.join(startIpList)
-
-        if len(endIp.split('.')) == 4:
-            endIpList = endIp.split('.')
-            for i in range(len(endIpList)):
-                while endIpList[i].startswith('0') and endIpList[i] != '0':
-                    endIpList[i] = endIpList[i][1:]
-            endIp = '.'.join(endIpList)
 
         try:
             if not Party.objects.filter(partyType='organization', name__iexact=institutionName).exists():
@@ -138,51 +142,9 @@ for entry in IpRangeListData:
         countryId = entry[4]
         consortiumId = entry[5]
 
-        # remove any blance spaces or non-ascii charactors from the ip ranges
-        # whitelist = set('abcdefghijklmnopqrstuvwxyABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890.:')
-        # startIp = ''.join(filter(whitelist.__contains__, startIp))
-        # endIp = ''.join(filter(whitelist.__contains__, endIp))
-        startIp = startIp.replace(" ", "").strip()
-        endIp = endIp.replace(" ", "").strip()
-
-        # create ip range from '-' format e.g. 1.2.3.0-255 ==> start: 1.2.3.0 end: 1.2.3.255
-        if '-' in startIp:
-            if endIp:
-                errlog.write("Error institution: " + institutionName + " invalid ip: " + startIp + " " + endIp + '\n')
-                continue
-            if len(startIp.split('-')) != 2:
-                errlog.write("Error institution: " + institutionName + " invalid starting ip: " + startIp + '\n')
-                continue
-            # errlog.write("Warning institution: " + institutionName + " reconstructed ip: " + startIp + " " + endIp + '\n')
-            s, e = startIp.split('-')
-            startIp = s
-            l = s.split('.')[:3]
-            l.append(e)
-            endIp = '.'.join(l)
-
-        # for empty startIp or endIp
-        if not startIp:
-            startIp = endIp
-            # errlog.write("Warning institution: " + institutionName + " copied starting ip: " + startIp + '\n')
-        if not endIp:
-            endIp = startIp
-            # errlog.write("Warning institution: " + institutionName + " copied ending ip: " + endIp + '\n')
-
-        # remove leading 0
-        if len(startIp.split('.')) == 4:
-            startIpList = startIp.split('.')
-            for i in range(len(startIpList)):
-                while startIpList[i].startswith('0') and startIpList[i] != '0':
-                    startIpList[i] = startIpList[i][1:]
-            startIp = '.'.join(startIpList)
-
-        if len(endIp.split('.')) == 4:
-            endIpList = endIp.split('.')
-            for i in range(len(endIpList)):
-                while endIpList[i].startswith('0') and endIpList[i] != '0':
-                    endIpList[i] = endIpList[i][1:]
-            endIp = '.'.join(endIpList)
-
+        startIp, endIp = normalize_csv_ip_range_fields(startIp, endIp, institutionName, errlog)
+        if startIp is None:
+            continue
 
         if not Party.objects.filter(partyType='organization', name__iexact=institutionName).exists():
             if institutionName in potentialExistingParty:
