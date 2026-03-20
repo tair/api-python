@@ -34,3 +34,25 @@ docker-compose run web python manage.py makemigrations subscription  # if needed
 Confluence Links:
 Subscription -> controls.py
 https://phoenixbioinformatics.atlassian.net/wiki/x/C4D9Ig
+
+## Cursor skills
+
+Project-specific Cursor skills are authored under the `cursor-skills/` directory. To sync them into `.cursor/skills/` (so Cursor picks them up), run from the project root:
+
+```bash
+./cursor-skills/sync_cursor_skills.sh
+```
+
+If you get "Permission denied", run `chmod +x cursor-skills/sync_cursor_skills.sh` once.
+
+Use `--link` to create symlinks instead of copying, so edits in `cursor-skills/` apply immediately.
+
+## Claude Code skills
+
+Project-specific Claude Code skills live under `claude-skills/`. Sync them into `.claude/skills/` from the project root:
+
+```bash
+./claude-skills/sync_claude_skills.sh
+```
+
+See [`claude-skills/README.md`](claude-skills/README.md) for `--link`, `--source`, and user-wide (`~/.claude/skills`) notes.
