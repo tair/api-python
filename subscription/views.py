@@ -10,7 +10,7 @@ from metering.models import LimitValue
 from partner.models import Partner, SubscriptionTerm, BucketType
 from party.models import Party, ImageInfo
 from party.serializers import PartySerializer
-from authentication.models import Credential
+from authentication.models import Credential, OrcidCredentials
 from authentication.serializers import CredentialSerializer
 
 from rest_framework import status
@@ -356,6 +356,19 @@ class SubsctiptionBucketPayment(APIView):
                     bucket_type_id=bucketTypeObj.bucketTypeId,
                     transaction_date__gt=cutoff_datetime
                 ).exists()
+                if not has_recent_purchase:
+                    orcid_credential = OrcidCredentials.objects.select_related('credential').filter(orcid_id=orcid_id).first()
+                    if orcid_credential and orcid_credential.credential:
+                        party_id = orcid_credential.credential.partyId_id
+                        party_activation_code_ids = ActivationCode.objects.filter(
+                            partyId_id=party_id
+                        ).values_list('activationCodeId', flat=True)
+                        has_recent_purchase = BucketTransaction.objects.filter(
+                            orcid_id__isnull=True,
+                            bucket_type_id=bucketTypeObj.bucketTypeId,
+                            activation_code_id__in=party_activation_code_ids,
+                            transaction_date__gt=cutoff_datetime
+                        ).exists()
                 if not has_recent_purchase:
                     discount_pct = bucketTypeObj.discountPercentage
 

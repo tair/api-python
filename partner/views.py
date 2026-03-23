@@ -6,7 +6,8 @@ from rest_framework import generics
 
 from models import Partner, PartnerPattern, SubscriptionTerm, BucketType, SubscriptionDescription, SubscriptionDescriptionItem
 
-from subscription.models import BucketTransaction
+from subscription.models import BucketTransaction, ActivationCode
+from authentication.models import OrcidCredentials
 
 from serializers import PartnerSerializer, PartnerPatternSerializer, SubscriptionTermSerializer, BucketTypeSerializer, SubscriptionDescriptionSerializer, SubscriptionDescriptionItemSerializer
 
@@ -121,7 +122,20 @@ class BucketTypeCRUD(GenericCRUDView):
                 for transaction in transactions:
                     logger.info("Bucket Transaction ID: " + str(transaction.bucket_transaction_id))
             else:
-                logger.info("No recent transactions for bucket_type_id=10 found for orcid_id: " + orcid_id)
+                orcid_credential = OrcidCredentials.objects.select_related('credential').filter(orcid_id=orcid_id).first()
+                if orcid_credential and orcid_credential.credential:
+                    party_id = orcid_credential.credential.partyId_id
+                    party_activation_code_ids = ActivationCode.objects.filter(
+                        partyId_id=party_id
+                    ).values_list('activationCodeId', flat=True)
+                    transaction_found = BucketTransaction.objects.filter(
+                        orcid_id__isnull=True,
+                        bucket_type_id=10,
+                        activation_code_id__in=party_activation_code_ids,
+                        transaction_date__gt=cutoff_datetime
+                    ).exists()
+                if not transaction_found:
+                    logger.info("No recent transactions for bucket_type_id=10 found for orcid_id: " + orcid_id)
         else:
             logger.info("No orcid_id found, not giving discount " + credential_id)
             transaction_found = True
