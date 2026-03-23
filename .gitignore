@@ -35,6 +35,12 @@ settings.py
 *.txt
 !requirements.txt
 
-# Cursor related files #
-.env
+# cursor related
 .cursor/
+.cursor.env
+
+# Local env (DB credentials, SECRET_KEY per README) — do not commit
+.env
+
+# claude code (synced skills live in claude-skills/)
+.claude/

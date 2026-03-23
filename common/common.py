@@ -95,6 +95,46 @@ def validateIpRangeOverlap(start, end, ipRangeId, IpRange):
                 dupList.append(ipRange)
     return dupList
 
+
+def get_overlapping_ranges(start, end, IpRange, exclude_ip_range_id=None):
+    """
+    Return active IpRange instances that overlap [start, end].
+    Uses startLong/endLong for efficient DB query (IPv4 only).
+    IpRange is the model class (e.g. from party.models) to avoid circular imports.
+    """
+    try:
+        start_long = ip2long(start)
+        end_long = ip2long(end)
+    except Exception:
+        return []
+    if not is_valid_ipv4(start) or not is_valid_ipv4(end):
+        return []
+    qs = IpRange.objects.filter(expiredAt=None).filter(
+        endLong__gte=start_long
+    ).filter(startLong__lte=end_long)
+    if exclude_ip_range_id is not None:
+        qs = qs.exclude(ipRangeId=exclude_ip_range_id)
+    return list(qs)
+
+
+def exact_match_exists(start, end, IpRange):
+    """
+    Return True if an active range with the same start/end exists.
+    Uses startLong/endLong for efficient DB query (IPv4 only).
+    """
+    try:
+        start_long = ip2long(start)
+        end_long = ip2long(end)
+    except Exception:
+        return False
+    if not is_valid_ipv4(start) or not is_valid_ipv4(end):
+        return False
+    return IpRange.objects.filter(
+        expiredAt=None,
+        startLong=start_long,
+        endLong=end_long
+    ).exists()
+
 def ip2long(ip):
     if not is_valid_ip(ip):
         raise Exception ("Invalid IP address: %s " % ip)
