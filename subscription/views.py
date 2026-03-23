@@ -350,12 +350,7 @@ class SubsctiptionBucketPayment(APIView):
             unit_price = float(bucketTypeObj.price)
             discount_pct = 0
             if orcid_id and orcid_id != 'undefined':
-                cutoff_datetime = timezone.now() - datetime.timedelta(days=365)
-                has_recent_purchase = BucketTransaction.objects.filter(
-                    orcid_id=orcid_id,
-                    bucket_type_id=bucketTypeObj.bucketTypeId,
-                    transaction_date__gt=cutoff_datetime
-                ).exists()
+                has_recent_purchase = SubscriptionControl.has_recent_bucket_purchase(orcid_id, bucket_type_id=bucketTypeObj.bucketTypeId)
                 if not has_recent_purchase:
                     discount_pct = bucketTypeObj.discountPercentage
 
