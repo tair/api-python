@@ -196,6 +196,16 @@ class UserBucketUsageCRUD(GenericCRUDView):
         party_id = self.request.query_params.get('party_id')
         return self.queryset.filter(partyId_id=party_id)
 
+    @staticmethod
+    def _get_orcid_id_for_party(party_id):
+        """Look up the ORCID ID for a party via Credential → OrcidCredentials."""
+        from authentication.models import OrcidCredentials
+        credential = Credential.objects.filter(partyId=party_id, partnerId='tair').first()
+        if not credential:
+            return None
+        orcid_cred = OrcidCredentials.objects.filter(credential=credential).exclude(orcid_id__isnull=True).exclude(orcid_id='').first()
+        return orcid_cred.orcid_id if orcid_cred else None
+
     def get(self, request, *args, **kwargs):
         party_id = request.query_params.get('party_id')
         
@@ -238,7 +248,26 @@ class UserBucketUsageCRUD(GenericCRUDView):
             activationCodeObj.save()
         except Exception:
             return Response('failed to save activationCodeObj')
-        
+
+        # Create a BucketTransaction so the annual-discount check sees this redemption.
+        try:
+            orcid_id = self._get_orcid_id_for_party(partyId)
+            bucket_type = BucketType.objects.filter(units=activationCodeObj.period, partnerId='tair').first()
+            if bucket_type:
+                bt = BucketTransaction()
+                bt.activation_code_id = activationCodeObj.activationCodeId
+                bt.bucket_type_id = bucket_type.bucketTypeId
+                bt.transaction_date = timezone.now()
+                bt.transaction_type = 'activate_bucket'
+                bt.units_per_bucket = activationCodeObj.period
+                bt.email_buyer = partyObj.name if hasattr(partyObj, 'name') else ''
+                bt.institute_buyer = ''
+                bt.orcid_id = orcid_id
+                bt.save()
+                logger.info("Created BucketTransaction for activation code %s, orcid_id=%s", activationCodeObj.activationCode, orcid_id)
+        except Exception as e:
+            logger.error("Failed to create BucketTransaction for activation code %s: %s", activationCodeObj.activationCode, str(e))
+
         serializer = self.serializer_class(userBucketUsage)
         returnData = serializer.data
         return Response(returnData, status=status.HTTP_201_CREATED)
@@ -315,7 +344,38 @@ class SubsctiptionBucketPayment(APIView):
             other = request.POST['other']
             orcid_id = request.POST['orcid_id']
 
-            bucketUnits = BucketType.objects.get(bucketTypeId=bucketTypeId).description
+            # Server-side price validation: recalculate expected price
+            # based on bucket type and discount eligibility.
+            bucketTypeObj = BucketType.objects.get(bucketTypeId=bucketTypeId)
+            unit_price = float(bucketTypeObj.price)
+            discount_pct = 0
+            if orcid_id and orcid_id != 'undefined':
+                cutoff_datetime = timezone.now() - datetime.timedelta(days=365)
+                has_recent_purchase = BucketTransaction.objects.filter(
+                    orcid_id=orcid_id,
+                    bucket_type_id=bucketTypeObj.bucketTypeId,
+                    transaction_date__gt=cutoff_datetime
+                ).exists()
+                if not has_recent_purchase:
+                    discount_pct = bucketTypeObj.discountPercentage
+
+            expected_unit_price = unit_price * (1 - discount_pct / 100.0)
+            expected_total = expected_unit_price * quantity
+            # Allow a small tolerance for floating-point rounding
+            if abs(price - expected_total) > 0.01:
+                logger.error(
+                    "Price mismatch: client sent %.2f, server expects %.2f "
+                    "(bucket=%s, qty=%d, discount=%s%%)",
+                    price, expected_total, bucketTypeId, quantity, discount_pct,
+                )
+                return HttpResponse(
+                    json.dumps({'message': 'Price validation failed. Please refresh and try again.'}),
+                    content_type="application/json",
+                    status=400,
+                )
+            price = expected_total  # use server-calculated price
+
+            bucketUnits = bucketTypeObj.description
             chargeDescription = '%s `%s` subscription name: %s %s'%(partnerName,bucketUnits,firstname,lastname)
             logger.info("Stripe Charge Description: " + chargeDescription)
             message = PaymentControl.chargeForBucket(stripe_api_secret_test_key, token, price, chargeDescription, bucketTypeId, quantity, email, firstname, lastname, institute, other, orcid_id)
