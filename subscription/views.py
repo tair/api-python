@@ -198,7 +198,7 @@ class UserBucketUsageCRUD(GenericCRUDView):
 
     @staticmethod
     def _get_orcid_id_for_party(party_id):
-        """Look up the ORCID ID for a party via Credential → OrcidCredentials."""
+        """Look up the ORCID ID for a party via Credential -> OrcidCredentials."""
         from authentication.models import OrcidCredentials
         credential = Credential.objects.filter(partyId=party_id, partnerId='tair').first()
         if not credential:

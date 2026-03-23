@@ -1,14 +1,15 @@
 #!/usr/bin/python
+# -*- coding: utf-8 -*-
 """
 Reproduction tests for two bucket-discount bugs:
 
-Bug 1 – Discount reuse after purchase
+Bug 1 - Discount reuse after purchase
   The payment endpoint (SubsctiptionBucketPayment.post) trusts the client-
-  supplied price.  A user who already used their annual 50 % discount can
+  supplied price.  A user who already used their annual 50% discount can
   submit the discounted price again and the server will charge that amount
   without re-validating eligibility.
 
-Bug 2 – No BucketTransaction on activation-code redemption
+Bug 2 - No BucketTransaction on activation-code redemption
   When an activation code is redeemed via UserBucketUsageCRUD.post(), no
   BucketTransaction row is created.  Because the annual-discount check
   queries BucketTransaction, the discount stays available even after the
@@ -56,7 +57,7 @@ def assert_test(name, condition, detail=""):
 
 
 # ---------------------------------------------------------------------------
-# Helpers – reuse pattern from testAnnualBucketDiscount.py
+# Helpers - reuse pattern from testAnnualBucketDiscount.py
 # ---------------------------------------------------------------------------
 
 def get_bucket_discount(orcid_id):
@@ -128,7 +129,7 @@ def get_test_party_id():
     from party.models import Party
     party = Party.objects.first()
     if party is None:
-        raise RuntimeError("No Party rows in database – cannot run activation tests")
+        raise RuntimeError("No Party rows in database - cannot run activation tests")
     return party.partyId
 
 
@@ -148,7 +149,7 @@ def cleanup(extra_activation_codes=None, extra_activation_code_ids=None):
 
 
 # ---------------------------------------------------------------------------
-# Bug 1 – Discount reuse after purchase
+# Bug 1 - Discount reuse after purchase
 # ---------------------------------------------------------------------------
 
 def test_bug1_discount_removed_after_purchase():
@@ -186,7 +187,7 @@ def test_bug1_discount_removed_after_purchase():
 
 
 # ---------------------------------------------------------------------------
-# Bug 2 – Activation code: no BucketTransaction + discount persists
+# Bug 2 - Activation code: no BucketTransaction + discount persists
 # ---------------------------------------------------------------------------
 
 def test_bug2_activation_code_no_transaction():
@@ -231,7 +232,7 @@ def test_bug2_activation_code_no_transaction():
     assert_test(
         "FIX VERIFIED: BucketTransaction created on activation",
         tx_count == 1,
-        "Found %d transaction(s) – expected 1" % tx_count,
+        "Found %d transaction(s) - expected 1" % tx_count,
     )
 
     # Step 4: Verify the transaction has the correct type
@@ -276,6 +277,7 @@ def main():
     activation_code_id = None
     try:
         test_bug1_discount_removed_after_purchase()
+        cleanup()  # clean up Bug 1 data before Bug 2
         activation_code_str, activation_code_id = test_bug2_activation_code_no_transaction()
     finally:
         codes_to_clean = [activation_code_str] if activation_code_str else None

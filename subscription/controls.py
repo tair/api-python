@@ -29,7 +29,7 @@ class SubscriptionControl():
 
         Primary check is by orcid_id.  Fallback: if the user activated a code
         before linking their ORCID, the BucketTransaction has orcid_id=NULL.
-        We catch that by resolving orcid → party → ActivationCode and looking
+        We catch that by resolving orcid -> party -> ActivationCode and looking
         for NULL-orcid transactions tied to those codes.
         """
         cutoff = timezone.now() - timedelta(days=365)
