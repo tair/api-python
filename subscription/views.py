@@ -344,33 +344,7 @@ class SubsctiptionBucketPayment(APIView):
             other = request.POST['other']
             orcid_id = request.POST['orcid_id']
 
-            # Server-side price validation: recalculate expected price
-            # based on bucket type and discount eligibility.
-            bucketTypeObj = BucketType.objects.get(bucketTypeId=bucketTypeId)
-            unit_price = float(bucketTypeObj.price)
-            discount_pct = 0
-            if orcid_id and orcid_id != 'undefined':
-                has_recent_purchase = SubscriptionControl.has_recent_bucket_purchase(orcid_id, bucket_type_id=bucketTypeObj.bucketTypeId)
-                if not has_recent_purchase:
-                    discount_pct = bucketTypeObj.discountPercentage
-
-            expected_unit_price = unit_price * (1 - discount_pct / 100.0)
-            expected_total = expected_unit_price * quantity
-            # Allow a small tolerance for floating-point rounding
-            if abs(price - expected_total) > 0.01:
-                logger.error(
-                    "Price mismatch: client sent %.2f, server expects %.2f "
-                    "(bucket=%s, qty=%d, discount=%s%%)",
-                    price, expected_total, bucketTypeId, quantity, discount_pct,
-                )
-                return HttpResponse(
-                    json.dumps({'message': 'Price validation failed. Please refresh and try again.'}),
-                    content_type="application/json",
-                    status=400,
-                )
-            price = expected_total  # use server-calculated price
-
-            bucketUnits = bucketTypeObj.description
+            bucketUnits = BucketType.objects.get(bucketTypeId=bucketTypeId).description
             chargeDescription = '%s `%s` subscription name: %s %s'%(partnerName,bucketUnits,firstname,lastname)
             logger.info("Stripe Charge Description: " + chargeDescription)
             message = PaymentControl.chargeForBucket(stripe_api_secret_test_key, token, price, chargeDescription, bucketTypeId, quantity, email, firstname, lastname, institute, other, orcid_id)

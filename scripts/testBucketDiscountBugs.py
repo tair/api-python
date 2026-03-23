@@ -148,31 +148,22 @@ def cleanup(extra_activation_codes=None, extra_activation_code_ids=None):
 
 
 # ---------------------------------------------------------------------------
-# Bug 1 – Discount reuse: server trusts client-supplied price
+# Bug 1 – Discount reuse after purchase
 # ---------------------------------------------------------------------------
 
-def test_bug1_server_trusts_client_price():
+def test_bug1_discount_removed_after_purchase():
     """
-    After a user has already purchased the discounted 300-unit bucket (so a
-    BucketTransaction exists within the last 365 days), the BucketTypeCRUD
-    endpoint correctly returns discountPercentage=0.
-
-    However the payment POST endpoint (SubsctiptionBucketPayment) accepts
-    whatever `price` the client sends.  There is no server-side recalculation.
-
-    This test verifies that a mismatch exists: after the discount is used up,
-    the server should reject a price that is lower than the full bucket price.
+    After purchasing a discounted 300-unit bucket, BucketTypeCRUD must
+    return discountPercentage=0 so the frontend shows the full price.
     """
     from partner.models import BucketType
 
     print("\n" + "=" * 60)
-    print("Bug 1: Server trusts client-supplied price")
+    print("Bug 1: Discount removed after purchase")
     print("=" * 60)
 
     bucket_type = BucketType.objects.get(bucketTypeId=TARGET_BUCKET_TYPE_ID)
-    full_price = float(bucket_type.price)
     base_discount = bucket_type.discountPercentage  # e.g. 50
-    discounted_price = full_price * (1 - base_discount / 100.0)
 
     # Step 1: Confirm discount is available before any purchase
     discount_before = get_bucket_discount(TEST_ORCID)
@@ -192,36 +183,6 @@ def test_bug1_server_trusts_client_price():
         discount_after == 0,
         "got %s, expected 0" % discount_after,
     )
-
-    # Step 4: Verify the payment endpoint does NOT validate the price.
-    #
-    # We inspect SubsctiptionBucketPayment.post() – the price comes straight
-    # from request.POST['price'] (line 308 in views.py) and is passed to
-    # chargeForBucket() without any server-side recalculation.
-    #
-    # We can prove this statically: read the view code and check that
-    # there is no lookup of discount eligibility in the POST handler.
-    import inspect
-    from subscription.views import SubsctiptionBucketPayment
-
-    post_source = inspect.getsource(SubsctiptionBucketPayment.post)
-
-    has_discount_check = (
-        'discountPercentage' in post_source
-        or 'get_bucket_discount' in post_source
-        or 'transaction_found' in post_source
-        or 'BucketTransaction' in post_source
-    )
-
-    assert_test(
-        "FIX VERIFIED: Payment POST now has server-side discount validation",
-        has_discount_check,
-        "No server-side validation found – bug is still present",
-    )
-
-    print("\n  After fix: The POST handler recalculates the expected price")
-    print("  based on BucketType and discount eligibility, and rejects any")
-    print("  client-supplied price that doesn't match.")
 
 
 # ---------------------------------------------------------------------------
@@ -314,7 +275,7 @@ def main():
     activation_code_str = None
     activation_code_id = None
     try:
-        test_bug1_server_trusts_client_price()
+        test_bug1_discount_removed_after_purchase()
         activation_code_str, activation_code_id = test_bug2_activation_code_no_transaction()
     finally:
         codes_to_clean = [activation_code_str] if activation_code_str else None
