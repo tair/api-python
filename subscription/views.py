@@ -253,7 +253,9 @@ class UserBucketUsageCRUD(GenericCRUDView):
         try:
             orcid_id = self._get_orcid_id_for_party(partyId)
             bucket_type = BucketType.objects.filter(units=activationCodeObj.period, partnerId='tair').first()
-            if bucket_type:
+            if not bucket_type:
+                logger.warning("No BucketType found for units=%s partnerId=tair; skipping BucketTransaction for activation code %s", activationCodeObj.period, activationCodeObj.activationCode)
+            else:
                 bt = BucketTransaction()
                 bt.activation_code_id = activationCodeObj.activationCodeId
                 bt.bucket_type_id = bucket_type.bucketTypeId

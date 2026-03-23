@@ -30,40 +30,8 @@ class UserBucketUsageSerializer(serializers.ModelSerializer):
         return orcid_cred.orcid_id
 
     def _get_first_purchase_in_annual_window(self, orcid_id):
-        if not orcid_id:
-            return None
-
-        cutoff_datetime = timezone.now() - timedelta(days=365)
-        # Primary: direct orcid_id match
-        tx = BucketTransaction.objects.filter(
-            orcid_id=orcid_id,
-            bucket_type_id=10,
-            transaction_date__gt=cutoff_datetime
-        ).order_by('transaction_date').first()
-        if tx:
-            return tx
-
-        # Fallback: NULL-orcid transactions linked to this user's party
-        # (activation codes redeemed before ORCID was linked)
-        from authentication.models import OrcidCredentials
-        orcid_cred = OrcidCredentials.objects.filter(orcid_id=orcid_id).first()
-        if orcid_cred:
-            party_id = orcid_cred.credential.partyId_id
-            party_ac_ids = list(
-                ActivationCode.objects.filter(partyId=party_id)
-                .values_list('activationCodeId', flat=True)
-            )
-            if party_ac_ids:
-                tx = BucketTransaction.objects.filter(
-                    activation_code_id__in=party_ac_ids,
-                    bucket_type_id=10,
-                    transaction_date__gt=cutoff_datetime,
-                    orcid_id__isnull=True,
-                ).order_by('transaction_date').first()
-                if tx:
-                    return tx
-
-        return None
+        from subscription.controls import SubscriptionControl
+        return SubscriptionControl.get_first_recent_bucket_purchase(orcid_id, bucket_type_id=10)
 
     def get_first_annual_purchase_date(self, usage):
         # Date when the current annual-window discount cycle started.
