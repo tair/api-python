@@ -346,7 +346,46 @@ class SubsctiptionBucketPayment(APIView):
             other = request.POST['other']
             orcid_id = request.POST['orcid_id']
 
-            bucketUnits = BucketType.objects.get(bucketTypeId=bucketTypeId).description
+            # Server-side price validation: compute all valid prices
+            # based on bucket type, annual discount, and discount codes.
+            bucketTypeObj = BucketType.objects.get(bucketTypeId=bucketTypeId)
+            unit_price = float(bucketTypeObj.price)
+
+            # Check annual discount eligibility
+            annual_discount_pct = 0
+            if orcid_id and orcid_id != 'undefined':
+                if not SubscriptionControl.has_recent_bucket_purchase(orcid_id, bucket_type_id=bucketTypeObj.bucketTypeId):
+                    annual_discount_pct = bucketTypeObj.discountPercentage
+
+            # Build set of valid unit prices (with tolerance for rounding)
+            base_price = unit_price
+            discounted_price = unit_price * (1 - annual_discount_pct / 100.0)
+            valid_unit_prices = {base_price, discounted_price}
+
+            # Also allow discount-code-reduced prices
+            for factor in ApplyDiscount.DISCOUNT_CODES.values():
+                valid_unit_prices.add(base_price * factor)
+                valid_unit_prices.add(discounted_price * factor)
+
+            # Check that submitted price matches a valid total
+            submitted_unit_price = price / quantity if quantity > 0 else price
+            price_is_valid = any(
+                abs(submitted_unit_price - vp) < 0.01 for vp in valid_unit_prices
+            )
+
+            if not price_is_valid:
+                logger.error(
+                    "Price validation failed: submitted=%.2f, valid_unit_prices=%s "
+                    "(bucket=%s, qty=%d, annual_discount=%s%%)",
+                    price, valid_unit_prices, bucketTypeId, quantity, annual_discount_pct,
+                )
+                return HttpResponse(
+                    json.dumps({'message': 'Price validation failed. Please refresh and try again.'}),
+                    content_type="application/json",
+                    status=400,
+                )
+
+            bucketUnits = bucketTypeObj.description
             chargeDescription = '%s `%s` subscription name: %s %s'%(partnerName,bucketUnits,firstname,lastname)
             logger.info("Stripe Charge Description: " + chargeDescription)
             message = PaymentControl.chargeForBucket(stripe_api_secret_test_key, token, price, chargeDescription, bucketTypeId, quantity, email, firstname, lastname, institute, other, orcid_id)
