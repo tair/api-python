@@ -27,41 +27,11 @@ class SubscriptionControl():
     def has_recent_bucket_purchase(orcid_id, bucket_type_id=10):
         """Check if user has a qualifying bucket purchase in the last 365 days.
 
-        Primary check is by orcid_id.  Fallback: if the user activated a code
-        before linking their ORCID, the BucketTransaction has orcid_id=NULL.
-        We catch that by resolving orcid -> party -> ActivationCode and looking
-        for NULL-orcid transactions tied to those codes.
+        Delegates to get_first_recent_bucket_purchase which contains the
+        primary + fallback logic (direct orcid_id match, then NULL-orcid
+        transactions linked via party/ActivationCode).
         """
-        cutoff = timezone.now() - timedelta(days=365)
-
-        if not orcid_id:
-            return False
-
-        # Primary: direct orcid_id match
-        if BucketTransaction.objects.filter(
-            orcid_id=orcid_id,
-            bucket_type_id=bucket_type_id,
-            transaction_date__gt=cutoff,
-        ).exists():
-            return True
-
-        # Fallback: NULL-orcid transactions linked to this user's party
-        orcid_cred = OrcidCredentials.objects.filter(orcid_id=orcid_id).first()
-        if orcid_cred:
-            party_id = orcid_cred.credential.partyId_id
-            party_ac_ids = list(
-                ActivationCode.objects.filter(partyId=party_id)
-                .values_list('activationCodeId', flat=True)
-            )
-            if party_ac_ids and BucketTransaction.objects.filter(
-                activation_code_id__in=party_ac_ids,
-                bucket_type_id=bucket_type_id,
-                transaction_date__gt=cutoff,
-                orcid_id__isnull=True,
-            ).exists():
-                return True
-
-        return False
+        return SubscriptionControl.get_first_recent_bucket_purchase(orcid_id, bucket_type_id) is not None
 
     @staticmethod
     def get_first_recent_bucket_purchase(orcid_id, bucket_type_id=10):

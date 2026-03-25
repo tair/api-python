@@ -346,6 +346,22 @@ class SubsctiptionBucketPayment(APIView):
             other = request.POST['other']
             orcid_id = request.POST['orcid_id']
 
+            # Resolve orcid_id from credentials if missing/undefined
+            if not orcid_id or orcid_id == 'undefined':
+                credential_id = request.POST.get('credentialId')
+                if credential_id:
+                    from django.db import connection
+                    with connection.cursor() as cursor:
+                        cursor.execute("""
+                            SELECT o.orcid_id
+                            FROM OrcidCredentials o
+                            LEFT JOIN Credential c ON c.id = o.CredentialId
+                            WHERE c.partyId = %s
+                        """, [credential_id])
+                        result = cursor.fetchone()
+                    if result:
+                        orcid_id = result[0]
+
             # Server-side price validation: compute all valid prices
             # based on bucket type, annual discount, and discount codes.
             bucketTypeObj = BucketType.objects.get(bucketTypeId=bucketTypeId)
