@@ -381,14 +381,6 @@ class SubsctiptionBucketPayment(APIView):
             discounted_price = unit_price * (1 - annual_discount_pct / 100.0)
             valid_unit_prices = {base_price, discounted_price}
 
-            # NOTE: Discount codes (e.g. CIPRES10) are only used by partner sites,
-            # not TAIR. Including them here is defensive; TAIR pricing never hits
-            # these code paths in practice.
-            # Also allow discount-code-reduced prices
-            for factor in ApplyDiscount.DISCOUNT_CODES.values():
-                valid_unit_prices.add(base_price * factor)
-                valid_unit_prices.add(discounted_price * factor)
-
             # Check that submitted price matches a valid total
             submitted_unit_price = price / quantity if quantity > 0 else price
             price_is_valid = any(
