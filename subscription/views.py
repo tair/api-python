@@ -249,6 +249,9 @@ class UserBucketUsageCRUD(GenericCRUDView):
         except Exception:
             return Response('failed to save activationCodeObj')
 
+        # NOTE: BucketTransaction creation is best-effort. If it fails, we still
+        # complete the activation code redemption — the user already redeemed their
+        # code and should not be blocked. The error is logged for manual follow-up.
         # Create a BucketTransaction so the annual-discount check sees this redemption.
         try:
             orcid_id = self._get_orcid_id_for_party(partyId)
@@ -378,6 +381,9 @@ class SubsctiptionBucketPayment(APIView):
             discounted_price = unit_price * (1 - annual_discount_pct / 100.0)
             valid_unit_prices = {base_price, discounted_price}
 
+            # NOTE: Discount codes (e.g. CIPRES10) are only used by partner sites,
+            # not TAIR. Including them here is defensive; TAIR pricing never hits
+            # these code paths in practice.
             # Also allow discount-code-reduced prices
             for factor in ApplyDiscount.DISCOUNT_CODES.values():
                 valid_unit_prices.add(base_price * factor)
