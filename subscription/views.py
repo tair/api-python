@@ -196,6 +196,16 @@ class UserBucketUsageCRUD(GenericCRUDView):
         party_id = self.request.query_params.get('party_id')
         return self.queryset.filter(partyId_id=party_id)
 
+    @staticmethod
+    def _get_orcid_id_for_party(party_id):
+        """Look up the ORCID ID for a party via Credential -> OrcidCredentials."""
+        from authentication.models import OrcidCredentials
+        credential = Credential.objects.filter(partyId=party_id, partnerId='tair').first()
+        if not credential:
+            return None
+        orcid_cred = OrcidCredentials.objects.filter(credential=credential).exclude(orcid_id__isnull=True).exclude(orcid_id='').first()
+        return orcid_cred.orcid_id if orcid_cred else None
+
     def get(self, request, *args, **kwargs):
         party_id = request.query_params.get('party_id')
         
@@ -238,7 +248,31 @@ class UserBucketUsageCRUD(GenericCRUDView):
             activationCodeObj.save()
         except Exception:
             return Response('failed to save activationCodeObj')
-        
+
+        # NOTE: BucketTransaction creation is best-effort. If it fails, we still
+        # complete the activation code redemption — the user already redeemed their
+        # code and should not be blocked. The error is logged for manual follow-up.
+        # Create a BucketTransaction so the annual-discount check sees this redemption.
+        try:
+            orcid_id = self._get_orcid_id_for_party(partyId)
+            bucket_type = BucketType.objects.filter(units=activationCodeObj.period, partnerId='tair').first()
+            if not bucket_type:
+                logger.warning("No BucketType found for units=%s partnerId=tair; skipping BucketTransaction for activation code %s", activationCodeObj.period, activationCodeObj.activationCode)
+            else:
+                bt = BucketTransaction()
+                bt.activation_code_id = activationCodeObj.activationCodeId
+                bt.bucket_type_id = bucket_type.bucketTypeId
+                bt.transaction_date = timezone.now()
+                bt.transaction_type = 'activate_bucket'
+                bt.units_per_bucket = activationCodeObj.period
+                bt.email_buyer = partyObj.name if hasattr(partyObj, 'name') else ''
+                bt.institute_buyer = ''
+                bt.orcid_id = orcid_id
+                bt.save()
+                logger.info("Created BucketTransaction for activation code %s, orcid_id=%s", activationCodeObj.activationCode, orcid_id)
+        except Exception as e:
+            logger.error("Failed to create BucketTransaction for activation code %s: %s", activationCodeObj.activationCode, str(e))
+
         serializer = self.serializer_class(userBucketUsage)
         returnData = serializer.data
         return Response(returnData, status=status.HTTP_201_CREATED)
@@ -315,7 +349,57 @@ class SubsctiptionBucketPayment(APIView):
             other = request.POST['other']
             orcid_id = request.POST['orcid_id']
 
-            bucketUnits = BucketType.objects.get(bucketTypeId=bucketTypeId).description
+            # Resolve orcid_id from credentials if missing/undefined
+            if not orcid_id or orcid_id == 'undefined':
+                credential_id = request.POST.get('credentialId')
+                if credential_id:
+                    from django.db import connection
+                    with connection.cursor() as cursor:
+                        cursor.execute("""
+                            SELECT o.orcid_id
+                            FROM OrcidCredentials o
+                            LEFT JOIN Credential c ON c.id = o.CredentialId
+                            WHERE c.partyId = %s
+                        """, [credential_id])
+                        result = cursor.fetchone()
+                    if result:
+                        orcid_id = result[0]
+
+            # Server-side price validation: compute all valid prices
+            # based on bucket type, annual discount, and discount codes.
+            bucketTypeObj = BucketType.objects.get(bucketTypeId=bucketTypeId)
+            unit_price = float(bucketTypeObj.price)
+
+            # Check annual discount eligibility
+            annual_discount_pct = 0
+            if orcid_id and orcid_id != 'undefined':
+                if not SubscriptionControl.has_recent_bucket_purchase(orcid_id, bucket_type_id=bucketTypeObj.bucketTypeId):
+                    annual_discount_pct = bucketTypeObj.discountPercentage
+
+            # Build set of valid unit prices (with tolerance for rounding)
+            base_price = unit_price
+            discounted_price = unit_price * (1 - annual_discount_pct / 100.0)
+            valid_unit_prices = {base_price, discounted_price}
+
+            # Check that submitted price matches a valid total
+            submitted_unit_price = price / quantity if quantity > 0 else price
+            price_is_valid = any(
+                abs(submitted_unit_price - vp) < 0.01 for vp in valid_unit_prices
+            )
+
+            if not price_is_valid:
+                logger.error(
+                    "Price validation failed: submitted=%.2f, valid_unit_prices=%s "
+                    "(bucket=%s, qty=%d, annual_discount=%s%%)",
+                    price, valid_unit_prices, bucketTypeId, quantity, annual_discount_pct,
+                )
+                return HttpResponse(
+                    json.dumps({'message': 'Price validation failed. Please refresh and try again.'}),
+                    content_type="application/json",
+                    status=400,
+                )
+
+            bucketUnits = bucketTypeObj.description
             chargeDescription = '%s `%s` subscription name: %s %s'%(partnerName,bucketUnits,firstname,lastname)
             logger.info("Stripe Charge Description: " + chargeDescription)
             message = PaymentControl.chargeForBucket(stripe_api_secret_test_key, token, price, chargeDescription, bucketTypeId, quantity, email, firstname, lastname, institute, other, orcid_id)

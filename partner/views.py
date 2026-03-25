@@ -7,6 +7,7 @@ from rest_framework import generics
 from models import Partner, PartnerPattern, SubscriptionTerm, BucketType, SubscriptionDescription, SubscriptionDescriptionItem
 
 from subscription.models import BucketTransaction
+from subscription.controls import SubscriptionControl
 
 from serializers import PartnerSerializer, PartnerPatternSerializer, SubscriptionTermSerializer, BucketTypeSerializer, SubscriptionDescriptionSerializer, SubscriptionDescriptionItemSerializer
 
@@ -109,17 +110,9 @@ class BucketTypeCRUD(GenericCRUDView):
         
         transaction_found = False
         if orcid_id:
-            # Discount is only blocked if there is a 300-unit purchase within the last 365 days.
-            cutoff_datetime = timezone.now() - timedelta(days=365)
-            transactions = BucketTransaction.objects.filter(
-                orcid_id=orcid_id,
-                bucket_type_id=10,
-                transaction_date__gt=cutoff_datetime
-            )
-            if transactions.exists():
-                transaction_found = True
-                for transaction in transactions:
-                    logger.info("Bucket Transaction ID: " + str(transaction.bucket_transaction_id))
+            transaction_found = SubscriptionControl.has_recent_bucket_purchase(orcid_id, bucket_type_id=10)
+            if transaction_found:
+                logger.info("Recent bucket purchase found for orcid_id: " + orcid_id)
             else:
                 logger.info("No recent transactions for bucket_type_id=10 found for orcid_id: " + orcid_id)
         else:
