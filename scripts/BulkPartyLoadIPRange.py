@@ -19,33 +19,8 @@ from common.party_ip_row_check import (
     ip_check_error_row_party_id,
     normalize_excel_party_id,
     validate_party_id_row_for_load,
+    _read_bulk_party_ip_excel,
 )
-
-
-def _read_bulk_party_ip_excel(path):
-    ext = os.path.splitext(path)[1].lower()
-    if ext != ".xlsx":
-        return pd.read_excel(
-            path, index_col=None, usecols="A,B,C,D,E", na_filter=False
-        )
-    try:
-        from openpyxl import load_workbook
-    except ImportError:
-        raise ImportError(
-            "Reading .xlsx requires openpyxl. Install: pip install 'openpyxl<3'"
-        )
-    wb = load_workbook(path, read_only=True, data_only=True)
-    ws = wb.active
-    rows = [list(r) for r in ws.iter_rows(values_only=True)]
-    wb.close()
-    if len(rows) < 2:
-        return pd.DataFrame(columns=["party id", "cn name", "en name", "start ip", "end ip"])
-    df = pd.DataFrame(rows[1:], columns=[str(c).strip() for c in rows[0]])
-    want = ["party id", "cn name", "en name", "start ip", "end ip"]
-    for col in want:
-        if col not in df.columns:
-            raise ValueError("Missing column %r in %s; got %s" % (col, path, list(df.columns)))
-    return df[want]
 
 
 IpRangeFilename = sys.argv[1]
@@ -91,7 +66,7 @@ for party_id, cn_name, en_name, start, end in output:
         p = Party.objects.get(partyId=party_id)
         IpRange.objects.create(partyId=p, start=start, end=end)
     except Exception as e:
-        loadingErr.append([party_id, cn_name, en_name, start, end, e.message])
+        loadingErr.append([party_id, cn_name, en_name, start, end, getattr(e, 'message', str(e))])
         continue
 
 if loadingErr:
