@@ -38,6 +38,7 @@ from django.conf import settings
 
 from django.core.mail import send_mail
 
+from django.db import transaction
 from django.utils import timezone
 
 from django.shortcuts import get_object_or_404
@@ -231,34 +232,19 @@ class UserBucketUsageCRUD(GenericCRUDView):
             return Response({"message":"activation code is already used"}, status=status.HTTP_400_BAD_REQUEST)
         try:
             partyId = request.data['partyId']
-            userBucketUsage = SubscriptionControl.createOrUpdateUserBucketUsage(partyId, activationCodeObj.period)
-        except Exception:
-            return Response('failed to create or update User Bucket entry')
-        
-        try:
-            # set activationCodeObj to be used.
-            partyObj = Party.objects.get(partyId=partyId)
-        except Exception:
-            return Response('failed to get partyObj')
-        try:
-            activationCodeObj.partyId = partyObj
-        except Exception:
-            return Response('failed to assign partyObj')
-        try:
-            activationCodeObj.save()
-        except Exception:
-            return Response('failed to save activationCodeObj')
+            with transaction.atomic():
+                userBucketUsage = SubscriptionControl.createOrUpdateUserBucketUsage(partyId, activationCodeObj.period)
 
-        # NOTE: BucketTransaction creation is best-effort. If it fails, we still
-        # complete the activation code redemption — the user already redeemed their
-        # code and should not be blocked. The error is logged for manual follow-up.
-        # Create a BucketTransaction so the annual-discount check sees this redemption.
-        try:
-            orcid_id = self._get_orcid_id_for_party(partyId)
-            bucket_type = BucketType.objects.filter(units=activationCodeObj.period, partnerId='tair').first()
-            if not bucket_type:
-                logger.warning("No BucketType found for units=%s partnerId=tair; skipping BucketTransaction for activation code %s", activationCodeObj.period, activationCodeObj.activationCode)
-            else:
+                partyObj = Party.objects.get(partyId=partyId)
+                activationCodeObj.partyId = partyObj
+                activationCodeObj.save()
+
+                # Create a BucketTransaction so the annual-discount check sees this redemption.
+                # This is critical for Bug 2 — without this record the discount reappears.
+                orcid_id = self._get_orcid_id_for_party(partyId)
+                bucket_type = BucketType.objects.filter(units=activationCodeObj.period, partnerId='tair').first()
+                if not bucket_type:
+                    raise ValueError("No BucketType found for units=%s partnerId=tair" % activationCodeObj.period)
                 bt = BucketTransaction()
                 bt.activation_code_id = activationCodeObj.activationCodeId
                 bt.bucket_type_id = bucket_type.bucketTypeId
@@ -271,7 +257,11 @@ class UserBucketUsageCRUD(GenericCRUDView):
                 bt.save()
                 logger.info("Created BucketTransaction for activation code %s, orcid_id=%s", activationCodeObj.activationCode, orcid_id)
         except Exception as e:
-            logger.error("Failed to create BucketTransaction for activation code %s: %s", activationCodeObj.activationCode, str(e))
+            logger.error("Activation code redemption failed for code %s: %s", activationCodeObj.activationCode, str(e))
+            return Response(
+                {'error': 'Failed to redeem activation code. Please try again or contact support.'},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )
 
         serializer = self.serializer_class(userBucketUsage)
         returnData = serializer.data
@@ -364,6 +354,14 @@ class SubsctiptionBucketPayment(APIView):
                         result = cursor.fetchone()
                     if result:
                         orcid_id = result[0]
+
+            if quantity < 1:
+                logger.error("Invalid quantity: %d", quantity)
+                return HttpResponse(
+                    json.dumps({'message': 'Invalid quantity.'}),
+                    content_type="application/json",
+                    status=400
+                )
 
             # Server-side price validation: compute all valid prices
             # based on bucket type, annual discount, and discount codes.
