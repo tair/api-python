@@ -38,6 +38,7 @@ from django.conf import settings
 
 from django.core.mail import send_mail
 
+from django.db import transaction
 from django.utils import timezone
 
 from django.shortcuts import get_object_or_404
@@ -196,6 +197,16 @@ class UserBucketUsageCRUD(GenericCRUDView):
         party_id = self.request.query_params.get('party_id')
         return self.queryset.filter(partyId_id=party_id)
 
+    @staticmethod
+    def _get_orcid_id_for_party(party_id):
+        """Look up the ORCID ID for a party via Credential -> OrcidCredentials."""
+        from authentication.models import OrcidCredentials
+        credential = Credential.objects.filter(partyId=party_id, partnerId='tair').first()
+        if not credential:
+            return None
+        orcid_cred = OrcidCredentials.objects.filter(credential=credential).exclude(orcid_id__isnull=True).exclude(orcid_id='').first()
+        return orcid_cred.orcid_id if orcid_cred else None
+
     def get(self, request, *args, **kwargs):
         party_id = request.query_params.get('party_id')
         
@@ -221,24 +232,37 @@ class UserBucketUsageCRUD(GenericCRUDView):
             return Response({"message":"activation code is already used"}, status=status.HTTP_400_BAD_REQUEST)
         try:
             partyId = request.data['partyId']
-            userBucketUsage = SubscriptionControl.createOrUpdateUserBucketUsage(partyId, activationCodeObj.period)
-        except Exception:
-            return Response('failed to create or update User Bucket entry')
-        
-        try:
-            # set activationCodeObj to be used.
-            partyObj = Party.objects.get(partyId=partyId)
-        except Exception:
-            return Response('failed to get partyObj')
-        try:
-            activationCodeObj.partyId = partyObj
-        except Exception:
-            return Response('failed to assign partyObj')
-        try:
-            activationCodeObj.save()
-        except Exception:
-            return Response('failed to save activationCodeObj')
-        
+            with transaction.atomic():
+                userBucketUsage = SubscriptionControl.createOrUpdateUserBucketUsage(partyId, activationCodeObj.period)
+
+                partyObj = Party.objects.get(partyId=partyId)
+                activationCodeObj.partyId = partyObj
+                activationCodeObj.save()
+
+                # Create a BucketTransaction so the annual-discount check sees this redemption.
+                # This is critical for Bug 2 — without this record the discount reappears.
+                orcid_id = self._get_orcid_id_for_party(partyId)
+                bucket_type = BucketType.objects.filter(units=activationCodeObj.period, partnerId='tair').first()
+                if not bucket_type:
+                    raise ValueError("No BucketType found for units=%s partnerId=tair" % activationCodeObj.period)
+                bt = BucketTransaction()
+                bt.activation_code_id = activationCodeObj.activationCodeId
+                bt.bucket_type_id = bucket_type.bucketTypeId
+                bt.transaction_date = timezone.now()
+                bt.transaction_type = 'activate_bucket'
+                bt.units_per_bucket = activationCodeObj.period
+                bt.email_buyer = partyObj.name if hasattr(partyObj, 'name') else ''
+                bt.institute_buyer = ''
+                bt.orcid_id = orcid_id
+                bt.save()
+                logger.info("Created BucketTransaction for activation code %s, orcid_id=%s", activationCodeObj.activationCode, orcid_id)
+        except Exception as e:
+            logger.error("Activation code redemption failed for code %s: %s", activationCodeObj.activationCode, str(e))
+            return Response(
+                {'error': 'Failed to redeem activation code. Please try again or contact support.'},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )
+
         serializer = self.serializer_class(userBucketUsage)
         returnData = serializer.data
         return Response(returnData, status=status.HTTP_201_CREATED)
@@ -315,7 +339,65 @@ class SubsctiptionBucketPayment(APIView):
             other = request.POST['other']
             orcid_id = request.POST['orcid_id']
 
-            bucketUnits = BucketType.objects.get(bucketTypeId=bucketTypeId).description
+            # Resolve orcid_id from credentials if missing/undefined
+            if not orcid_id or orcid_id == 'undefined':
+                credential_id = request.POST.get('credentialId')
+                if credential_id:
+                    from django.db import connection
+                    with connection.cursor() as cursor:
+                        cursor.execute("""
+                            SELECT o.orcid_id
+                            FROM OrcidCredentials o
+                            LEFT JOIN Credential c ON c.id = o.CredentialId
+                            WHERE c.partyId = %s
+                        """, [credential_id])
+                        result = cursor.fetchone()
+                    if result:
+                        orcid_id = result[0]
+
+            if quantity < 1:
+                logger.error("Invalid quantity: %d", quantity)
+                return HttpResponse(
+                    json.dumps({'message': 'Invalid quantity.'}),
+                    content_type="application/json",
+                    status=400
+                )
+
+            # Server-side price validation: compute all valid prices
+            # based on bucket type, annual discount, and discount codes.
+            bucketTypeObj = BucketType.objects.get(bucketTypeId=bucketTypeId)
+            unit_price = float(bucketTypeObj.price)
+
+            # Check annual discount eligibility
+            annual_discount_pct = 0
+            if orcid_id and orcid_id != 'undefined':
+                if not SubscriptionControl.has_recent_bucket_purchase(orcid_id, bucket_type_id=bucketTypeObj.bucketTypeId):
+                    annual_discount_pct = bucketTypeObj.discountPercentage
+
+            # Build set of valid unit prices (with tolerance for rounding)
+            base_price = unit_price
+            discounted_price = unit_price * (1 - annual_discount_pct / 100.0)
+            valid_unit_prices = {base_price, discounted_price}
+
+            # Check that submitted price matches a valid total
+            submitted_unit_price = price / quantity if quantity > 0 else price
+            price_is_valid = any(
+                abs(submitted_unit_price - vp) < 0.01 for vp in valid_unit_prices
+            )
+
+            if not price_is_valid:
+                logger.error(
+                    "Price validation failed: submitted=%.2f, valid_unit_prices=%s "
+                    "(bucket=%s, qty=%d, annual_discount=%s%%)",
+                    price, valid_unit_prices, bucketTypeId, quantity, annual_discount_pct,
+                )
+                return HttpResponse(
+                    json.dumps({'message': 'Price validation failed. Please refresh and try again.'}),
+                    content_type="application/json",
+                    status=400,
+                )
+
+            bucketUnits = bucketTypeObj.description
             chargeDescription = '%s `%s` subscription name: %s %s'%(partnerName,bucketUnits,firstname,lastname)
             logger.info("Stripe Charge Description: " + chargeDescription)
             message = PaymentControl.chargeForBucket(stripe_api_secret_test_key, token, price, chargeDescription, bucketTypeId, quantity, email, firstname, lastname, institute, other, orcid_id)

@@ -30,15 +30,8 @@ class UserBucketUsageSerializer(serializers.ModelSerializer):
         return orcid_cred.orcid_id
 
     def _get_first_purchase_in_annual_window(self, orcid_id):
-        if not orcid_id:
-            return None
-
-        cutoff_datetime = timezone.now() - timedelta(days=365)
-        return BucketTransaction.objects.filter(
-            orcid_id=orcid_id,
-            bucket_type_id=10,
-            transaction_date__gt=cutoff_datetime
-        ).order_by('transaction_date').first()
+        from subscription.controls import SubscriptionControl
+        return SubscriptionControl.get_first_recent_bucket_purchase(orcid_id, bucket_type_id=10)
 
     def get_first_annual_purchase_date(self, usage):
         # Date when the current annual-window discount cycle started.
