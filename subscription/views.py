@@ -240,7 +240,7 @@ class UserBucketUsageCRUD(GenericCRUDView):
                 activationCodeObj.save()
 
                 # Create a BucketTransaction so the annual-discount check sees this redemption.
-                # This is critical for Bug 2 — without this record the discount reappears.
+                # This is critical for Bug 2 - without this record the discount reappears.
                 orcid_id = self._get_orcid_id_for_party(partyId)
                 bucket_type = BucketType.objects.filter(units=activationCodeObj.period, partnerId='tair').first()
                 if not bucket_type:
