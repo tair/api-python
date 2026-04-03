@@ -1,19 +1,13 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
 """
-Reproduction tests for two bucket-discount bugs:
+Reproduction tests for bucket-discount bugs and edge cases:
 
 Bug 1 - Discount reuse after purchase
-  The payment endpoint (SubsctiptionBucketPayment.post) trusts the client-
-  supplied price.  A user who already used their annual 50% discount can
-  submit the discounted price again and the server will charge that amount
-  without re-validating eligibility.
-
 Bug 2 - No BucketTransaction on activation-code redemption
-  When an activation code is redeemed via UserBucketUsageCRUD.post(), no
-  BucketTransaction row is created.  Because the annual-discount check
-  queries BucketTransaction, the discount stays available even after the
-  user has already redeemed a 300-unit code.
+Edge case 1 - Activation does not push next discount date
+Edge case 2 - Zero-quantity payment rejected
+Edge case 3 - Discount resets after 365 days
 """
 
 import os
@@ -57,7 +51,7 @@ def assert_test(name, condition, detail=""):
 
 
 # ---------------------------------------------------------------------------
-# Helpers - reuse pattern from testAnnualBucketDiscount.py
+# Helpers
 # ---------------------------------------------------------------------------
 
 def get_bucket_discount(orcid_id):
@@ -77,14 +71,23 @@ def get_bucket_discount(orcid_id):
     raise RuntimeError("bucketTypeId=%s not in response" % TARGET_BUCKET_TYPE_ID)
 
 
-def create_bucket_transaction(orcid_id, when_dt):
+def get_first_annual_purchase_date(orcid_id):
+    """Return the first_annual_purchase_date from the serializer for the given orcid."""
+    from subscription.controls import SubscriptionControl
+    tx = SubscriptionControl.get_first_recent_bucket_purchase(orcid_id, bucket_type_id=TARGET_BUCKET_TYPE_ID, transaction_type='create_bucket')
+    if tx:
+        return tx.transaction_date
+    return None
+
+
+def create_bucket_transaction(orcid_id, when_dt, transaction_type='create_bucket'):
     from subscription.models import BucketTransaction
     tx = BucketTransaction()
     tx.transaction_date = when_dt
     tx.bucket_type_id = TARGET_BUCKET_TYPE_ID
     tx.activation_code_id = int(time.time() * 1000000) % 2000000000
     tx.units_per_bucket = 300
-    tx.transaction_type = 'create_bucket'
+    tx.transaction_type = transaction_type
     tx.email_buyer = 'test@example.com'
     tx.institute_buyer = 'Test Institute'
     tx.orcid_id = orcid_id
@@ -92,7 +95,7 @@ def create_bucket_transaction(orcid_id, when_dt):
     return tx.bucket_transaction_id
 
 
-def create_test_activation_code(partner_id, units=300):
+def create_test_activation_code(partner_id, units=300, purchase_date=None):
     """Create an unused ActivationCode and return the object."""
     from subscription.models import ActivationCode
     from partner.models import Partner
@@ -103,7 +106,7 @@ def create_test_activation_code(partner_id, units=300):
     code.partnerId = partner
     code.partyId = None
     code.period = units
-    code.purchaseDate = timezone.now()
+    code.purchaseDate = purchase_date or timezone.now()
     code.transactionType = 'create_bucket'
     code.save()
     return code
@@ -153,10 +156,6 @@ def cleanup(extra_activation_codes=None, extra_activation_code_ids=None):
 # ---------------------------------------------------------------------------
 
 def test_bug1_discount_removed_after_purchase():
-    """
-    After purchasing a discounted 300-unit bucket, BucketTypeCRUD must
-    return discountPercentage=0 so the frontend shows the full price.
-    """
     from partner.models import BucketType
 
     print("\n" + "=" * 60)
@@ -164,9 +163,8 @@ def test_bug1_discount_removed_after_purchase():
     print("=" * 60)
 
     bucket_type = BucketType.objects.get(bucketTypeId=TARGET_BUCKET_TYPE_ID)
-    base_discount = bucket_type.discountPercentage  # e.g. 50
+    base_discount = bucket_type.discountPercentage
 
-    # Step 1: Confirm discount is available before any purchase
     discount_before = get_bucket_discount(TEST_ORCID)
     assert_test(
         "Discount available before purchase",
@@ -174,10 +172,8 @@ def test_bug1_discount_removed_after_purchase():
         "got %s, expected %s" % (discount_before, base_discount),
     )
 
-    # Step 2: Simulate a purchase (creates BucketTransaction)
     create_bucket_transaction(TEST_ORCID, timezone.now())
 
-    # Step 3: Confirm discount is now 0
     discount_after = get_bucket_discount(TEST_ORCID)
     assert_test(
         "Discount removed after purchase",
@@ -191,30 +187,23 @@ def test_bug1_discount_removed_after_purchase():
 # ---------------------------------------------------------------------------
 
 def test_bug2_activation_code_no_transaction():
-    """
-    When an activation code for a 300-unit bucket is redeemed, no
-    BucketTransaction is created.  This means the annual-discount check
-    never sees the redemption and keeps offering 50 % off.
-    """
     from subscription.models import BucketTransaction
+    from partner.models import BucketType
 
     print("\n" + "=" * 60)
-    print("Bug 2: Activation code creates no BucketTransaction")
+    print("Bug 2: Activation code creates BucketTransaction")
     print("=" * 60)
 
     party_id = get_test_party_id()
 
-    # Step 1: Confirm discount is available
-    discount_before = get_bucket_discount(TEST_ORCID)
-    from partner.models import BucketType
     base_discount = BucketType.objects.get(bucketTypeId=TARGET_BUCKET_TYPE_ID).discountPercentage
+    discount_before = get_bucket_discount(TEST_ORCID)
     assert_test(
         "Discount available before activation",
         discount_before == base_discount,
         "got %s, expected %s" % (discount_before, base_discount),
     )
 
-    # Step 2: Create and redeem an activation code
     code_obj = create_test_activation_code('tair', units=300)
     code_str = code_obj.activationCode
     response = activate_code_via_api(code_str, party_id)
@@ -224,18 +213,16 @@ def test_bug2_activation_code_no_transaction():
         "status=%s, body=%s" % (response.status_code, getattr(response, 'data', '')),
     )
 
-    # Step 3: Check if a BucketTransaction was created for this activation
     tx_count = BucketTransaction.objects.filter(
         activation_code_id=code_obj.activationCodeId,
     ).count()
 
     assert_test(
-        "FIX VERIFIED: BucketTransaction created on activation",
+        "BucketTransaction created on activation",
         tx_count == 1,
         "Found %d transaction(s) - expected 1" % tx_count,
     )
 
-    # Step 4: Verify the transaction has the correct type
     if tx_count > 0:
         tx = BucketTransaction.objects.get(activation_code_id=code_obj.activationCodeId)
         assert_test(
@@ -249,11 +236,108 @@ def test_bug2_activation_code_no_transaction():
             "got %s, expected %s" % (tx.bucket_type_id, TARGET_BUCKET_TYPE_ID),
         )
 
-    print("\n  After fix: UserBucketUsageCRUD.post() now creates a")
-    print("  BucketTransaction when an activation code is redeemed,")
-    print("  so the annual-discount check correctly detects the redemption.")
+    return code_str, code_obj.activationCodeId
 
-    return code_str, code_obj.activationCodeId  # for cleanup
+
+# ---------------------------------------------------------------------------
+# Edge case 1 - Activation does not affect next discount date
+# ---------------------------------------------------------------------------
+
+def test_activation_does_not_push_discount_date():
+    print("\n" + "=" * 60)
+    print("Edge case 1: Activation does not push next discount date")
+    print("=" * 60)
+
+    # Create a purchase 6 months ago
+    purchase_date = timezone.now() - timedelta(days=180)
+    create_bucket_transaction(TEST_ORCID, purchase_date, transaction_type='create_bucket')
+
+    # Verify the annual purchase date is the purchase date
+    annual_date = get_first_annual_purchase_date(TEST_ORCID)
+    assert_test(
+        "Annual purchase date matches purchase date",
+        annual_date is not None and abs((annual_date - purchase_date).total_seconds()) < 2,
+        "got %s, expected ~%s" % (annual_date, purchase_date),
+    )
+
+    # Create an activation transaction today (simulating late activation)
+    create_bucket_transaction(TEST_ORCID, timezone.now(), transaction_type='activate_bucket')
+
+    # Annual purchase date should still be the original purchase date, not today
+    annual_date_after = get_first_annual_purchase_date(TEST_ORCID)
+    assert_test(
+        "Annual purchase date unchanged after activation",
+        annual_date_after is not None and abs((annual_date_after - purchase_date).total_seconds()) < 2,
+        "got %s, expected ~%s (should not be pushed by activation)" % (annual_date_after, purchase_date),
+    )
+
+    # But discount should still be blocked (both transaction types count)
+    discount = get_bucket_discount(TEST_ORCID)
+    assert_test(
+        "Discount still blocked after activation",
+        discount == 0,
+        "got %s, expected 0" % discount,
+    )
+
+
+# ---------------------------------------------------------------------------
+# Edge case 2 - Activation-only user has no next discount date
+# ---------------------------------------------------------------------------
+
+def test_activation_only_no_discount_date():
+    print("\n" + "=" * 60)
+    print("Edge case 2: Activation-only user has no next discount date")
+    print("=" * 60)
+
+    # Only an activate_bucket transaction, no create_bucket
+    create_bucket_transaction(TEST_ORCID, timezone.now(), transaction_type='activate_bucket')
+
+    # Annual purchase date should be None (no create_bucket)
+    annual_date = get_first_annual_purchase_date(TEST_ORCID)
+    assert_test(
+        "No annual purchase date for activation-only user",
+        annual_date is None,
+        "got %s, expected None" % annual_date,
+    )
+
+    # But discount should still be blocked
+    discount = get_bucket_discount(TEST_ORCID)
+    assert_test(
+        "Discount blocked for activation-only user",
+        discount == 0,
+        "got %s, expected 0" % discount,
+    )
+
+
+# ---------------------------------------------------------------------------
+# Edge case 3 - Discount resets after 365 days
+# ---------------------------------------------------------------------------
+
+def test_discount_resets_after_365_days():
+    print("\n" + "=" * 60)
+    print("Edge case 3: Discount resets after 365 days")
+    print("=" * 60)
+
+    from partner.models import BucketType
+    base_discount = BucketType.objects.get(bucketTypeId=TARGET_BUCKET_TYPE_ID).discountPercentage
+
+    # Create a transaction 366 days ago (just past the window)
+    old_date = timezone.now() - timedelta(days=366)
+    create_bucket_transaction(TEST_ORCID, old_date, transaction_type='create_bucket')
+
+    discount = get_bucket_discount(TEST_ORCID)
+    assert_test(
+        "Discount available after 365 days",
+        discount == base_discount,
+        "got %s, expected %s" % (discount, base_discount),
+    )
+
+    annual_date = get_first_annual_purchase_date(TEST_ORCID)
+    assert_test(
+        "No annual purchase date for expired transaction",
+        annual_date is None,
+        "got %s, expected None" % annual_date,
+    )
 
 
 # ---------------------------------------------------------------------------
@@ -276,9 +360,30 @@ def main():
     activation_code_str = None
     activation_code_id = None
     try:
+        # Bug 1
         test_bug1_discount_removed_after_purchase()
-        cleanup()  # clean up Bug 1 data before Bug 2
+        cleanup()
+
+        # Bug 2
         activation_code_str, activation_code_id = test_bug2_activation_code_no_transaction()
+        codes_to_clean = [activation_code_str] if activation_code_str else None
+        ids_to_clean = [activation_code_id] if activation_code_id else None
+        cleanup(extra_activation_codes=codes_to_clean, extra_activation_code_ids=ids_to_clean)
+        activation_code_str = None
+        activation_code_id = None
+
+        # Edge case 1
+        test_activation_does_not_push_discount_date()
+        cleanup()
+
+        # Edge case 2
+        test_activation_only_no_discount_date()
+        cleanup()
+
+        # Edge case 3
+        test_discount_resets_after_365_days()
+        cleanup()
+
     finally:
         codes_to_clean = [activation_code_str] if activation_code_str else None
         ids_to_clean = [activation_code_id] if activation_code_id else None
