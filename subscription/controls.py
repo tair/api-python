@@ -24,6 +24,63 @@ import urllib
 class SubscriptionControl():
 
     @staticmethod
+    def has_recent_bucket_purchase(orcid_id, bucket_type_id=10):
+        """Check if user has an actual bucket purchase in the last 365 days.
+
+        Only considers create_bucket transactions (actual purchases).
+        Activation code redemptions do not block the discount.
+        """
+        return SubscriptionControl.get_first_recent_bucket_purchase(orcid_id, bucket_type_id, transaction_type='create_bucket') is not None
+
+    @staticmethod
+    def get_first_recent_bucket_purchase(orcid_id, bucket_type_id=10, transaction_type=None):
+        """Return the earliest qualifying BucketTransaction in the last 365 days.
+
+        Uses the same primary + fallback logic as has_recent_bucket_purchase
+        but returns the transaction object (or None) instead of a boolean.
+        Optionally filter by transaction_type (e.g. 'create_bucket').
+        """
+        cutoff = timezone.now() - timedelta(days=365)
+
+        if not orcid_id:
+            return None
+
+        # Primary: direct orcid_id match
+        qs = BucketTransaction.objects.filter(
+            orcid_id=orcid_id,
+            bucket_type_id=bucket_type_id,
+            transaction_date__gt=cutoff,
+        )
+        if transaction_type:
+            qs = qs.filter(transaction_type=transaction_type)
+        tx = qs.order_by('transaction_date').first()
+        if tx:
+            return tx
+
+        # Fallback: NULL-orcid transactions linked to this user's party
+        orcid_cred = OrcidCredentials.objects.filter(orcid_id=orcid_id).first()
+        if orcid_cred:
+            party_id = orcid_cred.credential.partyId_id
+            party_ac_ids = list(
+                ActivationCode.objects.filter(partyId=party_id)
+                .values_list('activationCodeId', flat=True)
+            )
+            if party_ac_ids:
+                qs2 = BucketTransaction.objects.filter(
+                    activation_code_id__in=party_ac_ids,
+                    bucket_type_id=bucket_type_id,
+                    transaction_date__gt=cutoff,
+                    orcid_id__isnull=True,
+                )
+                if transaction_type:
+                    qs2 = qs2.filter(transaction_type=transaction_type)
+                tx = qs2.order_by('transaction_date').first()
+                if tx:
+                    return tx
+
+        return None
+
+    @staticmethod
     def createOrUpdateUserBucketUsage(partyId, units):
         now = timezone.now()
         userBucketUsageSet = UserBucketUsage.objects.all().filter(partyId=partyId)
