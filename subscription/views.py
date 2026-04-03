@@ -242,16 +242,18 @@ class UserBucketUsageCRUD(GenericCRUDView):
                 # Create a BucketTransaction so the annual-discount check sees this redemption.
                 # This is critical for Bug 2 - without this record the discount reappears.
                 orcid_id = self._get_orcid_id_for_party(partyId)
-                bucket_type = BucketType.objects.filter(units=activationCodeObj.period, partnerId='tair').first()
+                partner_id = activationCodeObj.partnerId_id
+                bucket_type = BucketType.objects.filter(units=activationCodeObj.period, partnerId=partner_id).first()
                 if not bucket_type:
-                    raise ValueError("No BucketType found for units=%s partnerId=tair" % activationCodeObj.period)
+                    raise ValueError("No BucketType found for units=%s partnerId=%s" % (activationCodeObj.period, partner_id))
                 bt = BucketTransaction()
                 bt.activation_code_id = activationCodeObj.activationCodeId
                 bt.bucket_type_id = bucket_type.bucketTypeId
                 bt.transaction_date = timezone.now()
                 bt.transaction_type = 'activate_bucket'
                 bt.units_per_bucket = activationCodeObj.period
-                bt.email_buyer = partyObj.name if hasattr(partyObj, 'name') else ''
+                credential = Credential.objects.filter(partyId=partyId, partnerId=partner_id).first()
+                bt.email_buyer = credential.email if credential and credential.email else ''
                 bt.institute_buyer = ''
                 bt.orcid_id = orcid_id
                 bt.save()
