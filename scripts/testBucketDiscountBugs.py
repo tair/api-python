@@ -285,8 +285,11 @@ def test_activation_does_not_push_discount_date():
 # ---------------------------------------------------------------------------
 
 def test_activation_only_no_discount_date():
+    from partner.models import BucketType
+    base_discount = BucketType.objects.get(bucketTypeId=TARGET_BUCKET_TYPE_ID).discountPercentage
+
     print("\n" + "=" * 60)
-    print("Edge case 2: Activation-only user has no next discount date")
+    print("Edge case 2: Activation-only user still gets discount")
     print("=" * 60)
 
     # Only an activate_bucket transaction, no create_bucket
@@ -300,12 +303,12 @@ def test_activation_only_no_discount_date():
         "got %s, expected None" % annual_date,
     )
 
-    # But discount should still be blocked
+    # Discount should still be available (activation does not block discount)
     discount = get_bucket_discount(TEST_ORCID)
     assert_test(
-        "Discount blocked for activation-only user",
-        discount == 0,
-        "got %s, expected 0" % discount,
+        "Discount available for activation-only user",
+        discount == base_discount,
+        "got %s, expected %s" % (discount, base_discount),
     )
 
 

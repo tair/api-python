@@ -25,13 +25,12 @@ class SubscriptionControl():
 
     @staticmethod
     def has_recent_bucket_purchase(orcid_id, bucket_type_id=10):
-        """Check if user has a qualifying bucket purchase in the last 365 days.
+        """Check if user has an actual bucket purchase in the last 365 days.
 
-        Delegates to get_first_recent_bucket_purchase which contains the
-        primary + fallback logic (direct orcid_id match, then NULL-orcid
-        transactions linked via party/ActivationCode).
+        Only considers create_bucket transactions (actual purchases).
+        Activation code redemptions do not block the discount.
         """
-        return SubscriptionControl.get_first_recent_bucket_purchase(orcid_id, bucket_type_id) is not None
+        return SubscriptionControl.get_first_recent_bucket_purchase(orcid_id, bucket_type_id, transaction_type='create_bucket') is not None
 
     @staticmethod
     def get_first_recent_bucket_purchase(orcid_id, bucket_type_id=10, transaction_type=None):
