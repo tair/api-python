@@ -29,14 +29,15 @@ class UserBucketUsageSerializer(serializers.ModelSerializer):
 
         return orcid_cred.orcid_id
 
-    def _get_first_purchase_in_annual_window(self, orcid_id):
+    def _get_first_purchase_in_annual_window(self, orcid_id, transaction_type=None):
         from subscription.controls import SubscriptionControl
-        return SubscriptionControl.get_first_recent_bucket_purchase(orcid_id, bucket_type_id=10)
+        return SubscriptionControl.get_first_recent_bucket_purchase(orcid_id, bucket_type_id=10, transaction_type=transaction_type)
 
     def get_first_annual_purchase_date(self, usage):
         # Date when the current annual-window discount cycle started.
+        # Only consider actual purchases, not activation code redemptions.
         orcid_id = self._get_orcid_id_for_usage(usage)
-        first_purchase = self._get_first_purchase_in_annual_window(orcid_id)
+        first_purchase = self._get_first_purchase_in_annual_window(orcid_id, transaction_type='create_bucket')
 
         if not first_purchase:
             return None

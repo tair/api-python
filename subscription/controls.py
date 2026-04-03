@@ -34,11 +34,12 @@ class SubscriptionControl():
         return SubscriptionControl.get_first_recent_bucket_purchase(orcid_id, bucket_type_id) is not None
 
     @staticmethod
-    def get_first_recent_bucket_purchase(orcid_id, bucket_type_id=10):
+    def get_first_recent_bucket_purchase(orcid_id, bucket_type_id=10, transaction_type=None):
         """Return the earliest qualifying BucketTransaction in the last 365 days.
 
         Uses the same primary + fallback logic as has_recent_bucket_purchase
         but returns the transaction object (or None) instead of a boolean.
+        Optionally filter by transaction_type (e.g. 'create_bucket').
         """
         cutoff = timezone.now() - timedelta(days=365)
 
@@ -46,11 +47,14 @@ class SubscriptionControl():
             return None
 
         # Primary: direct orcid_id match
-        tx = BucketTransaction.objects.filter(
+        qs = BucketTransaction.objects.filter(
             orcid_id=orcid_id,
             bucket_type_id=bucket_type_id,
             transaction_date__gt=cutoff,
-        ).order_by('transaction_date').first()
+        )
+        if transaction_type:
+            qs = qs.filter(transaction_type=transaction_type)
+        tx = qs.order_by('transaction_date').first()
         if tx:
             return tx
 
@@ -63,12 +67,15 @@ class SubscriptionControl():
                 .values_list('activationCodeId', flat=True)
             )
             if party_ac_ids:
-                tx = BucketTransaction.objects.filter(
+                qs2 = BucketTransaction.objects.filter(
                     activation_code_id__in=party_ac_ids,
                     bucket_type_id=bucket_type_id,
                     transaction_date__gt=cutoff,
                     orcid_id__isnull=True,
-                ).order_by('transaction_date').first()
+                )
+                if transaction_type:
+                    qs2 = qs2.filter(transaction_type=transaction_type)
+                tx = qs2.order_by('transaction_date').first()
                 if tx:
                     return tx
 
