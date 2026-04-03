@@ -249,7 +249,7 @@ class UserBucketUsageCRUD(GenericCRUDView):
                 bt = BucketTransaction()
                 bt.activation_code_id = activationCodeObj.activationCodeId
                 bt.bucket_type_id = bucket_type.bucketTypeId
-                bt.transaction_date = timezone.now()
+                bt.transaction_date = activationCodeObj.purchaseDate or timezone.now()
                 bt.transaction_type = 'activate_bucket'
                 bt.units_per_bucket = activationCodeObj.period
                 credential = Credential.objects.filter(partyId=partyId, partnerId=partner_id).first()
