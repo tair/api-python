@@ -57,7 +57,7 @@ class UserBucketUsageSerializer(serializers.ModelSerializer):
         if not orcid_id:
             return 0
 
-        first_purchase = self._get_first_purchase_in_annual_window(orcid_id)
+        first_purchase = self._get_first_purchase_in_annual_window(orcid_id, transaction_type='create_bucket')
         if first_purchase:
             return 0
 
