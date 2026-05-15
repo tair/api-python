@@ -10,7 +10,7 @@ except NameError:
 
 from netaddr import IPAddress
 
-from common.common import (
+from .common import (
     exact_match_exists,
     get_overlapping_ranges,
     ip2long,

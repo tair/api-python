@@ -85,7 +85,7 @@ if errList:
         errList,
         columns=['serial id', 'cn name', 'en name', 'start ip', 'end ip', 'error', 'ip range id'])
     errdf.to_excel('NSTL_all_ip_load_validation_error.xlsx', engine='xlsxwriter', index=False)
-    print('Validation failed; wrote NSTL_all_ip_load_validation_error.xlsx — no IP ranges were loaded.')
+    print('Validation failed; wrote NSTL_all_ip_load_validation_error.xlsx - no IP ranges were loaded.')
     sys.exit(1)
 
 loadingErr = []
