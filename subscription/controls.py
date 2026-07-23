@@ -178,7 +178,7 @@ class SubscriptionControl():
             subscription.partnerId = partnerObj
             subscription.partyId = partyObj
             subscription.startDate = now
-            subscription.endDate = now + timedelta(days=period)
+            subscription.endDate = (now + timedelta(days=period)).replace(hour=23, minute=59, second=59, microsecond=999999)
 
             transactionType = 'create'
             transactionStartDate = subscription.startDate
@@ -187,13 +187,13 @@ class SubscriptionControl():
             endDate = subscription.endDate
             if (endDate<now):
                 # case2: expired subscription
-                subscription.endDate = now + timedelta(days=period)
+                subscription.endDate = (now + timedelta(days=period)).replace(hour=23, minute=59, second=59, microsecond=999999)
                 transactionType = 'renew'
                 transactionStartDate = now
                 transactionEndDate = subscription.endDate
             else:
                 # case3: active subscription
-                subscription.endDate = endDate + timedelta(days=period)
+                subscription.endDate = (endDate + timedelta(days=period)).replace(hour=23, minute=59, second=59, microsecond=999999)
                 transactionType = 'renew'
                 transactionStartDate = endDate
                 transactionEndDate = subscription.endDate
