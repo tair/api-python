@@ -1,18 +1,28 @@
 #!/usr/bin/python
 """
 TAIR3-633: Daily cron to replenish 50 free usage units for eligible ORCID-linked TAIR accounts.
+TAIR3-890: also self-heals accounts whose free-unit grant silently failed at ORCID-link time.
 
-Eligibility:
-- ORCID still linked (OrcidCredentials.orcid_id IS NOT NULL)
-- TAIR credential (Credential.partnerId = 'tair')
-- In OrcidCreditTracking with credit_reissue_date <= today (reissue date has passed)
-- UserBucketUsage row is optional; one is created if missing (e.g. ORCID moved to a new account)
+Eligibility (ORCID still linked + TAIR credential in all cases). Each account is
+classified into one of three actions:
 
-For each eligible account:
-- Add 50 to total_units and remaining_units
-- Set free_expiry_date = today + 1 year
-- Set OrcidCreditTracking.credit_reissue_date = today + 1 year
-- Send notification email (via Django send_mail, same as rest of repo)
+1. REPLENISH - has an OrcidCreditTracking row whose credit_reissue_date has passed.
+   Adds 50 units, pushes free_expiry_date and credit_reissue_date out a year, and
+   sends the annual replenishment email. (Original TAIR3-633 behaviour.)
+
+2. ENROLL - has NO OrcidCreditTracking row and no active free units, i.e. the grant
+   at ORCID-link time never happened (TAIR3-890). Adds 50 units and creates the
+   tracking row. Deliberately sends NO user email: this is a first-time grant, and
+   the replenishment wording ("your next annual set") would be wrong. These appear
+   in the admin report instead.
+
+3. REPAIR - has NO OrcidCreditTracking row but DOES have active free units, i.e. the
+   grant partially succeeded (bucket written, tracking row not). Creates the missing
+   tracking row aligned to the existing free_expiry_date and grants NO units, so the
+   account is not double-credited. No user email.
+
+Actions 2 and 3 mean any future silent failure is corrected automatically by the next
+nightly run, and cover the backfill of the accounts already affected.
 
 Usage:
   python scripts/replenishOrcidCredits.py
@@ -83,16 +93,20 @@ SELECT
     u.user_usage_id,
     u.total_units,
     u.remaining_units,
+    u.free_expiry_date,
+    t.orcid_id AS tracking_orcid,
     t.credit_reissue_date
 FROM OrcidCredentials o
 JOIN Credential c ON o.CredentialId = c.id
 LEFT JOIN UserBucketUsage u ON c.partyId = u.partyId_id
-JOIN OrcidCreditTracking t ON o.orcid_id = t.orcid_id
+LEFT JOIN OrcidCreditTracking t ON o.orcid_id = t.orcid_id
 WHERE o.orcid_id IS NOT NULL
   AND o.orcid_id != ''
   AND c.partnerId = 'tair'
-  AND t.credit_reissue_date IS NOT NULL
-  AND t.credit_reissue_date <= NOW()
+  AND (
+        t.orcid_id IS NULL
+     OR (t.credit_reissue_date IS NOT NULL AND t.credit_reissue_date <= NOW())
+  )
 ORDER BY o.orcid_id
 """
 
@@ -126,24 +140,49 @@ def send_notification_email(to_email, username):
         return False
 
 
-def send_report_email(replenished_list):
-    """Send a summary report of all replenished accounts to the admin."""
-    if not replenished_list:
+def send_report_email(replenished_list, enrolled_list=None, repaired_list=None):
+    """Send a summary report to the admin.
+
+    Enrolled/repaired accounts get no user-facing email (TAIR3-890), so this report
+    is the only notification that a silently-failed grant was corrected. A non-zero
+    enrolled count on an ongoing basis means grants are still failing at link time.
+    """
+    enrolled_list = enrolled_list or []
+    repaired_list = repaired_list or []
+    if not replenished_list and not enrolled_list and not repaired_list:
         return
     try:
         from django.core.mail import send_mail
         today = datetime.now().strftime('%Y-%m-%d')
-        lines = ["ORCID ID | Email"]
-        lines.append("-" * 50)
-        for entry in replenished_list:
-            lines.append("%s | %s" % (entry['orcid_id'], entry['email'] or '(none)'))
 
-        body = "ORCID credit replenishment report for %s\n\n" % today
-        body += "Total replenished: %d\n\n" % len(replenished_list)
-        body += "\n".join(lines) + "\n"
+        def section(title, entries, note=''):
+            if not entries:
+                return ''
+            out = "\n%s: %d\n" % (title, len(entries))
+            if note:
+                out += "%s\n" % note
+            out += "-" * 60 + "\n"
+            out += "ORCID ID | Email\n"
+            for entry in entries:
+                out += "%s | %s\n" % (entry['orcid_id'], entry['email'] or '(none)')
+            return out
+
+        body = "ORCID credit report for %s\n" % today
+        body += "\nreplenished=%d  first-time enrolled=%d  tracking repaired=%d\n" % (
+            len(replenished_list), len(enrolled_list), len(repaired_list))
+        body += section("Replenished (annual top-up, user emailed)", replenished_list)
+        body += section(
+            "First-time enrolled (TAIR3-890 - grant had silently failed)", enrolled_list,
+            "These accounts had a linked ORCID but no free units. 50 units granted now.\n"
+            "No user email was sent. A recurring non-zero count here means grants are\n"
+            "still failing during ORCID linking - investigate.")
+        body += section(
+            "Tracking repaired (TAIR3-890 - units were already present)", repaired_list,
+            "Missing OrcidCreditTracking row created; NO units granted (already held active free units).")
 
         send_mail(
-            subject="ORCID Credit Replenishment Report - %s" % today,
+            subject="ORCID Credit Report - %s (replenished %d, enrolled %d, repaired %d)" % (
+                today, len(replenished_list), len(enrolled_list), len(repaired_list)),
             message=body,
             from_email=EMAIL_FROM,
             recipient_list=[REPORT_RECIPIENT],
@@ -153,57 +192,109 @@ def send_report_email(replenished_list):
         log("[report email error] %s" % e)
 
 
-def replenish_one(conn, cur, row, dry_run=False, send_email=True):
+# -----------------------------------------------------------------------------
+# Classification (TAIR3-890)
+# -----------------------------------------------------------------------------
+ACTION_REPLENISH = 'replenish'   # tracking row exists and reissue date passed
+ACTION_ENROLL = 'enroll'         # no tracking row, no active free units -> grant never happened
+ACTION_REPAIR = 'repair'         # no tracking row but free units active -> only tracking missing
+
+
+def classify(row, now):
+    if row['tracking_orcid'] is not None:
+        return ACTION_REPLENISH
+    free_expiry = row['free_expiry_date']
+    if row['user_usage_id'] is not None and free_expiry is not None and free_expiry > now:
+        return ACTION_REPAIR
+    return ACTION_ENROLL
+
+
+def _add_units(cur, row, expiry_str):
+    """Add UNITS_TO_ADD to the account's bucket, creating the bucket if absent."""
+    if row['user_usage_id'] is None:
+        cur.execute("""
+            INSERT INTO UserBucketUsage (partyId_id, partner_id, total_units, remaining_units, free_expiry_date)
+            VALUES (%s, 'tair', %s, %s, %s)
+        """, (row['party_id'], UNITS_TO_ADD, UNITS_TO_ADD, expiry_str))
+        return True
+    cur.execute("""
+        UPDATE UserBucketUsage
+        SET total_units = total_units + %s,
+            remaining_units = remaining_units + %s,
+            free_expiry_date = %s
+        WHERE user_usage_id = %s
+    """, (UNITS_TO_ADD, UNITS_TO_ADD, expiry_str, row['user_usage_id']))
+    return False
+
+
+def _upsert_tracking(cur, orcid_id, reissue_str):
+    """orcid_id is UNIQUE, so this both creates and refreshes the tracking row."""
+    cur.execute("""
+        INSERT INTO OrcidCreditTracking (orcid_id, credit_reissue_date)
+        VALUES (%s, %s)
+        ON DUPLICATE KEY UPDATE credit_reissue_date = VALUES(credit_reissue_date)
+    """, (orcid_id, reissue_str))
+
+
+def process_one(conn, cur, row, action, dry_run=False, send_email=True):
+    """Apply the classified action. Returns True on success."""
     orcid_id = row['orcid_id']
     party_id = row['party_id']
     email = row['email'] or ''
     username = row['username'] or ''
-    user_usage_id = row['user_usage_id']
     total_before = row['total_units'] or 0
     remaining_before = row['remaining_units'] or 0
-    needs_bucket = user_usage_id is None
+
+    now = datetime.now()
+    reissue_str = (now + timedelta(days=REPLENISH_DAYS)).strftime('%Y-%m-%d %H:%M:%S')
 
     if dry_run:
-        extra = " (new bucket)" if needs_bucket else ""
-        log("  [dry run] orcid=%s party_id=%s email=%s -> would add %s units%s" % (orcid_id, party_id, email or '(none)', UNITS_TO_ADD, extra))
+        if action == ACTION_REPAIR:
+            log("  [dry run][repair] orcid=%s party_id=%s -> would create tracking row only (free units still active until %s), NO units, no email"
+                % (orcid_id, party_id, row['free_expiry_date']))
+        elif action == ACTION_ENROLL:
+            extra = " (new bucket)" if row['user_usage_id'] is None else ""
+            log("  [dry run][enroll] orcid=%s party_id=%s email=%s -> would add %s units + create tracking row%s, no email"
+                % (orcid_id, party_id, email or '(none)', UNITS_TO_ADD, extra))
+        else:
+            log("  [dry run][replenish] orcid=%s party_id=%s email=%s -> would add %s units, email"
+                % (orcid_id, party_id, email or '(none)', UNITS_TO_ADD))
         return True
 
-    reissue_date = datetime.now() + timedelta(days=REPLENISH_DAYS)
-    reissue_str = reissue_date.strftime('%Y-%m-%d %H:%M:%S')
-
     try:
-        if needs_bucket:
-            cur.execute("""
-                INSERT INTO UserBucketUsage (partyId_id, partner_id, total_units, remaining_units, free_expiry_date)
-                VALUES (%s, 'tair', %s, %s, %s)
-            """, (party_id, UNITS_TO_ADD, UNITS_TO_ADD, reissue_str))
-            log("  [new bucket] created UserBucketUsage for party_id=%s" % party_id)
-        else:
-            cur.execute("""
-                UPDATE UserBucketUsage
-                SET total_units = total_units + %s,
-                    remaining_units = remaining_units + %s,
-                    free_expiry_date = %s
-                WHERE user_usage_id = %s
-            """, (UNITS_TO_ADD, UNITS_TO_ADD, reissue_str, user_usage_id))
+        if action == ACTION_REPAIR:
+            # Units already granted; only the tracking row is missing. Align the
+            # reissue date to the units the account actually holds so it is not
+            # credited again early and is picked up when those units expire.
+            existing_expiry = row['free_expiry_date'].strftime('%Y-%m-%d %H:%M:%S')
+            _upsert_tracking(cur, orcid_id, existing_expiry)
+            conn.commit()
+            log("  [repair] orcid=%s party_id=%s tracking row created, reissue=%s, no units granted"
+                % (orcid_id, party_id, existing_expiry))
+            return True
 
-        cur.execute("""
-            UPDATE OrcidCreditTracking
-            SET credit_reissue_date = %s
-            WHERE orcid_id = %s
-        """, (reissue_str, orcid_id))
-
+        created_bucket = _add_units(cur, row, reissue_str)
+        _upsert_tracking(cur, orcid_id, reissue_str)
         conn.commit()
+
+        if action == ACTION_ENROLL:
+            # First-time grant: no user email on purpose (the replenishment wording
+            # does not apply). Reported to the admin instead. (TAIR3-890)
+            log("  [enroll] orcid=%s party_id=%s total=%s->%s remaining=%s->%s%s email=none (first-time grant)"
+                % (orcid_id, party_id, total_before, total_before + UNITS_TO_ADD,
+                   remaining_before, remaining_before + UNITS_TO_ADD,
+                   ' [new bucket]' if created_bucket else ''))
+            return True
 
         send_ok = send_notification_email(email, username) if send_email else False
         email_status = 'sent' if send_ok else ('skipped (no Django)' if not send_email else 'skip/fail')
-        log("  orcid=%s party_id=%s total=%s->%s remaining=%s->%s email=%s"
+        log("  [replenish] orcid=%s party_id=%s total=%s->%s remaining=%s->%s email=%s"
             % (orcid_id, party_id, total_before, total_before + UNITS_TO_ADD,
                remaining_before, remaining_before + UNITS_TO_ADD, email_status))
         return True
     except Exception as e:
         conn.rollback()
-        log("  [error] orcid=%s party_id=%s: %s" % (orcid_id, party_id, e))
+        log("  [error][%s] orcid=%s party_id=%s: %s" % (action, orcid_id, party_id, e))
         return False
 
 
@@ -242,18 +333,32 @@ def main():
 
     ok = 0
     fail = 0
-    replenished = []
+    now = datetime.now()
+    by_action = {ACTION_REPLENISH: [], ACTION_ENROLL: [], ACTION_REPAIR: []}
+    seen_orcids = set()
+
     for row in eligible:
-        if replenish_one(conn, cur, row, dry_run=dry_run, send_email=send_email):
+        # An ORCID can appear on more than one TAIR credential; only act once per
+        # ORCID per run so the same grant is not applied twice.
+        if row['orcid_id'] in seen_orcids:
+            log("  [skip] orcid=%s already processed this run (duplicate credential)" % row['orcid_id'])
+            continue
+        action = classify(row, now)
+        if process_one(conn, cur, row, action, dry_run=dry_run, send_email=send_email):
             ok += 1
-            replenished.append({'orcid_id': row['orcid_id'], 'email': row['email'] or ''})
+            seen_orcids.add(row['orcid_id'])
+            by_action[action].append({'orcid_id': row['orcid_id'], 'email': row['email'] or ''})
         else:
             fail += 1
 
-    if replenished and send_email:
-        send_report_email(replenished)
+    if send_email:
+        send_report_email(by_action[ACTION_REPLENISH], by_action[ACTION_ENROLL], by_action[ACTION_REPAIR])
 
-    log("Replenish ORCID credits: %d eligible, %d ok, %d failed" % (len(eligible), ok, fail))
+    log("Replenish ORCID credits: %d eligible, %d ok, %d failed "
+        "(replenished=%d, first-time enrolled=%d, tracking repaired=%d)%s"
+        % (len(eligible), ok, fail,
+           len(by_action[ACTION_REPLENISH]), len(by_action[ACTION_ENROLL]), len(by_action[ACTION_REPAIR]),
+           " (dry run)" if dry_run else ""))
     cur.close()
     conn.close()
     if fail > 0:
