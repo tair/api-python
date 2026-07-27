@@ -21,13 +21,19 @@ classified into one of three actions:
    tracking row aligned to the existing free_expiry_date and grants NO units, so the
    account is not double-credited. No user email.
 
-Actions 2 and 3 mean any future silent failure is corrected automatically by the next
-nightly run, and cover the backfill of the accounts already affected.
+Actions 2 and 3 are OPT-IN via --heal and are NOT part of the nightly cron, so no
+units are ever granted to a new account without someone explicitly asking for it.
+Without --heal this script behaves exactly as it did before (replenish only).
 
 Usage:
-  python scripts/replenishOrcidCredits.py
+  python scripts/replenishOrcidCredits.py                    # nightly: replenish only
   python scripts/replenishOrcidCredits.py --dry-run
   python scripts/replenishOrcidCredits.py --orcid 0009-0000-0624-7467   # single ORCID only
+
+  # One-off self-heal / backfill of accounts whose grant silently failed (TAIR3-890).
+  # Always dry-run first and check the counts.
+  python scripts/replenishOrcidCredits.py --heal --dry-run
+  python scripts/replenishOrcidCredits.py --heal
 
 Run once per day via cron, e.g.:
   0 3 * * * cd /var/www/api-python && python scripts/replenishOrcidCredits.py >> /var/log/api/orcid_replenish.log 2>&1
@@ -103,20 +109,33 @@ LEFT JOIN OrcidCreditTracking t ON o.orcid_id = t.orcid_id
 WHERE o.orcid_id IS NOT NULL
   AND o.orcid_id != ''
   AND c.partnerId = 'tair'
-  AND (
-        t.orcid_id IS NULL
-     OR (t.credit_reissue_date IS NOT NULL AND t.credit_reissue_date <= NOW())
-  )
+  AND (%(eligibility)s)
 ORDER BY o.orcid_id
 """
 
+# Accounts already enrolled whose reissue date has passed - the nightly case.
+REPLENISH_ELIGIBILITY = """t.orcid_id IS NOT NULL
+       AND t.credit_reissue_date IS NOT NULL
+       AND t.credit_reissue_date <= NOW()"""
 
-def fetch_eligible(cur, orcid_id=None):
+# Adds accounts that were never enrolled (grant silently failed). --heal only.
+HEAL_ELIGIBILITY = REPLENISH_ELIGIBILITY + """
+    OR t.orcid_id IS NULL"""
+
+
+def build_eligible_query(heal):
+    return ELIGIBLE_QUERY % {
+        'eligibility': HEAL_ELIGIBILITY if heal else REPLENISH_ELIGIBILITY
+    }
+
+
+def fetch_eligible(cur, orcid_id=None, heal=False):
+    query = build_eligible_query(heal)
     if orcid_id:
-        q = ELIGIBLE_QUERY.replace("ORDER BY o.orcid_id", "AND o.orcid_id = %s\nORDER BY o.orcid_id")
+        q = query.replace("ORDER BY o.orcid_id", "AND o.orcid_id = %s\nORDER BY o.orcid_id")
         cur.execute(q, (orcid_id,))
     else:
-        cur.execute(ELIGIBLE_QUERY)
+        cur.execute(query)
     return cur.fetchall()
 
 
@@ -300,6 +319,9 @@ def process_one(conn, cur, row, action, dry_run=False, send_email=True):
 
 def main():
     dry_run = '--dry-run' in sys.argv
+    # TAIR3-890 self-heal is opt-in: the nightly cron runs without it and only
+    # replenishes already-enrolled accounts.
+    heal = '--heal' in sys.argv
     orcid_filter = None
     if '--orcid' in sys.argv:
         i = sys.argv.index('--orcid')
@@ -323,7 +345,9 @@ def main():
     )
     cur = conn.cursor(MySQLdb.cursors.DictCursor)
 
-    eligible = fetch_eligible(cur, orcid_id=orcid_filter)
+    log("Mode: %s%s" % ("replenish + self-heal (--heal)" if heal else "replenish only",
+                        " (dry run)" if dry_run else ""))
+    eligible = fetch_eligible(cur, orcid_id=orcid_filter, heal=heal)
 
     if not eligible:
         log("Replenish ORCID credits: 0 eligible, 0 ok, 0 failed" + (" (dry run)" if dry_run else ""))
@@ -344,6 +368,10 @@ def main():
             log("  [skip] orcid=%s already processed this run (duplicate credential)" % row['orcid_id'])
             continue
         action = classify(row, now)
+        if action != ACTION_REPLENISH and not heal:
+            # Belt and braces: without --heal we never grant to a new account.
+            log("  [skip] orcid=%s needs %s but --heal was not given" % (row['orcid_id'], action))
+            continue
         if process_one(conn, cur, row, action, dry_run=dry_run, send_email=send_email):
             ok += 1
             seen_orcids.add(row['orcid_id'])
