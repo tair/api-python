@@ -21,19 +21,16 @@ classified into one of three actions:
    tracking row aligned to the existing free_expiry_date and grants NO units, so the
    account is not double-credited. No user email.
 
-Actions 2 and 3 are OPT-IN via --heal and are NOT part of the nightly cron, so no
-units are ever granted to a new account without someone explicitly asking for it.
-Without --heal this script behaves exactly as it did before (replenish only).
+Actions 2 and 3 run as part of the normal nightly job, so a grant that fails at
+ORCID-link time is corrected within a day and the accounts already affected are
+picked up on the first run. Both only ever touch accounts that are entitled to
+units but do not have them; --no-heal restricts the run to action 1 if needed.
 
 Usage:
-  python scripts/replenishOrcidCredits.py                    # nightly: replenish only
+  python scripts/replenishOrcidCredits.py                    # nightly: replenish + self-heal
   python scripts/replenishOrcidCredits.py --dry-run
+  python scripts/replenishOrcidCredits.py --no-heal          # action 1 only
   python scripts/replenishOrcidCredits.py --orcid 0009-0000-0624-7467   # single ORCID only
-
-  # One-off self-heal / backfill of accounts whose grant silently failed (TAIR3-890).
-  # Always dry-run first and check the counts.
-  python scripts/replenishOrcidCredits.py --heal --dry-run
-  python scripts/replenishOrcidCredits.py --heal
 
 Run once per day via cron, e.g.:
   0 3 * * * cd /var/www/api-python && python scripts/replenishOrcidCredits.py >> /var/log/api/orcid_replenish.log 2>&1
@@ -118,7 +115,7 @@ REPLENISH_ELIGIBILITY = """t.orcid_id IS NOT NULL
        AND t.credit_reissue_date IS NOT NULL
        AND t.credit_reissue_date <= NOW()"""
 
-# Adds accounts that were never enrolled (grant silently failed). --heal only.
+# Adds accounts that were never enrolled (grant silently failed). Default; off with --no-heal.
 HEAL_ELIGIBILITY = REPLENISH_ELIGIBILITY + """
     OR t.orcid_id IS NULL"""
 
@@ -319,9 +316,9 @@ def process_one(conn, cur, row, action, dry_run=False, send_email=True):
 
 def main():
     dry_run = '--dry-run' in sys.argv
-    # TAIR3-890 self-heal is opt-in: the nightly cron runs without it and only
-    # replenishes already-enrolled accounts.
-    heal = '--heal' in sys.argv
+    # TAIR3-890 self-heal runs by default so failed grants are corrected within a
+    # day; --no-heal restricts the run to plain replenishment.
+    heal = '--no-heal' not in sys.argv
     orcid_filter = None
     if '--orcid' in sys.argv:
         i = sys.argv.index('--orcid')
@@ -345,7 +342,7 @@ def main():
     )
     cur = conn.cursor(MySQLdb.cursors.DictCursor)
 
-    log("Mode: %s%s" % ("replenish + self-heal (--heal)" if heal else "replenish only",
+    log("Mode: %s%s" % ("replenish + self-heal" if heal else "replenish only (--no-heal)",
                         " (dry run)" if dry_run else ""))
     eligible = fetch_eligible(cur, orcid_id=orcid_filter, heal=heal)
 
@@ -370,7 +367,7 @@ def main():
         action = classify(row, now)
         if action != ACTION_REPLENISH and not heal:
             # Belt and braces: without --heal we never grant to a new account.
-            log("  [skip] orcid=%s needs %s but --heal was not given" % (row['orcid_id'], action))
+            log("  [skip] orcid=%s needs %s but self-heal is disabled (--no-heal)" % (row['orcid_id'], action))
             continue
         if process_one(conn, cur, row, action, dry_run=dry_run, send_email=send_email):
             ok += 1
