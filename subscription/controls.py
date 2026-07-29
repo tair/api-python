@@ -6,6 +6,7 @@ from dateutil.parser import parse
 import json
 import string
 from django.utils import timezone
+from django.db import transaction
 from partner.models import SubscriptionTerm, BucketType, Partner
 from authentication.models import Credential, OrcidCredentials, OrcidCreditTracking
 from subscription.models import *
@@ -124,34 +125,42 @@ class SubscriptionControl():
         except OrcidCreditTracking.DoesNotExist:
             pass
 
-        userBucketUsageSet = UserBucketUsage.objects.all().filter(partyId=partyId)
-        if len(userBucketUsageSet) == 0:
-            userBucketUsage = None
-        else:
-            userBucketUsage = userBucketUsageSet[0]
+        # Granting units and recording the grant must land together. These are two
+        # separate writes and ATOMIC_REQUESTS is off, so without an explicit
+        # transaction anything that interrupts the request in between (worker
+        # recycle, client disconnect) commits the units but loses the tracking row.
+        # The account then holds free units with nothing recording that it was
+        # granted, which is invisible until someone audits it. Both tables are
+        # InnoDB, so this is enforced. (TAIR3-890)
+        with transaction.atomic():
+            userBucketUsageSet = UserBucketUsage.objects.all().filter(partyId=partyId)
+            if len(userBucketUsageSet) == 0:
+                userBucketUsage = None
+            else:
+                userBucketUsage = userBucketUsageSet[0]
 
-        if userBucketUsage is None:
-            userBucketUsage = UserBucketUsage()
-            userBucketUsage.partyId = Party.objects.get(partyId=partyId)
-            userBucketUsage.partner_id = 'tair'
-            userBucketUsage.total_units = units
-            userBucketUsage.remaining_units = units
-            userBucketUsage.free_expiry_date = now + timedelta(days=365)
-            userBucketUsage.save()
-        else:
-            if userBucketUsage.free_expiry_date is not None and now < userBucketUsage.free_expiry_date:
-                raise Exception("Free usage units cannot be added until previous units expired.")
-            userBucketUsage.total_units += units
-            userBucketUsage.remaining_units += units
-            userBucketUsage.free_expiry_date = now + timedelta(days=365)
-            userBucketUsage.save()
+            if userBucketUsage is None:
+                userBucketUsage = UserBucketUsage()
+                userBucketUsage.partyId = Party.objects.get(partyId=partyId)
+                userBucketUsage.partner_id = 'tair'
+                userBucketUsage.total_units = units
+                userBucketUsage.remaining_units = units
+                userBucketUsage.free_expiry_date = now + timedelta(days=365)
+                userBucketUsage.save()
+            else:
+                if userBucketUsage.free_expiry_date is not None and now < userBucketUsage.free_expiry_date:
+                    raise Exception("Free usage units cannot be added until previous units expired.")
+                userBucketUsage.total_units += units
+                userBucketUsage.remaining_units += units
+                userBucketUsage.free_expiry_date = now + timedelta(days=365)
+                userBucketUsage.save()
 
-        # Record reissue date per ORCID so the same ORCID cannot get credits again on another account
-        reissue_date = now + timedelta(days=365)
-        OrcidCreditTracking.objects.update_or_create(
-            orcid_id=orcid_id,
-            defaults={'credit_reissue_date': reissue_date}
-        )
+            # Record reissue date per ORCID so the same ORCID cannot get credits again on another account
+            reissue_date = now + timedelta(days=365)
+            OrcidCreditTracking.objects.update_or_create(
+                orcid_id=orcid_id,
+                defaults={'credit_reissue_date': reissue_date}
+            )
         return userBucketUsage
     
     @staticmethod
