@@ -13,6 +13,7 @@ from subscription.models import *
 from party.models import Party
 from django.core.mail import send_mail
 from common.utils.cipresUtils import APICaller
+from common.utils.dateUtils import last_second_of_day
 from common.utils.cyverseUtils import CyVerseClient
 
 import logging
@@ -187,8 +188,7 @@ class SubscriptionControl():
             subscription.partnerId = partnerObj
             subscription.partyId = partyObj
             subscription.startDate = now
-            # Second precision: MySQL DateTime without fractional seconds rounds .999999 to the next day.
-            subscription.endDate = (now + timedelta(days=period)).replace(hour=23, minute=59, second=59, microsecond=0)
+            subscription.endDate = last_second_of_day(now + timedelta(days=period))
 
             transactionType = 'create'
             transactionStartDate = subscription.startDate
@@ -197,13 +197,13 @@ class SubscriptionControl():
             endDate = subscription.endDate
             if (endDate<now):
                 # case2: expired subscription
-                subscription.endDate = (now + timedelta(days=period)).replace(hour=23, minute=59, second=59, microsecond=0)
+                subscription.endDate = last_second_of_day(now + timedelta(days=period))
                 transactionType = 'renew'
                 transactionStartDate = now
                 transactionEndDate = subscription.endDate
             else:
                 # case3: active subscription
-                subscription.endDate = (endDate + timedelta(days=period)).replace(hour=23, minute=59, second=59, microsecond=0)
+                subscription.endDate = last_second_of_day(endDate + timedelta(days=period))
                 transactionType = 'renew'
                 transactionStartDate = endDate
                 transactionEndDate = subscription.endDate

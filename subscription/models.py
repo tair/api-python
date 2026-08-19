@@ -85,6 +85,10 @@ class Subscription(models.Model):
                                    .filter(startDate__lt=now)
 
     @staticmethod
+    def endingBetween(start, end):
+        return Subscription.objects.filter(endDate__gte=start, endDate__lte=end)
+
+    @staticmethod
     def getActiveById(partyId, partnerId):
         subscriptionQuerySet = Subscription.getById(partyId) \
                                                    .filter(partnerId=partnerId)
@@ -110,6 +114,14 @@ class Subscription(models.Model):
     class Meta:
         db_table = "Subscription"
         unique_together = ("partyId", "partnerId")
+
+class SubscriptionExpirationNotificationLog(models.Model):
+    run_date = models.DateTimeField(null=False)
+    success = models.BooleanField(default=False)
+    message = models.CharField(max_length=1000, null=True)
+
+    class Meta:
+        db_table = "SubscriptionExpirationNotificationLog"
 
 class ActivationCode(models.Model):
     activationCodeId = models.AutoField(primary_key=True)
