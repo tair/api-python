@@ -335,7 +335,12 @@ def resetPwd(request):
     requestUsername = request.GET.get('user')
     requestPartner = request.GET.get('partnerId')
     user = Credential.objects.filter(partnerId=requestPartner).filter(username__iexact=requestUsername)#PW-125 TODO
-    partnerObj = Partner.objects.get(partnerId=requestPartner)
+    try:
+      partnerObj = Partner.objects.get(partnerId=requestPartner)
+    except Partner.DoesNotExist:
+      # An unrecognized partnerId is a caller error, not a server fault. Without
+      # this the lookup raises and the caller only sees an opaque 500.
+      return HttpResponse(json.dumps({"message": "Unknown partnerId"}), status=400)
     #partnerObj = Partner.objects.get(partnerId=user.partnerId)
     if user: 
       user = user.first()
