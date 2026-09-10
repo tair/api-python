@@ -325,6 +325,13 @@ def login(request):
     logger.info("Authentication Login %s, %s: \n %s %s %s" % (ip, msg, requestUser, requestHashedPassword, request.GET['partnerId']))
     return HttpResponse(json.dumps({"message":msg}), status=401)
 
+# Used when a partner has no resetPasswordEmailBody of its own.
+DEFAULT_RESET_PASSWORD_EMAIL_BODY = (
+    "username: %s (%s)\n"
+    "Your temp password is %s\n\n"
+    "Please log on to your account and change your password."
+)
+
 #/credentials/resetPwd/
 def resetPwd(request):
   if request.method == 'PUT':
@@ -345,8 +352,7 @@ def resetPwd(request):
     if user: 
       user = user.first()
       password = ''.join(random.choice(string.ascii_uppercase + string.digits) for _ in range(8))
-      user.password=hashlib.sha1(password).hexdigest()
-      user.save()
+      hashedPassword = hashlib.sha1(password).hexdigest()
       
       subject = "Temporary password for %s (%s)" % (user.username, user.email)#PW-215 unlikely
       '''
@@ -354,15 +360,29 @@ def resetPwd(request):
                 "Please log on to your account and change your password." \
                 % (user.username, user.email, password)#PW-215
       '''          
-      message = partnerObj.resetPasswordEmailBody % (user.username, user.email, password)
+      # Not every partner has a body configured; without a fallback the format
+      # below raises part-way through the reset.
+      emailBody = partnerObj.resetPasswordEmailBody or DEFAULT_RESET_PASSWORD_EMAIL_BODY
                 
       from_email = "info@phoenixbioinformatics.org"
       
       recipient_list = [user.email]
-      send_mail(subject=subject, message=message, from_email=from_email, recipient_list=recipient_list)
+      # Send before storing. If delivery fails the user keeps a password that
+      # still works; storing first would leave them locked out of an account
+      # whose new password never reached them.
+      try:
+        message = emailBody % (user.username, user.email, password)
+        send_mail(subject=subject, message=message, from_email=from_email, recipient_list=recipient_list)
+      except Exception:
+        logger.exception("Authentication resetPwd could not email %s" % user.email)
+        return HttpResponse(json.dumps({"message": "Could not send the reset email"}), status=503)
+
+      user.password = hashedPassword
+      user.save()
             
       return HttpResponse(json.dumps({'reset pwd':'success', 'username':user.username, 'useremail':user.email, 'temppwd':user.password}), content_type="application/json")#PW-215 unlikely
     return HttpResponse(json.dumps({"reset pwd failed":"No such user"}), status=401)
+  return HttpResponse(json.dumps({"message": "Method not allowed"}), status=405)
 
 #/credentials/register/
 #https://demoapi.arabidopsis.org/credentials/register
