@@ -372,9 +372,15 @@ def resetPwd(request):
       # whose new password never reached them.
       try:
         message = emailBody % (user.username, user.email, password)
-        send_mail(subject=subject, message=message, from_email=from_email, recipient_list=recipient_list)
+        delivered = send_mail(subject=subject, message=message, from_email=from_email, recipient_list=recipient_list)
       except Exception:
         logger.exception("Authentication resetPwd could not email %s" % user.email)
+        return HttpResponse(json.dumps({"message": "Could not send the reset email"}), status=503)
+
+      # send_mail reports how many messages it delivered; a backend can return
+      # zero without raising, and that must not rotate the password either.
+      if delivered != 1:
+        logger.error("Authentication resetPwd email to %s was not delivered" % user.email)
         return HttpResponse(json.dumps({"message": "Could not send the reset email"}), status=503)
 
       user.password = hashedPassword
