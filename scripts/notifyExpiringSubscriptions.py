@@ -1,12 +1,14 @@
 #!/usr/bin/python
 """
-Email staff one digest of institutional subscriptions approaching expiration.
+Email staff a work list of institutional subscriptions approaching expiration,
+grouped by how soon they end.
 
-Safe to run late, twice, or after a missed day: each run covers the period
-since the last successful one.
+Every run reports the same question independently, so an institution stays on
+the list until it expires or renews. A missed run costs nothing: the next one
+regenerates the whole list.
 
-Run once per day via cron, e.g.:
-  0 4 * * * cd /var/www/api-python && python scripts/notifyExpiringSubscriptions.py
+Run once per week via cron, e.g.:
+  0 4 * * 1 cd /var/www/api-python && python scripts/notifyExpiringSubscriptions.py
 
 Nothing in this repository installs that entry. Timestamped lines go to stdout
 and no log file is opened, so redirect or collect them as the deployment
@@ -16,20 +18,18 @@ import logging
 import os
 import sys
 import traceback
-from datetime import timedelta
 
 import django
 from dateutil.relativedelta import relativedelta
 
 PARTNERS = ('tair',)
 
-LEAD_TIMES = (
-    relativedelta(months=3),
-    relativedelta(months=1),
-    relativedelta(weeks=1),
+EXPIRATION_HORIZONS = (
+    relativedelta(days=7),
+    relativedelta(days=30),
+    relativedelta(days=60),
+    relativedelta(days=90),
 )
-
-BACKFILL_HORIZON = timedelta(days=4)
 
 logger = logging.getLogger('subscription.expirationnotice')
 
@@ -78,12 +78,7 @@ def main():
 
     try:
         from subscription.expirationnotice.notifier import notify
-        notify(
-            partners=PARTNERS,
-            lead_times=LEAD_TIMES,
-            backfill_horizon=BACKFILL_HORIZON,
-            now=now,
-        )
+        notify(PARTNERS, EXPIRATION_HORIZONS, now)
     except Exception as err:
         handle_error(now, err, traceback.format_exc())
         return 1

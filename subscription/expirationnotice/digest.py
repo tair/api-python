@@ -1,54 +1,60 @@
-from collections import namedtuple
-
-from common.utils.dateUtils import relativedelta_sort_key
-
-Due = namedtuple('Due', ['lead_time', 'expiring'])
-
-
-def render(due):
-    return '\n\n'.join(_section(group) for group in _soonest_first(due)) + '\n'
+def render(subscriptions, bounds):
+    return '\n\n'.join(
+        _section(horizon, within)
+        for horizon, within in _group_by_horizon(subscriptions, bounds)
+    ) + '\n'
 
 
-def _soonest_first(due):
-    return sorted(due, key=lambda group: relativedelta_sort_key(group.lead_time))
+def _group_by_horizon(subscriptions, bounds):
+    sections = []
+    remaining = subscriptions
+    for horizon, cutoff in bounds:
+        within = [s for s in remaining if s.end_date <= cutoff]
+        remaining = [s for s in remaining if s.end_date > cutoff]
+        if within:
+            sections.append((horizon, within))
+    return sections
 
 
-def _section(group):
-    heading = _heading(group.lead_time)
+def _section(horizon, subscriptions):
+    heading = _heading(horizon)
     lines = [heading, '-' * len(heading)]
-    for expiring in group.expiring:
-        lines.append(_line(expiring))
+    for subscription in subscriptions:
+        lines.append(_line(subscription))
     return '\n'.join(lines)
 
 
-def _heading(lead_time):
-    return 'Expiring within %s' % _in_words(lead_time)
+def _heading(horizon):
+    return 'Expiring within %s' % _in_words(horizon)
 
 
-def _in_words(lead_time):
-    count, unit = _largest_whole_unit(lead_time)
+def _in_words(horizon):
+    count, unit = _largest_whole_unit(horizon)
     if count == 1:
         return 'a %s' % unit
     return '%d %ss' % (count, unit)
 
 
-def _largest_whole_unit(lead_time):
-    if lead_time.years and not lead_time.months:
-        return lead_time.years, 'year'
-    months = lead_time.years * 12 + lead_time.months
+def _largest_whole_unit(horizon):
+    if horizon.years and not horizon.months:
+        return horizon.years, 'year'
+    months = horizon.years * 12 + horizon.months
     if months:
         return months, 'month'
-    if lead_time.days and lead_time.days % 7 == 0:
-        return lead_time.days // 7, 'week'
-    if lead_time.days:
-        return lead_time.days, 'day'
-    raise ValueError('no wording for %r' % lead_time)
+    if horizon.days and horizon.days % 7 == 0:
+        return horizon.days // 7, 'week'
+    if horizon.days:
+        return horizon.days, 'day'
+    raise ValueError('no wording for %r' % horizon)
 
 
-def _line(expiring):
-    return '  %s  %s  (%s, %s)' % (
-        expiring.end_date.strftime('%Y-%m-%d'),
-        expiring.name,
-        expiring.partner_id,
-        expiring.party_type,
+def _line(subscription):
+    parenthetical = [subscription.party_type]
+    if subscription.start_date is not None:
+        parenthetical.append('started %s'
+                             % subscription.start_date.strftime('%Y-%m-%d'))
+    return '  %s  %s  (%s)' % (
+        subscription.end_date.strftime('%Y-%m-%d'),
+        subscription.name,
+        ', '.join(parenthetical),
     )

@@ -10,12 +10,13 @@ SENDER = 'subscriptions@phoenixbioinformatics.org'
 RECIPIENTS = ('techteam@arabidopsis.org', 'info@phoenixbioinformatics.org')
 
 
-def send(due):
-    count = sum(len(group.expiring) for group in due)
+def send(subscriptions, bounds):
     send_mail(
-        subject='Institutional subscriptions approaching expiration (%d)' % count,
-        message=digest.render(due),
+        subject='Institutional subscriptions approaching expiration (%d)'
+                % len(subscriptions),
+        message=digest.render(subscriptions, bounds),
         from_email=SENDER,
         recipient_list=list(RECIPIENTS),
     )
-    logger.info('reminder for %d sent to %s', count, ', '.join(RECIPIENTS))
+    logger.info('reminder for %d sent to %s', len(subscriptions),
+                ', '.join(RECIPIENTS))
