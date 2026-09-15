@@ -16,7 +16,7 @@ import traceback
 
 import django
 
-logger = logging.getLogger('subscription.expirationnotice')
+logger = None
 
 
 def bootstrap_django():
@@ -29,6 +29,12 @@ def bootstrap_django():
 
 
 def configure_logging():
+    # Fetched here rather than at import. django.setup() runs dictConfig over
+    # settings.LOGGING, which names no disable_existing_loggers and so defaults
+    # it to True, disabling every logger that already exists and is not in it.
+    global logger
+    logger = logging.getLogger('subscription.expirationnotice')
+
     handler = logging.StreamHandler(sys.stdout)
     handler.setFormatter(
         logging.Formatter('%(asctime)s %(message)s', '%Y-%m-%d %H:%M:%S')
