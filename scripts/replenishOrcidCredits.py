@@ -286,7 +286,9 @@ def send_report_email(replenished_list, enrolled_list=None, repaired_list=None, 
     """
     enrolled_list = enrolled_list or []
     repaired_list = repaired_list or []
-    if not replenished_list and not enrolled_list and not repaired_list:
+    # fail counts too: an all-accounts-failed run has three empty lists and is the
+    # single most important run to report.
+    if not replenished_list and not enrolled_list and not repaired_list and not fail:
         return
     try:
         from django.core.mail import send_mail
