@@ -5,7 +5,6 @@ from subscription.models import Subscription
 INSTITUTIONAL_PARTY_TYPES = ('organization', 'consortium')
 
 Expiring = namedtuple('Expiring', [
-    'party_type',
     'name',
     'start_date',
     'end_date',
@@ -15,7 +14,6 @@ Expiring = namedtuple('Expiring', [
 def between(partners, start, end):
     return [
         Expiring(
-            party_type=s.partyId.partyType,
             name=s.partyId.name,
             start_date=s.startDate,
             end_date=s.endDate,

@@ -1,8 +1,29 @@
+from django.utils.html import escape
+
+BODY_STYLE = ('margin: 0; padding: 16px 16px 24px; color: #222222; '
+              'font-family: Helvetica, Arial, sans-serif; font-size: 14px;')
+TABLE_STYLE = 'border-collapse: collapse;'
+TH_STYLE = ('padding: 0 24px 4px 0; text-align: left; font-weight: bold; '
+            'white-space: nowrap; border-bottom: 1px solid #999999;')
+HEADING_STYLE = ('padding: 18px 24px 4px 0; text-align: left; '
+                 'font-weight: bold; white-space: nowrap;')
+TD_STYLE = ('padding: 4px 24px 4px 0; text-align: left; '
+            'vertical-align: top; border-bottom: 1px solid #dddddd;')
+DATE_STYLE = TD_STYLE + ' white-space: nowrap;'
+
+COLUMNS = ('Ends', 'Institution', 'Started')
+
+
 def render(subscriptions, bounds):
-    return '\n\n'.join(
-        _section(horizon, within)
-        for horizon, within in _group_by_horizon(subscriptions, bounds)
-    ) + '\n'
+    # One table across every section, so the columns line up down the whole
+    # message rather than being re-measured per section.
+    return '<html><body style="%s"><table style="%s">%s%s</table></body></html>' % (
+        BODY_STYLE,
+        TABLE_STYLE,
+        _column_headings(),
+        ''.join(_section(horizon, within)
+                for horizon, within in _group_by_horizon(subscriptions, bounds)),
+    )
 
 
 def _group_by_horizon(subscriptions, bounds):
@@ -16,12 +37,23 @@ def _group_by_horizon(subscriptions, bounds):
     return sections
 
 
+def _column_headings():
+    return '<tr>%s</tr>' % ''.join(
+        '<th style="%s">%s</th>' % (TH_STYLE, column) for column in COLUMNS
+    )
+
+
 def _section(horizon, subscriptions):
-    heading = _heading(horizon)
-    lines = [heading, '-' * len(heading)]
-    for subscription in subscriptions:
-        lines.append(_line(subscription))
-    return '\n'.join(lines)
+    return '%s%s' % (
+        _heading_row(horizon),
+        ''.join(_row(subscription) for subscription in subscriptions),
+    )
+
+
+def _heading_row(horizon):
+    return '<tr><th colspan="%d" style="%s">%s</th></tr>' % (
+        len(COLUMNS), HEADING_STYLE, escape(_heading(horizon)),
+    )
 
 
 def _heading(horizon):
@@ -48,13 +80,18 @@ def _largest_whole_unit(horizon):
     raise ValueError('no wording for %r' % horizon)
 
 
-def _line(subscription):
-    parenthetical = [subscription.party_type]
-    if subscription.start_date is not None:
-        parenthetical.append('started %s'
-                             % subscription.start_date.strftime('%Y-%m-%d'))
-    return '  %s  %s  (%s)' % (
-        subscription.end_date.strftime('%Y-%m-%d'),
-        subscription.name,
-        ', '.join(parenthetical),
+def _row(subscription):
+    cells = (
+        (DATE_STYLE, _date(subscription.end_date)),
+        (TD_STYLE, subscription.name),
+        (DATE_STYLE, _date(subscription.start_date)),
     )
+    return '<tr>%s</tr>' % ''.join(
+        '<td style="%s">%s</td>' % (style, escape(value)) for style, value in cells
+    )
+
+
+def _date(moment):
+    if moment is None:
+        return ''
+    return moment.strftime('%Y-%m-%d')
