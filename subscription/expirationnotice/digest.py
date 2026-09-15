@@ -9,7 +9,7 @@ TD_STYLE = ('padding: 4px 24px 4px 0; text-align: left; '
             'vertical-align: top; border-bottom: 1px solid #dddddd;')
 DATE_STYLE = TD_STYLE + ' white-space: nowrap;'
 
-COLUMNS = ('Ends', 'Institution', 'Started')
+COLUMNS = ('End Date', 'Institution', 'Start Date')
 
 
 def render(subscriptions):

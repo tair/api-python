@@ -1,15 +1,19 @@
 import logging
 
-from common.utils.dateUtils import start_of_day
+from dateutil.relativedelta import relativedelta
 
-from . import expirationReminder, expirationWindows, expiring, runLog
+from common.utils.dateUtils import last_second_of_day, start_of_day
+
+from . import expirationReminder, expiring, runLog
 
 logger = logging.getLogger(__name__)
 
+EXPIRATION_HORIZON = relativedelta(months=1)
 
-def notify(horizon, now):
+
+def notify(now):
     start = start_of_day(now)
-    end = expirationWindows.cutoff(horizon, now)
+    end = last_second_of_day(now) + EXPIRATION_HORIZON
 
     subscriptions = expiring.between(start, end)
     logger.info('[%s .. %s] %d expiring', start, end, len(subscriptions))
