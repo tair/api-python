@@ -1,14 +1,18 @@
 #!/usr/bin/python
 """
-Email staff a work list of institutional subscriptions approaching expiration,
-grouped by how soon they end.
+Email staff the institutional subscriptions expiring over the coming month.
 
-Every run reports the same question independently, so an institution stays on
-the list until it expires or renews. A missed run costs nothing: the next one
-regenerates the whole list.
+Every run reports the same question independently, so there is nothing to
+remember between runs and a missed run costs nothing: the next one regenerates
+the whole list.
 
-Run once per week via cron, e.g.:
-  0 4 * * 1 cd /var/www/api-python && python scripts/notifyExpiringSubscriptions.py
+The horizon is a month rather than 30 days so that a run always reaches the
+next one whatever the month length. At 30 days, a subscription ending 31 days
+after a run falls past that run's cutoff and is first reported by the run that
+lands on the day it expires.
+
+Run once a month via cron, e.g.:
+  0 4 1 * * cd /var/www/api-python && python scripts/notifyExpiringSubscriptions.py
 
 Nothing in this repository installs that entry. Timestamped lines go to stdout
 and no log file is opened, so redirect or collect them as the deployment
@@ -22,14 +26,7 @@ import traceback
 import django
 from dateutil.relativedelta import relativedelta
 
-PARTNERS = ('tair',)
-
-EXPIRATION_HORIZONS = (
-    relativedelta(days=7),
-    relativedelta(days=30),
-    relativedelta(days=60),
-    relativedelta(days=90),
-)
+EXPIRATION_HORIZON = relativedelta(months=1)
 
 logger = logging.getLogger('subscription.expirationnotice')
 
@@ -78,7 +75,7 @@ def main():
 
     try:
         from subscription.expirationnotice.notifier import notify
-        notify(PARTNERS, EXPIRATION_HORIZONS, now)
+        notify(EXPIRATION_HORIZON, now)
     except Exception as err:
         handle_error(now, err, traceback.format_exc())
         return 1

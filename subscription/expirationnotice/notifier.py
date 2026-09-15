@@ -7,16 +7,15 @@ from . import expirationReminder, expirationWindows, expiring, runLog
 logger = logging.getLogger(__name__)
 
 
-def notify(partners, horizons, now):
-    bounds = expirationWindows.cutoffs(horizons, now)
-    _, furthest = bounds[-1]
+def notify(horizon, now):
     start = start_of_day(now)
+    end = expirationWindows.cutoff(horizon, now)
 
-    subscriptions = expiring.between(partners, start, furthest)
-    logger.info('[%s .. %s] %d expiring', start, furthest, len(subscriptions))
+    subscriptions = expiring.between(start, end)
+    logger.info('[%s .. %s] %d expiring', start, end, len(subscriptions))
 
     if subscriptions:
-        expirationReminder.send(subscriptions, bounds)
+        expirationReminder.send(subscriptions)
 
     runLog.record(run_date=now, success=True)
     return subscriptions

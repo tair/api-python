@@ -1,6 +1,6 @@
 #!/usr/bin/python
 """
-Tests for the cutoffs a run computes.
+Tests for the cutoff a run computes.
 
 The digest itself is not tested here. Its only public surface returns a
 rendered string, so every assertion against it is a substring match on
@@ -8,7 +8,7 @@ presentation -- weaker evidence than looking at a rendered sample, and a
 standing cost every time the presentation changes. Render a sample and read it
 instead.
 
-What is left is date arithmetic: data in, data out, and two traps that are
+What is left is date arithmetic: data in, data out, over traps that are
 invisible in a rendered digest.
 
   python scripts/testNotifyExpiringSubscriptions.py
@@ -24,16 +24,10 @@ if project_root not in sys.path:
 
 from dateutil.relativedelta import relativedelta
 
+from common.utils.dateUtils import start_of_day
 from subscription.expirationnotice import expirationWindows
 
-NOW = datetime(2026, 8, 19, 4, 0, 0)
-
-EXPIRATION_HORIZONS = (
-    relativedelta(days=90),
-    relativedelta(days=7),
-    relativedelta(days=60),
-    relativedelta(days=30),
-)
+MONTH = relativedelta(months=1)
 
 passed = 0
 failed = 0
@@ -49,48 +43,61 @@ def assert_test(name, condition, detail=""):
         print("  FAIL: %s%s" % (name, (" -- %s" % detail) if detail else ""))
 
 
-def test_cutoffs_land_on_the_last_second_of_each_day():
-    print("\nCutoffs")
+def test_the_cutoff_is_the_last_second_of_its_day():
+    print("\nCutoff")
 
-    bounds = expirationWindows.cutoffs(EXPIRATION_HORIZONS, NOW)
+    cutoff = expirationWindows.cutoff(MONTH, datetime(2026, 8, 19, 4, 0, 0))
 
     assert_test(
-        "one cutoff per horizon",
-        len(bounds) == len(EXPIRATION_HORIZONS),
-    )
-    assert_test(
-        "cutoffs come back soonest first whatever order the horizons arrive in",
-        [h.days for h, _ in bounds] == [7, 30, 60, 90],
-    )
-    assert_test(
-        "the furthest cutoff is last, so the caller can take it for the query",
-        bounds[-1][1] == datetime(2026, 11, 17, 23, 59, 59),
-    )
-    assert_test(
-        "every cutoff is the last second of its day",
-        all(c.hour == 23 and c.minute == 59 and c.second == 59 and c.microsecond == 0
-            for _, c in bounds),
+        "the cutoff is the last second of its day",
+        cutoff == datetime(2026, 9, 19, 23, 59, 59),
         "endDate is stored at 23:59:59, and MySQL DATETIME rounds .999999 up a day",
     )
 
 
-def test_cutoffs_do_not_depend_on_the_time_of_day():
+def test_the_cutoff_does_not_depend_on_the_time_of_day():
     print("\nRun time independence")
 
-    early = expirationWindows.cutoffs(EXPIRATION_HORIZONS, datetime(2026, 8, 19, 0, 5, 0))
-    late = expirationWindows.cutoffs(EXPIRATION_HORIZONS, datetime(2026, 8, 19, 23, 50, 0))
+    early = expirationWindows.cutoff(MONTH, datetime(2026, 8, 19, 0, 5, 0))
+    late = expirationWindows.cutoff(MONTH, datetime(2026, 8, 19, 23, 50, 0))
     assert_test(
-        "a run at 00:05 and one at 23:50 ask for the same cutoffs",
+        "a run at 00:05 and one at 23:50 ask for the same cutoff",
         early == late,
         "cron time would otherwise shift which subscriptions are reported",
     )
 
 
-def main():
-    print("Expiration notifier: cutoffs")
+def test_a_run_reaches_the_next_one_whatever_the_month_length():
+    print("\nMonth lengths")
 
-    test_cutoffs_land_on_the_last_second_of_each_day()
-    test_cutoffs_do_not_depend_on_the_time_of_day()
+    # The first of every month of a year that includes a February of 28 days,
+    # paired with the first of the month after it.
+    for month in range(1, 13):
+        run = datetime(2026, month, 1, 4, 0, 0)
+        following = datetime(2026 + month // 12, month % 12 + 1, 1, 4, 0, 0)
+
+        assert_test(
+            "a run on %s covers up to the run on %s"
+            % (run.date(), following.date()),
+            expirationWindows.cutoff(MONTH, run) >= start_of_day(following),
+            "a subscription ending in the gap would first be reported on the "
+            "day it expires",
+        )
+
+    assert_test(
+        "30 days would not, across a 31-day month",
+        expirationWindows.cutoff(relativedelta(days=30), datetime(2026, 1, 1, 4, 0, 0))
+        < start_of_day(datetime(2026, 2, 1, 4, 0, 0)),
+        "this is why the horizon is a month rather than 30 days",
+    )
+
+
+def main():
+    print("Expiration notifier: cutoff")
+
+    test_the_cutoff_is_the_last_second_of_its_day()
+    test_the_cutoff_does_not_depend_on_the_time_of_day()
+    test_a_run_reaches_the_next_one_whatever_the_month_length()
 
     print("\n%d passed, %d failed" % (passed, failed))
     return 1 if failed else 0

@@ -17,12 +17,12 @@ TEXT_ALTERNATIVE = ('This is an HTML message listing institutional '
                     'client that can display HTML.')
 
 
-def send(subscriptions, bounds):
+def send(subscriptions):
     send_mail(
         subject='Institutional subscriptions approaching expiration (%d)'
                 % len(subscriptions),
         message=TEXT_ALTERNATIVE,
-        html_message=digest.render(subscriptions, bounds),
+        html_message=digest.render(subscriptions),
         from_email=SENDER,
         recipient_list=list(RECIPIENTS),
     )
