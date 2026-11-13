@@ -26,6 +26,19 @@ ORCID-link time is corrected within a day and the accounts already affected are
 picked up on the first run. Both only ever touch accounts that are entitled to
 units but do not have them; --no-heal restricts the run to action 1 if needed.
 
+Admin email policy: the admin report is sent ONLY when a run needs attention -
+any account failed, or an enroll/repair happened (both mean the grant at
+ORCID-link time is still broken). A run that just does its scheduled top-ups
+sends no admin email. An unhandled abort (e.g. DB down) also emails.
+User-facing replenishment emails are unaffected and still go out per account.
+
+Every run publishes CloudWatch metrics (namespace PhoenixJobs, dimension
+Job=OrcidCreditReplenish): RunSuccess, Replenished, Enrolled, Repaired, Failed.
+RunSuccess backs the "job stopped running" alarm, which treats a missing
+datapoint as breaching - so a cron that never fires alarms like a failure.
+If the publish fails the run is appended to
+/var/log/api/orcid_replenish_history.tsv as a local fallback.
+
 Usage:
   python scripts/replenishOrcidCredits.py                    # nightly: replenish + self-heal
   python scripts/replenishOrcidCredits.py --dry-run
@@ -55,6 +68,25 @@ REPLENISH_DAYS = 365
 EMAIL_SUBJECT = "Your annual complimentary TAIR usage units have been replenished"
 EMAIL_FROM = "Phoenix Bioinformatics <info@phoenixbioinformatics.org>"
 REPORT_RECIPIENT = "swapnil.sawant@arabidopsis.org"
+
+# The admin report is sent ONLY when a run needs attention (see run_has_issue).
+# Every run - clean or not - publishes CloudWatch metrics instead, so "did it
+# run?" is answerable without an email for every quiet night.
+#
+# This box (AWS account 582474249410) carries the EC2Role4CloudWatch instance
+# role, which grants PutMetricData and nothing else - it can publish but cannot
+# read metrics or manage alarms. The alarm lives in that account, created out
+# of band. RunSuccess is the dead-man's switch: a MISSING datapoint is treated
+# as breaching, so a cron that never fires alarms like a failure.
+CW_NAMESPACE = "PhoenixJobs"
+CW_JOB = "OrcidCreditReplenish"
+CW_REGION = "us-west-2"
+AWS_CLI = "/usr/bin/aws"
+
+# Local fallback, written only when the CloudWatch publish fails, so a run is
+# never left with no record at all.
+HISTORY_FILE = "/var/log/api/orcid_replenish_history.tsv"
+HISTORY_HEADER = "timestamp\tstatus\teligible\tok\tfail\treplenished\tenrolled\trepaired\tnote"
 EMAIL_BODY_TEMPLATE = """\
 Dear TAIR user,
 
@@ -156,8 +188,97 @@ def send_notification_email(to_email, username):
         return False
 
 
-def send_report_email(replenished_list, enrolled_list=None, repaired_list=None):
-    """Send a summary report to the admin.
+def run_has_issue(fail, enrolled_list, repaired_list):
+    """Does this run need a human to look at it?
+
+    - fail > 0        : an account could not be processed.
+    - enrolled > 0    : an ORCID was linked but never got its units, i.e. the grant
+                        failed at link time (TAIR3-890). Self-healed here, but the
+                        underlying bug is still live.
+    - repaired > 0    : units were granted but the tracking row was not written -
+                        same link-time bug, partial version.
+
+    A plain replenishment run (units topped up on schedule, users emailed) is the
+    normal case and is NOT an issue - it goes to CloudWatch only.
+    """
+    return fail > 0 or len(enrolled_list) > 0 or len(repaired_list) > 0
+
+
+def _put_metric(name, value):
+    """One PutMetricData call via the AWS CLI. Returns True on success.
+
+    Shelling out rather than using boto: this runs on Python 2.7 under a plain
+    /usr/bin/python with no guarantee boto3 is importable, and the CLI already
+    picks up the instance role.
+    """
+    import subprocess
+    cmd = [
+        AWS_CLI, "cloudwatch", "put-metric-data",
+        "--region", CW_REGION,
+        "--namespace", CW_NAMESPACE,
+        "--metric-name", name,
+        "--value", str(value),
+        "--unit", "Count",
+        "--dimensions", "Job=%s" % CW_JOB,
+    ]
+    devnull = open(os.devnull, 'w')
+    try:
+        return subprocess.call(cmd, stdout=devnull, stderr=devnull) == 0
+    finally:
+        devnull.close()
+
+
+def publish_run(status, success, eligible, ok, fail, replenished, enrolled, repaired, note=''):
+    """Publish this run's outcome to CloudWatch; fall back to HISTORY_FILE.
+
+    This is the "did the job run?" record that replaces the nightly success email.
+    Best-effort: a bookkeeping failure must never fail the run or mask work that
+    has already committed.
+    """
+    metrics = [
+        ("RunSuccess", success),
+        ("Replenished", replenished),
+        ("Enrolled", enrolled),
+        ("Repaired", repaired),
+        ("Failed", fail),
+    ]
+    try:
+        published = all([_put_metric(n, v) for n, v in metrics])
+    except Exception as e:
+        log("[cloudwatch error] %s" % e)
+        published = False
+
+    if published:
+        log("CloudWatch: published %s/%s RunSuccess=%d replenished=%d enrolled=%d repaired=%d failed=%d"
+            % (CW_NAMESPACE, CW_JOB, success, replenished, enrolled, repaired, fail))
+        return
+    log("WARNING: CloudWatch publish failed - recording locally in %s" % HISTORY_FILE)
+    record_history(status, eligible, ok, fail, replenished, enrolled, repaired,
+                   note=('cw-publish-failed; %s' % note) if note else 'cw-publish-failed')
+
+
+def record_history(status, eligible, ok, fail, replenished, enrolled, repaired, note=''):
+    """Append one line per run to HISTORY_FILE (CloudWatch fallback only)."""
+    try:
+        need_header = not os.path.exists(HISTORY_FILE)
+        d = os.path.dirname(HISTORY_FILE)
+        if d and not os.path.isdir(d):
+            os.makedirs(d)
+        f = open(HISTORY_FILE, 'a')
+        try:
+            if need_header:
+                f.write(HISTORY_HEADER + "\n")
+            f.write("%s\t%s\t%d\t%d\t%d\t%d\t%d\t%d\t%s\n" % (
+                datetime.now().strftime('%Y-%m-%d %H:%M:%S'), status,
+                eligible, ok, fail, replenished, enrolled, repaired, note))
+        finally:
+            f.close()
+    except Exception as e:
+        log("[history write error] %s: %s" % (HISTORY_FILE, e))
+
+
+def send_report_email(replenished_list, enrolled_list=None, repaired_list=None, fail=0):
+    """Send the admin report. Only called when run_has_issue() is true.
 
     Enrolled/repaired accounts get no user-facing email (TAIR3-890), so this report
     is the only notification that a silently-failed grant was corrected. A non-zero
@@ -165,7 +286,9 @@ def send_report_email(replenished_list, enrolled_list=None, repaired_list=None):
     """
     enrolled_list = enrolled_list or []
     repaired_list = repaired_list or []
-    if not replenished_list and not enrolled_list and not repaired_list:
+    # fail counts too: an all-accounts-failed run has three empty lists and is the
+    # single most important run to report.
+    if not replenished_list and not enrolled_list and not repaired_list and not fail:
         return
     try:
         from django.core.mail import send_mail
@@ -184,8 +307,14 @@ def send_report_email(replenished_list, enrolled_list=None, repaired_list=None):
             return out
 
         body = "ORCID credit report for %s\n" % today
-        body += "\nreplenished=%d  first-time enrolled=%d  tracking repaired=%d\n" % (
-            len(replenished_list), len(enrolled_list), len(repaired_list))
+        body += ("\nThis email is sent only when a run needs attention. Clean replenish-only\n"
+                 "runs publish CloudWatch metrics (%s, Job=%s) and send nothing.\n"
+                 % (CW_NAMESPACE, CW_JOB))
+        body += "\nfailed=%d  replenished=%d  first-time enrolled=%d  tracking repaired=%d\n" % (
+            fail, len(replenished_list), len(enrolled_list), len(repaired_list))
+        if fail:
+            body += ("\n%d account(s) FAILED to process - see the per-account [error] lines in\n"
+                     "/var/log/api/orcid_replenish.log for this run.\n" % fail)
         body += section("Replenished (annual top-up, user emailed)", replenished_list)
         body += section(
             "First-time enrolled (TAIR3-890 - grant had silently failed)", enrolled_list,
@@ -197,8 +326,8 @@ def send_report_email(replenished_list, enrolled_list=None, repaired_list=None):
             "Missing OrcidCreditTracking row created; NO units granted (already held active free units).")
 
         send_mail(
-            subject="ORCID Credit Report - %s (replenished %d, enrolled %d, repaired %d)" % (
-                today, len(replenished_list), len(enrolled_list), len(repaired_list)),
+            subject="[ORCID CREDITS] ACTION NEEDED %s - failed %d, enrolled %d, repaired %d" % (
+                today, fail, len(enrolled_list), len(repaired_list)),
             message=body,
             from_email=EMAIL_FROM,
             recipient_list=[REPORT_RECIPIENT],
@@ -314,7 +443,32 @@ def process_one(conn, cur, row, action, dry_run=False, send_email=True):
         return False
 
 
-def main():
+def send_crash_email(exc_text):
+    """The run aborted before finishing - e.g. the DB was unreachable.
+
+    Without this an outage is completely silent: no report (nothing was processed)
+    and no history line beyond the CRASH marker. Best-effort; if Django itself is
+    what failed to load, there is nothing to send with and the log is all we have.
+    """
+    try:
+        from django.core.mail import send_mail
+        today = datetime.now().strftime('%Y-%m-%d')
+        send_mail(
+            subject="[ORCID CREDITS] FAILED %s - run did not complete" % today,
+            message=("The nightly ORCID credit run aborted with an unhandled error.\n"
+                     "Accounts due for replenishment on this run were NOT processed.\n\n"
+                     "%s\n"
+                     "Full log: /var/log/api/orcid_replenish.log\n"
+                     "Run history: %s\n" % (exc_text, HISTORY_FILE)),
+            from_email=EMAIL_FROM,
+            recipient_list=[REPORT_RECIPIENT],
+            fail_silently=False,
+        )
+    except Exception as e:
+        log("[crash email error] %s" % e)
+
+
+def run():
     dry_run = '--dry-run' in sys.argv
     # TAIR3-890 self-heal runs by default so failed grants are corrected within a
     # day; --no-heal restricts the run to plain replenishment.
@@ -348,6 +502,10 @@ def main():
 
     if not eligible:
         log("Replenish ORCID credits: 0 eligible, 0 ok, 0 failed" + (" (dry run)" if dry_run else ""))
+        # Nothing due tonight is a perfectly healthy outcome - publish RunSuccess=1
+        # so the alarm sees the job ran, and send no email.
+        if not dry_run:
+            publish_run('OK', 1, 0, 0, 0, 0, 0, 0, note='nothing due')
         cur.close()
         conn.close()
         return
@@ -376,8 +534,24 @@ def main():
         else:
             fail += 1
 
-    if send_email:
-        send_report_email(by_action[ACTION_REPLENISH], by_action[ACTION_ENROLL], by_action[ACTION_REPAIR])
+    issue = run_has_issue(fail, by_action[ACTION_ENROLL], by_action[ACTION_REPAIR])
+
+    if send_email and issue:
+        send_report_email(by_action[ACTION_REPLENISH], by_action[ACTION_ENROLL],
+                          by_action[ACTION_REPAIR], fail=fail)
+    elif send_email:
+        log("No issues this run - admin report email suppressed (history only).")
+
+    if not dry_run:
+        # RunSuccess=1 whenever the job completed its pass, even if individual
+        # accounts failed - per-account failures are the email's job, not the
+        # "did this job stop running" alarm's.
+        publish_run(
+            'ISSUE' if issue else 'OK', 1,
+            len(eligible), ok, fail,
+            len(by_action[ACTION_REPLENISH]), len(by_action[ACTION_ENROLL]),
+            len(by_action[ACTION_REPAIR]),
+            note='admin emailed' if issue else '')
 
     log("Replenish ORCID credits: %d eligible, %d ok, %d failed "
         "(replenished=%d, first-time enrolled=%d, tracking repaired=%d)%s"
@@ -387,6 +561,21 @@ def main():
     cur.close()
     conn.close()
     if fail > 0:
+        sys.exit(1)
+
+
+def main():
+    try:
+        run()
+    except SystemExit:
+        raise
+    except Exception:
+        import traceback
+        tb = traceback.format_exc()
+        log("[fatal] run aborted:\n%s" % tb)
+        publish_run('CRASH', 0, 0, 0, 0, 0, 0, 0, note='unhandled error - see log')
+        if '--dry-run' not in sys.argv:
+            send_crash_email(tb)
         sys.exit(1)
 
 
