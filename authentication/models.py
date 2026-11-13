@@ -92,14 +92,12 @@ class AccountRecoveryAttempt(models.Model):
         index_together = (('action', 'keyHash', 'createdAt'),)
 
 
-# PWL-1036: one row per rate-limit key. A request locks the rows for its keys
-# (SELECT ... FOR UPDATE) before counting and recording attempts, so two
-# concurrent requests for the same key cannot both pass the limit.
+# PWL-1036: a fixed pool of lock rows (recovery.LOCK_STRIPES of them). A
+# request locks the rows its rate-limit keys map to (SELECT ... FOR UPDATE)
+# before counting and recording attempts, so two concurrent requests for the
+# same key cannot both pass the limit.
 class AccountRecoveryLock(models.Model):
-    action = models.CharField(max_length=16)
-    keyHash = models.CharField(max_length=40)
-    lastUsed = models.DateTimeField(db_index=True)
+    stripe = models.PositiveSmallIntegerField(primary_key=True)
 
     class Meta:
         db_table = 'AccountRecoveryLock'
-        unique_together = (('action', 'keyHash'),)

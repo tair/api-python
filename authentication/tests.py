@@ -93,6 +93,24 @@ class GetUsernamesTest(AccountRecoveryTestBase):
         # Only the registered address is emailed.
         self.assertEqual(len(mail.outbox), 1)
 
+    def test_mail_failure_gets_same_response(self):
+        from authentication import views
+        unknown = self.getUsernames(email='nobody@example.org')
+        realSendMail = views.send_mail
+        def failingSendMail(**kwargs):
+            raise IOError('SMTP is down')
+        views.send_mail = failingSendMail
+        try:
+            known = self.getUsernames()
+        finally:
+            views.send_mail = realSendMail
+        self.assertEqual(known.status_code, unknown.status_code)
+        self.assertEqual(known.content, unknown.content)
+
+    def test_unknown_partner(self):
+        response = self.client.get(USERNAMES_URL, {'email': 'curator@arabidopsis.org', 'partnerId': 'nope'})
+        self.assertEqual(response.status_code, 400)
+
     def test_rate_limited_per_email(self):
         maxCount = recovery.USERNAMES_PER_EMAIL[1]
         for i in range(maxCount):
@@ -122,17 +140,24 @@ class ReserveTest(TestCase):
         # The IP limit is full, so the user limit must not be charged either.
         self.assertFalse(recovery.reserve([(userLimit, 'u2'), (ipLimit, '1.1.1.1')]))
         self.assertEqual(AccountRecoveryAttempt.objects.filter(action='reset-user').count(), 1)
-        self.assertEqual(AccountRecoveryLock.objects.count(), 3)
+
+    def test_rejected_requests_add_no_rows(self):
+        ipLimit = ('reset-ip', 1)
+        self.assertTrue(recovery.reserve([(('reset-user', 3), 'first'), (ipLimit, '1.1.1.1')]))
+        attempts = AccountRecoveryAttempt.objects.count()
+        # A new username on every request, from an IP that is used up.
+        for i in range(200):
+            self.assertFalse(recovery.reserve([(('reset-user', 3), 'user%d' % i), (ipLimit, '1.1.1.1')]))
+        self.assertEqual(AccountRecoveryAttempt.objects.count(), attempts)
+        self.assertLessEqual(AccountRecoveryLock.objects.count(), recovery.LOCK_STRIPES)
 
     def test_old_rows_are_purged(self):
         from datetime import timedelta
         from django.utils import timezone
         old = timezone.now() - recovery.RETENTION - timedelta(minutes=1)
         AccountRecoveryAttempt.objects.create(action='reset-ip', keyHash='x' * 40, createdAt=old)
-        AccountRecoveryLock.objects.create(action='reset-ip', keyHash='x' * 40, lastUsed=old)
         self.assertTrue(recovery.reserve([(('reset-ip', 1), '2.2.2.2')]))
         self.assertFalse(AccountRecoveryAttempt.objects.filter(keyHash='x' * 40).exists())
-        self.assertFalse(AccountRecoveryLock.objects.filter(keyHash='x' * 40).exists())
 
     def test_retries_mysql_deadlock(self):
         from django.db import OperationalError
@@ -150,3 +175,37 @@ class ReserveTest(TestCase):
             recovery._reserveOnce = real
         self.assertEqual(len(calls), 2)
         self.assertEqual(AccountRecoveryAttempt.objects.count(), 1)
+
+
+class ClientIpTest(TestCase):
+    def ip(self, remote, xff=None):
+        from django.test import RequestFactory
+        extra = {'REMOTE_ADDR': remote}
+        if xff is not None:
+            extra['HTTP_X_FORWARDED_FOR'] = xff
+        return recovery.clientIp(RequestFactory().get('/', **extra))
+
+    def test_direct_connection_ignores_forwarded_header(self):
+        self.assertEqual(self.ip('203.0.113.9', '198.51.100.1'), '203.0.113.9')
+
+    def test_behind_load_balancer_uses_address_it_appended(self):
+        # The client sent "198.51.100.1"; the load balancer (10.0.0.2) appended
+        # the real address 203.0.113.9.
+        self.assertEqual(self.ip('10.0.0.2', '198.51.100.1, 203.0.113.9'), '203.0.113.9')
+
+    def test_spoofed_entries_change_nothing(self):
+        for spoof in ['1.2.3.4', '5.6.7.8, 9.9.9.9', '10.1.1.1', 'garbage']:
+            self.assertEqual(self.ip('10.0.0.2', spoof + ', 203.0.113.9'), '203.0.113.9')
+
+    def test_all_internal(self):
+        self.assertEqual(self.ip('10.0.0.2', '192.168.1.5'), '192.168.1.5')
+        self.assertEqual(self.ip('127.0.0.1'), '127.0.0.1')
+
+    def test_unparseable_hop_stops_the_walk(self):
+        self.assertEqual(self.ip('10.0.0.2', '203.0.113.7, junk'), '10.0.0.2')
+
+    def test_trusted_proxies_setting(self):
+        from django.test import override_settings
+        with override_settings(RECOVERY_TRUSTED_PROXIES=['10.0.0.0/8', '130.176.0.0/16']):
+            # A CDN hop (130.176.x.x) in front of the load balancer.
+            self.assertEqual(self.ip('10.0.0.2', '203.0.113.9, 130.176.4.4'), '203.0.113.9')

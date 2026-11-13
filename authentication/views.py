@@ -358,7 +358,9 @@ def resetPwd(request):
     # user's password, so cap how often one username or one client can use it.
     ip = recovery.clientIp(request)
     limits = [
-      (recovery.RESET_PER_USERNAME, "%s|%s" % (requestPartner, requestUsername.lower())),
+      # Key on the stored partnerId: MySQL matches partnerId case-insensitively,
+      # so "tair" and "TAIR" must share one quota.
+      (recovery.RESET_PER_USERNAME, "%s|%s" % (partnerObj.partnerId, requestUsername.lower())),
       (recovery.RESET_PER_IP, ip),
     ]
     if not recovery.reserve(limits):
@@ -466,7 +468,11 @@ class getUsernameCRUD(GenericCRUDView):
             if param not in params:
                 return Response({'error':param + ' param is required.'}, status=status.HTTP_400_BAD_REQUEST)
         email = params['email']
-        partnerId = params['partnerId']
+        partner = Partner.objects.filter(partnerId=params['partnerId']).first()
+        if partner is None:
+            return Response({'error': 'Unknown partnerId'}, status=status.HTTP_400_BAD_REQUEST)
+        # The stored value, so equivalent spellings ("tair", "TAIR") share one quota.
+        partnerId = partner.partnerId
 
         # PWL-1036: this endpoint needs no login, so cap how often one email
         # address or one client can use it.
@@ -492,7 +498,7 @@ class getUsernameCRUD(GenericCRUDView):
         for user in credentialSerializer.data:
             userList += user['username'] + '\n'
 
-        partnerName = Partner.objects.get(partnerId=partnerId).name
+        partnerName = partner.name
 
         #send email
         subject = partnerName + " Usernames for %s" % email
@@ -502,7 +508,12 @@ class getUsernameCRUD(GenericCRUDView):
         from_email = "info@phoenixbioinformatics.org"
 
         recipient_list = [email]
-        send_mail(subject=subject, message=message, from_email=from_email, recipient_list=recipient_list)
+        # A delivery failure must not change the response: an error here, and
+        # only for registered addresses, would show which addresses have accounts.
+        try:
+            send_mail(subject=subject, message=message, from_email=from_email, recipient_list=recipient_list)
+        except Exception:
+            logger.exception("Authentication getUsernames could not email %s" % email)
 
         # PWL-1036: the usernames go only to the email address. Returning them
         # here let anyone look up the usernames for any address.

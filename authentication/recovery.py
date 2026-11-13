@@ -2,13 +2,14 @@
 # (/credentials/resetPwd/ and /credentials/getUsernames/).
 
 import hashlib
+import ipaddress
 from datetime import timedelta
 
+from django.conf import settings
 from django.db import IntegrityError, OperationalError, transaction
 from django.utils import timezone
 
 from authentication.models import AccountRecoveryAttempt, AccountRecoveryLock
-from common.common import getRemoteIpAddress
 
 import logging
 logger = logging.getLogger('phoenix.api.authentication')
@@ -23,12 +24,25 @@ RESET_PER_IP = ('reset-ip', 20)
 USERNAMES_PER_EMAIL = ('names-email', 3)
 USERNAMES_PER_IP = ('names-ip', 20)
 
-# Rows older than this are deleted as new ones are written.
+# Attempt rows older than this are deleted as new ones are written.
 RETENTION = timedelta(days=1)
+
+# Requests are serialized on a fixed pool of lock rows: each limit key maps to
+# one of LOCK_STRIPES rows. The pool never grows, so requests that are turned
+# away (or that use a new username or email every time) add no rows.
+LOCK_STRIPES = 64
 
 MAX_TRIES = 5
 # MySQL deadlock (1213) and lock wait timeout (1205): safe to retry.
 RETRYABLE_MYSQL_ERRORS = (1213, 1205)
+
+# Hops whose X-Forwarded-For entries we trust: the load balancer and any proxy
+# inside our own network. Override with settings.RECOVERY_TRUSTED_PROXIES (a
+# list of CIDRs), for example to add a CDN's address ranges.
+DEFAULT_TRUSTED_PROXIES = (
+    u'10.0.0.0/8', u'172.16.0.0/12', u'192.168.0.0/16', u'127.0.0.0/8',
+    u'::1/128', u'fc00::/7',
+)
 
 
 def _hashKey(value):
@@ -37,20 +51,58 @@ def _hashKey(value):
     return hashlib.sha1(value).hexdigest()
 
 
+def _parseIp(value):
+    try:
+        return ipaddress.ip_address(unicode(value.strip()))
+    except (ValueError, UnicodeDecodeError, AttributeError):
+        return None
+
+
+def _trustedProxies():
+    cidrs = getattr(settings, 'RECOVERY_TRUSTED_PROXIES', DEFAULT_TRUSTED_PROXIES)
+    return [ipaddress.ip_network(unicode(c), strict=False) for c in cidrs]
+
+
 def clientIp(request):
-    return getRemoteIpAddress(request) or 'unknown'
+    """The client address to rate limit on.
+
+    The leftmost X-Forwarded-For entry is whatever the client sent, so it
+    cannot be used: a caller could change it on every request. Instead walk
+    the chain from the connection peer leftwards, skipping hops that are our
+    own proxies, and use the first address that is not one of them. A client
+    can only add entries to the left of what our proxies append, so it cannot
+    choose this address. (Same approach as Apache's mod_remoteip.)
+    """
+    hops = [h for h in request.META.get('HTTP_X_FORWARDED_FOR', '').split(',') if h.strip()]
+    hops.append(request.META.get('REMOTE_ADDR', ''))
+    trusted = _trustedProxies()
+    candidate = None
+    for hop in reversed(hops):
+        ip = _parseIp(hop)
+        if ip is None:
+            # Unparseable entry: we cannot trust anything left of it.
+            break
+        candidate = ip
+        if not any(ip in net for net in trusted):
+            break
+    return str(candidate) if candidate is not None else 'unknown'
 
 
-def _ensureLockRows(keys, now):
-    """Create the lock row for each key if it is missing. Runs before the
-    locking transaction, so a concurrent insert of the same row only raises
-    IntegrityError here, which means the row now exists."""
-    for action, keyHash in keys:
-        if AccountRecoveryLock.objects.filter(action=action, keyHash=keyHash).exists():
+def _stripe(action, keyHash):
+    return int(hashlib.sha1(action + '|' + keyHash).hexdigest()[:8], 16) % LOCK_STRIPES
+
+
+def _ensureLockRows(stripes):
+    """Create any missing lock rows. Migration 0013 creates all of them; this
+    only matters for a database built without migrations (such as tests).
+    There are at most LOCK_STRIPES rows, so this cannot grow the table."""
+    existing = set(AccountRecoveryLock.objects.filter(stripe__in=stripes).values_list('stripe', flat=True))
+    for stripe in stripes:
+        if stripe in existing:
             continue
         try:
             with transaction.atomic():
-                AccountRecoveryLock.objects.create(action=action, keyHash=keyHash, lastUsed=now)
+                AccountRecoveryLock.objects.create(stripe=stripe)
         except IntegrityError:
             pass
 
@@ -64,9 +116,9 @@ def reserve(limits):
 
     Checking the counts and recording the attempt must be one step: otherwise
     two requests can both read count == max - 1 and both pass. So the request
-    locks one row per key (in a fixed order, to avoid deadlocks), then counts
-    and records while holding the locks. Requests sharing a key wait for each
-    other; requests with different keys do not.
+    locks the lock rows for its keys (in a fixed order, to avoid deadlocks),
+    then counts and records while holding them. Requests that share a key
+    always share its lock row, so they run one at a time.
     """
     now = timezone.now()
     maxCounts = {}
@@ -74,14 +126,13 @@ def reserve(limits):
         k = (action, _hashKey(key))
         maxCounts[k] = min(maxCount, maxCounts.get(k, maxCount))
     keys = sorted(maxCounts)
+    stripes = sorted(set(_stripe(action, keyHash) for action, keyHash in keys))
 
     reserved = None
-    # Retry when a lock row was purged between creating and locking it, or
-    # when MySQL picks this transaction as a deadlock or lock-wait victim
-    # (seen when many requests create the same lock row at once).
+    # Retry when MySQL picks this transaction as a deadlock or lock-wait victim.
     for _attempt in range(MAX_TRIES):
         try:
-            reserved = _reserveOnce(keys, maxCounts, now)
+            reserved = _reserveOnce(keys, stripes, maxCounts, now)
         except OperationalError as e:
             if not e.args or e.args[0] not in RETRYABLE_MYSQL_ERRORS:
                 raise
@@ -91,29 +142,24 @@ def reserve(limits):
             break
 
     if reserved is None:
-        # Could not lock the rows; refuse rather than skip the limit.
+        # Could not get the locks; refuse rather than skip the limit.
         return False
-    if reserved:
-        try:
-            _purge(now)
-        except OperationalError:
-            # Cleanup only; the next request will try again.
-            logger.exception("Account recovery purge failed")
+    try:
+        _purge(now)
+    except OperationalError:
+        # Cleanup only; the next request will try again.
+        logger.exception("Account recovery purge failed")
     return reserved
 
 
-def _reserveOnce(keys, maxCounts, now):
+def _reserveOnce(keys, stripes, maxCounts, now):
     """One locking pass. Returns True/False, or None if a lock row was missing."""
     since = now - RATE_LIMIT_WINDOW
-    _ensureLockRows(keys, now)
+    _ensureLockRows(stripes)
     with transaction.atomic():
-        locked = [
-            AccountRecoveryLock.objects.select_for_update()
-                .filter(action=action, keyHash=keyHash).first()
-            for action, keyHash in keys
-        ]
-        if None in locked:
-            return None
+        for stripe in stripes:
+            if not list(AccountRecoveryLock.objects.select_for_update().filter(stripe=stripe)):
+                return None
         for action, keyHash in keys:
             count = AccountRecoveryAttempt.objects.filter(
                 action=action, keyHash=keyHash, createdAt__gte=since).count()
@@ -123,14 +169,11 @@ def _reserveOnce(keys, maxCounts, now):
             AccountRecoveryAttempt(action=action, keyHash=keyHash, createdAt=now)
             for action, keyHash in keys
         ])
-        AccountRecoveryLock.objects.filter(pk__in=[lock.pk for lock in locked]).update(lastUsed=now)
         return True
 
 
 def _purge(now):
-    cutoff = now - RETENTION
-    AccountRecoveryAttempt.objects.filter(createdAt__lt=cutoff).delete()
-    AccountRecoveryLock.objects.filter(lastUsed__lt=cutoff).delete()
+    AccountRecoveryAttempt.objects.filter(createdAt__lt=now - RETENTION).delete()
 
 
 def maskEmail(email):
