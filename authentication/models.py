@@ -76,3 +76,28 @@ class OrcidCreditTracking(models.Model):
 
     class Meta:
         db_table = 'OrcidCreditTracking'
+
+# PWL-1036: one row per accepted password-reset or username-lookup request, so
+# the two unauthenticated recovery endpoints can be rate limited. Kept in the
+# database rather than Django's cache because the API runs in several
+# processes and the default cache is per process. The key (username, email or
+# IP) is stored as a SHA-1 so this table does not collect addresses.
+class AccountRecoveryAttempt(models.Model):
+    action = models.CharField(max_length=16)
+    keyHash = models.CharField(max_length=40)
+    createdAt = models.DateTimeField(db_index=True)
+
+    class Meta:
+        db_table = 'AccountRecoveryAttempt'
+        index_together = (('action', 'keyHash', 'createdAt'),)
+
+
+# PWL-1036: a fixed pool of lock rows (recovery.LOCK_STRIPES of them). A
+# request locks the rows its rate-limit keys map to (SELECT ... FOR UPDATE)
+# before counting and recording attempts, so two concurrent requests for the
+# same key cannot both pass the limit.
+class AccountRecoveryLock(models.Model):
+    stripe = models.PositiveSmallIntegerField(primary_key=True)
+
+    class Meta:
+        db_table = 'AccountRecoveryLock'

@@ -237,6 +237,8 @@ STATIC_URL = '/static/'
 EMAIL_USE_TLS = True
 EMAIL_HOST = 'email-smtp.us-west-2.amazonaws.com'
 EMAIL_PORT = 25
+# Seconds to wait on the mail server before giving up (PWL-1036).
+EMAIL_TIMEOUT = 30
 # Fill in the username and password for emails.
 # For AWS SES, this will be the username/password of the IAM created for SES.
 EMAIL_HOST_USER = None
@@ -274,3 +276,13 @@ ORCID_REDIRECT_URL=""
 # BASF Gateway API settings
 BASF_GATEWAY_API_KEY = ''
 BASF_GATEWAY_API_URL = ''
+
+# PWL-1036: how the account-recovery rate limits find the client's address.
+# RECOVERY_TRUSTED_PROXIES: CIDRs our proxies (the load balancer) connect from.
+# Keep this to the load balancer's subnets: a client that can connect from
+# inside these ranges without going through the load balancer can choose the
+# address it is limited under. Defaults to all private and loopback ranges.
+# RECOVERY_PROXY_HOPS: proxies in front of the API that append to
+# X-Forwarded-For (1 = load balancer only, 2 = CDN + load balancer).
+# RECOVERY_TRUSTED_PROXIES = ['10.0.0.0/16']
+# RECOVERY_PROXY_HOPS = 1
