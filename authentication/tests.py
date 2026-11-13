@@ -1,3 +1,106 @@
+import hashlib
+import json
+
+from django.core import mail
 from django.test import TestCase
 
-# Create your tests here.
+from authentication import recovery
+from authentication.models import Credential, AccountRecoveryAttempt
+from partner.models import Partner
+from party.models import Party
+
+RESET_URL = '/credentials/resetPwd/'
+USERNAMES_URL = '/credentials/getUsernames/'
+
+
+class AccountRecoveryTestBase(TestCase):
+    def setUp(self):
+        self.partner = Partner.objects.create(
+            partnerId='tair', name='TAIR', logoUri='', termOfServiceUri='')
+        party = Party.objects.create(name='Curator')
+        self.originalHash = hashlib.sha1('original').hexdigest()
+        self.credential = Credential.objects.create(
+            username='curator', password=self.originalHash,
+            email='curator@arabidopsis.org', partyId=party, partnerId=self.partner)
+
+    def reset(self, username='curator', ip='10.0.0.1'):
+        return self.client.put(
+            RESET_URL + '?user=%s&partnerId=tair' % username, REMOTE_ADDR=ip)
+
+    def getUsernames(self, email='curator@arabidopsis.org', ip='10.0.0.1'):
+        return self.client.get(
+            USERNAMES_URL, {'email': email, 'partnerId': 'tair'}, REMOTE_ADDR=ip)
+
+
+class ResetPwdTest(AccountRecoveryTestBase):
+    def test_response_has_no_password_hash_or_full_email(self):
+        response = self.reset()
+        self.assertEqual(response.status_code, 200)
+        body = json.loads(response.content)
+        self.assertNotIn('temppwd', body)
+        self.assertEqual(body['useremail'], 'c*****r@arabidopsis.org')
+        self.assertNotIn('curator@arabidopsis.org', response.content)
+        credential = Credential.objects.get(pk=self.credential.pk)
+        self.assertNotIn(credential.password, response.content)
+        self.assertNotEqual(credential.password, self.originalHash)
+        self.assertEqual(len(mail.outbox), 1)
+
+    def test_unknown_user_still_401(self):
+        response = self.reset(username='nobody')
+        self.assertEqual(response.status_code, 401)
+
+    def test_rate_limited_per_username(self):
+        maxCount = recovery.RESET_PER_USERNAME[1]
+        for i in range(maxCount):
+            # Different IPs, and different letter case, still count as one user.
+            username = 'CURATOR' if i % 2 else 'curator'
+            self.assertEqual(self.reset(username=username, ip='10.0.0.%d' % i).status_code, 200)
+        passwordBefore = Credential.objects.get(pk=self.credential.pk).password
+        response = self.reset(ip='10.0.1.1')
+        self.assertEqual(response.status_code, 429)
+        # A blocked request neither emails nor changes the password.
+        self.assertEqual(len(mail.outbox), maxCount)
+        self.assertEqual(Credential.objects.get(pk=self.credential.pk).password, passwordBefore)
+
+    def test_rate_limited_per_ip(self):
+        maxCount = recovery.RESET_PER_IP[1]
+        for i in range(maxCount):
+            self.assertEqual(self.reset(username='nobody%d' % i).status_code, 401)
+        self.assertEqual(self.reset().status_code, 429)
+        self.assertEqual(self.reset(ip='10.0.0.2').status_code, 200)
+
+    def test_attempts_store_hashes_not_values(self):
+        self.reset()
+        for attempt in AccountRecoveryAttempt.objects.all():
+            self.assertEqual(len(attempt.keyHash), 40)
+            self.assertNotIn('curator', attempt.keyHash)
+
+
+class GetUsernamesTest(AccountRecoveryTestBase):
+    def test_usernames_only_emailed(self):
+        response = self.getUsernames()
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(list(json.loads(response.content).keys()), ['message'])
+        self.assertNotIn('curator', response.content)
+        self.assertEqual(len(mail.outbox), 1)
+        self.assertIn('curator', mail.outbox[0].body)
+
+    def test_rate_limited_per_email(self):
+        maxCount = recovery.USERNAMES_PER_EMAIL[1]
+        for i in range(maxCount):
+            self.assertEqual(self.getUsernames(ip='10.0.0.%d' % i).status_code, 200)
+        self.assertEqual(self.getUsernames(ip='10.0.1.1').status_code, 429)
+        self.assertEqual(len(mail.outbox), maxCount)
+
+
+class MaskEmailTest(TestCase):
+    def test_mask(self):
+        self.assertEqual(recovery.maskEmail('a@x.org'), '*@x.org')
+        self.assertEqual(recovery.maskEmail('ab@x.org'), 'a*@x.org')
+        self.assertEqual(recovery.maskEmail('abcd@x.org'), 'a**d@x.org')
+        self.assertEqual(recovery.maskEmail(None), '')
+
+    def test_mask_is_idempotent(self):
+        for email in ['a@x.org', 'ab@x.org', 'abcd@x.org']:
+            once = recovery.maskEmail(email)
+            self.assertEqual(recovery.maskEmail(once), once)

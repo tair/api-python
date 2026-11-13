@@ -19,6 +19,7 @@ from django.views.decorators.csrf import csrf_exempt
 from django.utils.decorators import method_decorator
 from authentication.models import Credential, GooglePartyAffiliation, Credential, OrcidCredentials
 from authentication.serializers import CredentialSerializer, CredentialSerializerNoPassword
+from authentication import recovery
 from subscription.models import Party
 from partner.models import Partner
 from party.serializers import PartySerializer
@@ -325,6 +326,8 @@ def login(request):
     logger.info("Authentication Login %s, %s: \n %s %s %s" % (ip, msg, requestUser, requestHashedPassword, request.GET['partnerId']))
     return HttpResponse(json.dumps({"message":msg}), status=401)
 
+TOO_MANY_REQUESTS_MESSAGE = "Too many requests. Please try again later."
+
 # Used when a partner has no resetPasswordEmailBody of its own.
 DEFAULT_RESET_PASSWORD_EMAIL_BODY = (
     "username: %s (%s)\n"
@@ -349,6 +352,20 @@ def resetPwd(request):
       # this the lookup raises and the caller only sees an opaque 500.
       return HttpResponse(json.dumps({"message": "Unknown partnerId"}), status=400)
     #partnerObj = Partner.objects.get(partnerId=user.partnerId)
+
+    # PWL-1036: this endpoint needs no login, and each reset replaces the
+    # user's password, so cap how often one username or one client can use it.
+    ip = recovery.clientIp(request)
+    limits = [
+      (recovery.RESET_PER_USERNAME, "%s|%s" % (requestPartner, requestUsername.lower())),
+      (recovery.RESET_PER_IP, ip),
+    ]
+    if recovery.isRateLimited(limits):
+      logger.warning("Authentication resetPwd rate limited: user %s, partner %s, ip %s" % (requestUsername, requestPartner, ip))
+      return HttpResponse(json.dumps({"message": TOO_MANY_REQUESTS_MESSAGE}), status=429)
+    recovery.recordAttempt(limits)
+    logger.info("Authentication resetPwd requested: user %s, partner %s, ip %s" % (requestUsername, requestPartner, ip))
+
     if user: 
       user = user.first()
       password = ''.join(random.choice(string.ascii_uppercase + string.digits) for _ in range(8))
@@ -386,7 +403,11 @@ def resetPwd(request):
       user.password = hashedPassword
       user.save()
             
-      return HttpResponse(json.dumps({'reset pwd':'success', 'username':user.username, 'useremail':user.email, 'temppwd':user.password}), content_type="application/json")#PW-215 unlikely
+      # PWL-1036: never return the password hash (it is an unsalted SHA-1 of an
+      # 8-character temporary password, so it can be cracked) or the full email
+      # address. The login pages only show the address masked, so return it
+      # masked; they mask it again, which leaves it unchanged.
+      return HttpResponse(json.dumps({'reset pwd':'success', 'username':user.username, 'useremail':recovery.maskEmail(user.email)}), content_type="application/json")
     return HttpResponse(json.dumps({"reset pwd failed":"No such user"}), status=401)
   return HttpResponse(json.dumps({"message": "Method not allowed"}), status=405)
 
@@ -446,6 +467,20 @@ class getUsernameCRUD(GenericCRUDView):
                 return Response({'error':param + ' param is required.'}, status=status.HTTP_400_BAD_REQUEST)
         email = params['email']
         partnerId = params['partnerId']
+
+        # PWL-1036: this endpoint needs no login, so cap how often one email
+        # address or one client can use it.
+        ip = recovery.clientIp(request)
+        limits = [
+            (recovery.USERNAMES_PER_EMAIL, "%s|%s" % (partnerId, email.lower())),
+            (recovery.USERNAMES_PER_IP, ip),
+        ]
+        if recovery.isRateLimited(limits):
+            logger.warning("Authentication getUsernames rate limited: email %s, partner %s, ip %s" % (email, partnerId, ip))
+            return Response({'error': TOO_MANY_REQUESTS_MESSAGE}, status=status.HTTP_429_TOO_MANY_REQUESTS)
+        recovery.recordAttempt(limits)
+        logger.info("Authentication getUsernames requested: email %s, partner %s, ip %s" % (email, partnerId, ip))
+
         if not Credential.objects.all().filter(email=email).filter(partnerId=partnerId).exists():
             return Response({'error':'no username found.'}, status=status.HTTP_400_BAD_REQUEST)
 
@@ -468,7 +503,9 @@ class getUsernameCRUD(GenericCRUDView):
         recipient_list = [email]
         send_mail(subject=subject, message=message, from_email=from_email, recipient_list=recipient_list)
 
-        return Response(credentialSerializer.data, status=status.HTTP_200_OK)
+        # PWL-1036: the usernames go only to the email address. Returning them
+        # here let anyone look up the usernames for any address.
+        return Response({'message': 'The usernames have been sent to the email address.'}, status=status.HTTP_200_OK)
 
 #/credentials/checkAccountExists
 def checkAccountExists(request):
