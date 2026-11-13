@@ -1,12 +1,14 @@
 # PWL-1036: helpers for the unauthenticated account-recovery endpoints
 # (/credentials/resetPwd/ and /credentials/getUsernames/).
 
+import Queue
 import hashlib
 import ipaddress
 import threading
 from datetime import timedelta
 
 from django.conf import settings
+from django.core.mail import get_connection
 from django.db import IntegrityError, OperationalError, connection, transaction
 from django.utils import timezone
 
@@ -15,18 +17,19 @@ from authentication.models import AccountRecoveryAttempt, AccountRecoveryLock
 import logging
 logger = logging.getLogger('phoenix.api.authentication')
 
-RATE_LIMIT_WINDOW = timedelta(hours=1)
+# A rolling 24-hour window.
+RATE_LIMIT_WINDOW = timedelta(days=1)
 
-# (action, maximum accepted requests per RATE_LIMIT_WINDOW).
-# A reset rotates the password, so a username gets very few per hour; the IP
-# limit is looser because many users can share an institution's address.
+# (action, maximum accepted requests per RATE_LIMIT_WINDOW). A legitimate user
+# needs one or two of these a day; anything more is someone else's doing.
 RESET_PER_USERNAME = ('reset-user', 3)
-RESET_PER_IP = ('reset-ip', 20)
+RESET_PER_IP = ('reset-ip', 5)
 USERNAMES_PER_EMAIL = ('names-email', 3)
-USERNAMES_PER_IP = ('names-ip', 20)
+USERNAMES_PER_IP = ('names-ip', 5)
 
-# Attempt rows older than this are deleted as new ones are written.
-RETENTION = timedelta(days=1)
+# Attempt rows older than this are deleted as new ones are written. Must be
+# longer than RATE_LIMIT_WINDOW.
+RETENTION = RATE_LIMIT_WINDOW + timedelta(days=1)
 
 # Requests are serialized on a fixed pool of lock rows: each limit key maps to
 # one of LOCK_STRIPES rows. The pool never grows, so requests that are turned
@@ -102,22 +105,64 @@ def clientIp(request):
     return str(candidate) if candidate is not None else 'unknown'
 
 
-def _runInThread(func, *args):
-    def run():
+# Background work (the username email) runs on a small fixed pool of worker
+# threads per process, fed by a bounded queue, so a slow or stalled mail
+# server cannot pile up threads and database connections.
+BACKGROUND_WORKERS = 2
+BACKGROUND_QUEUE_SIZE = 50
+
+# SMTP timeout in seconds when settings.EMAIL_TIMEOUT is not set. Without one,
+# Django waits on a stalled mail server forever.
+DEFAULT_EMAIL_TIMEOUT = 30
+
+_backgroundQueue = Queue.Queue(maxsize=BACKGROUND_QUEUE_SIZE)
+_workersLock = threading.Lock()
+_workers = []
+
+
+def mailConnection():
+    """An email connection that gives up on a stalled mail server."""
+    timeout = getattr(settings, 'EMAIL_TIMEOUT', None) or DEFAULT_EMAIL_TIMEOUT
+    return get_connection(timeout=timeout)
+
+
+def _worker():
+    while True:
+        func, args = _backgroundQueue.get()
         try:
             func(*args)
+        except Exception:
+            logger.exception("Account recovery background task failed")
         finally:
-            # The thread opened its own database connection; close it.
+            # This thread opened its own database connection; close it.
             connection.close()
-    thread = threading.Thread(target=run)
-    # Daemon, so a stuck mail server cannot hold up a process shutdown. An
-    # email being sent at that moment is lost; the user can ask again.
-    thread.daemon = True
-    thread.start()
+            _backgroundQueue.task_done()
+
+
+def _startWorkers():
+    with _workersLock:
+        while len(_workers) < BACKGROUND_WORKERS:
+            thread = threading.Thread(target=_worker)
+            # Daemon, so a stuck mail server cannot hold up a process shutdown.
+            # Work queued or in flight at that moment is lost; the user can ask
+            # again.
+            thread.daemon = True
+            thread.start()
+            _workers.append(thread)
+
+
+def _runInWorkers(func, *args):
+    """Queue func(*args) for a worker thread. If the queue is full, the work is
+    dropped and logged; the caller's response does not change either way."""
+    _startWorkers()
+    try:
+        _backgroundQueue.put_nowait((func, args))
+    except Queue.Full:
+        logger.error("Account recovery background queue is full; dropped %s" % func.__name__)
 
 
 # Runs work after the response has been sent. Tests replace it to run inline.
-runInBackground = _runInThread
+runInBackground = _runInWorkers
 
 
 def _stripe(action, keyHash):

@@ -391,7 +391,8 @@ def resetPwd(request):
       # whose new password never reached them.
       try:
         message = emailBody % (user.username, user.email, password)
-        delivered = send_mail(subject=subject, message=message, from_email=from_email, recipient_list=recipient_list)
+        delivered = send_mail(subject=subject, message=message, from_email=from_email, recipient_list=recipient_list,
+                              connection=recovery.mailConnection())
       except Exception:
         logger.exception("Authentication resetPwd could not email %s" % user.email)
         return HttpResponse(json.dumps({"message": "Could not send the reset email"}), status=503)
@@ -507,7 +508,8 @@ def _emailUsernames(email, partnerId, partnerName):
         message = ('You have the following ' + partnerName + ' usernames associated with %s:\n' % email
                    + ''.join(username + '\n' for username in usernames))
         send_mail(subject=subject, message=message,
-                  from_email="info@phoenixbioinformatics.org", recipient_list=[email])
+                  from_email="info@phoenixbioinformatics.org", recipient_list=[email],
+                  connection=recovery.mailConnection())
     except Exception:
         logger.exception("Authentication getUsernames could not email %s" % email)
 

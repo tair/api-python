@@ -236,9 +236,40 @@ class RunInBackgroundTest(TestCase):
             seen.append((value, threading.current_thread() is not mainThread))
             done.set()
         mainThread = threading.current_thread()
-        recovery._runInThread(work, 'x')
+        recovery._runInWorkers(work, 'x')
         self.assertTrue(done.wait(5))
         self.assertEqual(seen, [('x', True)])
+
+    def test_thread_count_is_bounded(self):
+        import threading
+        release = threading.Event()
+        for _ in range(20):
+            recovery._runInWorkers(release.wait, 5)
+        workers = [t for t in threading.enumerate() if t in recovery._workers]
+        self.assertLessEqual(len(workers), recovery.BACKGROUND_WORKERS)
+        release.set()
+        recovery._backgroundQueue.join()
+
+    def test_full_queue_drops_work_without_raising(self):
+        import Queue
+        realQueue, realStart = recovery._backgroundQueue, recovery._startWorkers
+        recovery._backgroundQueue = Queue.Queue(maxsize=1)
+        recovery._startWorkers = lambda: None
+        try:
+            recovery._runInWorkers(len, 'a')
+            recovery._runInWorkers(len, 'b')  # dropped, no exception
+            self.assertEqual(recovery._backgroundQueue.qsize(), 1)
+        finally:
+            recovery._backgroundQueue, recovery._startWorkers = realQueue, realStart
+
+
+class MailConnectionTest(TestCase):
+    def test_has_a_timeout(self):
+        from django.test import override_settings
+        with override_settings(EMAIL_BACKEND='django.core.mail.backends.smtp.EmailBackend'):
+            self.assertEqual(recovery.mailConnection().timeout, recovery.DEFAULT_EMAIL_TIMEOUT)
+            with override_settings(EMAIL_TIMEOUT=7):
+                self.assertEqual(recovery.mailConnection().timeout, 7)
 
 
 class GetUsernamesBackgroundTest(TransactionTestCase):
