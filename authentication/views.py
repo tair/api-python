@@ -327,6 +327,7 @@ def login(request):
     return HttpResponse(json.dumps({"message":msg}), status=401)
 
 TOO_MANY_REQUESTS_MESSAGE = "Too many requests. Please try again later."
+USERNAMES_SENT_MESSAGE = "If an account uses this email address, its usernames have been sent to it."
 
 # Used when a partner has no resetPasswordEmailBody of its own.
 DEFAULT_RESET_PASSWORD_EMAIL_BODY = (
@@ -360,10 +361,9 @@ def resetPwd(request):
       (recovery.RESET_PER_USERNAME, "%s|%s" % (requestPartner, requestUsername.lower())),
       (recovery.RESET_PER_IP, ip),
     ]
-    if recovery.isRateLimited(limits):
+    if not recovery.reserve(limits):
       logger.warning("Authentication resetPwd rate limited: user %s, partner %s, ip %s" % (requestUsername, requestPartner, ip))
       return HttpResponse(json.dumps({"message": TOO_MANY_REQUESTS_MESSAGE}), status=429)
-    recovery.recordAttempt(limits)
     logger.info("Authentication resetPwd requested: user %s, partner %s, ip %s" % (requestUsername, requestPartner, ip))
 
     if user: 
@@ -475,14 +475,15 @@ class getUsernameCRUD(GenericCRUDView):
             (recovery.USERNAMES_PER_EMAIL, "%s|%s" % (partnerId, email.lower())),
             (recovery.USERNAMES_PER_IP, ip),
         ]
-        if recovery.isRateLimited(limits):
+        if not recovery.reserve(limits):
             logger.warning("Authentication getUsernames rate limited: email %s, partner %s, ip %s" % (email, partnerId, ip))
             return Response({'error': TOO_MANY_REQUESTS_MESSAGE}, status=status.HTTP_429_TOO_MANY_REQUESTS)
-        recovery.recordAttempt(limits)
         logger.info("Authentication getUsernames requested: email %s, partner %s, ip %s" % (email, partnerId, ip))
 
+        # PWL-1036: answer the same way whether or not the address has an
+        # account, so this endpoint cannot be used to find registered emails.
         if not Credential.objects.all().filter(email=email).filter(partnerId=partnerId).exists():
-            return Response({'error':'no username found.'}, status=status.HTTP_400_BAD_REQUEST)
+            return Response({'message': USERNAMES_SENT_MESSAGE}, status=status.HTTP_200_OK)
 
         usernames = Credential.objects.all().filter(email=email).filter(partnerId=partnerId)
         credentialSerializer = CredentialSerializerNoPassword(usernames, many=True)
@@ -505,7 +506,7 @@ class getUsernameCRUD(GenericCRUDView):
 
         # PWL-1036: the usernames go only to the email address. Returning them
         # here let anyone look up the usernames for any address.
-        return Response({'message': 'The usernames have been sent to the email address.'}, status=status.HTTP_200_OK)
+        return Response({'message': USERNAMES_SENT_MESSAGE}, status=status.HTTP_200_OK)
 
 #/credentials/checkAccountExists
 def checkAccountExists(request):

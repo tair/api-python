@@ -27,4 +27,20 @@ class Migration(migrations.Migration):
             name='accountrecoveryattempt',
             index_together=set([('action', 'keyHash', 'createdAt')]),
         ),
+        migrations.CreateModel(
+            name='AccountRecoveryLock',
+            fields=[
+                ('id', models.AutoField(verbose_name='ID', serialize=False, auto_created=True, primary_key=True)),
+                ('action', models.CharField(max_length=16)),
+                ('keyHash', models.CharField(max_length=40)),
+                ('lastUsed', models.DateTimeField(db_index=True)),
+            ],
+            options={
+                'db_table': 'AccountRecoveryLock',
+            },
+        ),
+        migrations.AlterUniqueTogether(
+            name='accountrecoverylock',
+            unique_together=set([('action', 'keyHash')]),
+        ),
     ]

@@ -5,7 +5,7 @@ from django.core import mail
 from django.test import TestCase
 
 from authentication import recovery
-from authentication.models import Credential, AccountRecoveryAttempt
+from authentication.models import Credential, AccountRecoveryAttempt, AccountRecoveryLock
 from partner.models import Partner
 from party.models import Party
 
@@ -85,6 +85,14 @@ class GetUsernamesTest(AccountRecoveryTestBase):
         self.assertEqual(len(mail.outbox), 1)
         self.assertIn('curator', mail.outbox[0].body)
 
+    def test_unknown_email_gets_same_response(self):
+        known = self.getUsernames()
+        unknown = self.getUsernames(email='nobody@example.org')
+        self.assertEqual(unknown.status_code, known.status_code)
+        self.assertEqual(unknown.content, known.content)
+        # Only the registered address is emailed.
+        self.assertEqual(len(mail.outbox), 1)
+
     def test_rate_limited_per_email(self):
         maxCount = recovery.USERNAMES_PER_EMAIL[1]
         for i in range(maxCount):
@@ -104,3 +112,41 @@ class MaskEmailTest(TestCase):
         for email in ['a@x.org', 'ab@x.org', 'abcd@x.org']:
             once = recovery.maskEmail(email)
             self.assertEqual(recovery.maskEmail(once), once)
+
+
+class ReserveTest(TestCase):
+    def test_all_or_nothing(self):
+        userLimit = ('reset-user', 3)
+        ipLimit = ('reset-ip', 1)
+        self.assertTrue(recovery.reserve([(userLimit, 'u1'), (ipLimit, '1.1.1.1')]))
+        # The IP limit is full, so the user limit must not be charged either.
+        self.assertFalse(recovery.reserve([(userLimit, 'u2'), (ipLimit, '1.1.1.1')]))
+        self.assertEqual(AccountRecoveryAttempt.objects.filter(action='reset-user').count(), 1)
+        self.assertEqual(AccountRecoveryLock.objects.count(), 3)
+
+    def test_old_rows_are_purged(self):
+        from datetime import timedelta
+        from django.utils import timezone
+        old = timezone.now() - recovery.RETENTION - timedelta(minutes=1)
+        AccountRecoveryAttempt.objects.create(action='reset-ip', keyHash='x' * 40, createdAt=old)
+        AccountRecoveryLock.objects.create(action='reset-ip', keyHash='x' * 40, lastUsed=old)
+        self.assertTrue(recovery.reserve([(('reset-ip', 1), '2.2.2.2')]))
+        self.assertFalse(AccountRecoveryAttempt.objects.filter(keyHash='x' * 40).exists())
+        self.assertFalse(AccountRecoveryLock.objects.filter(keyHash='x' * 40).exists())
+
+    def test_retries_mysql_deadlock(self):
+        from django.db import OperationalError
+        real = recovery._reserveOnce
+        calls = []
+        def flaky(*args):
+            calls.append(1)
+            if len(calls) == 1:
+                raise OperationalError(1213, 'Deadlock found when trying to get lock')
+            return real(*args)
+        recovery._reserveOnce = flaky
+        try:
+            self.assertTrue(recovery.reserve([(('reset-ip', 1), '3.3.3.3')]))
+        finally:
+            recovery._reserveOnce = real
+        self.assertEqual(len(calls), 2)
+        self.assertEqual(AccountRecoveryAttempt.objects.count(), 1)

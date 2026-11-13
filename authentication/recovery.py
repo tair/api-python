@@ -4,10 +4,14 @@
 import hashlib
 from datetime import timedelta
 
+from django.db import IntegrityError, OperationalError, transaction
 from django.utils import timezone
 
-from authentication.models import AccountRecoveryAttempt
+from authentication.models import AccountRecoveryAttempt, AccountRecoveryLock
 from common.common import getRemoteIpAddress
+
+import logging
+logger = logging.getLogger('phoenix.api.authentication')
 
 RATE_LIMIT_WINDOW = timedelta(hours=1)
 
@@ -22,6 +26,10 @@ USERNAMES_PER_IP = ('names-ip', 20)
 # Rows older than this are deleted as new ones are written.
 RETENTION = timedelta(days=1)
 
+MAX_TRIES = 5
+# MySQL deadlock (1213) and lock wait timeout (1205): safe to retry.
+RETRYABLE_MYSQL_ERRORS = (1213, 1205)
+
 
 def _hashKey(value):
     if isinstance(value, unicode):
@@ -33,25 +41,96 @@ def clientIp(request):
     return getRemoteIpAddress(request) or 'unknown'
 
 
-def isRateLimited(limits):
-    """limits: list of ((action, maxCount), key). True if any limit is used up."""
-    since = timezone.now() - RATE_LIMIT_WINDOW
-    for (action, maxCount), key in limits:
-        count = AccountRecoveryAttempt.objects.filter(
-            action=action, keyHash=_hashKey(key), createdAt__gte=since).count()
-        if count >= maxCount:
-            return True
-    return False
+def _ensureLockRows(keys, now):
+    """Create the lock row for each key if it is missing. Runs before the
+    locking transaction, so a concurrent insert of the same row only raises
+    IntegrityError here, which means the row now exists."""
+    for action, keyHash in keys:
+        if AccountRecoveryLock.objects.filter(action=action, keyHash=keyHash).exists():
+            continue
+        try:
+            with transaction.atomic():
+                AccountRecoveryLock.objects.create(action=action, keyHash=keyHash, lastUsed=now)
+        except IntegrityError:
+            pass
 
 
-def recordAttempt(limits):
-    """Count one accepted request against each of the given limits."""
+def reserve(limits):
+    """Count one request against each of the given limits, atomically.
+
+    limits: list of ((action, maxCount), key). Returns True and records the
+    request if every limit has room; returns False and records nothing if any
+    limit is used up.
+
+    Checking the counts and recording the attempt must be one step: otherwise
+    two requests can both read count == max - 1 and both pass. So the request
+    locks one row per key (in a fixed order, to avoid deadlocks), then counts
+    and records while holding the locks. Requests sharing a key wait for each
+    other; requests with different keys do not.
+    """
     now = timezone.now()
-    AccountRecoveryAttempt.objects.bulk_create([
-        AccountRecoveryAttempt(action=action, keyHash=_hashKey(key), createdAt=now)
-        for (action, _maxCount), key in limits
-    ])
-    AccountRecoveryAttempt.objects.filter(createdAt__lt=now - RETENTION).delete()
+    maxCounts = {}
+    for (action, maxCount), key in limits:
+        k = (action, _hashKey(key))
+        maxCounts[k] = min(maxCount, maxCounts.get(k, maxCount))
+    keys = sorted(maxCounts)
+
+    reserved = None
+    # Retry when a lock row was purged between creating and locking it, or
+    # when MySQL picks this transaction as a deadlock or lock-wait victim
+    # (seen when many requests create the same lock row at once).
+    for _attempt in range(MAX_TRIES):
+        try:
+            reserved = _reserveOnce(keys, maxCounts, now)
+        except OperationalError as e:
+            if not e.args or e.args[0] not in RETRYABLE_MYSQL_ERRORS:
+                raise
+            logger.warning("Account recovery reserve retrying after MySQL error %s" % e.args[0])
+            reserved = None
+        if reserved is not None:
+            break
+
+    if reserved is None:
+        # Could not lock the rows; refuse rather than skip the limit.
+        return False
+    if reserved:
+        try:
+            _purge(now)
+        except OperationalError:
+            # Cleanup only; the next request will try again.
+            logger.exception("Account recovery purge failed")
+    return reserved
+
+
+def _reserveOnce(keys, maxCounts, now):
+    """One locking pass. Returns True/False, or None if a lock row was missing."""
+    since = now - RATE_LIMIT_WINDOW
+    _ensureLockRows(keys, now)
+    with transaction.atomic():
+        locked = [
+            AccountRecoveryLock.objects.select_for_update()
+                .filter(action=action, keyHash=keyHash).first()
+            for action, keyHash in keys
+        ]
+        if None in locked:
+            return None
+        for action, keyHash in keys:
+            count = AccountRecoveryAttempt.objects.filter(
+                action=action, keyHash=keyHash, createdAt__gte=since).count()
+            if count >= maxCounts[(action, keyHash)]:
+                return False
+        AccountRecoveryAttempt.objects.bulk_create([
+            AccountRecoveryAttempt(action=action, keyHash=keyHash, createdAt=now)
+            for action, keyHash in keys
+        ])
+        AccountRecoveryLock.objects.filter(pk__in=[lock.pk for lock in locked]).update(lastUsed=now)
+        return True
+
+
+def _purge(now):
+    cutoff = now - RETENTION
+    AccountRecoveryAttempt.objects.filter(createdAt__lt=cutoff).delete()
+    AccountRecoveryLock.objects.filter(lastUsed__lt=cutoff).delete()
 
 
 def maskEmail(email):
