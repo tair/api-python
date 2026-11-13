@@ -486,38 +486,30 @@ class getUsernameCRUD(GenericCRUDView):
             return Response({'error': TOO_MANY_REQUESTS_MESSAGE}, status=status.HTTP_429_TOO_MANY_REQUESTS)
         logger.info("Authentication getUsernames requested: email %s, partner %s, ip %s" % (email, partnerId, ip))
 
-        # PWL-1036: answer the same way whether or not the address has an
-        # account, so this endpoint cannot be used to find registered emails.
-        if not Credential.objects.all().filter(email=email).filter(partnerId=partnerId).exists():
-            return Response({'message': USERNAMES_SENT_MESSAGE}, status=status.HTTP_200_OK)
-
-        usernames = Credential.objects.all().filter(email=email).filter(partnerId=partnerId)
-        credentialSerializer = CredentialSerializerNoPassword(usernames, many=True)
-
-        userList = ''
-        for user in credentialSerializer.data:
-            userList += user['username'] + '\n'
-
-        partnerName = partner.name
-
-        #send email
-        subject = partnerName + " Usernames for %s" % email
-
-        message = 'You have the following ' + partnerName + ' usernames associated with %s:\n' % email + userList
-
-        from_email = "info@phoenixbioinformatics.org"
-
-        recipient_list = [email]
-        # A delivery failure must not change the response: an error here, and
-        # only for registered addresses, would show which addresses have accounts.
-        try:
-            send_mail(subject=subject, message=message, from_email=from_email, recipient_list=recipient_list)
-        except Exception:
-            logger.exception("Authentication getUsernames could not email %s" % email)
-
-        # PWL-1036: the usernames go only to the email address. Returning them
-        # here let anyone look up the usernames for any address.
+        # PWL-1036: answer the same way, and equally fast, whether or not the
+        # address has an account, so this endpoint cannot be used to find
+        # registered emails. The lookup and the email (an SMTP round trip, and
+        # only for registered addresses) run after the response is sent; the
+        # usernames go only to the email address, never in the response.
+        recovery.runInBackground(_emailUsernames, email, partnerId, partner.name)
         return Response({'message': USERNAMES_SENT_MESSAGE}, status=status.HTTP_200_OK)
+
+
+def _emailUsernames(email, partnerId, partnerName):
+    """Email the usernames registered to an address, if there are any. Runs in
+    the background, so failures are only logged."""
+    try:
+        usernames = list(Credential.objects.filter(email=email, partnerId=partnerId)
+                         .values_list('username', flat=True))
+        if not usernames:
+            return
+        subject = partnerName + " Usernames for %s" % email
+        message = ('You have the following ' + partnerName + ' usernames associated with %s:\n' % email
+                   + ''.join(username + '\n' for username in usernames))
+        send_mail(subject=subject, message=message,
+                  from_email="info@phoenixbioinformatics.org", recipient_list=[email])
+    except Exception:
+        logger.exception("Authentication getUsernames could not email %s" % email)
 
 #/credentials/checkAccountExists
 def checkAccountExists(request):

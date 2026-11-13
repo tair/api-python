@@ -2,7 +2,7 @@ import hashlib
 import json
 
 from django.core import mail
-from django.test import TestCase
+from django.test import TestCase, TransactionTestCase
 
 from authentication import recovery
 from authentication.models import Credential, AccountRecoveryAttempt, AccountRecoveryLock
@@ -15,6 +15,10 @@ USERNAMES_URL = '/credentials/getUsernames/'
 
 class AccountRecoveryTestBase(TestCase):
     def setUp(self):
+        # Run the background email inline so the tests can see it.
+        self.realRunInBackground = recovery.runInBackground
+        recovery.runInBackground = lambda func, *args: func(*args)
+        self.addCleanup(setattr, recovery, 'runInBackground', self.realRunInBackground)
         self.partner = Partner.objects.create(
             partnerId='tair', name='TAIR', logoUri='', termOfServiceUri='')
         party = Party.objects.create(name='Curator')
@@ -206,6 +210,50 @@ class ClientIpTest(TestCase):
 
     def test_trusted_proxies_setting(self):
         from django.test import override_settings
-        with override_settings(RECOVERY_TRUSTED_PROXIES=['10.0.0.0/8', '130.176.0.0/16']):
+        with override_settings(RECOVERY_TRUSTED_PROXIES=['10.0.0.0/8', '130.176.0.0/16'], RECOVERY_PROXY_HOPS=2):
             # A CDN hop (130.176.x.x) in front of the load balancer.
             self.assertEqual(self.ip('10.0.0.2', '203.0.113.9, 130.176.4.4'), '203.0.113.9')
+
+    def test_private_client_cannot_choose_its_address(self):
+        # A client on a private network (10.8.0.5) forges an entry; the load
+        # balancer (10.0.0.2) appends the client's real address.
+        for forged in ['1.2.3.4', '5.6.7.8', '192.168.9.9']:
+            self.assertEqual(self.ip('10.0.0.2', forged + ', 10.8.0.5'), '10.8.0.5')
+
+    def test_proxy_hops_setting(self):
+        from django.test import override_settings
+        with override_settings(RECOVERY_PROXY_HOPS=2):
+            # CDN (10.20.0.1) then load balancer (10.0.0.2).
+            self.assertEqual(self.ip('10.0.0.2', '6.6.6.6, 203.0.113.9, 10.20.0.1'), '203.0.113.9')
+
+
+class RunInBackgroundTest(TestCase):
+    def test_runs_in_another_thread(self):
+        import threading
+        done = threading.Event()
+        seen = []
+        def work(value):
+            seen.append((value, threading.current_thread() is not mainThread))
+            done.set()
+        mainThread = threading.current_thread()
+        recovery._runInThread(work, 'x')
+        self.assertTrue(done.wait(5))
+        self.assertEqual(seen, [('x', True)])
+
+
+class GetUsernamesBackgroundTest(TransactionTestCase):
+    """The real background thread, with committed data it can see from its own
+    database connection."""
+    def test_email_sent_from_background_thread(self):
+        import time
+        partner = Partner.objects.create(partnerId='tair', name='TAIR', logoUri='', termOfServiceUri='')
+        party = Party.objects.create(name='Curator')
+        Credential.objects.create(username='curator', password='x', email='curator@arabidopsis.org',
+                                  partyId=party, partnerId=partner)
+        response = self.client.get(USERNAMES_URL, {'email': 'curator@arabidopsis.org', 'partnerId': 'tair'})
+        self.assertEqual(response.status_code, 200)
+        deadline = time.time() + 5
+        while not mail.outbox and time.time() < deadline:
+            time.sleep(0.05)
+        self.assertEqual(len(mail.outbox), 1)
+        self.assertIn('curator', mail.outbox[0].body)

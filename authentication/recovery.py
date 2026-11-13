@@ -3,10 +3,11 @@
 
 import hashlib
 import ipaddress
+import threading
 from datetime import timedelta
 
 from django.conf import settings
-from django.db import IntegrityError, OperationalError, transaction
+from django.db import IntegrityError, OperationalError, connection, transaction
 from django.utils import timezone
 
 from authentication.models import AccountRecoveryAttempt, AccountRecoveryLock
@@ -36,13 +37,18 @@ MAX_TRIES = 5
 # MySQL deadlock (1213) and lock wait timeout (1205): safe to retry.
 RETRYABLE_MYSQL_ERRORS = (1213, 1205)
 
-# Hops whose X-Forwarded-For entries we trust: the load balancer and any proxy
-# inside our own network. Override with settings.RECOVERY_TRUSTED_PROXIES (a
-# list of CIDRs), for example to add a CDN's address ranges.
+# Addresses our own proxies (the load balancer) connect from. Override with
+# settings.RECOVERY_TRUSTED_PROXIES, a list of CIDRs.
 DEFAULT_TRUSTED_PROXIES = (
     u'10.0.0.0/8', u'172.16.0.0/12', u'192.168.0.0/16', u'127.0.0.0/8',
     u'::1/128', u'fc00::/7',
 )
+
+# How many of our proxies append to X-Forwarded-For in front of the API: 1 for
+# a load balancer alone, 2 for a CDN in front of it. Override with
+# settings.RECOVERY_PROXY_HOPS. At most this many hops are skipped, so a client
+# that is itself on a private network cannot be skipped too.
+DEFAULT_PROXY_HOPS = 1
 
 
 def _hashKey(value):
@@ -68,24 +74,50 @@ def clientIp(request):
 
     The leftmost X-Forwarded-For entry is whatever the client sent, so it
     cannot be used: a caller could change it on every request. Instead walk
-    the chain from the connection peer leftwards, skipping hops that are our
-    own proxies, and use the first address that is not one of them. A client
-    can only add entries to the left of what our proxies append, so it cannot
-    choose this address. (Same approach as Apache's mod_remoteip.)
+    the chain from the connection peer leftwards, skipping our own proxies,
+    and use the first address that is not one of them. A client can only add
+    entries to the left of what our proxies append, so it cannot choose this
+    address.
+
+    A hop is skipped only if it is in a trusted range AND fewer than
+    RECOVERY_PROXY_HOPS hops have been skipped. Without the cap, a client on a
+    private address would itself look like a proxy and be skipped, and the
+    walk would reach an entry that client wrote.
     """
     hops = [h for h in request.META.get('HTTP_X_FORWARDED_FOR', '').split(',') if h.strip()]
     hops.append(request.META.get('REMOTE_ADDR', ''))
     trusted = _trustedProxies()
+    maxSkips = getattr(settings, 'RECOVERY_PROXY_HOPS', DEFAULT_PROXY_HOPS)
     candidate = None
+    skipped = 0
     for hop in reversed(hops):
         ip = _parseIp(hop)
         if ip is None:
             # Unparseable entry: we cannot trust anything left of it.
             break
         candidate = ip
-        if not any(ip in net for net in trusted):
+        if skipped >= maxSkips or not any(ip in net for net in trusted):
             break
+        skipped += 1
     return str(candidate) if candidate is not None else 'unknown'
+
+
+def _runInThread(func, *args):
+    def run():
+        try:
+            func(*args)
+        finally:
+            # The thread opened its own database connection; close it.
+            connection.close()
+    thread = threading.Thread(target=run)
+    # Daemon, so a stuck mail server cannot hold up a process shutdown. An
+    # email being sent at that moment is lost; the user can ask again.
+    thread.daemon = True
+    thread.start()
+
+
+# Runs work after the response has been sent. Tests replace it to run inline.
+runInBackground = _runInThread
 
 
 def _stripe(action, keyHash):
