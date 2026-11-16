@@ -443,7 +443,23 @@ def process_one(conn, cur, row, action, dry_run=False, send_email=True):
         return False
 
 
-def send_crash_email(exc_text):
+def new_run_state():
+    """Counters run() updates as it goes, so a crash can report work already committed."""
+    return {'phase': 'startup', 'eligible': 0, 'ok': 0, 'fail': 0,
+            'replenished': 0, 'enrolled': 0, 'repaired': 0}
+
+
+def _crash_progress_text(state):
+    if state['phase'] == 'startup':
+        return "The run aborted before any account was processed.\n"
+    return ("The run aborted during phase '%s'. Accounts already committed are NOT rolled back:\n"
+            "  eligible=%d ok=%d failed=%d (replenished=%d, enrolled=%d, repaired=%d)\n"
+            "Remaining eligible accounts were not processed; the next run picks them up.\n"
+            % (state['phase'], state['eligible'], state['ok'], state['fail'],
+               state['replenished'], state['enrolled'], state['repaired']))
+
+
+def send_crash_email(exc_text, state):
     """The run aborted before finishing - e.g. the DB was unreachable.
 
     Without this an outage is completely silent: no report (nothing was processed)
@@ -456,10 +472,10 @@ def send_crash_email(exc_text):
         send_mail(
             subject="[ORCID CREDITS] FAILED %s - run did not complete" % today,
             message=("The nightly ORCID credit run aborted with an unhandled error.\n"
-                     "Accounts due for replenishment on this run were NOT processed.\n\n"
+                     "%s\n"
                      "%s\n"
                      "Full log: /var/log/api/orcid_replenish.log\n"
-                     "Run history: %s\n" % (exc_text, HISTORY_FILE)),
+                     "Run history: %s\n" % (_crash_progress_text(state), exc_text, HISTORY_FILE)),
             from_email=EMAIL_FROM,
             recipient_list=[REPORT_RECIPIENT],
             fail_silently=False,
@@ -468,7 +484,7 @@ def send_crash_email(exc_text):
         log("[crash email error] %s" % e)
 
 
-def run():
+def run(state):
     dry_run = '--dry-run' in sys.argv
     # TAIR3-890 self-heal runs by default so failed grants are corrected within a
     # day; --no-heal restricts the run to plain replenishment.
@@ -506,6 +522,7 @@ def run():
         # so the alarm sees the job ran, and send no email.
         if not dry_run:
             publish_run('OK', 1, 0, 0, 0, 0, 0, 0, note='nothing due')
+        state['phase'] = 'published'
         cur.close()
         conn.close()
         return
@@ -515,6 +532,8 @@ def run():
     now = datetime.now()
     by_action = {ACTION_REPLENISH: [], ACTION_ENROLL: [], ACTION_REPAIR: []}
     seen_orcids = set()
+    state['phase'] = 'processing'
+    state['eligible'] = len(eligible)
 
     for row in eligible:
         # An ORCID can appear on more than one TAIR credential; only act once per
@@ -527,13 +546,19 @@ def run():
             # Belt and braces: without --heal we never grant to a new account.
             log("  [skip] orcid=%s needs %s but self-heal is disabled (--no-heal)" % (row['orcid_id'], action))
             continue
+        # Marked before processing so a failed ORCID is not retried via a duplicate row.
+        seen_orcids.add(row['orcid_id'])
         if process_one(conn, cur, row, action, dry_run=dry_run, send_email=send_email):
             ok += 1
-            seen_orcids.add(row['orcid_id'])
             by_action[action].append({'orcid_id': row['orcid_id'], 'email': row['email'] or ''})
+            state['ok'] = ok
+            state[{ACTION_REPLENISH: 'replenished', ACTION_ENROLL: 'enrolled',
+                   ACTION_REPAIR: 'repaired'}[action]] += 1
         else:
             fail += 1
+            state['fail'] = fail
 
+    state['phase'] = 'reporting'
     issue = run_has_issue(fail, by_action[ACTION_ENROLL], by_action[ACTION_REPAIR])
 
     if send_email and issue:
@@ -552,6 +577,7 @@ def run():
             len(by_action[ACTION_REPLENISH]), len(by_action[ACTION_ENROLL]),
             len(by_action[ACTION_REPAIR]),
             note='admin emailed' if issue else '')
+    state['phase'] = 'published'
 
     log("Replenish ORCID credits: %d eligible, %d ok, %d failed "
         "(replenished=%d, first-time enrolled=%d, tracking repaired=%d)%s"
@@ -565,17 +591,23 @@ def run():
 
 
 def main():
+    state = new_run_state()
     try:
-        run()
+        run(state)
     except SystemExit:
         raise
     except Exception:
         import traceback
         tb = traceback.format_exc()
         log("[fatal] run aborted:\n%s" % tb)
-        publish_run('CRASH', 0, 0, 0, 0, 0, 0, 0, note='unhandled error - see log')
+        log(_crash_progress_text(state).rstrip())
         if '--dry-run' not in sys.argv:
-            send_crash_email(tb)
+            # Once this run's metrics are out, a second CRASH datapoint would contradict them.
+            if state['phase'] != 'published':
+                publish_run('CRASH', 0, state['eligible'], state['ok'], state['fail'],
+                            state['replenished'], state['enrolled'], state['repaired'],
+                            note='unhandled error in phase %s - see log' % state['phase'])
+            send_crash_email(tb, state)
         sys.exit(1)
 
 
